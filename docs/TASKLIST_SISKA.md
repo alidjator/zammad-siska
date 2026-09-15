@@ -11,9 +11,9 @@
 - [x] Setup repo GitHub + SSH deploy key
 - [x] Push baseline source Zammad 7.1.3
 - [ ] **Bereskan disk host** (saat ini ±7.6GB free dari 130GB) — blocker untuk item 7 & 8 yang butuh storage tambahan (Elasticsearch index, historical report)
-- [ ] Tentukan branching strategy (`main` = baseline, `feature/<no>-<nama-item>` per item gap analysis)
+- [x] Tentukan branching strategy (`main` = baseline, `feature/<no>-<nama-item>` per item gap analysis)
 - [ ] Siapkan environment dev/staging terpisah untuk iterasi kode tanpa mengganggu `zammad-staging` yang sedang berjalan (agar tidak merusak instance yang sudah dipakai testing)
-- [ ] Definisikan alur build & deploy: edit source → `docker compose build` → redeploy container → smoke test
+- [x] Definisikan alur build & deploy: edit source → `docker compose build` → redeploy container → smoke test
 
 ---
 
