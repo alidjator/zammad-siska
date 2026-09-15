@@ -253,6 +253,22 @@ class Report
     ]
     config[:metric][:communication][:backend] = backend
 
+    config[:metric][:first_response_time] = {
+      name:    'first_response_time',
+      display: __('First Response Time (avg minutes)'),
+      prio:    6000,
+    }
+    backend = [
+      {
+        name:         'avg',
+        display:      __('Average'),
+        selected:     true,
+        dataDownload: true,
+        adapter:      Report::TicketFirstResponseTime,
+      },
+    ]
+    config[:metric][:first_response_time][:backend] = backend
+
     config[:metric].each do |metric_key, metric_value|
       metric_value[:backend].each do |metric_backend|
         metric_backend[:name] = "#{metric_key}::#{metric_backend[:name]}"
