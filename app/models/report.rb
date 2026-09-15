@@ -255,13 +255,13 @@ class Report
 
     config[:metric][:first_response_time] = {
       name:    'first_response_time',
-      display: __('First Response Time (avg minutes)'),
+      display: __('First Response Time (median minutes)'),
       prio:    6000,
     }
     backend = [
       {
-        name:         'avg',
-        display:      __('Average'),
+        name:         'median',
+        display:      __('Median'),
         selected:     true,
         dataDownload: true,
         adapter:      Report::TicketFirstResponseTime,

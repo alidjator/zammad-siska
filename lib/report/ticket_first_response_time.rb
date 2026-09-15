@@ -1,11 +1,19 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Average First Response Time (in minutes) per interval bucket.
+# Median First Response Time (in minutes) per interval bucket.
 #
-# Reuses Report::Base#time_average, which already computes the average
-# duration from ticket creation to a given timestamp field for tickets
-# matching a condition within one time range (present in Zammad core but
-# not wired into any active report metric).
+# Median rather than mean: a handful of neglected tickets answered days
+# late in a single catch-up batch can otherwise dominate the average and
+# make it unrepresentative, especially with the small sample sizes left
+# after the data-integrity filter below.
+#
+# NOTE: a known data-integrity issue makes `first_response_at` (and
+# `close_at`, `last_contact_at`) ~7h earlier than `created_at` for a large
+# share of historical tickets (see docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md
+# on `main`). Rather than guessing a cutover date, every query here excludes
+# tickets where `first_response_at < created_at` outright -- this is
+# self-correcting once the underlying bug is actually fixed, and it doesn't
+# discard the historical tickets that were recorded correctly.
 class Report::TicketFirstResponseTime < Report::BaseSql
 
 =begin
@@ -19,7 +27,7 @@ class Report::TicketFirstResponseTime < Report::BaseSql
 
 returns
 
-  [12,9,15,8,0,21,10,18,7,14]  # average first response time in minutes, per bucket
+  [12,9,15,8,0,21,10,18,7,14]  # median first response time in minutes, per bucket
 
 =end
 
@@ -54,13 +62,18 @@ returns
       local_selector = params[:selector].clone
       local_selector.merge!(without_merged_tickets_selector) # do not show merged tickets in reports
 
-      avg = time_average(
-        type:      'first_response_at',
-        start:     params[:range_start],
-        end:       params[:range_end],
-        condition: local_selector,
-      )
-      result.push avg[:count]
+      query, bind_params, tables = Ticket.selector2sql(local_selector)
+      diffs = Ticket
+        .where(
+          'tickets.first_response_at IS NOT NULL AND tickets.first_response_at >= tickets.created_at AND tickets.created_at >= ? AND tickets.created_at < ?',
+          params[:range_start],
+          params[:range_end],
+        )
+        .where(query, *bind_params).joins(tables)
+        .pluck(:created_at, :first_response_at)
+        .map { |created_at, first_response_at| first_response_at - created_at }
+
+      result.push(diffs.blank? ? -0.001 : (median(diffs) / 60).to_i)
 
       params[:range_start] = params[:range_end]
     end
@@ -91,7 +104,7 @@ returns
 
     query, bind_params, tables = Ticket.selector2sql(local_selector)
     ticket_list = Ticket.select('tickets.id, tickets.first_response_at, tickets.created_at').where(
-      'tickets.first_response_at IS NOT NULL AND tickets.created_at >= ? AND tickets.created_at < ?',
+      'tickets.first_response_at IS NOT NULL AND tickets.first_response_at >= tickets.created_at AND tickets.created_at >= ? AND tickets.created_at < ?',
       params[:range_start],
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(created_at: :asc)
@@ -109,5 +122,16 @@ returns
       assets:     assets,
     }
   end
+
+  def self.median(values)
+    sorted = values.sort
+    len    = sorted.length
+    mid    = len / 2
+
+    return sorted[mid] if len.odd?
+
+    (sorted[mid - 1] + sorted[mid]) / 2.0
+  end
+  private_class_method :median
 
 end
