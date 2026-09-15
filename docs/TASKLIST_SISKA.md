@@ -12,7 +12,7 @@
 - [x] Push baseline source Zammad 7.1.3
 - [x] **Bereskan disk host** — free space naik dari ±7.6GB → ±19GB (hapus `/home/pydev/paddle-ocr`, `/home/pydev/paddlex`, clear cache nginx `/var/lib/nginx/.cache`). Tetap monitor saat masuk fase reporting/Elasticsearch (item 7/8).
 - [x] Tentukan branching strategy (`main` = baseline, `feature/<no>-<nama-item>` per item gap analysis)
-- [ ] Siapkan environment dev/staging terpisah untuk iterasi kode tanpa mengganggu `zammad-staging` yang sedang berjalan (agar tidak merusak instance yang sudah dipakai testing)
+- [x] Keputusan: iterasi langsung di `zammad-staging` yang sudah ada (tidak bikin environment dev terpisah). Konsekuensi: setiap perubahan branch fitur yang di-deploy langsung memengaruhi instance yang dipakai testing/demo — pastikan smoke test & langkah rollback (lihat DEVELOPMENT_WORKFLOW.md) selalu dijalankan tiap deploy.
 - [x] Definisikan alur build & deploy: edit source → `docker compose build` → redeploy container → smoke test
 
 ---
