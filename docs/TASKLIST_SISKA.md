@@ -19,8 +19,8 @@
 
 ## Fase 1 — Item No. 7: Reporting Terintegrasi (Low-Medium effort)
 
-- [ ] Konfirmasi Elasticsearch aktif & terindeks dengan benar (prasyarat Report Profiles)
-- [ ] Buat/atur Report Profiles untuk metrik yang dibutuhkan (FRT, New/Open/Escalation, dll) dengan filter periode
+- [x] Konfirmasi Elasticsearch aktif & terindeks dengan benar (prasyarat Report Profiles) — 1.19 juta tiket ter-index, cluster health yellow (normal untuk single-node)
+- [x] Buat/atur Report Profiles untuk metrik yang dibutuhkan — metric FRT (median, dgn data-integrity filter) + 62 Report Profile (3 Category, 34 Group, 19 Organization) sudah live di staging
 - [ ] Evaluasi & pilih BI eksternal (Grafana atau Kibana) untuk historis >6.000 baris — sesuai rekomendasi resmi Zammad
 - [ ] Rancang skema penggabungan data **Feedback Rating** dari sistem lain ke reporting terpadu (custom ETL/import script)
 - [ ] Hitung kebutuhan storage untuk retensi historis 2 tahun, sesuaikan dengan kapasitas disk (lihat Fase 0)
