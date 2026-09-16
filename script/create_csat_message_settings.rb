@@ -35,7 +35,7 @@ Setting.create_if_not_exists(
     ],
   },
   state:       DEFAULT_TEMPLATE,
-  preferences: { permission: ['admin.setting_system'] },
+  preferences: { permission: ['admin.system'] },
   frontend:    false,
 )
 
@@ -55,7 +55,7 @@ Setting.create_if_not_exists(
     ],
   },
   state:       DEFAULT_TEMPLATE,
-  preferences: { permission: ['admin.setting_system'] },
+  preferences: { permission: ['admin.system'] },
   frontend:    false,
 )
 

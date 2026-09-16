@@ -4,9 +4,10 @@
 # docs/DESIGN_TEAM_KPI_DASHBOARD.md) -- gap analysis item No. 8.
 #
 # FRT and CSAT use a rolling window, selectable from the dashboard's range
-# dropdown (default 7 days, up to 2 years retroactive). A rolling window
-# gives a consistent sample size every day, unlike month-to-date (early in
-# the month = misleading average from too few days). Ticket state counts
+# dropdown (default team_kpi_default_window_days, up to
+# team_kpi_max_window_days retroactive). A rolling window gives a
+# consistent sample size every day, unlike month-to-date (early in the
+# month = misleading average from too few days). Ticket state counts
 # are always a real-time snapshot regardless of the range filter -- "how
 # many are open right now" doesn't have a meaningful historical variant.
 #
@@ -16,7 +17,11 @@
 # `*_state` fields (supergood/good/ok/bad/superbad/nil) mirror the native
 # "My Stats" widgets' own color-coding convention (lib/stats/ticket_*.rb),
 # so the frontend can reuse Zammad's own --supergood-color..--superbad-color
-# CSS variables instead of inventing new colors. Thresholds:
+# CSS variables instead of inventing new colors. Thresholds are Settings
+# (team_kpi_frt_thresholds/team_kpi_csat_thresholds/
+# team_kpi_escalated_thresholds -- see script/create_team_kpi_settings.rb,
+# editable via Admin > Settings > SISKA > KPI Tim), not hardcoded, so they
+# can be recalibrated without a redeploy. Defaults:
 #   - FRT: absolute cutoffs adapted from lib/stats/ticket_waiting_time.rb's
 #     handling-time bands (<=60/240/480 min), extended with a "superbad"
 #     tier (>1440 min) since our rolling-window median can run far higher
@@ -34,15 +39,20 @@
 # See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full rationale and the
 # calibration data behind these thresholds.
 class Service::Dashboard::TeamKpi
-  DEFAULT_WINDOW_DAYS = 7
-  MAX_WINDOW_DAYS      = 730 # 2 tahun
-
-  def self.call(window_days: DEFAULT_WINDOW_DAYS)
+  def self.call(window_days: default_window_days)
     new(window_days).call
   end
 
+  def self.default_window_days
+    Setting.get('team_kpi_default_window_days').to_i
+  end
+
+  def self.max_window_days
+    Setting.get('team_kpi_max_window_days').to_i
+  end
+
   def initialize(window_days)
-    @window_days = window_days.to_i.clamp(1, MAX_WINDOW_DAYS)
+    @window_days = window_days.to_i.clamp(1, self.class.max_window_days)
   end
 
   def call
@@ -134,13 +144,14 @@ class Service::Dashboard::TeamKpi
   def frt_state(minutes)
     return nil if minutes.nil?
 
-    if minutes <= 60
+    t = Setting.get('team_kpi_frt_thresholds')
+    if minutes <= t['supergood_max'].to_f
       'supergood'
-    elsif minutes <= 240
+    elsif minutes <= t['good_max'].to_f
       'good'
-    elsif minutes <= 480
+    elsif minutes <= t['ok_max'].to_f
       'ok'
-    elsif minutes <= 1440
+    elsif minutes <= t['bad_max'].to_f
       'bad'
     else
       'superbad'
@@ -150,13 +161,14 @@ class Service::Dashboard::TeamKpi
   def csat_state(average)
     return nil if average.nil?
 
-    if average >= 4.5
+    t = Setting.get('team_kpi_csat_thresholds')
+    if average >= t['supergood_min'].to_f
       'supergood'
-    elsif average >= 4.0
+    elsif average >= t['good_min'].to_f
       'good'
-    elsif average >= 3.0
+    elsif average >= t['ok_min'].to_f
       'ok'
-    elsif average >= 2.0
+    elsif average >= t['bad_min'].to_f
       'bad'
     else
       'superbad'
@@ -164,13 +176,14 @@ class Service::Dashboard::TeamKpi
   end
 
   def escalated_state(rate_percent)
-    if rate_percent >= 90
+    t = Setting.get('team_kpi_escalated_thresholds')
+    if rate_percent >= t['superbad_min'].to_f
       'superbad'
-    elsif rate_percent >= 65
+    elsif rate_percent >= t['bad_min'].to_f
       'bad'
-    elsif rate_percent >= 40
+    elsif rate_percent >= t['ok_min'].to_f
       'ok'
-    elsif rate_percent >= 20
+    elsif rate_percent >= t['good_min'].to_f
       'good'
     else
       'supergood'

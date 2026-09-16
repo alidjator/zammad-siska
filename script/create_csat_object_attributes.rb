@@ -153,7 +153,7 @@ Setting.create_if_not_exists(
   },
   state:       7,
   preferences: {
-    permission: ['admin.setting_system'],
+    permission: ['admin.system'],
   },
   frontend:    false,
 )
@@ -161,15 +161,32 @@ Setting.create_if_not_exists(
 puts '== Setting: csat_feature_launched_at =='
 # Internal cutoff: tickets closed before this timestamp are never surveyed,
 # so enabling the feature doesn't flood the historical backlog with surveys.
+#
+# options.form is REQUIRED even for an "internal" setting like this one --
+# App.SettingsArea (the generic Admin UI renderer, see
+# _manage/siska_settings.coffee) lists every Setting under its area and
+# crashes with "No such options.form for <name>" on any that lack a form
+# definition. Confirmed by hitting this exact error after wiring CSAT::Base
+# into the new "SISKA" admin tab.
 Setting.create_if_not_exists(
   title:       'CSAT Feature Launched At',
   name:        'csat_feature_launched_at',
   area:        'CSAT::Base',
-  description: 'Internal: tickets closed before this timestamp are never surveyed for CSAT.',
-  options:     {},
+  description: 'Internal: tickets closed before this timestamp are never surveyed for CSAT. ISO8601 format.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'csat_feature_launched_at',
+        tag:     'input',
+        type:    'text',
+      },
+    ],
+  },
   state:       Time.zone.now.iso8601,
   preferences: {
-    permission: ['admin.setting_system'],
+    permission: ['admin.system'],
   },
   frontend:    false,
 )
@@ -200,7 +217,7 @@ Setting.create_if_not_exists(
   },
   state:       false,
   preferences: {
-    permission: ['admin.setting_system'],
+    permission: ['admin.system'],
   },
   frontend:    false,
 )

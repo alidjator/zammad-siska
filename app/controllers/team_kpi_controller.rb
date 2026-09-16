@@ -8,7 +8,7 @@ class TeamKpiController < ApplicationController
   def show
     raise Exceptions::Forbidden if !current_user.permissions?('ticket.agent')
 
-    days = params[:days].presence || Service::Dashboard::TeamKpi::DEFAULT_WINDOW_DAYS
+    days = params[:days].presence || Service::Dashboard::TeamKpi.default_window_days
     render json: Service::Dashboard::TeamKpi.call(window_days: days), status: :ok
   end
 end

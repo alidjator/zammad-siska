@@ -1,7 +1,7 @@
 <div class="team-kpi-filter">
   <label><%- @T('Periode FRT & CSAT') %></label>
   <select class="js-kpi-range">
-    <option value="7" <% if @selectedRange is 7: %>selected<% end %>><%- @T('7 hari (default)') %></option>
+    <option value="7" <% if @selectedRange is 7: %>selected<% end %>><%- @T('7 hari') %></option>
     <option value="30" <% if @selectedRange is 30: %>selected<% end %>><%- @T('30 hari') %></option>
     <option value="90" <% if @selectedRange is 90: %>selected<% end %>><%- @T('90 hari') %></option>
     <option value="180" <% if @selectedRange is 180: %>selected<% end %>><%- @T('6 bulan') %></option>

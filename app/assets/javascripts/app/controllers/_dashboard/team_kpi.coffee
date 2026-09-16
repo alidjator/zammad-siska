@@ -2,12 +2,15 @@ class App.DashboardTeamKpi extends App.Controller
   events:
     'change .js-kpi-range': 'onRangeChange'
 
-  # value = days, keep in sync with team_kpi.jst.eco options
-  DEFAULT_RANGE: 7
-
   constructor: ->
     super
-    @selectedRange = @DEFAULT_RANGE
+    # Setting team_kpi_default_window_days (frontend: true, see
+    # script/create_team_kpi_settings.rb) is the same default the backend
+    # uses (Service::Dashboard::TeamKpi.default_window_days) -- read from
+    # App.Config instead of a separately hardcoded constant here, so the
+    # two can't silently drift out of sync. 7 is only a last-resort
+    # fallback if the config value is somehow missing.
+    @selectedRange = parseInt(App.Config.get('team_kpi_default_window_days'), 10) || 7
     @load()
     @startAutoRefresh()
 
