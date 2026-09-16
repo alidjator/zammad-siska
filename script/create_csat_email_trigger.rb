@@ -8,6 +8,12 @@
 # not on every subsequent unrelated update to an already-surveyed ticket.
 #
 #   bundle exec rails runner script/create_csat_email_trigger.rb RAILS_ENV=production
+#
+# create_if_not_exists is a no-op if the Trigger already exists -- on an
+# environment where it was already created (e.g. from an earlier version
+# of this script), update the existing record's `perform` instead:
+#
+#   Trigger.find_by(name: 'CSAT: send feedback survey email').update!(perform: { ... })
 
 Trigger.create_if_not_exists(
   name:                     'CSAT: send feedback survey email',
@@ -21,6 +27,10 @@ Trigger.create_if_not_exists(
     'notification.email' => {
       'recipient' => 'ticket_customer',
       'subject'   => 'Bagaimana pengalaman Anda dengan layanan kami? (##{ticket.number})', # rubocop:disable Lint/InterpolationCheck
+      # ONE bare link -- it opens FeedbackController's star-picker page
+      # (no score in the URL yet), which is what actually presents the
+      # 5 rating options. See docs/DESIGN_FEEDBACK_RATING.md and
+      # app/controllers/feedback_controller.rb#picker_page.
       'body'      => 'Terima kasih telah menghubungi kami terkait tiket <b>#{ticket.number}</b>.<br/><br/>' \
                       'Mohon berikan rating kepuasan Anda dengan mengklik link berikut:<br/>' \
                       '<a href="#{ticket.csat_feedback_link}">#{ticket.csat_feedback_link}</a><br/><br/>' \

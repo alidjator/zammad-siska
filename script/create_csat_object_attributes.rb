@@ -47,6 +47,24 @@ ObjectManager::Attribute.add(
   position:    901,
 )
 
+puts '== Ticket: csat_comment =='
+ObjectManager::Attribute.add(
+  object:      'Ticket',
+  name:        'csat_comment',
+  display:     'CSAT Comment',
+  data_type:   'textarea',
+  data_option: {
+    default:   '',
+    rows:      4,
+    maxlength: 2000,
+    null:      true,
+    note:      'Optional free-text comment submitted alongside the CSAT score.',
+  },
+  active:      true,
+  screens:     {},
+  position:    902,
+)
+
 puts '== Ticket: csat_feedback_link (internal) =='
 ObjectManager::Attribute.add(
   object:      'Ticket',
@@ -61,7 +79,7 @@ ObjectManager::Attribute.add(
   },
   active:      true,
   screens:     {},
-  position:    902,
+  position:    903,
 )
 
 puts '== Ticket: csat_email_sent_at (internal) =='
@@ -79,7 +97,7 @@ ObjectManager::Attribute.add(
   },
   active:      true,
   screens:     {},
-  position:    903,
+  position:    904,
 )
 
 puts '== Group: csat_allow_rerating_on_reopen =='

@@ -58,12 +58,14 @@ flowchart TD
     F -->|Email| G1["Trigger native Zammad<br/>(no code, admin-configurable)"]
     F -->|Telegram| G2["Trigger native Zammad<br/>via CommunicateTelegramJob"]
     F -->|WhatsApp| G3["Custom dev: POST langsung<br/>ke gateway pkpwa"]
-    G1 --> H["Customer terima pesan<br/>berisi link rating 1-5"]
+    G1 --> H["Customer terima pesan<br/>berisi SATU link (tanpa skor)"]
     G2 --> H
     G3 --> H
-    H --> I["GET /feedback/:ticket_id?token=...&score=N"]
+    H --> I["GET /feedback/:ticket_id?token=..."]
     I --> J["FeedbackController#show<br/>(custom dev - TANPA efek samping)"]
-    J --> K["Render halaman konfirmasi<br/>'Rating Anda: ⭐⭐⭐⭐⭐ [Konfirmasi Kirim]'"]
+    J --> J1["Render halaman pilih rating<br/>'⭐☆☆☆☆ (1) ... ⭐⭐⭐⭐⭐ (5)'"]
+    J1 --> J2["Customer klik salah satu bintang<br/>→ GET /feedback/:ticket_id?token=...&score=N"]
+    J2 --> K["Render halaman konfirmasi<br/>'Rating Anda: ⭐⭐⭐⭐⭐ [Konfirmasi Kirim]'"]
     K --> L["Customer klik tombol<br/>Konfirmasi Kirim"]
     L --> M["POST /feedback/:ticket_id/submit"]
     M --> N["FeedbackController#submit (custom dev)<br/>Token.check + validasi"]
@@ -105,8 +107,12 @@ flowchart TD
 | `csat_feedback_expiry_days` | `7` | Masa berlaku link rating sejak dikirim |
 
 ### Endpoint publik baru (custom dev)
-- `GET /feedback/:ticket_id?token=...&score=N` — tampilkan halaman konfirmasi berisi skor yang dipilih + 1 tombol. **Tidak menyimpan apapun** (menghindari auto-fetch link preview WhatsApp/Telegram & email security scanner yang bisa submit skor palsu).
+- `GET /feedback/:ticket_id?token=...` (tanpa `score`) — tampilkan halaman **pilih rating** (5 tombol bintang, masing-masing link ke URL yang sama + `&score=N`). Pesan yang dikirim ke customer (email/Telegram/WhatsApp) hanya berisi link ini, **bukan 5 link terpisah** — biar pesannya ringkas dan customer memilih bintangnya langsung di halaman Zammad.
+- `GET /feedback/:ticket_id?token=...&score=N` — tampilkan halaman konfirmasi berisi skor yang dipilih + 1 tombol.
+- Kedua varian GET di atas **tidak menyimpan apapun** (menghindari auto-fetch link preview WhatsApp/Telegram & email security scanner yang bisa submit skor palsu).
 - `POST /feedback/:ticket_id/submit` — baru di sini skor benar-benar disimpan, dipicu klik tombol konfirmasi (aksi eksplisit manusia).
+
+> **Catatan revisi**: desain awal sempat mengirim 5 link langsung (satu per skor) di badan pesan. Setelah ditinjau ulang, ini diganti jadi satu link menuju halaman pilih-rating di atas — pesannya lebih ringkas dan pengalaman customer lebih mirip form rating pada umumnya.
 
 ## 4. Pembagian Effort
 
