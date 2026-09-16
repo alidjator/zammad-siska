@@ -40,4 +40,13 @@ class App.DashboardTeamKpi extends App.Controller
     data.window_days        ?= @selectedRange
     data.selectedRange       = @selectedRange
 
+    # state (supergood/good/ok/bad/superbad/null) drives the icon+value
+    # color via Zammad's own *-color CSS classes -- see team_kpi.rb for
+    # the threshold rationale. null (new/open ticket counts) stays
+    # uncolored on purpose, same as native's non-performance widgets.
+    data.frt_state_class       = if data.frt_state then "#{data.frt_state}-color" else ''
+    data.csat_state_class      = if data.csat_state then "#{data.csat_state}-color" else ''
+    data.escalated_state_class = if data.escalated_state then "#{data.escalated_state}-color" else ''
+
     @html App.view('dashboard/team_kpi')(data)
+    @$('.js-team-kpi-help').tooltip()

@@ -12,6 +12,27 @@
 #
 # FRT median is computed in SQL (percentile_cont) rather than pulled into
 # Ruby, since a 2-year window can span hundreds of thousands of tickets.
+#
+# `*_state` fields (supergood/good/ok/bad/superbad/nil) mirror the native
+# "My Stats" widgets' own color-coding convention (lib/stats/ticket_*.rb),
+# so the frontend can reuse Zammad's own --supergood-color..--superbad-color
+# CSS variables instead of inventing new colors. Thresholds:
+#   - FRT: absolute cutoffs adapted from lib/stats/ticket_waiting_time.rb's
+#     handling-time bands (<=60/240/480 min), extended with a "superbad"
+#     tier (>1440 min) since our rolling-window median can run far higher
+#     than a single day's average handling time.
+#   - CSAT: no native precedent (no equivalent widget) -- generic 1-5 CSAT
+#     industry bands.
+#   - Escalated: reuses lib/stats/ticket_reopen.rb's rate bucket exactly
+#     (>=20/40/65/90%), applied to escalated-as-percent-of-open+new since
+#     that's a rate metric like reopening rate, not a per-agent raw count
+#     like the native Mood widget.
+#   - New/Open ticket counts are left uncolored (state: nil) -- they are
+#     raw volume snapshots, not a performance measure with an inherent
+#     "good/bad" direction (native itself leaves some widgets, e.g.
+#     Channel Distribution, uncolored for the same reason).
+# See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full rationale and the
+# calibration data behind these thresholds.
 class Service::Dashboard::TeamKpi
   DEFAULT_WINDOW_DAYS = 7
   MAX_WINDOW_DAYS      = 730 # 2 tahun
@@ -25,14 +46,25 @@ class Service::Dashboard::TeamKpi
   end
 
   def call
+    frt         = frt_median_minutes
+    csat        = csat_average
+    new_count   = ticket_count_by_state_type('new')
+    open_count  = ticket_count_by_state_type('open')
+    escalated   = ticket_escalated_count
+    escalation_rate = escalation_rate_percent(escalated, new_count, open_count)
+
     {
-      frt_median_minutes: frt_median_minutes,
-      csat_average:       csat_average,
-      ticket_new:         ticket_count_by_state_type('new'),
-      ticket_open:        ticket_count_by_state_type('open'),
-      ticket_escalated:   ticket_escalated_count,
-      window_days:        @window_days,
-      generated_at:       Time.zone.now.iso8601,
+      frt_median_minutes:     frt,
+      frt_state:              frt_state(frt),
+      csat_average:           csat,
+      csat_state:             csat_state(csat),
+      ticket_new:             new_count,
+      ticket_open:            open_count,
+      ticket_escalated:       escalated,
+      escalation_rate_percent: escalation_rate,
+      escalated_state:        escalated_state(escalation_rate),
+      window_days:            @window_days,
+      generated_at:           Time.zone.now.iso8601,
     }
   end
 
@@ -90,5 +122,58 @@ class Service::Dashboard::TeamKpi
       .where.not(escalation_at: nil)
       .where(escalation_at: ..Time.zone.now)
       .count
+  end
+
+  def escalation_rate_percent(escalated, new_count, open_count)
+    denom = new_count + open_count
+    return 0.0 if denom.zero?
+
+    (escalated.to_f / denom * 100).round(1)
+  end
+
+  def frt_state(minutes)
+    return nil if minutes.nil?
+
+    if minutes <= 60
+      'supergood'
+    elsif minutes <= 240
+      'good'
+    elsif minutes <= 480
+      'ok'
+    elsif minutes <= 1440
+      'bad'
+    else
+      'superbad'
+    end
+  end
+
+  def csat_state(average)
+    return nil if average.nil?
+
+    if average >= 4.5
+      'supergood'
+    elsif average >= 4.0
+      'good'
+    elsif average >= 3.0
+      'ok'
+    elsif average >= 2.0
+      'bad'
+    else
+      'superbad'
+    end
+  end
+
+  def escalated_state(rate_percent)
+    if rate_percent >= 90
+      'superbad'
+    elsif rate_percent >= 65
+      'bad'
+    elsif rate_percent >= 40
+      'ok'
+    elsif rate_percent >= 20
+      'good'
+    else
+      'supergood'
+    end
   end
 end

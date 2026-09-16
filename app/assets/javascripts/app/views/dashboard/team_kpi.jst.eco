@@ -10,34 +10,59 @@
   </select>
 </div>
 <div class="team-kpi-grid">
-  <div class="team-kpi-card team-kpi-frt">
-    <div class="team-kpi-icon"><%- @Icon('stopwatch') %></div>
-    <div class="team-kpi-title"><%- @T('First Response Time') %></div>
-    <div class="team-kpi-value"><%- @frt_display %></div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('First Response Time') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Median waktu respons pertama, dihitung dari periode yang dipilih.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <%- @Icon('stopwatch', "team-kpi-icon team-kpi-icon--frt #{@frt_state_class}") %>
+    </div>
+    <div class="team-kpi-value <%- @frt_state_class %>"><%- @frt_display %></div>
     <div class="team-kpi-caption"><%- @T('median, %s hari terakhir', @window_days) %></div>
   </div>
-  <div class="team-kpi-card team-kpi-csat">
-    <div class="team-kpi-icon"><%- @Icon('thumbs-up') %></div>
-    <div class="team-kpi-title"><%- @T('CSAT Score') %></div>
-    <div class="team-kpi-value"><%- @csat_display %></div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('CSAT Score') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Rata-rata skor kepuasan customer (1-5), dari periode yang dipilih.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <%- @Icon('thumbs-up', "team-kpi-icon team-kpi-icon--csat #{@csat_state_class}") %>
+    </div>
+    <div class="team-kpi-value <%- @csat_state_class %>"><%- @csat_display %></div>
     <div class="team-kpi-caption"><%- @T('rata-rata, %s hari terakhir', @window_days) %></div>
   </div>
-  <div class="team-kpi-card team-kpi-new">
-    <div class="team-kpi-icon"><%- @Icon('one-ticket') %></div>
-    <div class="team-kpi-title"><%- @T('Tiket New') %></div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('Tiket New') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus New saat ini (realtime). Angka volume, tidak diberi indikator baik/buruk.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <%- @Icon('email', 'team-kpi-icon team-kpi-icon--new') %>
+    </div>
     <div class="team-kpi-value"><%- @ticket_new %></div>
     <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
-  <div class="team-kpi-card team-kpi-open">
-    <div class="team-kpi-icon"><%- @Icon('total-tickets') %></div>
-    <div class="team-kpi-title"><%- @T('Tiket Open') %></div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('Tiket Open') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus Open saat ini (realtime). Angka volume, tidak diberi indikator baik/buruk.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <%- @Icon('checklist', 'team-kpi-icon team-kpi-icon--open') %>
+    </div>
     <div class="team-kpi-value"><%- @ticket_open %></div>
     <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
-  <div class="team-kpi-card team-kpi-escalated">
-    <div class="team-kpi-icon"><div class="team-kpi-icon-fallback">!</div></div>
-    <div class="team-kpi-title"><%- @T('Tiket Escalated') %></div>
-    <div class="team-kpi-value"><%- @ticket_escalated %></div>
-    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('Tiket Escalated') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Persentase tiket New+Open yang sudah lewat SLA (realtime).') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <div class="team-kpi-icon team-kpi-icon-glyph <%- @escalated_state_class %>">!</div>
+    </div>
+    <div class="team-kpi-value <%- @escalated_state_class %>"><%- @ticket_escalated %></div>
+    <div class="team-kpi-caption"><%- @T('saat ini, %s% dari New+Open', @escalation_rate_percent) %></div>
   </div>
 </div>
