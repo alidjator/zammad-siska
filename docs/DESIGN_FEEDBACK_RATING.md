@@ -47,48 +47,42 @@ Untuk kirim survey ke customer setelah tiket closed — **tidak perlu kode**, cu
 
 ## 3. Arsitektur yang Diusulkan
 
+```mermaid
+flowchart TD
+    A["Ticket state → Closed"] --> B["Scheduler job (custom dev, kecil)<br/>cek tiket closed yang belum ada feedback token"]
+    B --> C{"Grup tiket izinkan<br/>re-rating on reopen?<br/>(csat_allow_rerating_on_reopen)"}
+    C -->|"Tidak, & tiket ini sudah pernah dirating"| Z["Skip - tidak kirim survey"]
+    C -->|"Ya (default) / belum pernah dirating"| D["Token.create(action: CustomerFeedback,<br/>expires_at: Setting csat_feedback_expiry_days)"]
+    D --> E["Isi Custom Object Attribute<br/>csat_feedback_link"]
+    E --> F{"Channel tiket"}
+    F -->|Email| G1["Trigger native Zammad<br/>(no code, admin-configurable)"]
+    F -->|Telegram| G2["Trigger native Zammad<br/>via CommunicateTelegramJob"]
+    F -->|WhatsApp| G3["Custom dev: POST langsung<br/>ke gateway pkpwa"]
+    G1 --> H["Customer terima pesan<br/>berisi link rating 1-5"]
+    G2 --> H
+    G3 --> H
+    H --> I["GET /feedback/:ticket_id?token=...&score=N"]
+    I --> J["FeedbackController#show<br/>(custom dev - TANPA efek samping)"]
+    J --> K["Render halaman konfirmasi<br/>'Rating Anda: ⭐⭐⭐⭐⭐ [Konfirmasi Kirim]'"]
+    K --> L["Customer klik tombol<br/>Konfirmasi Kirim"]
+    L --> M["POST /feedback/:ticket_id/submit"]
+    M --> N["FeedbackController#submit (custom dev)<br/>Token.check + validasi"]
+    N --> O["Simpan/overwrite<br/>csat_score + csat_submitted_at"]
+    O --> P["Render halaman Terima Kasih"]
+    O --> Q["Data reportable otomatis<br/>via Custom Object Attribute"]
+    Q --> R["Report adapter baru (custom dev, kecil)<br/>mirror Report::TicketFirstResponseTime<br/>→ metrik CSAT di Manage > Reports"]
+
+    style B fill:#dbeafe,stroke:#2563eb
+    style D fill:#dbeafe,stroke:#2563eb
+    style G3 fill:#fef3c7,stroke:#d97706
+    style J fill:#dbeafe,stroke:#2563eb
+    style N fill:#dbeafe,stroke:#2563eb
+    style R fill:#dbeafe,stroke:#2563eb
+    style G1 fill:#dcfce7,stroke:#16a34a
+    style G2 fill:#dcfce7,stroke:#16a34a
 ```
-Ticket closed
-     │
-     ▼
-[Scheduler job - CUSTOM DEV, kecil]
-  - Cek tiket closed yang belum ada feedback token
-  - Baca Custom Object Attribute Group "Allow Re-rating on Reopen" milik tiket ini
-    (kalau tiket ini pernah dirating & grup-nya set "tidak boleh", skip)
-  - Token.create(action: 'CustomerFeedback', expires_at: Setting.get('csat_feedback_expiry_days').days.from_now,
-                  preferences: { ticket_id: })
-  - Isi Custom Object Attribute "Feedback Link" di tiket dgn URL bertoken
-     │
-     ▼
-[Pengiriman survey ke customer - per channel tiket]
-  - Email / Telegram → Trigger native Zammad (NO CODE, admin-configurable: kondisi & isi pesan)
-  - WhatsApp → CUSTOM DEV kecil: kirim langsung via HTTP POST ke gateway pkpwa
-     │
-     ▼
-Customer klik salah satu link rating (1-5)
-     │
-     ▼
-[FeedbackController#show - CUSTOM DEV, GET, TANPA efek samping]
-  - Validasi token, tampilkan halaman konfirmasi: "Rating Anda: ⭐⭐⭐⭐⭐ [Konfirmasi Kirim]"
-  - Tidak menyimpan apapun di langkah ini (aman dari link-preview bot WA/Telegram & email security scanner)
-     │
-     ▼
-Customer klik tombol "Konfirmasi Kirim" (POST, aksi eksplisit manusia)
-     │
-     ▼
-[FeedbackController#submit - CUSTOM DEV, meniru pola FormController]
-  - Validasi via Token.check(action: 'CustomerFeedback', token: params[:token])
-  - Simpan/overwrite skor ke Custom Object Attribute "CSAT Score" + "CSAT Submitted At"
-    (boleh disubmit ulang selama token belum expired - overwrite, bukan ditolak)
-  - Render halaman "Terima kasih"
-     │
-     ▼
-Data CSAT otomatis reportable (Object Attribute native ke Overview/Report)
-     │
-     ▼
-[Report adapter baru - CUSTOM DEV, kecil, sama polanya dgn Report::TicketFirstResponseTime
- yang sudah dibuat untuk item No. 7] → metrik CSAT Average/Median di Manage > Reports
-```
+
+**Legend:** 🟦 Biru = custom dev · 🟩 Hijau = native Zammad, tanpa kode · 🟨 Kuning = custom dev yang bergantung pada koordinasi tim eksternal (gateway WhatsApp)
 
 ### Custom Object Attribute yang dibutuhkan (Object Manager, no-code)
 
