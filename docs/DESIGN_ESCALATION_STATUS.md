@@ -1,7 +1,8 @@
 # Desain: Status "Eskalasi" + Update Alur Status Tiket (Item No. 3 & 12 Gap Analysis)
 
-**Status:** Riset selesai, desain disepakati, **implementasi belum dimulai**.
+**Status:** State, Custom Object Attribute, Setting, Trigger, dan aturan Core Workflow **sudah diimplementasikan dan diverifikasi end-to-end** di staging (lihat Section 6). Yang belum: Scheduler/service kalkulasi sisa waktu (menunggu keputusan lokasi tampilan, lihat "Pertanyaan Terbuka").
 **Requirement asli:** `docs/Gap_Analysis_SISKA_Sintesis.md` No. 3 (Status Eskalasi + SLA dihitung ulang) & No. 12 (Open → In Progress → Eskalasi → Closed) — kedua item ini secara teknis identik, No. 12 mengacu langsung ke No. 3.
+**Setting terkait:** `Setting.get('escalation_budget_hours')` (default `8`) — bisa diatur lewat **Admin > Settings > SISKA > Eskalasi**, atau di-override per Group/Organisasi lewat field `escalation_budget_hours` di masing-masing edit screen-nya (Group menang kalau keduanya di-set).
 
 ---
 
@@ -66,9 +67,33 @@ Ini satu-satunya bagian yang genuinely tidak ada mekanisme native-nya di Zammad 
 
 ## Pertanyaan Terbuka (Perlu Diputuskan Sebelum Implementasi Bagian 5)
 
-1. **Berapa lama "budget waktu" sejak masuk Eskalasi sebelum dianggap breach?** (mis. 4 jam kerja, 1 hari kerja — beda per Group seperti `csat_allow_rerating_on_reopen` sebelumnya, atau satu angka global?)
+1. ~~Berapa lama "budget waktu" sejak masuk Eskalasi sebelum dianggap breach?~~ **Sudah diputuskan**: 8 jam kerja (default global), bisa di-override per Group atau Organisasi — lihat Section 6.
 2. **Sisa waktu ini mau ditampilkan di mana?** Widget di halaman tiket (paling terlihat oleh agent yang menangani), kolom baru di Overview (terlihat tim sekaligus), atau card tambahan di dashboard "KPI Tim" yang sudah ada (agregat tim, bukan per-tiket)?
 3. **Notifikasi saat breach** — perlu, atau cukup ditampilkan sebagai angka/warna saja (seperti pola state-based color di KPI Tim)?
+
+---
+
+## 6. Implementasi Bagian 1-4 (Selesai, Terverifikasi)
+
+Sudah dibuat dan diverifikasi di staging lewat pengujian API sungguhan (bukan cuma di Rails console — lihat catatan bug di bawah, alasannya penting):
+
+- **State**: `in progress` (id 8) dan `eskalasi` (id 9), kategori `open` — `script/create_escalation_object_attributes.rb`
+- **Custom Object Attribute**: `Ticket#escalation_started_at` (datetime), `Group#escalation_budget_hours` & `Organization#escalation_budget_hours` (integer, nullable) — file yang sama
+- **Setting**: `escalation_budget_hours` (default `8`), area `Escalation::Base`, muncul di **Admin > Settings > SISKA > Eskalasi** (tab baru ditambahkan ke `siska_settings.coffee`, sub-tab ketiga setelah CSAT & KPI Tim)
+- **Trigger**: "Eskalasi: set escalation_started_at" — `script/create_escalation_trigger.rb`
+- **Core Workflow**: "SISKA - Eskalasi must pass through In Progress" — `script/create_escalation_workflow.rb`
+
+### Bug 1: Format `perform` Core Workflow salah — butuh key `operator` eksplisit
+
+Percobaan pertama pakai `perform: { 'ticket.state_id' => { 'remove_option' => [9] } }` — **tidak melakukan apa-apa sama sekali**, tanpa error. Ternyata `CoreWorkflow::Result#run_backend` membaca `perform_config['operator']` untuk menentukan class backend mana yang dijalankan (`Array(perform_config['operator']).map { ... }`) — kalau key `'operator'` tidak ada, `Array(nil)` = `[]`, loop tidak pernah jalan, TIDAK ADA ERROR yang muncul. Format yang benar: `{ 'operator' => 'remove_option', 'remove_option' => [...] }` — persis pola yang dipakai contoh bawaan Zammad sendiri di `db/seeds/core_workflow.rb` (`{ 'operator' => 'show', 'show' => 'true' }`), yang seharusnya saya perhatikan lebih teliti sejak awal.
+
+### Bug 2: Nilai `state_id` harus string, bukan integer
+
+Setelah bug 1 diperbaiki, aturan MASIH tidak berpengaruh. Ditemukan setelah reproduksi manual langkah-demi-langkah (`CoreWorkflow::Result::RemoveOption` dipanggil langsung): `restrict_values['state_id']` berisi daftar opsi bertipe **string** (`["1", "2", ..., "9"]`, dibangun oleh `CoreWorkflow::Attributes::TicketState#values`), sedangkan `remove_option` yang saya simpan berupa **integer** (`[9]`). `Array#-` di Ruby tidak melakukan type coercion (`9 == "9"` itu `false`), jadi pengurangan tidak pernah cocok — daftar opsi tetap utuh termasuk "9". Diperbaiki dengan menyimpan semua nilai state ID sebagai string (`.to_s`) di `condition_saved` maupun `perform`.
+
+**Pelajaran penting untuk Core Workflow rule berikutnya**: selalu simpan value ID (state/priority/dst) sebagai **string**, dan selalu sertakan key `'operator'` eksplisit di setiap `perform` action — kedua kesalahan ini **gagal senyap** (tidak ada error/exception), cuma terlihat lewat pengujian end-to-end nyata (API sungguhan), bukan dari membaca kode atau bahkan menjalankan `CoreWorkflow.perform` di Rails console tanpa membandingkan hasil `restrict_values` secara eksplisit.
+
+**Catatan pengujian penting lainnya**: Core Workflow (`validate_workflows`) **tidak aktif** kalau tiket diubah lewat `ticket.update!` langsung di Ruby/Rails console — validasi ini cuma jalan kalau atribut `screen` di-set (biasanya oleh `TicketsController#update`, `clean_params[:screen] = 'edit'`). Jadi pengujian aturan Core Workflow **wajib** lewat API HTTP sungguhan (`PUT /api/v1/tickets/:id`) atau UI asli, bukan skrip Ruby biasa — kalau tidak, hasil pengujian akan salah (tampak "berhasil" padahal sebenarnya validasinya tidak pernah jalan).
 
 ---
 
