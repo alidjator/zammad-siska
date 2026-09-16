@@ -48,11 +48,13 @@
 
 ## Fase 3 — Item No. 3 & 12: Status Eskalasi + Update Status Tiket (Medium effort)
 
-- [ ] Buat ticket state baru **"Eskalasi"** via Object Manager
-- [ ] Buat Custom Object Attribute `Escalation Started At` (timestamp)
-- [ ] Buat Trigger yang mengisi `Escalation Started At` saat state berubah ke Eskalasi
-- [ ] Build Scheduler/script custom untuk menghitung sisa waktu dari `Escalation Started At` (terpisah dari SLA clock bawaan)
-- [ ] Wire-up transisi status penuh: Open → In Progress → Eskalasi → Closed (permission per role, validasi transisi)
+- [x] **Riset teknis selesai** — ditemukan bahwa sebagian besar requirement item No. 12 (validasi urutan transisi status + pembatasan role) ternyata **native lewat Core Workflow**, bukan custom dev seperti dikira gap analysis awal. Lihat `docs/DESIGN_ESCALATION_STATUS.md` untuk pembagian lengkap native vs custom dev, referensi kode, dan 2 keputusan desain yang sudah disepakati (SLA native tetap paralel/tidak dibekukan by default via `ignore_escalation`; transisi status tanpa pembatasan role dulu) — keduanya diatur lewat Admin UI native, bukan Setting custom
+- [ ] Buat ticket state baru **"In Progress"** dan **"Eskalasi"** via Manage > Ticket States (kategori `open`)
+- [ ] Buat Custom Object Attribute `escalation_started_at` (Ticket, datetime)
+- [ ] Buat Trigger yang mengisi `escalation_started_at` (operator `relative`) saat state berubah ke Eskalasi
+- [ ] Buat aturan Core Workflow untuk validasi urutan transisi (Open → In Progress → Eskalasi → Closed, tidak boleh lompat)
+- [ ] **Putuskan** (pertanyaan terbuka, lihat `docs/DESIGN_ESCALATION_STATUS.md`): berapa lama "budget waktu" sejak masuk Eskalasi sebelum breach, dan sisa waktu ini ditampilkan di mana (widget Ticket Zone / kolom Overview / card baru di KPI Tim)
+- [ ] Build Scheduler/service custom untuk menghitung sisa waktu dari `escalation_started_at` (wajib pakai kalender jam kerja `calendar.biz`, bukan pengurangan waktu polos)
 - [ ] **Selaraskan ekspektasi dengan stakeholder**: SLA clock asli Zammad tidak reset — pastikan tidak ada asumsi keliru soal ini di UAT
 - [ ] Testing end-to-end alur status + notifikasi terkait
 
