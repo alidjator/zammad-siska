@@ -1,0 +1,27 @@
+<div class="team-kpi-grid">
+  <div class="stat-widget vertical">
+    <div class="stat-title"><%- @T('First Response Time (median)') %></div>
+    <div class="stat-detail"><%- @frt_display %></div>
+    <div class="stat-label"><%- @T('%s hari terakhir', @window_days) %></div>
+  </div>
+  <div class="stat-widget vertical">
+    <div class="stat-title"><%- @T('CSAT Score (rata-rata)') %></div>
+    <div class="stat-detail"><%- @csat_display %></div>
+    <div class="stat-label"><%- @T('%s hari terakhir', @window_days) %></div>
+  </div>
+  <div class="stat-widget vertical">
+    <div class="stat-title"><%- @T('Tiket New') %></div>
+    <div class="stat-detail"><%- @ticket_new %></div>
+    <div class="stat-label"><%- @T('saat ini') %></div>
+  </div>
+  <div class="stat-widget vertical">
+    <div class="stat-title"><%- @T('Tiket Open') %></div>
+    <div class="stat-detail"><%- @ticket_open %></div>
+    <div class="stat-label"><%- @T('saat ini') %></div>
+  </div>
+  <div class="stat-widget vertical">
+    <div class="stat-title"><%- @T('Tiket Escalated') %></div>
+    <div class="stat-detail"><%- @ticket_escalated %></div>
+    <div class="stat-label"><%- @T('saat ini') %></div>
+  </div>
+</div>

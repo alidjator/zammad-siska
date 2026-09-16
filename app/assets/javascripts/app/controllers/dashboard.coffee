@@ -24,14 +24,22 @@ class App.Dashboard extends App.Controller
 
   render: ->
 
+    showTeamKpi = @permissionCheck('ticket.agent')
+
     localEl = $( App.view('dashboard')(
-      head:    __('Dashboard')
-      isAdmin: @permissionCheck('admin')
+      head:        __('Dashboard')
+      isAdmin:     @permissionCheck('admin')
+      showTeamKpi: showTeamKpi
     ) )
 
     new App.DashboardStats(
       el: localEl.find('.stat-widgets')
     )
+
+    if showTeamKpi
+      new App.DashboardTeamKpi(
+        el: localEl.find('.team-kpi-widgets')
+      )
 
     new App.DashboardActivityStream(
       el:    localEl.find('.js-activityContent')
