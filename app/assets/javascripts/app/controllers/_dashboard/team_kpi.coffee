@@ -9,13 +9,14 @@ class App.DashboardTeamKpi extends App.Controller
     super
     @selectedRange = @DEFAULT_RANGE
     @load()
+    @startAutoRefresh()
 
   onRangeChange: (e) =>
     @selectedRange = parseInt($(e.target).val(), 10)
     @load()
 
-  load: =>
-    @startLoading()
+  load: (silent = false) =>
+    @startLoading() if !silent
     @ajax(
       id:   'team_kpi'
       type: 'GET'
@@ -24,12 +25,34 @@ class App.DashboardTeamKpi extends App.Controller
         days: @selectedRange
       processData: true
       success: (data) =>
-        @stopLoading()
+        @stopLoading() if !silent
         @render(data)
       error: =>
-        @stopLoading()
-        @render({ window_days: @selectedRange })
+        @stopLoading() if !silent
+        @render({ window_days: @selectedRange }) if !silent
     )
+
+  # Configurable via Setting team_kpi_auto_refresh_seconds (default 300s /
+  # 5 minutes, admin-editable, 0 disables it -- see
+  # script/create_team_kpi_settings.rb). The timer itself just ticks at a
+  # fixed cadence; @maybeAutoRefresh decides on every tick whether to
+  # actually fetch, so we don't hit the database when nobody's looking:
+  # the browser tab is in the background (document.hidden), or the
+  # Dashboard is showing a different sub-tab ("My Stats"/"First Steps" --
+  # Dashboard#toggle adds/removes .hidden on @el itself, see
+  # dashboard.coffee, so @el.hasClass('hidden') is exactly "is KPI Tim
+  # the active sub-tab right now").
+  startAutoRefresh: =>
+    seconds = parseInt(App.Config.get('team_kpi_auto_refresh_seconds'), 10)
+    return if !seconds || seconds <= 0
+
+    @autoRefreshTimer = setInterval(@maybeAutoRefresh, seconds * 1000)
+
+  maybeAutoRefresh: =>
+    return if document.hidden
+    return if @el.hasClass('hidden')
+
+    @load(true)
 
   render: (data = {}) =>
     data.frt_display      = if data.frt_median_minutes? then "#{data.frt_median_minutes} #{__('min')}" else '-'
