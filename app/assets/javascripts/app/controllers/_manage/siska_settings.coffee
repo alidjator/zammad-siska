@@ -1,6 +1,7 @@
 # Admin UI tab for the custom Settings this project added (CSAT --
-# docs/DESIGN_FEEDBACK_RATING.md -- and KPI Tim --
-# docs/DESIGN_TEAM_KPI_DASHBOARD.md). Mirrors the exact pattern used by
+# docs/DESIGN_FEEDBACK_RATING.md -- KPI Tim --
+# docs/DESIGN_TEAM_KPI_DASHBOARD.md -- and Eskalasi --
+# docs/DESIGN_ESCALATION_STATUS.md). Mirrors the exact pattern used by
 # core Zammad's own _manage/branding.coffee and _manage/system.coffee:
 # App.SettingsArea already renders a full generic edit form for any
 # `area`, driven by each Setting's own `options.form` -- this file's only
@@ -21,8 +22,9 @@ class SiskaSettings extends App.ControllerTabs
 
     @title __('SISKA'), true
     @tabs = [
-      { name: __('CSAT'),    'target': 'csat',     controller: App.SettingsArea, params: { area: 'CSAT::Base' } }
-      { name: __('KPI Tim'), 'target': 'team_kpi', controller: App.SettingsArea, params: { area: 'TeamKpi::Base' } }
+      { name: __('CSAT'),      'target': 'csat',      controller: App.SettingsArea, params: { area: 'CSAT::Base' } }
+      { name: __('KPI Tim'),   'target': 'team_kpi',  controller: App.SettingsArea, params: { area: 'TeamKpi::Base' } }
+      { name: __('Eskalasi'), 'target': 'escalation', controller: App.SettingsArea, params: { area: 'Escalation::Base' } }
     ]
     @render()
 
