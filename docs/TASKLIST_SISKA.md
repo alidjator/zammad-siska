@@ -21,18 +21,22 @@
 
 - [x] Konfirmasi Elasticsearch aktif & terindeks dengan benar (prasyarat Report Profiles) — 1.19 juta tiket ter-index, cluster health yellow (normal untuk single-node)
 - [x] Buat/atur Report Profiles untuk metrik yang dibutuhkan — metric FRT (median, dgn data-integrity filter) + 62 Report Profile (3 Category, 34 Group, 19 Organization) sudah live di staging
-- [ ] Evaluasi & pilih BI eksternal (Grafana atau Kibana) untuk historis >6.000 baris — sesuai rekomendasi resmi Zammad
-- [ ] Rancang skema penggabungan data **Feedback Rating** dari sistem lain ke reporting terpadu (custom ETL/import script)
+- [x] Evaluasi & pilih BI eksternal untuk historis >6.000 baris — **Grafana** dipilih (bukan Kibana). Container `grafana` ditambahkan ke `docker-compose.yml`, role Postgres read-only `grafana_ro`, data source "Zammad Postgres" tersambung, starter dashboard "SISKA - Ticket & CSAT Overview" sudah dibuat
+- [x] **Keputusan pivot**: fitur **Feedback Rating/CSAT dibangun native di Zammad** (bukan integrasi/ETL dari sistem eksternal seperti rencana awal) — Object Attributes, Scheduler `Service::Csat::PrepareFeedbackSurveys`, `FeedbackController` publik, Trigger email, pengiriman multi-channel (Email/Telegram/WhatsApp di balik safety-toggle `csat_whatsapp_enabled`), Report adapter `Report::TicketCsatScore`. Lihat `docs/DESIGN_FEEDBACK_RATING.md`
+- [ ] Aktifkan Scheduler CSAT ke live (saat ini `active: false`, menunggu keputusan kapan mulai kirim survey ke customer asli)
+- [ ] Konfirmasi format payload WhatsApp gateway dengan tim eksternal — blocked, lihat `docs/WHATSAPP_GATEWAY_REQUIREMENTS.md`
 - [ ] Hitung kebutuhan storage untuk retensi historis 2 tahun, sesuaikan dengan kapasitas disk (lihat Fase 0)
 - [ ] UAT laporan dengan stakeholder terkait (bandingkan dengan laporan sistem lama)
 
-## Fase 2 — Item No. 8: Dashboard Realtime di Web Portal (Medium effort)
+## Fase 2 — Item No. 8: Dashboard KPI Tim (Medium effort)
 
-- [ ] Finalisasi daftar KPI yang ditampilkan (FRT, New/Open/Escalation, CSAT)
-- [ ] Putuskan pendekatan: kombinasi Overview + Report Profile graph (tanpa coding) vs dashboard custom
-- [ ] Jika custom: desain query API/Elasticsearch untuk tiap metrik
-- [ ] Build frontend dashboard ringan + embed ke Web Portal
-- [ ] Uji realtime-ness (polling interval / websocket) dan beban ke server
+- [x] **Keputusan pendekatan**: native ke Zammad sendiri, memanggil API Zammad langsung (bukan embed Grafana/iframe) — dibangun sebagai tab baru "KPI Tim" di Dashboard **frontend legacy** (CoffeeScript/jQuery), karena itu yang aktif dipakai agent sekarang, bukan Vue `/desktop` (dashboard-nya masih di-gate dev-only oleh tim Zammad)
+- [x] Finalisasi daftar KPI: FRT (median, rolling window), CSAT (average, rolling window), Tiket New & Open (snapshot realtime), Tiket Escalated (count + rate, realtime)
+- [x] Backend: `Service::Dashboard::TeamKpi` + `TeamKpiController`, filter periode rolling 7 hari s/d 2 tahun
+- [x] Frontend: tab "KPI Tim", styling native-style via SCSS asli (`dartsass-rails`) — sudut kotak, ikon native-size, grid 3 kartu/baris, warna ikon/angka **state-based** (supergood/good/ok/bad/superbad) mengikuti konvensi native sendiri, bukan warna tetap
+- [x] Deploy & smoke test di staging (HTTP 200, precompile bersih, tanpa error log), commit + push ke `feature/08-team-kpi-dashboard`
+- [ ] Merge `feature/08-team-kpi-dashboard` ke `main`
+- [ ] Pertimbangkan auto-refresh berkala (saat ini data hanya ter-update saat reload/ganti filter, sama seperti "My Stats" bawaan — belum ada polling)
 
 ## Fase 3 — Item No. 3 & 12: Status Eskalasi + Update Status Tiket (Medium effort)
 

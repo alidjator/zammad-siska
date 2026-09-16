@@ -17,5 +17,6 @@ if defined?(Dartsass)
     'zammad.scss'         => 'zammad.css',
     'print.scss'          => 'print.css',
     'knowledge_base.scss' => 'knowledge_base.css',
+    'team_kpi.scss'       => 'team_kpi.css',
   }
 end

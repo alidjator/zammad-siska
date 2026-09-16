@@ -1,0 +1,188 @@
+// KPI Tim dashboard tab (item No. 8 gap analysis).
+// Compiled via dartsass-rails (config/initializers/assets.rb dartsass.builds
+// + `*= require team_kpi` in application.css) -- NOT Sprockets' own Sass
+// handling (needs the "sassc" gem, deliberately not installed in this
+// project). Source lives at the TOP LEVEL of app/assets/stylesheets/
+// (sibling to zammad.scss), not under custom/ -- application.css's
+// `require_tree ./custom/` would otherwise try to process this raw
+// .scss file directly and hit the same sassc error.
+//
+// Visual language mirrors native Zammad .stat-widget as closely as
+// possible (see .stat-widget/.stat-title/.stat-icon-help/.stat-graphic
+// in zammad.scss): square-ish corners (not rounded), title bar with the
+// help icon docked top-right INSIDE the title (not floating over the
+// card), a plain (non-circled) icon centered in its own flex area, then
+// value, then caption -- all center-aligned.
+//
+// Color: reuses Zammad's own --supergood-color..--superbad-color
+// variables (already defined in zammad.scss, same ones native's
+// Waiting Time/Mood/Reopening Rate widgets use) via the existing
+// *-color helper classes, applied by the coffee controller based on
+// thresholds computed server-side (see team_kpi.rb). New/Open ticket
+// counts intentionally get no color -- see team_kpi.rb's comment for
+// why they're plain volume snapshots, not a graded metric.
+//
+// See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full story, including
+// why an earlier attempt at this exact setup failed (assets:clobber
+// side effect, unrelated to this config being wrong) and the threshold
+// calibration behind the state colors.
+
+.team-kpi-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 7px 14px;
+
+  label {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: var(--text-muted, #8a8a8a);
+  }
+
+  select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--background-secondary);
+    font-size: 13px;
+  }
+}
+
+.team-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 0 7px;
+}
+
+.team-kpi-card {
+  height: 200px;
+  padding: 10px 10px 8px;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 1px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  box-shadow: var(--elevation-low);
+  display: flex;
+  flex-direction: column;
+
+  // Matches native .stat-title exactly: padding (not margin) reserves
+  // room for the help icon, which is then positioned relative to the
+  // title's padding box -- see .stat-title/.stat-icon-help in zammad.scss.
+  .team-kpi-title {
+    position: relative;
+    font-size: 13px;
+    margin: 2px 0 8px;
+    padding: 0 20px;
+    text-transform: uppercase;
+    font-weight: normal;
+  }
+
+  .team-kpi-help {
+    position: absolute;
+    right: 3px;
+    top: 1px;
+    cursor: help;
+    fill: var(--interactive-muted, #b0b0b0);
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .team-kpi-graphic {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+
+  // Applied directly to the <svg class="icon icon-X team-kpi-icon ..."> tag
+  // that @Icon() renders (not a wrapper) -- see app_post/utils.coffee.
+  // Some sprite icons (e.g. stopwatch) hardcode their own path fill, which
+  // an inline presentation attribute cannot override -- but a real CSS
+  // selector like this one can and does, so force every descendant shape
+  // to inherit this icon's `fill` (single-tone icons only; do not reuse
+  // this class on multi-tone stacked icons like one-ticket/total-tickets).
+  //
+  // Each KPI's icon gets its OWN size (via a --frt/--csat/--new/--open
+  // modifier), matching that icon's own native proportions as closely as
+  // the 3-columns layout allows, instead of one uniform box -- native
+  // itself sizes each stat icon differently (stopwatch 77x83, mood
+  // 60x59, reopening 68x47, in-process 64x64 -- see zammad.scss).
+  svg.team-kpi-icon {
+    fill: var(--text-muted, #8a8a8a);
+
+    path, circle, g {
+      fill: inherit;
+    }
+
+    // Native's *-color classes (zammad.scss) already set `fill` at the
+    // same (single-class) specificity -- since our stylesheet loads
+    // AFTER zammad.scss (application.css), a plain cascade would let our
+    // neutral `.team-kpi-icon` fill above win by load order. Pair the
+    // selector with the state class so it always wins regardless of order.
+    &.supergood-color { fill: var(--supergood-color); }
+    &.good-color       { fill: var(--good-color); }
+    &.ok-color         { fill: var(--ok-color); }
+    &.bad-color        { fill: var(--bad-color); }
+    &.superbad-color   { fill: var(--superbad-color); }
+
+    // Sizes match native's own numbers exactly where a direct
+    // equivalent exists (FRT reuses the stopwatch icon itself, so it
+    // gets its native .stopwatch-icon box: 77x83 -- zammad.scss). CSAT
+    // and Escalated have no native widget to copy a size from, so they
+    // borrow Mood's box (60x59) as the closest conceptual analog (both
+    // are "how are we doing" sentiment/escalation indicators). New/Open
+    // have no native analog either; sized from their own sprite
+    // aspect ratio instead. A 200px card (same as native) comfortably
+    // fits all of these once title/value/caption take their fixed
+    // space -- see the .team-kpi-graphic flex:1 area doing the same
+    // job as native's own .stat-graphic.
+    &.team-kpi-icon--frt   { width: 77px; height: 83px; }
+    &.team-kpi-icon--csat  { width: 60px; height: 59px; }
+    &.team-kpi-icon--new   { width: 48px; height: 48px; }
+    &.team-kpi-icon--open  { width: 52px; height: 46px; }
+  }
+
+  .team-kpi-icon-glyph {
+    width: 60px;
+    height: 59px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-muted, #8a8a8a);
+  }
+
+  .team-kpi-value {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.1;
+    color: var(--text-primary, inherit);
+  }
+
+  // Native's *-color classes (zammad.scss) only define `fill` (for SVG
+  // icons like .team-kpi-icon above). Text elements need their own
+  // `color` mapping onto the SAME --supergood-color..--superbad-color
+  // variables, so a graded value/glyph matches its icon exactly.
+  .team-kpi-value,
+  .team-kpi-icon-glyph {
+    &.supergood-color { color: var(--supergood-color); }
+    &.good-color       { color: var(--good-color); }
+    &.ok-color         { color: var(--ok-color); }
+    &.bad-color        { color: var(--bad-color); }
+    &.superbad-color   { color: var(--superbad-color); }
+  }
+
+  .team-kpi-caption {
+    font-size: 11px;
+    color: var(--text-muted, #8a8a8a);
+    margin-top: 2px;
+  }
+}
