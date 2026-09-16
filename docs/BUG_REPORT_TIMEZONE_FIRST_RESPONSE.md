@@ -1,6 +1,6 @@
 # Bug Report: Timestamp SLA Ticket (`first_response_at`, `close_at`, `last_contact_at`) Bergeser ~7 Jam
 
-**Status:** **Root cause dikonfirmasi sepenuhnya** (2026-09-16, lihat poin 7) — bukan bug di kode Zammad (3.4.0 maupun 7.1.3), melainkan efek samping migrasi data MySQL→PostgreSQL yang tidak menangani perbedaan semantik kolom `TIMESTAMP` (timezone-aware, server WIB) vs `DATETIME`/JSON (timezone-naive) dengan benar.
+**Status:** **Root cause dikonfirmasi sepenuhnya, data historis di staging sudah DIKOREKSI** (2026-09-16, lihat poin 7 & 8) — anomali turun dari puluhan ribu tiket menjadi 0-63 baris (sisa kasus edge yang sengaja dilewati untuk tinjauan manual). Bukan bug di kode Zammad (3.4.0 maupun 7.1.3), melainkan efek samping migrasi data MySQL→PostgreSQL yang tidak menangani perbedaan semantik kolom `TIMESTAMP` (timezone-aware, server WIB) vs `DATETIME`/JSON (timezone-naive) dengan benar. **Belum dijalankan di production asli.**
 **Severity:** Tinggi — memengaruhi akurasi semua metrik waktu (FRT, waktu penyelesaian, SLA) untuk mayoritas tiket historis
 **Ditemukan:** 2026-09-15, di instance `zammad-staging` (data hasil restore backup production)
 
@@ -107,7 +107,38 @@ Perbedaan tipe kolom inilah yang secara persis menjelaskan mengapa `created_at` 
 
 **Status akhir**: **Root cause dikonfirmasi sepenuhnya** — dari sisi konfigurasi (WIB di OS & MySQL), tipe kolom (`TIMESTAMP` vs `DATETIME`), dan pola kerusakan yang diamati (persis cocok dengan skenario migrasi lintas-tipe-kolom di atas). Ini **bukan bug di kode Zammad 3.4.0 maupun 7.1.3** — melainkan efek samping migrasi data MySQL→PostgreSQL yang tidak menangani perbedaan semantik `TIMESTAMP` (timezone-aware) vs `DATETIME`/JSON (timezone-naive) dengan benar untuk kolom-kolom bertipe `TIMESTAMP` secara spesifik.
 
-**Implikasi untuk koreksi data**: karena arah dan besar pergeserannya sudah diketahui pasti (kolom `TIMESTAMP` yang terpengaruh bergeser **-7 jam** dari nilai sebenarnya), data historis `first_response_at`/`close_at`/`last_contact_at` **secara prinsip bisa dikoreksi** (tambah 7 jam) untuk tiket-tiket yang terkena — tapi keputusan apakah dikoreksi, ditandai "unreliable", atau dikecualikan dari reporting tetap perlu didiskusikan dengan stakeholder (lihat Rekomendasi Tindak Lanjut poin 3 di bawah, sekarang bisa dieksekusi dengan keyakinan tinggi kalau memang diputuskan untuk dikoreksi).
+**Implikasi untuk koreksi data**: karena arah dan besar pergeserannya sudah diketahui pasti (kolom `TIMESTAMP` yang terpengaruh bergeser **-7 jam** dari nilai sebenarnya), data historis `first_response_at`/`close_at`/`last_contact_at` **secara prinsip bisa dikoreksi** (tambah 7 jam) untuk tiket-tiket yang terkena.
+
+### 8. **[Update 2026-09-16, eksekusi] Koreksi data historis dijalankan di staging**
+
+Setelah root cause dikonfirmasi sepenuhnya (poin 7), koreksi dieksekusi di `zammad-staging`:
+
+**Cakupan**: `tickets.created_at <= 2026-08-22 23:59:59 UTC` (161.884 tiket — batas migrasi, dikonfirmasi dari pola volume harian: aktivitas normal berhenti 22 Agustus, kosong sampai 13 September, baru ada tiket lagi mulai 14 September yang merupakan tiket test project ini sendiri).
+
+**Validasi sebelum eksekusi**: sample 12 tiket acak (termasuk yang TIDAK lolos deteksi anomali `first_response_at < created_at`) dibandingkan dengan referensi ground-truth (`preferences['escalation_calculation']['first_response_at']`, tidak pernah terpengaruh bug karena bukan kolom `TIMESTAMP`) — **12 dari 12 menunjukkan selisih persis -420 menit (-7 jam)**, tanpa kecuali. Ini mengonfirmasi bug menggeser SEMUA tiket migrasi secara seragam, bukan cuma yang terdeteksi anomali oleh heuristik lama.
+
+**Metode koreksi**:
+| Kolom | Metode | Baris terkoreksi |
+|---|---|---|
+| `first_response_at` | Disalin dari `preferences['escalation_calculation']['first_response_at']` kalau tersedia & valid (115.413 baris); fallback `+7 jam` kalau referensi tidak ada (11.565 baris) | 126.978 |
+| `close_at` | `+7 jam` untuk semua tiket dalam cakupan | 161.760 |
+| `last_contact_at` | `+7 jam` untuk semua tiket dalam cakupan | 160.643 |
+
+**Baris yang sengaja DILEWATI** (67 tiket `first_response_at`, ID tersimpan di `timezone_correction_frt_skipped_ids.json`) — kasus di mana referensi ground-truth tidak menunjukkan selisih persis -420 menit, atau hasil koreksi masih janggal (< `created_at`). Butuh tinjauan manual terpisah, bukan bug yang sama, tidak dikoreksi otomatis untuk menghindari salah tebak.
+
+**Keamanan proses**: backup penuh (161.884 baris, kolom `id`+`created_at`+ketiga kolom terdampak) diambil dan disimpan **sebelum** eksekusi apapun (`timezone_correction_backup_20260916_214109.jsonl`), sehingga reversible. Dry-run (`SELECT` saja) dijalankan lebih dulu dan hasilnya **cocok persis** dengan hasil eksekusi sungguhan — tidak ada penyimpangan.
+
+**Hasil verifikasi setelah koreksi**:
+
+| Kolom | Anomali sebelum | Anomali sesudah |
+|---|---|---|
+| `first_response_at` | 97.891 | **63** (99,94% terselesaikan) |
+| `close_at` | 78.726 | **2** (99,997% terselesaikan) |
+| `last_contact_at` | 90.357 | **0** (100% terselesaikan) |
+
+Sisa anomali yang ada persis cocok dengan baris yang memang sengaja dilewati di atas — bukan kegagalan koreksi.
+
+**Status**: koreksi berhasil dieksekusi di **staging**. Belum dijalankan di production asli — kalau memang diputuskan untuk production, gunakan skrip yang sama (`script/` — belum di-commit ke repo, masih di scratchpad sesi ini) dengan proses persetujuan & backup terpisah di sana.
 
 ## Dampak ke Pekerjaan SISKA
 
