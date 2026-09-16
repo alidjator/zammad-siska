@@ -140,4 +140,20 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+puts '== Setting: csat_feature_launched_at =='
+# Internal cutoff: tickets closed before this timestamp are never surveyed,
+# so enabling the feature doesn't flood the historical backlog with surveys.
+Setting.create_if_not_exists(
+  title:       'CSAT Feature Launched At',
+  name:        'csat_feature_launched_at',
+  area:        'CSAT::Base',
+  description: 'Internal: tickets closed before this timestamp are never surveyed for CSAT.',
+  options:     {},
+  state:       Time.zone.now.iso8601,
+  preferences: {
+    permission: ['admin.setting_system'],
+  },
+  frontend:    false,
+)
+
 puts 'Done.'
