@@ -122,12 +122,34 @@ Diverifikasi bekerja dari luar Zammad memakai akun service khusus (`integration-
 
 ## 8. Auto-Refresh (Configurable)
 
-Tab "KPI Tim" bisa refresh data sendiri secara berkala tanpa perlu reload manual, lewat Setting `team_kpi_auto_refresh_seconds` (**default 300 detik / 5 menit**, admin-editable via Admin > Settings, `0` untuk mematikan sepenuhnya). Dibuat via `script/create_team_kpi_settings.rb`.
+Tab "KPI Tim" bisa refresh data sendiri secara berkala tanpa perlu reload manual, lewat Setting `team_kpi_auto_refresh_seconds` (**default 300 detik / 5 menit**, `0` untuk mematikan sepenuhnya). Dibuat via `script/create_team_kpi_settings.rb`.
+
+> **Cara mengubah setting ini:**
+> - **Admin > Settings > SISKA > KPI Tim** — tab Admin UI baru (`app/assets/javascripts/app/controllers/_manage/siska_settings.coffee`, satu file yang sama juga menangani tab CSAT), butuh permission `admin.system`. Dibuat karena awalnya area custom `TeamKpi::Base` tidak muncul di tab manapun (layar Admin > Settings di Zammad legacy hard-coded per area bawaan) — tab ini yang mendaftarkan navigasinya, pakai mekanisme generik `App.SettingsArea` yang sama seperti tab System/Branding bawaan.
+> - **Rails console/runner di server**: `Setting.get('team_kpi_auto_refresh_seconds')` untuk melihat, `Setting.set('team_kpi_auto_refresh_seconds', 600)` untuk mengubah (mis. jadi 10 menit).
+> - **API**: `GET /api/v1/settings/area/TeamKpi::Base` (butuh token permission `admin.system`) untuk lihat setting ini beserta `id` numeriknya, lalu `PUT /api/v1/settings/<id>` untuk mengubah.
+>
+> **Bug yang sempat ada**: permission Setting ini awalnya `admin.setting_system` — nama yang tidak pernah ada sebagai Permission asli di Zammad (lihat catatan detail di `docs/DESIGN_FEEDBACK_RATING.md`). Sudah diperbaiki ke `admin.system`.
 
 **Kenapa polling, bukan WebSocket/push**: metrik di dashboard ini (median FRT, rata-rata CSAT, jumlah tiket) tidak butuh update sub-detik seperti live chat — kompleksitas menyambungkan ke sistem push realtime Zammad tidak sepadan manfaatnya untuk kebutuhan ini.
 
 **Kenapa tidak boros query walau interval pendek**: timer (`setInterval`) jalan terus di background sesuai interval yang dikonfigurasi, tapi request AJAX cuma benar-benar dikirim kalau **kedua syarat ini terpenuhi**:
 1. Tab browser sedang aktif/terlihat (`!document.hidden`)
 2. Sub-tab "KPI Tim" di Dashboard sedang yang aktif dipilih (`!@el.hasClass('hidden')` — `Dashboard#toggle` di `dashboard.coffee` menambah/menghapus class `hidden` persis di elemen ini saat user pindah sub-tab "My Stats"/"First Steps")
+
+## 9. Semua Setting yang Configurable
+
+Nilai-nilai kalibrasi yang sebelumnya hardcoded di `team_kpi.rb` sekarang semuanya jadi Setting — bisa diubah tanpa redeploy lewat **Admin > Settings > SISKA > KPI Tim** (permission `admin.system`), Rails console (`Setting.get`/`Setting.set`), atau API (`GET/PUT /api/v1/settings/area/TeamKpi::Base`) — lihat Section 8 untuk detail cara aksesnya.
+
+| Setting | Default | Field | Catatan |
+|---|---|---|---|
+| `team_kpi_auto_refresh_seconds` | `300` | 1 field | Interval auto-refresh (detik), `0` = mati |
+| `team_kpi_default_window_days` | `7` | 1 field | Default periode FRT/CSAT saat tab dibuka. `frontend: true` — dibaca juga oleh `team_kpi.coffee` lewat `App.Config`, supaya default di dropdown frontend tidak pernah beda sendiri dari backend |
+| `team_kpi_max_window_days` | `730` | 1 field | Batas maksimum parameter `days` di-clamp (`Service::Dashboard::TeamKpi#initialize`) |
+| `team_kpi_frt_thresholds` | `supergood_max: 60, good_max: 240, ok_max: 480, bad_max: 1440` (menit) | 4 field | Di atas `bad_max` = superbad. Makin kecil makin bagus |
+| `team_kpi_csat_thresholds` | `supergood_min: 4.5, good_min: 4.0, ok_min: 3.0, bad_min: 2.0` (skala 1-5) | 4 field | Di bawah `bad_min` = superbad. Makin besar makin bagus |
+| `team_kpi_escalated_thresholds` | `good_min: 20, ok_min: 40, bad_min: 65, superbad_min: 90` (%) | 4 field | Di bawah `good_min` = supergood. Makin besar makin buruk (polaritas terbalik dari FRT/CSAT) |
+
+Setting dengan 4 field disimpan sebagai satu hash (bukan 4 Setting terpisah) — ini format yang sama dipakai `App.SettingsAreaItem` (renderer generik Admin UI) untuk Setting multi-field, dengan key hash mengikuti `name` tiap field form.
 
 Refresh otomatis ini **silent** (tidak menampilkan indikator loading, dan kalau gagal — mis. jaringan putus sesaat — tetap menampilkan data terakhir yang berhasil dimuat, bukan mengosongkan tampilan) supaya tidak mengganggu user yang sedang melihat dashboard.

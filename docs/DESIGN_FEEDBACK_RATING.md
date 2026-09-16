@@ -101,10 +101,24 @@ flowchart TD
 |---|---|---|---|
 | `csat_allow_rerating_on_reopen` | Boolean | `true` | Kalau `false` (misal grup Payroll), tiket yang sudah pernah dirating tidak akan dikirimi survey lagi walau reopen→closed berkali-kali |
 
-### Setting baru (Admin > Settings, no-code, bisa diubah tanpa redeploy)
+### Setting baru
+
 | Key | Default | Catatan |
 |---|---|---|
 | `csat_feedback_expiry_days` | `7` | Masa berlaku link rating sejak dikirim |
+| `csat_feature_launched_at` | Waktu setup dijalankan | Internal: tiket yang closed sebelum waktu ini tidak pernah disurvei (mencegah backlog lama tiba-tiba disurvei semua saat fitur diaktifkan) |
+| `csat_whatsapp_enabled` | `false` | Safety toggle pengiriman WhatsApp — lihat `docs/WHATSAPP_GATEWAY_REQUIREMENTS.md` |
+| `csat_telegram_message_template` | Lihat `script/create_csat_message_settings.rb` | Template pesan Telegram, placeholder `%{ticket_number}`/`%{feedback_link}` |
+| `csat_whatsapp_message_template` | Lihat `script/create_csat_message_settings.rb` | Sama seperti Telegram |
+
+> **Cara mengubah setting-setting di atas:**
+> - **Admin > Settings > SISKA > CSAT** — tab Admin UI baru (`app/assets/javascripts/app/controllers/_manage/siska_settings.coffee`), butuh permission `admin.system`. Dibuat karena awalnya area custom `CSAT::Base` **tidak muncul di tab manapun** (Admin > Settings di Zammad legacy hard-coded per area: cuma ada `System::*`/`Security::*`/`Ticket::*`/`Branding`, tidak ada pencarian lintas-area) — tab "SISKA" ini yang mendaftarkan navigasinya, memakai mekanisme generik `App.SettingsArea` yang sama seperti tab bawaan.
+> - **Rails console/runner di server**: `Setting.get('csat_whatsapp_enabled')` untuk melihat, `Setting.set('csat_whatsapp_enabled', true)` untuk mengubah — lewat `docker exec <container> bundle exec rails runner "..."` atau `rails console`.
+> - **API**: `GET /api/v1/settings/area/CSAT::Base` (butuh token dengan permission `admin.system`) untuk lihat semua setting CSAT sekaligus beserta `id` numeriknya, lalu `PUT /api/v1/settings/<id>` untuk mengubah (endpoint ini pakai `id` numerik, bukan nama setting).
+>
+> **Bug yang sempat ada**: permission di setiap Setting ini awalnya ditulis `admin.setting_system` — nama yang **tidak pernah ada** sebagai Permission asli di Zammad (diverifikasi: `Permission.where(name: 'admin.setting_system').exists?` → `false`). Efeknya, kalaupun ada UI yang mencoba menampilkannya, tidak ada satupun user (termasuk admin) yang akan lolos pengecekan. Sudah diperbaiki ke `admin.system` (permission asli yang juga dipakai tab "System" bawaan) di semua 6 Setting CSAT + KPI Tim, di server maupun di source scripts.
+>
+> **Catatan UX (bukan bug)**: klik "Submit" di tab "SISKA" tidak menampilkan notifikasi sukses apapun — cuma tombolnya sempat disable lalu enable lagi. Ini **persis perilaku semua tab Setting Zammad native** (System/Security/Branding/Ticket), bukan sesuatu yang khusus dibuat berbeda di sini: `App.Setting.set` (dipakai semua tab Setting) cuma menampilkan toast kalau **gagal**, sedangkan toast sukses butuh flag `notify: true` yang tidak pernah diaktifkan di kode aslinya. Cara memastikan tersimpan: reload halaman, nilainya akan tetap ada (kalau gagal, nilai otomatis balik ke sebelumnya). Diputuskan untuk tetap konsisten dengan perilaku native ini, bukan menambah toast sukses custom.
 
 ### Endpoint publik baru (custom dev)
 - `GET /feedback/:ticket_id?token=...` (tanpa `score`) — tampilkan halaman **pilih rating** (5 tombol bintang, masing-masing link ke URL yang sama + `&score=N`). Pesan yang dikirim ke customer (email/Telegram/WhatsApp) hanya berisi link ini, **bukan 5 link terpisah** — biar pesannya ringkas dan customer memilih bintangnya langsung di halaman Zammad.
@@ -119,7 +133,7 @@ flowchart TD
 | Bagian | Jenis | Effort |
 |---|---|---|
 | Custom Object Attribute Ticket (4 field) + Group (1 field) | Konfigurasi (Object Manager) | Kecil |
-| Setting `csat_feedback_expiry_days` | Konfigurasi (Admin UI) | Kecil |
+| Setting `csat_feedback_expiry_days` dkk. | Konfigurasi (Admin > Settings > SISKA, lihat catatan di atas) | Kecil |
 | Trigger kirim survey (Email & Telegram) | Konfigurasi (Admin UI) | Kecil |
 | Scheduler job generate token + isi link + cek aturan re-rating per Group | **Custom dev** | Kecil-Medium (~1 file, mirip pola Scheduler yang sudah ada di codebase) |
 | Kirim WhatsApp langsung ke gateway pkpwa | **Custom dev** | Kecil-Medium (perlu koordinasi format payload dgn tim gateway) |
