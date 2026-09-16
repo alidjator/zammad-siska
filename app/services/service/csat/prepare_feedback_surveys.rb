@@ -6,9 +6,16 @@
 #    unless the ticket was already rated and its Group disallows re-rating
 #    on reopen (Group#csat_allow_rerating_on_reopen).
 # 2. Generates a CSAT feedback token + link for newly-closed tickets that
-#    haven't been surveyed yet, and records when the survey was "sent"
-#    (actual delivery is handled separately by Trigger for Email/Telegram,
-#    and by a dedicated sender for WhatsApp).
+#    haven't been surveyed yet, and records when the survey was "sent".
+#    Delivery: Email is handled by a separate Trigger (admin-editable,
+#    fires off ticket.csat_feedback_link becoming present -- see
+#    script/create_csat_email_trigger.rb). Telegram and WhatsApp have no
+#    equivalent Trigger action in this Zammad version, so we send them
+#    directly here (Telegram: create a properly-typed Article and let
+#    Zammad's own CommunicateTelegramJob deliver it; WhatsApp: POST
+#    straight to the gateway, since the Channel::Driver::Sms::Pkpwa
+#    adapter referenced in Channel#options doesn't exist in this codebase
+#    -- see docs/DESIGN_FEEDBACK_RATING.md).
 #
 # Only considers tickets closed at or after Setting `csat_feature_launched_at`,
 # to avoid mass-surveying the historical ticket backlog on first launch.
@@ -17,6 +24,15 @@
 # for why), which means Token.cleanup (core Zammad) never removes them --
 # it only targets persistent: false tokens. We clean up our own expired
 # tokens here instead.
+#
+# IMPORTANT: ticket.csat_feedback_link/csat_email_sent_at updates use
+# ticket.update! (not update_columns, which skips all callbacks) wrapped in
+# Transaction.execute { ... } (mirrors Ticket.process_pending). Both are
+# required for the Email Trigger to actually fire: after_update
+# TransactionDispatcher only buffers the event (EventBuffer) -- it's not
+# processed until a Transaction.execute block finishes. Confirmed by testing:
+# without the Transaction.execute wrapper, csat_feedback_link was set
+# correctly but the Trigger never ran.
 class Service::Csat::PrepareFeedbackSurveys
   def self.run
     new.run
@@ -40,7 +56,9 @@ class Service::Csat::PrepareFeedbackSurveys
           .find_each do |ticket|
       next if !reset_allowed?(ticket)
 
-      ticket.update_columns(csat_email_sent_at: nil, csat_feedback_link: nil) # rubocop:disable Rails/SkipsModelValidations
+      Transaction.execute do
+        ticket.update!(csat_email_sent_at: nil, csat_feedback_link: nil)
+      end
     end
   end
 
@@ -66,11 +84,73 @@ class Service::Csat::PrepareFeedbackSurveys
         preferences: { ticket_id: ticket.id },
       )
 
-      ticket.update_columns( # rubocop:disable Rails/SkipsModelValidations
-        csat_feedback_link: feedback_url(ticket, token),
-        csat_email_sent_at: Time.zone.now,
-      )
+      Transaction.execute do
+        ticket.update!(
+          csat_feedback_link: feedback_url(ticket, token),
+          csat_email_sent_at: Time.zone.now,
+        )
+      end
+
+      send_via_channel(ticket)
     end
+  end
+
+  # Email is intentionally NOT handled here -- the Trigger created by
+  # script/create_csat_email_trigger.rb reacts to csat_feedback_link
+  # becoming present and sends it, so admins can edit the wording without
+  # touching code.
+  def send_via_channel(ticket)
+    channel_name = ticket.create_article_type&.name.to_s
+
+    if channel_name.match?(/\Atelegram/i)
+      send_telegram(ticket)
+    elsif channel_name == 'sms'
+      send_whatsapp(ticket)
+    end
+  end
+
+  def send_telegram(ticket)
+    return if ticket.preferences['telegram'].blank?
+
+    Ticket::Article.create!(
+      ticket_id:     ticket.id,
+      type_id:       Ticket::Article::Type.find_by(name: 'telegram personal-message').id,
+      sender_id:     Ticket::Article::Sender.find_by(name: 'System').id,
+      internal:      false,
+      content_type:  'text/plain',
+      body:          render_template(Setting.get('csat_telegram_message_template'), ticket),
+      updated_by_id: 1,
+      created_by_id: 1,
+    )
+  rescue => e
+    Rails.logger.error("CSAT Telegram send failed for ticket #{ticket.id}: #{e.message}")
+  end
+
+  # NOTE: payload shape below is a best-effort guess (device + gateway URL
+  # come from the existing Channel#options, matching the "SISKA" device
+  # name already configured) -- confirm the exact request contract with
+  # the team that maintains this gateway before relying on it in production.
+  def send_whatsapp(ticket)
+    phone = ticket.customer&.mobile.presence || ticket.customer&.phone
+    return if phone.blank?
+
+    channel = Channel.where(area: 'Sms::Notification', active: true).detect { |c| c.options['adapter'] == 'sms/pkpwa' }
+    return if channel.blank? || channel.options['gateway'].blank?
+
+    Faraday.post(channel.options['gateway']) do |req|
+      req.headers['Content-Type'] = 'application/json'
+      req.body = {
+        device:  channel.options['device'],
+        to:      phone,
+        message: render_template(Setting.get('csat_whatsapp_message_template'), ticket),
+      }.to_json
+    end
+  rescue => e
+    Rails.logger.error("CSAT WhatsApp send failed for ticket #{ticket.id}: #{e.message}")
+  end
+
+  def render_template(template, ticket)
+    format(template, ticket_number: ticket.number, feedback_link: ticket.csat_feedback_link)
   end
 
   def closed_state_ids

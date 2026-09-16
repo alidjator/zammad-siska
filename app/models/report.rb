@@ -269,6 +269,22 @@ class Report
     ]
     config[:metric][:first_response_time][:backend] = backend
 
+    config[:metric][:csat] = {
+      name:    'csat',
+      display: __('CSAT Score (average)'),
+      prio:    5000,
+    }
+    backend = [
+      {
+        name:         'average',
+        display:      __('Average'),
+        selected:     true,
+        dataDownload: true,
+        adapter:      Report::TicketCsatScore,
+      },
+    ]
+    config[:metric][:csat][:backend] = backend
+
     config[:metric].each do |metric_key, metric_value|
       metric_value[:backend].each do |metric_backend|
         metric_backend[:name] = "#{metric_key}::#{metric_backend[:name]}"
