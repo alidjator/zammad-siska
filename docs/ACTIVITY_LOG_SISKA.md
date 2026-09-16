@@ -30,6 +30,7 @@
 14. Membangun backend `Service::Dashboard::TeamKpi` + `TeamKpiController`, dengan filter periode rolling dari 7 hari sampai 2 tahun ke belakang.
 15. Membangun frontend tab "KPI Tim" dengan styling native-style memakai SCSS asli (via `dartsass-rails`) — sudut kotak (bukan rounded), ikon berukuran sesuai native, grid 3 kartu per baris, dan warna ikon/angka yang **berbasis status** (supergood/good/ok/bad/superbad, mengikuti konvensi native Zammad sendiri) alih-alih warna tetap per kategori.
 16. Deploy dan smoke test di staging (HTTP 200, precompile bersih, tanpa error di log), lalu commit dan push ke branch `feature/08-team-kpi-dashboard`, dan akhirnya di-**merge ke `main`**.
+17. Mendokumentasikan dan memverifikasi endpoint API `GET /api/v1/team_kpi?days=N` bisa dipanggil dari aplikasi lain di luar Zammad — dibuatkan akun service khusus `integration-kpi-api@pkp.co.id` (role "Customer Services", tidak terikat ke satu orang) beserta Personal Access Token (permission `ticket.agent`), lalu diuji nyata lewat `curl` dari luar (berhasil, termasuk verifikasi field escalated konsisten di semua rentang `days`). Kontrak API (route, cara autentikasi, skema response lengkap) didokumentasikan di `docs/DESIGN_TEAM_KPI_DASHBOARD.md` Section 7.
 
 ---
 
