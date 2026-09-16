@@ -156,4 +156,35 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+puts '== Setting: csat_whatsapp_enabled (safety toggle) =='
+# Off by default: the WhatsApp payload shape sent to the gateway is a
+# best-effort guess (see docs/WHATSAPP_GATEWAY_REQUIREMENTS.md) until the
+# team maintaining it confirms the actual contract. Email and Telegram are
+# unaffected by this toggle -- they can go live independently.
+Setting.create_if_not_exists(
+  title:       'CSAT WhatsApp Sending Enabled',
+  name:        'csat_whatsapp_enabled',
+  area:        'CSAT::Base',
+  description: 'Whether CSAT surveys are actually sent via WhatsApp. Keep disabled until the gateway payload format is confirmed with the team that maintains it (see docs/WHATSAPP_GATEWAY_REQUIREMENTS.md) -- does not affect Email or Telegram delivery.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'csat_whatsapp_enabled',
+        tag:     'boolean',
+        options: {
+          true  => 'yes',
+          false => 'no',
+        },
+      },
+    ],
+  },
+  state:       false,
+  preferences: {
+    permission: ['admin.setting_system'],
+  },
+  frontend:    false,
+)
+
 puts 'Done.'

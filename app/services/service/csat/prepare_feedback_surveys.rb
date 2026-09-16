@@ -126,11 +126,13 @@ class Service::Csat::PrepareFeedbackSurveys
     Rails.logger.error("CSAT Telegram send failed for ticket #{ticket.id}: #{e.message}")
   end
 
-  # NOTE: payload shape below is a best-effort guess (device + gateway URL
-  # come from the existing Channel#options, matching the "SISKA" device
-  # name already configured) -- confirm the exact request contract with
-  # the team that maintains this gateway before relying on it in production.
+  # Safety toggle: off by default (Setting csat_whatsapp_enabled) until the
+  # payload shape below -- a best-effort guess, see
+  # docs/WHATSAPP_GATEWAY_REQUIREMENTS.md -- is confirmed with the team
+  # that maintains this gateway. Does not affect Email/Telegram.
   def send_whatsapp(ticket)
+    return if !Setting.get('csat_whatsapp_enabled')
+
     phone = ticket.customer&.mobile.presence || ticket.customer&.phone
     return if phone.blank?
 
