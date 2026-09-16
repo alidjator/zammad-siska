@@ -10,38 +10,40 @@
 
 Tabel ini untuk scan cepat saja — detail lengkap (alasan, angka, referensi kode) ada di narasi bernomor yang sama persis di bawahnya. Kalau butuh konteks "kenapa", baca narasinya, jangan berhenti di tabel ini.
 
-| No | Fase | Ringkasan |
-|---|---|---|
-| 1 | Fase 0 | Setup repo GitHub + push baseline Zammad 7.1.3 |
-| 2 | Fase 0 | Bereskan disk host (±7.6GB → ±19GB) |
-| 3 | Fase 0 | Tentukan strategi branching `main` + `feature/<no>-*` |
-| 4 | Fase 0 | Keputusan: iterasi langsung di `zammad-staging`, bukan env baru |
-| 5 | Fase 0 | Definisikan alur build & deploy |
-| 6 | Fase 1 | Konfirmasi Elasticsearch aktif & ter-index (1.19 juta tiket) |
-| 7 | Fase 1 | Buat 62 Report Profile + metrik FRT median |
-| 8 | Fase 1 | Pilih Grafana sebagai BI eksternal, setup dashboard starter |
-| 9 | Fase 1 | Keputusan pivot: CSAT dibangun native (bukan integrasi eksternal) |
-| 10 | Fase 1 | Bug: link rating CSAT selalu gagal — didesain ulang jadi form interaktif |
-| 11 | Fase 1 | Styling halaman feedback disamakan form native + logo + blockquote |
-| 12 | Fase 2 | Keputusan: dashboard KPI Tim native, bukan embed Grafana |
-| 13 | Fase 2 | Tetapkan daftar KPI final (FRT, CSAT, New/Open, Escalated) |
-| 14 | Fase 2 | Bangun backend `Service::Dashboard::TeamKpi` |
-| 15 | Fase 2 | Bangun frontend tab "KPI Tim", styling native + warna state-based |
-| 16 | Fase 2 | Deploy, commit, merge `feature/08-team-kpi-dashboard` ke `main` |
-| 17 | Fase 2 | Dokumentasikan & verifikasi endpoint API bisa dipanggil eksternal |
-| 18 | Fase 2 | Tambah auto-refresh berkala (hemat query, silent) |
-| 19 | Fase 2 | Gap ditemukan: Setting custom tidak muncul di Admin > Settings |
-| 20 | Fase 2 | Bangun tab Admin UI baru "SISKA" untuk menutup gap di atas |
-| 21 | Fase 2 | Bug: permission `admin.setting_system` tidak pernah ada, diperbaiki |
-| 22 | Fase 2 | Bug: `options.form` kosong bikin tab Admin crash, diperbaiki |
-| 23 | Fase 2 | Semua threshold KPI Tim yang hardcoded jadi Setting configurable |
-| 24 | Fase 3 | Riset: sebagian besar item No. 12 ternyata native (Core Workflow) |
-| 25 | Fase 3 | Implementasi state/attribute/setting/trigger/workflow alur Eskalasi |
-| 26 | Fase 3 | 2 bug tersembunyi di Core Workflow ditemukan & diperbaiki |
-| 27 | Fase 3 | Verifikasi alur Eskalasi end-to-end lewat API sungguhan |
-| 28 | Di luar fase | Root cause bug timezone ~7 jam: bukti awal (server WIB) |
-| 29 | Di luar fase | Root cause bug timezone dikonfirmasi sepenuhnya (tipe kolom) |
-| 30 | Di luar fase | Data historis dikoreksi di staging (anomali turun 99,94-100%) |
+**Catatan tanggal**: kolom "Tanggal" cuma diisi presisi kalau memang ada bukti tertulis (misal tanggal eksplisit di dokumen lain) — kalau tidak, ditandai `< 2026-09-16` (dikerjakan di sesi sebelum sesi ini, tanggal pastinya tidak tercatat) daripada ditebak. Mulai entri 24, tanggalnya akurat karena dikerjakan langsung dalam sesi yang sama dengan pencatatan ini.
+
+| No | Tanggal | Fase | Ringkasan |
+|---|---|---|---|
+| 1 | < 2026-09-16 | Fase 0 | Setup repo GitHub + push baseline Zammad 7.1.3 |
+| 2 | < 2026-09-16 | Fase 0 | Bereskan disk host (±7.6GB → ±19GB) |
+| 3 | < 2026-09-16 | Fase 0 | Tentukan strategi branching `main` + `feature/<no>-*` |
+| 4 | < 2026-09-16 | Fase 0 | Keputusan: iterasi langsung di `zammad-staging`, bukan env baru |
+| 5 | < 2026-09-16 | Fase 0 | Definisikan alur build & deploy |
+| 6 | < 2026-09-16 | Fase 1 | Konfirmasi Elasticsearch aktif & ter-index (1.19 juta tiket) |
+| 7 | < 2026-09-16 | Fase 1 | Buat 62 Report Profile + metrik FRT median |
+| 8 | < 2026-09-16 | Fase 1 | Pilih Grafana sebagai BI eksternal, setup dashboard starter |
+| 9 | < 2026-09-16 | Fase 1 | Keputusan pivot: CSAT dibangun native (bukan integrasi eksternal) |
+| 10 | < 2026-09-16 | Fase 1 | Bug: link rating CSAT selalu gagal — didesain ulang jadi form interaktif |
+| 11 | < 2026-09-16 | Fase 1 | Styling halaman feedback disamakan form native + logo + blockquote |
+| 12 | < 2026-09-16 | Fase 2 | Keputusan: dashboard KPI Tim native, bukan embed Grafana |
+| 13 | < 2026-09-16 | Fase 2 | Tetapkan daftar KPI final (FRT, CSAT, New/Open, Escalated) |
+| 14 | < 2026-09-16 | Fase 2 | Bangun backend `Service::Dashboard::TeamKpi` |
+| 15 | < 2026-09-16 | Fase 2 | Bangun frontend tab "KPI Tim", styling native + warna state-based |
+| 16 | < 2026-09-16 | Fase 2 | Deploy, commit, merge `feature/08-team-kpi-dashboard` ke `main` |
+| 17 | < 2026-09-16 | Fase 2 | Dokumentasikan & verifikasi endpoint API bisa dipanggil eksternal |
+| 18 | < 2026-09-16 | Fase 2 | Tambah auto-refresh berkala (hemat query, silent) |
+| 19 | < 2026-09-16 | Fase 2 | Gap ditemukan: Setting custom tidak muncul di Admin > Settings |
+| 20 | < 2026-09-16 | Fase 2 | Bangun tab Admin UI baru "SISKA" untuk menutup gap di atas |
+| 21 | < 2026-09-16 | Fase 2 | Bug: permission `admin.setting_system` tidak pernah ada, diperbaiki |
+| 22 | < 2026-09-16 | Fase 2 | Bug: `options.form` kosong bikin tab Admin crash, diperbaiki |
+| 23 | < 2026-09-16 | Fase 2 | Semua threshold KPI Tim yang hardcoded jadi Setting configurable |
+| 24 | 2026-09-16 | Fase 3 | Riset: sebagian besar item No. 12 ternyata native (Core Workflow) |
+| 25 | 2026-09-16 | Fase 3 | Implementasi state/attribute/setting/trigger/workflow alur Eskalasi |
+| 26 | 2026-09-16 | Fase 3 | 2 bug tersembunyi di Core Workflow ditemukan & diperbaiki |
+| 27 | 2026-09-16 | Fase 3 | Verifikasi alur Eskalasi end-to-end lewat API sungguhan |
+| 28 | 2026-09-16 | Di luar fase | Root cause bug timezone ~7 jam: bukti awal (server WIB) |
+| 29 | 2026-09-16 | Di luar fase | Root cause bug timezone dikonfirmasi sepenuhnya (tipe kolom) |
+| 30 | 2026-09-16 | Di luar fase | Data historis dikoreksi di staging (anomali turun 99,94-100%) |
 
 ---
 
