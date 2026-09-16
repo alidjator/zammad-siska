@@ -12,6 +12,11 @@
 #
 # Only considers tickets closed at or after Setting `csat_feature_launched_at`,
 # to avoid mass-surveying the historical ticket backlog on first launch.
+#
+# CSAT tokens are created with persistent: true (see #send_surveys_for_newly_closed_tickets
+# for why), which means Token.cleanup (core Zammad) never removes them --
+# it only targets persistent: false tokens. We clean up our own expired
+# tokens here instead.
 class Service::Csat::PrepareFeedbackSurveys
   def self.run
     new.run
@@ -20,9 +25,14 @@ class Service::Csat::PrepareFeedbackSurveys
   def run
     reset_surveys_for_reopened_tickets
     send_surveys_for_newly_closed_tickets
+    cleanup_expired_tokens
   end
 
   private
+
+  def cleanup_expired_tokens
+    Token.where(action: 'CustomerFeedback', expires_at: ...Time.zone.now).delete_all
+  end
 
   def reset_surveys_for_reopened_tickets
     Ticket.where.not(state_id: closed_state_ids)
@@ -49,6 +59,8 @@ class Service::Csat::PrepareFeedbackSurveys
 
       token = Token.create!(
         action:      'CustomerFeedback',
+        persistent:  true, # Token#check? auto-destroys non-persistent tokens after 1 day
+                           # regardless of expires_at -- we validate expires_at ourselves instead.
         user_id:     ticket.customer_id,
         expires_at:  Setting.get('csat_feedback_expiry_days').to_i.days.from_now,
         preferences: { ticket_id: ticket.id },
