@@ -23,6 +23,9 @@
 - [x] Buat/atur Report Profiles untuk metrik yang dibutuhkan — metric FRT (median, dgn data-integrity filter) + 62 Report Profile (3 Category, 34 Group, 19 Organization) sudah live di staging
 - [x] Evaluasi & pilih BI eksternal untuk historis >6.000 baris — **Grafana** dipilih (bukan Kibana). Container `grafana` ditambahkan ke `docker-compose.yml`, role Postgres read-only `grafana_ro`, data source "Zammad Postgres" tersambung, starter dashboard "SISKA - Ticket & CSAT Overview" sudah dibuat
 - [x] **Keputusan pivot**: fitur **Feedback Rating/CSAT dibangun native di Zammad** (bukan integrasi/ETL dari sistem eksternal seperti rencana awal) — Object Attributes, Scheduler `Service::Csat::PrepareFeedbackSurveys`, `FeedbackController` publik, Trigger email, pengiriman multi-channel (Email/Telegram/WhatsApp di balik safety-toggle `csat_whatsapp_enabled`), Report adapter `Report::TicketCsatScore`. Lihat `docs/DESIGN_FEEDBACK_RATING.md`
+- [x] **Bug ditemukan & diperbaiki**: link rating di pesan Email/Telegram/WhatsApp awalnya tidak menyertakan `&score=`, sehingga link yang dikirim ke customer **selalu gagal** (langsung kena halaman "tidak valid"). Diperbaiki dengan mendesain ulang jadi satu halaman interaktif: bintang 1 baris (klik langsung, tanpa reload) + kolom komentar (`csat_comment`, custom object attribute baru) + tombol kirim tunggal — bukan 5 link terpisah maupun 3 langkah (picker→confirm→submit). Sudah diuji end-to-end (email nyata terkirim ke `jajat.sudrajat@pkp.co.id`, halaman submit berhasil menyimpan skor+komentar)
+- [x] Styling halaman feedback disamakan dengan form native Zammad (warna/label/tombol diambil dari `zammad.scss`, bukan tebakan), ditambah logo SISKA (dari `product_logo` Setting via endpoint publik `/api/v1/system_assets/`) dan blockquote pengingat isi keluhan asli tiket (native blockquote style)
+- [ ] **Belum commit + push** — semua perbaikan/redesign feedback_controller.rb di atas masih di working tree lokal (branch `main`), belum di-commit
 - [ ] Aktifkan Scheduler CSAT ke live (saat ini `active: false`, menunggu keputusan kapan mulai kirim survey ke customer asli)
 - [ ] Konfirmasi format payload WhatsApp gateway dengan tim eksternal — blocked, lihat `docs/WHATSAPP_GATEWAY_REQUIREMENTS.md`
 - [ ] Hitung kebutuhan storage untuk retensi historis 2 tahun, sesuaikan dengan kapasitas disk (lihat Fase 0)
@@ -35,7 +38,7 @@
 - [x] Backend: `Service::Dashboard::TeamKpi` + `TeamKpiController`, filter periode rolling 7 hari s/d 2 tahun
 - [x] Frontend: tab "KPI Tim", styling native-style via SCSS asli (`dartsass-rails`) — sudut kotak, ikon native-size, grid 3 kartu/baris, warna ikon/angka **state-based** (supergood/good/ok/bad/superbad) mengikuti konvensi native sendiri, bukan warna tetap
 - [x] Deploy & smoke test di staging (HTTP 200, precompile bersih, tanpa error log), commit + push ke `feature/08-team-kpi-dashboard`
-- [ ] Merge `feature/08-team-kpi-dashboard` ke `main`
+- [x] Merge `feature/08-team-kpi-dashboard` ke `main`
 - [ ] Pertimbangkan auto-refresh berkala (saat ini data hanya ter-update saat reload/ganti filter, sama seperti "My Stats" bawaan — belum ada polling)
 
 ## Fase 3 — Item No. 3 & 12: Status Eskalasi + Update Status Tiket (Medium effort)
