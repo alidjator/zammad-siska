@@ -1,0 +1,107 @@
+// KPI Tim dashboard tab (item No. 8 gap analysis).
+// Compiled via dartsass-rails (config/initializers/assets.rb dartsass.builds
+// + `*= require team_kpi` in application.css) -- NOT Sprockets' own Sass
+// handling (needs the "sassc" gem, deliberately not installed in this
+// project). Source lives at the TOP LEVEL of app/assets/stylesheets/
+// (sibling to zammad.scss), not under custom/ -- application.css's
+// `require_tree ./custom/` would otherwise try to process this raw
+// .scss file directly and hit the same sassc error.
+//
+// See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full story, including
+// why an earlier attempt at this exact setup failed (assets:clobber
+// side effect, unrelated to this config being wrong).
+
+.team-kpi-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 7px 14px;
+
+  label {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: var(--text-muted, #8a8a8a);
+  }
+
+  select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--background-secondary);
+    font-size: 13px;
+  }
+}
+
+.team-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 0 7px;
+}
+
+.team-kpi-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 16px 16px;
+  border-radius: 10px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  box-shadow: var(--elevation-low);
+  border-top: 4px solid var(--kpi-accent, #999);
+  transition: transform .15s ease, box-shadow .15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elevation-high, 0 6px 16px rgba(0, 0, 0, .12));
+  }
+
+  .team-kpi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--kpi-accent, #999);
+    margin-bottom: 10px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .team-kpi-icon-fallback {
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+
+  .team-kpi-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--text-muted, #8a8a8a);
+    margin-bottom: 6px;
+  }
+
+  .team-kpi-value {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .team-kpi-caption {
+    font-size: 12px;
+    color: var(--text-muted, #8a8a8a);
+  }
+
+  &.team-kpi-frt        { --kpi-accent: #2196f3; }
+  &.team-kpi-csat       { --kpi-accent: #4caf50; }
+  &.team-kpi-new        { --kpi-accent: #00bcd4; }
+  &.team-kpi-open       { --kpi-accent: #ff9800; }
+  &.team-kpi-escalated  { --kpi-accent: #f44336; }
+}

@@ -13,6 +13,7 @@
  *= require ./highlighter-github.css
  *= require ./jquery.enableObjectResizingShim.css
  *= require zammad
+ *= require team_kpi
  *
  *= require_tree ./addons/
  *= require_tree ./custom/
