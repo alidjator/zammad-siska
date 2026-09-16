@@ -33,7 +33,15 @@ Ini controller publik (tanpa login) yang SUDAH ADA di Zammad inti — dipakai un
 Sudah dipakai di beberapa gap analysis item lain (No. 1, 3, 12) — field baru di level Ticket, config murni lewat Admin UI, otomatis searchable/filterable/reportable.
 
 ### d. Trigger
-Untuk kirim email survey ke customer setelah tiket closed — **tidak perlu kode**, cukum kondisi `ticket.state_id is closed` + action kirim notifikasi/artikel ke customer, isi & waktu kirim diatur admin lewat UI.
+Untuk kirim survey ke customer setelah tiket closed — **tidak perlu kode**, cukup kondisi `ticket.state_id is closed` + action kirim notifikasi/artikel ke customer, isi & waktu kirim diatur admin lewat UI.
+
+### e. Channel pengiriman survey (dicek langsung ke konfigurasi Channel yang ada)
+
+| Channel | Status di codebase | Kesimpulan |
+|---|---|---|
+| **Email** | Native, `Channel::Driver::...` lengkap | Trigger bisa kirim langsung, tanpa kode tambahan |
+| **Telegram** | Native sepenuhnya — ada `Channel::Driver::Telegram`, `CommunicateTelegramJob` (auto-kirim artikel keluar), route & UI lengkap | Trigger bisa kirim langsung juga, tanpa kode tambahan |
+| **WhatsApp** (channel "SMS" custom, adapter `sms/pkpwa`) | ⚠️ **Kode adapter tidak ditemukan** di source manapun (7.1.3 maupun backup 4.0 lama) — cuma driver SMS bawaan Zammad yang ada (`massenversand`, `message_bird`, `twilio`). Ini kemungkinan penyebab `Sms::Notification` (outbound) berstatus `active: false`. Inbound (`Sms::Account`, webhook) masih aktif. | **Temuan bug/gap terpisah** dari CSAT — kemampuan kirim WhatsApp keluar dari Zammad kemungkinan hilang sejak upgrade versi. Untuk CSAT, kita bypass: kirim langsung via HTTP POST ke gateway (`http://8.215.68.231:1000/wa/send`, sudah ada di `Channel#options`), tidak lewat framework Channel Zammad yang hilang itu. Detail format payload dikoordinasikan dengan tim yang maintain gateway. |
 
 ---
 
@@ -45,23 +53,34 @@ Ticket closed
      ▼
 [Scheduler job - CUSTOM DEV, kecil]
   - Cek tiket closed yang belum ada feedback token
-  - Token.create(action: 'CustomerFeedback', preferences: { ticket_id: })
+  - Baca Custom Object Attribute Group "Allow Re-rating on Reopen" milik tiket ini
+    (kalau tiket ini pernah dirating & grup-nya set "tidak boleh", skip)
+  - Token.create(action: 'CustomerFeedback', expires_at: Setting.get('csat_feedback_expiry_days').days.from_now,
+                  preferences: { ticket_id: })
   - Isi Custom Object Attribute "Feedback Link" di tiket dgn URL bertoken
      │
      ▼
-[Trigger - NO CODE, admin-configurable]
-  - Kondisi: state=closed AND "Feedback Link" terisi AND "Feedback Email Sent" kosong
-  - Aksi: kirim email ke customer, body template pakai placeholder Feedback Link
+[Pengiriman survey ke customer - per channel tiket]
+  - Email / Telegram → Trigger native Zammad (NO CODE, admin-configurable: kondisi & isi pesan)
+  - WhatsApp → CUSTOM DEV kecil: kirim langsung via HTTP POST ke gateway pkpwa
      │
      ▼
-Customer klik salah satu link rating (1-5) di email
+Customer klik salah satu link rating (1-5)
+     │
+     ▼
+[FeedbackController#show - CUSTOM DEV, GET, TANPA efek samping]
+  - Validasi token, tampilkan halaman konfirmasi: "Rating Anda: ⭐⭐⭐⭐⭐ [Konfirmasi Kirim]"
+  - Tidak menyimpan apapun di langkah ini (aman dari link-preview bot WA/Telegram & email security scanner)
+     │
+     ▼
+Customer klik tombol "Konfirmasi Kirim" (POST, aksi eksplisit manusia)
      │
      ▼
 [FeedbackController#submit - CUSTOM DEV, meniru pola FormController]
   - Validasi via Token.check(action: 'CustomerFeedback', token: params[:token])
-  - Simpan skor ke Custom Object Attribute "CSAT Score" + "CSAT Submitted At"
-  - Token dihabiskan (single-use)
-  - Render halaman "Terima kasih" sederhana
+  - Simpan/overwrite skor ke Custom Object Attribute "CSAT Score" + "CSAT Submitted At"
+    (boleh disubmit ulang selama token belum expired - overwrite, bukan ditolak)
+  - Render halaman "Terima kasih"
      │
      ▼
 Data CSAT otomatis reportable (Object Attribute native ke Overview/Report)
@@ -72,40 +91,57 @@ Data CSAT otomatis reportable (Object Attribute native ke Overview/Report)
 ```
 
 ### Custom Object Attribute yang dibutuhkan (Object Manager, no-code)
+
+**Level Ticket:**
 | Field | Tipe | Catatan |
 |---|---|---|
-| `csat_score` | Integer/Select (1-5) | Skor rating |
-| `csat_submitted_at` | Datetime | Kapan customer submit |
+| `csat_score` | Integer/Select (1-5) | Skor rating, bisa di-overwrite selama token belum expired |
+| `csat_submitted_at` | Datetime | Kapan customer terakhir submit |
 | `csat_feedback_link` | Text (internal-only, hidden dari customer) | URL bertoken, diisi scheduler |
-| `csat_email_sent_at` | Datetime | Penanda supaya Trigger tidak kirim dobel |
+| `csat_email_sent_at` | Datetime | Penanda supaya survey tidak terkirim dobel; direset saat tiket reopen→closed lagi (jika grup mengizinkan re-rating) |
+
+**Level Group (baru — ini yang menjawab kebutuhan "beda departemen beda aturan"):**
+| Field | Tipe | Default | Catatan |
+|---|---|---|---|
+| `csat_allow_rerating_on_reopen` | Boolean | `true` | Kalau `false` (misal grup Payroll), tiket yang sudah pernah dirating tidak akan dikirimi survey lagi walau reopen→closed berkali-kali |
+
+### Setting baru (Admin > Settings, no-code, bisa diubah tanpa redeploy)
+| Key | Default | Catatan |
+|---|---|---|
+| `csat_feedback_expiry_days` | `7` | Masa berlaku link rating sejak dikirim |
 
 ### Endpoint publik baru (custom dev)
-- `GET /feedback/:ticket_id?token=...&score=N` — one-click link per skor (1-5), langsung simpan rating begitu diklik dari email (tanpa perlu halaman form terpisah untuk MVP). Opsional: setelah klik, tampilkan halaman "mau tambah komentar?" untuk elaborasi (iterasi berikutnya, bukan MVP).
+- `GET /feedback/:ticket_id?token=...&score=N` — tampilkan halaman konfirmasi berisi skor yang dipilih + 1 tombol. **Tidak menyimpan apapun** (menghindari auto-fetch link preview WhatsApp/Telegram & email security scanner yang bisa submit skor palsu).
+- `POST /feedback/:ticket_id/submit` — baru di sini skor benar-benar disimpan, dipicu klik tombol konfirmasi (aksi eksplisit manusia).
 
 ## 4. Pembagian Effort
 
 | Bagian | Jenis | Effort |
 |---|---|---|
-| Custom Object Attribute (4 field) | Konfigurasi (Object Manager) | Kecil |
-| Trigger kirim email survey | Konfigurasi (Admin UI) | Kecil |
-| Scheduler job generate token + isi link | **Custom dev** | Kecil-Medium (~1 file, mirip pola Scheduler yang sudah ada di codebase) |
-| `FeedbackController` + route publik | **Custom dev** | Medium (meniru `FormController`, tapi lebih simpel karena cuma 1 aksi: simpan skor) |
+| Custom Object Attribute Ticket (4 field) + Group (1 field) | Konfigurasi (Object Manager) | Kecil |
+| Setting `csat_feedback_expiry_days` | Konfigurasi (Admin UI) | Kecil |
+| Trigger kirim survey (Email & Telegram) | Konfigurasi (Admin UI) | Kecil |
+| Scheduler job generate token + isi link + cek aturan re-rating per Group | **Custom dev** | Kecil-Medium (~1 file, mirip pola Scheduler yang sudah ada di codebase) |
+| Kirim WhatsApp langsung ke gateway pkpwa | **Custom dev** | Kecil-Medium (perlu koordinasi format payload dgn tim gateway) |
+| `FeedbackController` (`show` = halaman konfirmasi, `submit` = simpan skor) + route publik | **Custom dev** | Medium (meniru `FormController`, dipisah 2 aksi sesuai desain anti-abuse) |
 | Report adapter CSAT Average/Median | **Custom dev** | Kecil (mirror `Report::TicketFirstResponseTime` yang sudah ada) |
-| Halaman "Terima kasih" publik | Frontend sederhana (HTML statis/ERB) | Kecil |
+| Halaman konfirmasi + "Terima kasih" publik | Frontend sederhana (HTML statis/ERB) | Kecil |
 
-**Total: didominasi konfigurasi + 3 file custom dev kecil-menengah** — jauh lebih ringan dibanding perkiraan awal karena bisa menumpang pada `Token` model dan pola `FormController` yang sudah teruji di codebase ini.
+**Total: didominasi konfigurasi + beberapa file custom dev kecil-menengah** — jauh lebih ringan dibanding perkiraan awal karena bisa menumpang pada `Token` model, pola `FormController`, dan channel Telegram yang semuanya sudah teruji di codebase ini.
 
-## 5. Pertimbangan & Risiko
+## 5. Keputusan Desain (Sudah Difinalisasi)
 
-1. **Token single-use vs re-submit**: perlu keputusan bisnis — kalau customer klik link rating dua kali (misal salah pencet), apakah overwrite skor sebelumnya atau ditolak? Rekomendasi: izinkan overwrite selama token belum expired, supaya tidak membingungkan customer.
-2. **Expiry window**: berapa lama link rating berlaku setelah tiket closed? Rekomendasi 14-30 hari (`Token#expires_at`), sesuaikan kebutuhan bisnis.
-3. **Tiket reopen setelah rating**: kalau tiket dibuka lagi setelah dirating lalu ditutup lagi, apakah minta rating baru? Perlu direset `csat_email_sent_at`/`csat_feedback_link` saat state kembali ke closed dari selain closed.
-4. **Bahasa & channel**: desain ini asumsi channel utama email. Kalau butuh juga via WhatsApp/chat (SISKA juga pakai chat), perlu channel pengiriman link tambahan — Trigger Zammad hanya native untuk email; channel lain butuh integrasi terpisah.
-5. **Abuse/spam link**: karena `GET` request langsung menyimpan skor tanpa konfirmasi tambahan, ada risiko link ke-preview/ke-crawl oleh email client/security scanner yang otomatis membuka semua link (submit skor palsu). Mitigasi: token single-use + toleransi kalau ada 2x hit dalam beberapa detik (asumsikan prefetch), atau tetap tampilkan halaman konfirmasi (bukan langsung simpan di response pertama) — trade-off kesederhanaan vs akurasi data.
+| # | Keputusan | Pilihan Final |
+|---|---|---|
+| 1 | Token single-use vs re-submit | **Overwrite** — skor boleh diganti selama token belum expired |
+| 2 | Expiry window | **Configurable** via Setting `csat_feedback_expiry_days`, default **7 hari** |
+| 3 | Tiket reopen setelah rating | **Configurable per Group** via Custom Object Attribute `csat_allow_rerating_on_reopen`, default **`true`** (boleh rating ulang); grup tertentu (mis. Payroll) bisa di-set `false` |
+| 4 | Channel pengiriman | **Multi-channel**: Email & Telegram via Trigger native; WhatsApp via kirim langsung ke gateway (custom dev kecil) |
+| 5 | Anti-abuse link one-click | **GET tanpa efek samping** (cuma render halaman konfirmasi) + **POST eksplisit** untuk benar-benar simpan skor — menghindari auto-fetch oleh link-preview WhatsApp/Telegram & email security scanner |
 
 ## 6. Langkah Berikutnya
 
-1. Konfirmasi keputusan bisnis di poin 5 (Pertimbangan & Risiko) sebelum mulai implementasi.
-2. Buat branch `feature/csat-native`.
-3. Urutan build: Custom Object Attribute → Scheduler job token → FeedbackController → Trigger → Report adapter.
-4. Uji end-to-end di staging sebelum dianggap selesai.
+1. Buat branch `feature/csat-native`.
+2. Urutan build: Custom Object Attribute (Ticket + Group) → Setting expiry → Scheduler job token → `FeedbackController` (show + submit) → Trigger Email/Telegram → kirim WhatsApp → Report adapter.
+3. Koordinasi dengan tim yang maintain gateway WhatsApp (`http://8.215.68.231:1000/wa/send`) untuk format payload yang benar.
+4. Uji end-to-end di staging sebelum dianggap selesai — termasuk simulasi reopen tiket di grup dengan `csat_allow_rerating_on_reopen = false`.
