@@ -40,7 +40,7 @@
 - [x] Deploy & smoke test di staging (HTTP 200, precompile bersih, tanpa error log), commit + push ke `feature/08-team-kpi-dashboard`
 - [x] Merge `feature/08-team-kpi-dashboard` ke `main`
 - [x] **Dokumentasikan & verifikasi endpoint API untuk konsumsi eksternal** — `GET /api/v1/team_kpi?days=N` ternyata bisa dipanggil aplikasi lain di luar Zammad (bukan cuma dari tab dashboard-nya sendiri). Dibuatkan akun service khusus `integration-kpi-api@pkp.co.id` (role "Customer Services", tidak terikat ke satu orang) + Personal Access Token (permission `ticket.agent`), diuji nyata via `curl` dari luar — berhasil, termasuk verifikasi field escalated konsisten di semua rentang `days`. Kontrak API (route, auth, response schema) didokumentasikan lengkap di `docs/DESIGN_TEAM_KPI_DASHBOARD.md` Section 7
-- [ ] Pertimbangkan auto-refresh berkala (saat ini data hanya ter-update saat reload/ganti filter, sama seperti "My Stats" bawaan — belum ada polling)
+- [x] **Auto-refresh berkala** — Setting baru `team_kpi_auto_refresh_seconds` (default 300 detik/5 menit, admin-editable, `0` = mati), diterapkan via `setInterval` di `team_kpi.coffee`. Hanya benar-benar fetch data kalau tab browser aktif DAN sub-tab "KPI Tim" yang sedang dipilih (tidak boros query saat tidak dilihat), dan bersifat silent (tidak flicker loading indicator, tetap tampilkan data terakhir kalau gagal). Deployed & tested di staging
 
 ## Fase 3 — Item No. 3 & 12: Status Eskalasi + Update Status Tiket (Medium effort)
 
