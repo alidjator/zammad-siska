@@ -1,27 +1,43 @@
+<div class="team-kpi-filter">
+  <label><%- @T('Periode FRT & CSAT') %></label>
+  <select class="js-kpi-range">
+    <option value="7" <% if @selectedRange is 7: %>selected<% end %>><%- @T('7 hari (default)') %></option>
+    <option value="30" <% if @selectedRange is 30: %>selected<% end %>><%- @T('30 hari') %></option>
+    <option value="90" <% if @selectedRange is 90: %>selected<% end %>><%- @T('90 hari') %></option>
+    <option value="180" <% if @selectedRange is 180: %>selected<% end %>><%- @T('6 bulan') %></option>
+    <option value="365" <% if @selectedRange is 365: %>selected<% end %>><%- @T('1 tahun') %></option>
+    <option value="730" <% if @selectedRange is 730: %>selected<% end %>><%- @T('2 tahun') %></option>
+  </select>
+</div>
 <div class="team-kpi-grid">
-  <div class="stat-widget vertical">
-    <div class="stat-title"><%- @T('First Response Time (median)') %></div>
-    <div class="stat-detail"><%- @frt_display %></div>
-    <div class="stat-label"><%- @T('%s hari terakhir', @window_days) %></div>
+  <div class="team-kpi-card team-kpi-frt">
+    <div class="team-kpi-icon"><%- @Icon('stopwatch') %></div>
+    <div class="team-kpi-title"><%- @T('First Response Time') %></div>
+    <div class="team-kpi-value"><%- @frt_display %></div>
+    <div class="team-kpi-caption"><%- @T('median, %s hari terakhir', @window_days) %></div>
   </div>
-  <div class="stat-widget vertical">
-    <div class="stat-title"><%- @T('CSAT Score (rata-rata)') %></div>
-    <div class="stat-detail"><%- @csat_display %></div>
-    <div class="stat-label"><%- @T('%s hari terakhir', @window_days) %></div>
+  <div class="team-kpi-card team-kpi-csat">
+    <div class="team-kpi-icon"><%- @Icon('thumbs-up') %></div>
+    <div class="team-kpi-title"><%- @T('CSAT Score') %></div>
+    <div class="team-kpi-value"><%- @csat_display %></div>
+    <div class="team-kpi-caption"><%- @T('rata-rata, %s hari terakhir', @window_days) %></div>
   </div>
-  <div class="stat-widget vertical">
-    <div class="stat-title"><%- @T('Tiket New') %></div>
-    <div class="stat-detail"><%- @ticket_new %></div>
-    <div class="stat-label"><%- @T('saat ini') %></div>
+  <div class="team-kpi-card team-kpi-new">
+    <div class="team-kpi-icon"><%- @Icon('one-ticket') %></div>
+    <div class="team-kpi-title"><%- @T('Tiket New') %></div>
+    <div class="team-kpi-value"><%- @ticket_new %></div>
+    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
-  <div class="stat-widget vertical">
-    <div class="stat-title"><%- @T('Tiket Open') %></div>
-    <div class="stat-detail"><%- @ticket_open %></div>
-    <div class="stat-label"><%- @T('saat ini') %></div>
+  <div class="team-kpi-card team-kpi-open">
+    <div class="team-kpi-icon"><%- @Icon('total-tickets') %></div>
+    <div class="team-kpi-title"><%- @T('Tiket Open') %></div>
+    <div class="team-kpi-value"><%- @ticket_open %></div>
+    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
-  <div class="stat-widget vertical">
-    <div class="stat-title"><%- @T('Tiket Escalated') %></div>
-    <div class="stat-detail"><%- @ticket_escalated %></div>
-    <div class="stat-label"><%- @T('saat ini') %></div>
+  <div class="team-kpi-card team-kpi-escalated">
+    <div class="team-kpi-icon"><div class="team-kpi-icon-fallback">!</div></div>
+    <div class="team-kpi-title"><%- @T('Tiket Escalated') %></div>
+    <div class="team-kpi-value"><%- @ticket_escalated %></div>
+    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
 </div>
