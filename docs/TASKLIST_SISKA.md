@@ -109,4 +109,4 @@
 - [x] Dijalankan manual oleh user (eksekusi tulis massal diblokir untuk Claude oleh auto-mode classifier, sesuai pola yang sama dengan koreksi bug timezone sebelumnya)
 - [x] Didokumentasikan lengkap (kriteria scope, format transformasi, contoh before/after ter-mask) di `docs/ANONYMIZATION_CONTACT_INFO.md`
 - [ ] **Belum diproses**: identitas Telegram (tidak ada kolom per-user yang stabil, kemungkinan cuma ada di `ticket_articles.preferences` per pesan — butuh investigasi terpisah)
-- [ ] Pindahkan file backup (`/tmp/anonymize_contacts_backup_20260917_010218.jsonl`, berisi PII asli) dari `/tmp` container ke penyimpanan permanen yang aman, di luar git — `/tmp` container bisa hilang kalau container di-recreate
+- [x] Pindahkan file backup (berisi PII asli) dari `/tmp` container ke penyimpanan permanen di host: `/usr/local/src/claudeai/backups/anonymize_contacts_backup_20260917_010218.jsonl` (checksum SHA-256 diverifikasi cocok sebelum salinan lama di container dihapus)

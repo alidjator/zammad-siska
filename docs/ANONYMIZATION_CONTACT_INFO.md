@@ -52,13 +52,13 @@ Semua nilai "sesudah" di atas adalah **data live** dari database staging saat do
 
 ## Backup (untuk Pemulihan Darurat — TIDAK Ikut ke Git)
 
-Sebelum eksekusi, skrip otomatis menyimpan nilai LAMA (`id`, `email`, `login`, `phone`, `mobile`) seluruh 72.017 baris terdampak ke:
+Sebelum eksekusi, skrip otomatis menyimpan nilai LAMA (`id`, `email`, `login`, `phone`, `mobile`) seluruh 72.017 baris terdampak ke file JSONL. File ini awalnya sempat berada di `/tmp` dalam container `zammad-staging-zammad-app-1` (lokasi yang bisa hilang kalau container di-recreate), lalu **sudah dipindahkan** (2026-09-17, checksum SHA-256 diverifikasi cocok sebelum salinan lama dihapus) ke penyimpanan permanen di host:
 
 ```
-/tmp/anonymize_contacts_backup_20260917_010218.jsonl   (di server, dalam container zammad-staging-zammad-app-1)
+/usr/local/src/claudeai/backups/anonymize_contacts_backup_20260917_010218.jsonl   (host, di luar container & di luar repo git)
 ```
 
-File ini **berisi PII asli** — sengaja **tidak dipindahkan ke repo/git**, dan sebaiknya dipindahkan ke lokasi penyimpanan aman di luar `/tmp` container (yang bisa hilang kalau container di-recreate) kalau memang perlu disimpan jangka panjang untuk keperluan pemulihan/audit. Beri tahu saya kalau perlu bantuan memindahkannya ke lokasi yang lebih permanen dan aman.
+File ini **berisi PII asli** — sengaja **tidak dipindahkan ke repo/git**. Selain itu, ada juga `anonymization_before_after.xlsx` (nilai before/after real, 72.017 baris, format lebih mudah dibaca daripada JSONL mentah) di lokasi host yang sama: `/usr/local/src/claudeai/anonymization_before_after.xlsx`.
 
 ## Verifikasi
 
