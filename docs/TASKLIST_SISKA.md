@@ -85,6 +85,7 @@
 
 ## Fase 4 — Item No. 1: AUX Status + Auto-distribusi Tiket (Medium-High effort)
 
+- [x] **Riset teknis selesai** — dicek dulu kemungkinan native sebelum implementasi (pola sama seperti Fase 3). Ditemukan: `Setting ticket_auto_assignment` (native, area `Web::Base`, saat ini nonaktif di staging) — tapi sifatnya **reaktif/klaim** (assign saat agent buka tiket dari Overview), bukan push proaktif berbasis status; `Group#assignment_timeout` (native, reclaim tiket basi, bukan distribusi); `out_of_office` (native, granularitas per-hari, cuma 1 pengganti, tidak cukup untuk status granular). **Kesimpulan: inti requirement (status AUX granular + durasi + distribusi proaktif) tetap genuinely custom dev** — beda dari Fase 3 yang mayoritas ternyata native. Detail lengkap + 6 pertanyaan terbuka yang perlu diputuskan sebelum desain teknis di `docs/DESIGN_AUX_STATUS.md`
 - [ ] Buat Custom Object Attribute status agent (dropdown: Available/Busy Lunch/dst)
 - [ ] Definisikan mapping durasi per tipe status (Busy X menit, dst)
 - [ ] Build Scheduler job untuk polling status agent
