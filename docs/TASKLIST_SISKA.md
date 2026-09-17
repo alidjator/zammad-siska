@@ -85,11 +85,13 @@
 
 ## Fase 4 — Item No. 1: AUX Status + Auto-distribusi Tiket (Medium-High effort)
 
-- [x] **Riset teknis selesai** — dicek dulu kemungkinan native sebelum implementasi (pola sama seperti Fase 3). Ditemukan: `Setting ticket_auto_assignment` (native, area `Web::Base`, saat ini nonaktif di staging) — tapi sifatnya **reaktif/klaim** (assign saat agent buka tiket dari Overview), bukan push proaktif berbasis status; `Group#assignment_timeout` (native, reclaim tiket basi, bukan distribusi); `out_of_office` (native, granularitas per-hari, cuma 1 pengganti, tidak cukup untuk status granular). **Kesimpulan: inti requirement (status AUX granular + durasi + distribusi proaktif) tetap genuinely custom dev** — beda dari Fase 3 yang mayoritas ternyata native. Detail lengkap + 6 pertanyaan terbuka yang perlu diputuskan sebelum desain teknis di `docs/DESIGN_AUX_STATUS.md`
+- [x] **Riset teknis selesai** — dicek dulu kemungkinan native sebelum implementasi (pola sama seperti Fase 3). Ditemukan: `Setting ticket_auto_assignment` (native, area `Web::Base`, saat ini nonaktif di staging) — tapi sifatnya **reaktif/klaim** (assign saat agent buka tiket dari Overview), bukan push proaktif berbasis status; `Group#assignment_timeout` (native, reclaim tiket basi, bukan distribusi); `out_of_office` (native, granularitas per-hari, cuma 1 pengganti, tidak cukup untuk status granular). **Kesimpulan: inti requirement (status AUX granular + durasi + distribusi proaktif) tetap genuinely custom dev** — beda dari Fase 3 yang mayoritas ternyata native. Detail lengkap di `docs/DESIGN_AUX_STATUS.md`
+- [x] **6 pertanyaan terbuka sudah dijawab, keputusan desain final** (Section 4, `docs/DESIGN_AUX_STATUS.md`): (1) status Available/Busy Lunch 30m/Busy Meeting 60m/Busy Training 60m/Offline; (2) routing least-recently-used gaya queue `leastrecent` Asterisk PBX (bukan round-robin); (3) semua Busy/Offline → tetap unassigned biasa, tanpa eskalasi khusus; (4) mekanisme independen & proaktif, bukan dibangun di atas `ticket_auto_assignment` native; (5) agent ubah status sendiri + supervisor/admin bisa override; (6) histori status disimpan untuk laporan produktivitas nanti. Siap lanjut ke desain teknis rinci (skema data, nama Custom Object Attribute, struktur Scheduler) sebelum implementasi
 - [ ] Buat Custom Object Attribute status agent (dropdown: Available/Busy Lunch/dst)
-- [ ] Definisikan mapping durasi per tipe status (Busy X menit, dst)
-- [ ] Build Scheduler job untuk polling status agent
-- [ ] Build logic/script auto-assign tiket berdasarkan status Available (perlu klarifikasi aturan routing: round-robin / load-based / lainnya)
+- [ ] Definisikan mapping durasi per tipe status (Busy X menit, dst) + Scheduler expiry (auto-kembali ke Available)
+- [ ] Build logic/script distribusi proaktif "leastrecent" (least recently used) berdasarkan `last_owner_update_at`/riwayat assignment per agent
+- [ ] Build mekanisme histori perubahan status (untuk laporan produktivitas)
+- [ ] Buat permission baru untuk override status oleh supervisor/admin
 - [ ] UI ringkas untuk agent mengubah status dengan cepat
 - [ ] Testing dengan multi-agent, termasuk edge case (semua agent Busy, dll)
 
