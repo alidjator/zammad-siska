@@ -1,5 +1,8 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+# `.items` is guarded by Report::DownloadLimitGuard -- see that file and
+# docs/DESIGN_REPORTING_FRT.md (native class, no upstream limit on the
+# per-ticket asset-building loop below).
 class Report::TicketMoved < Report::BaseSql
 
 =begin
@@ -118,6 +121,9 @@ returns
     }
     local_params = defaults.merge(local_params)
     result = history(local_params)
+
+    Report::DownloadLimitGuard.check!(result[:ticket_ids].size)
+
     return result if params[:sheet].present?
 
     assets = {}

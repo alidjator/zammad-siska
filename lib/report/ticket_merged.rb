@@ -1,5 +1,8 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+# `.items` is guarded by Report::DownloadLimitGuard -- see that file and
+# docs/DESIGN_REPORTING_FRT.md (native class, no upstream limit on
+# result[:ticket_ids]/asset building below).
 class Report::TicketMerged < Report::Base
 
   # Returns amount of merged tickets in a given time range
@@ -59,6 +62,8 @@ class Report::TicketMerged < Report::Base
   # @return [Hash]
   def self.items(params)
     result = history(query_params(params))
+
+    Report::DownloadLimitGuard.check!(result[:ticket_ids].size)
 
     if params[:sheet].blank?
       result[:assets] = ApplicationModel::CanAssets

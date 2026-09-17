@@ -80,3 +80,20 @@ Nilai default 10.000 dipilih berdasarkan throughput yang diukur langsung di stag
 **Bug ditemukan saat implementasi**: percobaan pertama memakai `ticket_list.count` polos gagal dengan error SQL (`PG::UndefinedFunction: function count(bigint, timestamp, timestamp) does not exist`) — ternyata Rails ikut memakai daftar kolom dari `.select(...)` yang sudah ada di query (`tickets.id, tickets.first_response_at, tickets.created_at`) sebagai argumen `COUNT(...)`, bukan `COUNT(*)` biasa. Diperbaiki dengan `ticket_list.count(:id)` (eksplisit menghitung berdasarkan satu kolom saja). Diverifikasi lewat pengujian langsung: kondisi melebihi batas berhasil diblokir dengan pesan error yang benar, dan kondisi dalam batas tetap berjalan normal (hasil 5.600 baris identik seperti sebelum perubahan).
 
 **Cara mengubah batas ini**: Admin > Settings > SISKA > Reporting > field "Reporting Download Max Records", atau `Setting.set('report_download_max_records', <angka>)`.
+
+### Cakupan: Class Native yang Juga Rentan (dan Sudah Ditambahkan Guard-nya)
+
+Setelah user menanyakan apakah batasan ini berlaku untuk semua metrik Reporting atau cuma buatan kita, seluruh class `Report::*` lain (native, bukan buatan proyek ini) yang tersedia di UI Reporting diperiksa satu per satu:
+
+| Metrik | Class | Status |
+|---|---|---|
+| First Response Time (Median/Mean), CSAT | `Report::TicketFirstResponseTime`/`Mean`, `Report::TicketCsatScore` | Dilindungi (buatan proyek ini) |
+| Ticket Count / Creation Channels | `Report::TicketGenericTime` | Aman — sudah punya limit bawaan sendiri (`limit = 6000`, lewat Elasticsearch) |
+| Article by Type/Sender, Ticket Backlog | `Report::ArticleByTypeSender`, `Report::TicketBacklog` | Aman — `.items()` cuma `return {}`, tidak ada loop per-tiket |
+| **Ticket Moved** | `Report::TicketMoved` | **Native, rentan** — sekarang **dilindungi** |
+| **Ticket Merged** | `Report::TicketMerged` | **Native, rentan** — sekarang **dilindungi** |
+| **First Solution Time** | `Report::TicketFirstSolution` | **Native, rentan** — sekarang **dilindungi**, dan uji langsung profile "-all-" + 1 tahun 2026 (22.977 tiket) **berhasil diblokir** oleh batas default 10.000 — bukti nyata mekanismenya bekerja |
+
+`Report::TicketMoved` dan `Report::TicketMerged` memakai jalur kode `history()` (bukan query SQL langsung seperti class FRT/CSAT/FirstSolution) untuk mendapatkan `ticket_ids` — jalur ini juga **tidak punya limit sendiri**, jadi guard dipasang tepat setelah `result = history(...)` didapat, sebelum proses assets/Excel dimulai (mencakup baik jalur unduhan Excel maupun tampilan daftar JSON biasa).
+
+**Catatan kalibrasi**: pengujian "-all- + 1 tahun penuh" pada First Solution Time menunjukkan hasil wajar bisa mencapai ~23.000 baris — di atas default 10.000. Kalau kebutuhan bisnis memang perlu unduhan sebesar itu dalam sekali klik, naikkan Setting `report_download_max_records` sesuai kebutuhan (konsekuensinya waktu proses lebih lama, ~440 baris/detik).

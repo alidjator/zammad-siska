@@ -1,5 +1,8 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+# `.items` is guarded by Report::DownloadLimitGuard -- see that file and
+# docs/DESIGN_REPORTING_FRT.md (native class, no upstream limit on the
+# per-ticket asset-building loop below).
 class Report::TicketFirstSolution < Report::BaseSql
 
 =begin
@@ -97,6 +100,9 @@ returns
       params[:range_start],
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(close_at: :asc)
+
+    Report::DownloadLimitGuard.check!(ticket_list.count(:id))
+
     count = 0
     assets = {}
     ticket_ids = []
