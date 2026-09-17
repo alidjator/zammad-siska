@@ -1,6 +1,6 @@
 # Desain: Status "Eskalasi" + Update Alur Status Tiket (Item No. 3 & 12 Gap Analysis)
 
-**Status:** State, Custom Object Attribute, Setting, Trigger, dan aturan Core Workflow **sudah diimplementasikan dan diverifikasi end-to-end** di staging (lihat Section 6). Yang belum: Scheduler/service kalkulasi sisa waktu (menunggu keputusan lokasi tampilan, lihat "Pertanyaan Terbuka").
+**Status:** Seluruh bagian (1-5) **sudah diimplementasikan dan diverifikasi end-to-end** di staging — lihat Section 6 (state/trigger/Core Workflow) dan Section 7 (kalkulasi deadline, kolom Overview, card KPI Tim).
 **Requirement asli:** `docs/Gap_Analysis_SISKA_Sintesis.md` No. 3 (Status Eskalasi + SLA dihitung ulang) & No. 12 (Open → In Progress → Eskalasi → Closed) — kedua item ini secara teknis identik, No. 12 mengacu langsung ke No. 3.
 **Setting terkait:** `Setting.get('escalation_budget_hours')` (default `8`) — bisa diatur lewat **Admin > Settings > SISKA > Eskalasi**, atau di-override per Group/Organisasi lewat field `escalation_budget_hours` di masing-masing edit screen-nya (Group menang kalau keduanya di-set).
 
@@ -61,15 +61,15 @@ Ini satu-satunya bagian yang genuinely tidak ada mekanisme native-nya di Zammad 
 2. **Trigger** yang mengisi `escalation_started_at` = "sekarang", saat `state_id` berubah jadi Eskalasi. **Ini juga murni konfigurasi** (Manage > Triggers) — ditemukan dari riset bahwa Trigger native mendukung operator "relative" pada field datetime/date, dihitung real-time saat trigger benar-benar jalan (bukan nilai statis dibekukan). Catatan kecil: dropdown di UI Trigger cuma menawarkan "1-120 menit dari sekarang" (tidak ada pilihan "0"/langsung) — jadi hasilnya "sekarang + 1 menit", cukup presisi untuk SLA berskala jam/hari. `execution_condition_mode: selective` memastikan Trigger ini cuma jalan sekali saat transisi MASUK ke Eskalasi, bukan tiap kali tiket itu disave ulang.
 3. **Scheduler/service kustom** (baru ini yang benar-benar custom dev) untuk menghitung sisa waktu dari `escalation_started_at` sampai batas waktu tertentu (perlu didefinisikan: berapa lama "budget" waktu sejak eskalasi sebelum dianggap breach — ini keputusan bisnis yang perlu ditentukan, lihat bagian "Pertanyaan Terbuka" di bawah).
    - **Wajib pakai kalender jam kerja yang sama dengan SLA** (`calendar.biz`, lewat `Sla.for_ticket(ticket)&.calendar&.biz`), **bukan** pengurangan waktu polos (`Time.zone.now - escalation_started_at`) — kalau tidak, hitungan custom ini akan ikut menghitung malam/akhir pekan/libur berbeda dari SLA native, jadi tidak sinkron dan membingungkan.
-   - Ditampilkan di mana: belum diputuskan (opsi: widget di Ticket Zone, kolom baru di Overview, atau card baru di dashboard "KPI Tim" yang sudah ada) — lihat pertanyaan terbuka.
+   - Ditampilkan di: kolom baru di Overview + card baru di dashboard "KPI Tim" — lihat Section 7.
 
 ---
 
-## Pertanyaan Terbuka (Perlu Diputuskan Sebelum Implementasi Bagian 5)
+## Pertanyaan Terbuka (sudah diputuskan seluruhnya)
 
 1. ~~Berapa lama "budget waktu" sejak masuk Eskalasi sebelum dianggap breach?~~ **Sudah diputuskan**: 8 jam kerja (default global), bisa di-override per Group atau Organisasi — lihat Section 6.
-2. **Sisa waktu ini mau ditampilkan di mana?** Widget di halaman tiket (paling terlihat oleh agent yang menangani), kolom baru di Overview (terlihat tim sekaligus), atau card tambahan di dashboard "KPI Tim" yang sudah ada (agregat tim, bukan per-tiket)?
-3. **Notifikasi saat breach** — perlu, atau cukup ditampilkan sebagai angka/warna saja (seperti pola state-based color di KPI Tim)?
+2. ~~Sisa waktu ini mau ditampilkan di mana?~~ **Sudah diputuskan**: kombinasi kolom baru di Overview (`escalation_deadline_at`, terlihat tim sekaligus) + card baru di dashboard "KPI Tim" (agregat, "Tiket Breach Eskalasi") — lihat Section 7.
+3. **Notifikasi saat breach** — belum diimplementasikan, cukup ditampilkan sebagai angka/warna saja untuk saat ini (pola state-based color yang sama dengan KPI Tim). Bisa ditambahkan Trigger notifikasi terpisah nanti kalau dibutuhkan (perlu keputusan bisnis tambahan: notifikasi ke siapa, lewat kanal apa).
 
 ---
 
@@ -94,6 +94,20 @@ Setelah bug 1 diperbaiki, aturan MASIH tidak berpengaruh. Ditemukan setelah repr
 **Pelajaran penting untuk Core Workflow rule berikutnya**: selalu simpan value ID (state/priority/dst) sebagai **string**, dan selalu sertakan key `'operator'` eksplisit di setiap `perform` action — kedua kesalahan ini **gagal senyap** (tidak ada error/exception), cuma terlihat lewat pengujian end-to-end nyata (API sungguhan), bukan dari membaca kode atau bahkan menjalankan `CoreWorkflow.perform` di Rails console tanpa membandingkan hasil `restrict_values` secara eksplisit.
 
 **Catatan pengujian penting lainnya**: Core Workflow (`validate_workflows`) **tidak aktif** kalau tiket diubah lewat `ticket.update!` langsung di Ruby/Rails console — validasi ini cuma jalan kalau atribut `screen` di-set (biasanya oleh `TicketsController#update`, `clean_params[:screen] = 'edit'`). Jadi pengujian aturan Core Workflow **wajib** lewat API HTTP sungguhan (`PUT /api/v1/tickets/:id`) atau UI asli, bukan skrip Ruby biasa — kalau tidak, hasil pengujian akan salah (tampak "berhasil" padahal sebenarnya validasinya tidak pernah jalan).
+
+---
+
+## 7. Implementasi Bagian 5 (Selesai, Terverifikasi): Deadline, Overview, KPI Tim
+
+- **Custom Object Attribute**: `Ticket#escalation_deadline_at` (datetime, nullable) — `script/create_escalation_deadline_attribute.rb`. Nilai TETAP (dihitung sekali saat masuk Eskalasi), bukan angka "sisa waktu" yang terus berkurang — supaya bisa langsung dipakai sebagai kolom Overview biasa (bisa di-sort/filter), sama seperti `escalation_at` bawaan.
+- **Service kustom** `Service::Escalation::CalculateDeadlines` (`app/services/service/escalation/calculate_deadlines.rb`) — untuk tiap tiket berstatus Eskalasi yang punya `escalation_started_at`, hitung `escalation_deadline_at` = `escalation_started_at` + budget efektif (jam kerja saja, lewat mekanisme kalender bisnis yang sama dipakai SLA native — `calendar.biz.time(menit, :minutes).after(waktu_mulai)`, lihat `lib/escalation/destination_time.rb`). Budget efektif: override Group > override Organisasi > Setting global `escalation_budget_hours`. Idempotent — hanya menulis kalau nilai benar-benar berubah, dan otomatis menghitung ulang kalau tiket masuk Eskalasi lagi di kemudian hari (`escalation_started_at` di-refresh Trigger tiap kali re-entry).
+- **Scheduler**: "Eskalasi: calculate escalation deadlines" — `script/create_escalation_scheduler.rb`, jalan tiap 5 menit (`period: 300`), `active: true` sejak awal (aman langsung aktif karena cuma menghitung ulang field internal, tidak mengirim apa pun ke customer, beda dengan Scheduler survei CSAT yang sengaja `active: false` sampai siap).
+- **Kolom Overview**: `escalation_deadline_at` otomatis muncul di daftar "Attributes" (checkbox) saat admin membuat/mengedit Overview di **Manage > Overviews** — **murni konfigurasi, tidak perlu kode tambahan** (mekanisme checkbox-attribute Overview bawaan membaca semua Custom Object Attribute Ticket yang aktif, tidak dibatasi field `screens`). Cara pakai: Admin > Manage > Overviews > pilih/buat Overview > centang "Escalation Deadline At" di bagian Attributes.
+- **Card KPI Tim baru**: "Tiket Breach Eskalasi" — jumlah tiket Eskalasi yang `escalation_deadline_at`-nya sudah lewat, dari total tiket Eskalasi saat ini (realtime, bukan window). Field baru di `Service::Dashboard::TeamKpi#call`: `eskalasi_active`, `eskalasi_breached`, `eskalasi_breach_rate_percent`, `eskalasi_breach_state`. State-based color pakai pola yang sama dengan card "Tiket Escalated" (good/ok/bad/superbad berdasarkan persentase), **tapi Setting terpisah** `team_kpi_eskalasi_breach_thresholds` (Admin > Settings > SISKA > KPI Tim) — sengaja dipisah dari `team_kpi_escalated_thresholds` karena keduanya mengukur hal yang berbeda: yang lama = breach SLA native (`escalation_at`), yang baru = breach budget kustom pasca-Eskalasi (`escalation_deadline_at`). Satu tiket bisa breach salah satu tanpa breach yang lain.
+
+### Catatan penting: kode custom harus di-deploy ke DUA container, bukan cuma satu
+
+`Service::Escalation::CalculateDeadlines` dipanggil oleh proses **Scheduler** (`zammad-staging-zammad-scheduler-1`), bukan oleh proses **App/Puma** (`zammad-staging-zammad-app-1`) — keduanya container terpisah dari image yang sama, tapi filesystem writable layer masing-masing terpisah. Saat file baru cuma di-`docker cp` ke container App (sesuai pola yang biasa dipakai untuk kode yang diakses lewat HTTP), Scheduler tetap gagal (`uninitialized constant`) karena filenya tidak ada di container Scheduler — Zammad sendiri mendeteksi ini lewat mekanisme retry bawaan (setelah 11 kali gagal berturut-turut, Scheduler otomatis di-nonaktifkan sendiri, `active` di-set `false`, `error_message` diisi "Failed to run ... after 11 tries"). Perbaikannya: `docker cp` file yang sama ke **kedua** container, restart keduanya, baru aktifkan ulang Scheduler-nya. **Pelajaran untuk service baru berikutnya yang dipanggil dari Scheduler**: selalu deploy ke `zammad-staging-zammad-app-1` DAN `zammad-staging-zammad-scheduler-1`, tidak cukup salah satu.
 
 ---
 

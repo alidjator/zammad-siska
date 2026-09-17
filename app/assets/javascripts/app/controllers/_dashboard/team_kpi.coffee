@@ -63,6 +63,9 @@ class App.DashboardTeamKpi extends App.Controller
     data.ticket_new         ?= 0
     data.ticket_open         ?= 0
     data.ticket_escalated    ?= 0
+    data.eskalasi_active     ?= 0
+    data.eskalasi_breached   ?= 0
+    data.eskalasi_breach_rate_percent ?= 0
     data.window_days        ?= @selectedRange
     data.selectedRange       = @selectedRange
 
@@ -73,6 +76,7 @@ class App.DashboardTeamKpi extends App.Controller
     data.frt_state_class       = if data.frt_state then "#{data.frt_state}-color" else ''
     data.csat_state_class      = if data.csat_state then "#{data.csat_state}-color" else ''
     data.escalated_state_class = if data.escalated_state then "#{data.escalated_state}-color" else ''
+    data.eskalasi_breach_state_class = if data.eskalasi_breach_state then "#{data.eskalasi_breach_state}-color" else ''
 
     @html App.view('dashboard/team_kpi')(data)
     @$('.js-team-kpi-help').tooltip()

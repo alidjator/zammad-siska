@@ -149,4 +149,29 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+# Percent of tickets currently in the "eskalasi" state that are past their
+# escalation_deadline_at (see docs/DESIGN_ESCALATION_STATUS.md,
+# Service::Escalation::CalculateDeadlines). Deliberately separate from
+# team_kpi_escalated_thresholds above -- that one tracks native SLA
+# breaches (Ticket#escalation_at), this one tracks the custom post-
+# Eskalasi budget clock. Same rate-bucket shape/polarity as Escalated
+# (higher rate is worse).
+Setting.create_if_not_exists(
+  title:       'KPI Tim Eskalasi Breach Rate Thresholds (%)',
+  name:        'team_kpi_eskalasi_breach_thresholds',
+  area:        'TeamKpi::Base',
+  description: 'Percent of tickets in "eskalasi" state past their escalation_deadline_at, cutoffs for good/ok/bad/superbad -- anything below good_min is supergood. Higher rate is worse.',
+  options:     {
+    form: [
+      { display: 'Good min (%)',     null: true, name: 'good_min',     tag: 'input', type: 'number' },
+      { display: 'Ok min (%)',       null: true, name: 'ok_min',       tag: 'input', type: 'number' },
+      { display: 'Bad min (%)',      null: true, name: 'bad_min',      tag: 'input', type: 'number' },
+      { display: 'Superbad min (%)', null: true, name: 'superbad_min', tag: 'input', type: 'number' },
+    ],
+  },
+  state:       { 'good_min' => 20, 'ok_min' => 40, 'bad_min' => 65, 'superbad_min' => 90 },
+  preferences: { permission: ['admin.system'] },
+  frontend:    false,
+)
+
 puts 'Done.'

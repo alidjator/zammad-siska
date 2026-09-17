@@ -105,7 +105,11 @@ Backend dashboard ini adalah endpoint REST biasa, bisa dipanggil dari aplikasi l
 | `ticket_open` | Integer | Jumlah tiket state type `open`, realtime. |
 | `ticket_escalated` | Integer | Jumlah tiket belum closed yang `escalation_at` sudah lewat, realtime. |
 | `escalation_rate_percent` | Float | `ticket_escalated / (ticket_new + ticket_open) * 100`, realtime. |
-| `escalated_state` | String | Selalu terisi (`supergood`...`superbad`), tidak pernah `null`. |
+| `escalated_state` | String | Selalu terisi (`supergood`...`superbad`), tidak pernah `null`. Ini breach SLA **native** (`escalation_at`). |
+| `eskalasi_active` | Integer | Jumlah tiket berstatus `eskalasi` saat ini, realtime. Lihat `docs/DESIGN_ESCALATION_STATUS.md`. |
+| `eskalasi_breached` | Integer | Dari `eskalasi_active`, berapa yang `escalation_deadline_at`-nya sudah lewat, realtime. |
+| `eskalasi_breach_rate_percent` | Float | `eskalasi_breached / eskalasi_active * 100`, realtime. `0` kalau `eskalasi_active` nol. |
+| `eskalasi_breach_state` | String | Selalu terisi (`supergood`...`superbad`). Ini breach budget **kustom** pasca-Eskalasi (`escalation_deadline_at`) — terpisah dari `escalated_state`, satu tiket bisa breach salah satu tanpa breach yang lain. |
 | `window_days` | Integer | Nilai `days` yang benar-benar dipakai (setelah clamp). |
 | `generated_at` | String (ISO8601) | Timestamp response dibuat. |
 
@@ -115,7 +119,7 @@ curl -H "Authorization: Token token=<API_TOKEN>" \
   "https://helpdesk.satu.solutions/api/v1/team_kpi?days=90"
 ```
 ```json
-{"frt_median_minutes":558.3,"frt_state":"bad","csat_average":4.0,"csat_state":"good","ticket_new":136,"ticket_open":79,"ticket_escalated":90,"escalation_rate_percent":41.9,"escalated_state":"ok","window_days":90,"generated_at":"2026-09-16T09:15:01Z"}
+{"frt_median_minutes":558.3,"frt_state":"bad","csat_average":4.0,"csat_state":"good","ticket_new":136,"ticket_open":79,"ticket_escalated":90,"escalation_rate_percent":41.9,"escalated_state":"ok","eskalasi_active":1,"eskalasi_breached":0,"eskalasi_breach_rate_percent":0.0,"eskalasi_breach_state":"supergood","window_days":90,"generated_at":"2026-09-16T09:15:01Z"}
 ```
 
 Diverifikasi bekerja dari luar Zammad memakai akun service khusus (`integration-kpi-api@pkp.co.id`, role "Customer Services" yang punya `ticket.agent`, tidak terikat ke satu orang) — bukan akun personal siapapun, supaya integrasi tidak putus kalau pemilik akun pindah/keluar.
@@ -148,7 +152,8 @@ Nilai-nilai kalibrasi yang sebelumnya hardcoded di `team_kpi.rb` sekarang semuan
 | `team_kpi_max_window_days` | `730` | 1 field | Batas maksimum parameter `days` di-clamp (`Service::Dashboard::TeamKpi#initialize`) |
 | `team_kpi_frt_thresholds` | `supergood_max: 60, good_max: 240, ok_max: 480, bad_max: 1440` (menit) | 4 field | Di atas `bad_max` = superbad. Makin kecil makin bagus |
 | `team_kpi_csat_thresholds` | `supergood_min: 4.5, good_min: 4.0, ok_min: 3.0, bad_min: 2.0` (skala 1-5) | 4 field | Di bawah `bad_min` = superbad. Makin besar makin bagus |
-| `team_kpi_escalated_thresholds` | `good_min: 20, ok_min: 40, bad_min: 65, superbad_min: 90` (%) | 4 field | Di bawah `good_min` = supergood. Makin besar makin buruk (polaritas terbalik dari FRT/CSAT) |
+| `team_kpi_escalated_thresholds` | `good_min: 20, ok_min: 40, bad_min: 65, superbad_min: 90` (%) | 4 field | Di bawah `good_min` = supergood. Makin besar makin buruk (polaritas terbalik dari FRT/CSAT). Mengukur breach SLA **native** (`escalation_at`) |
+| `team_kpi_eskalasi_breach_thresholds` | `good_min: 20, ok_min: 40, bad_min: 65, superbad_min: 90` (%) | 4 field | Sama bentuk/polaritas dengan `team_kpi_escalated_thresholds`, tapi mengukur breach budget **kustom** pasca-status-Eskalasi (`escalation_deadline_at`, lihat `docs/DESIGN_ESCALATION_STATUS.md`) — sengaja dipisah karena satu tiket bisa breach salah satu tanpa breach yang lain |
 
 Setting dengan 4 field disimpan sebagai satu hash (bukan 4 Setting terpisah) — ini format yang sama dipakai `App.SettingsAreaItem` (renderer generik Admin UI) untuk Setting multi-field, dengan key hash mengikuti `name` tiap field form.
 

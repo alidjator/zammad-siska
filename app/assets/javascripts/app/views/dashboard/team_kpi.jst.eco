@@ -65,4 +65,15 @@
     <div class="team-kpi-value <%- @escalated_state_class %>"><%- @ticket_escalated %></div>
     <div class="team-kpi-caption"><%- @T('saat ini, %s% dari New+Open', @escalation_rate_percent) %></div>
   </div>
+  <div class="team-kpi-card">
+    <div class="team-kpi-title">
+      <%- @T('Tiket Breach Eskalasi') %>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus Eskalasi yang sudah melewati batas waktu (escalation_deadline_at), dari total tiket berstatus Eskalasi saat ini (realtime).') %>" data-placement="bottom"><%- @Icon('help') %></div>
+    </div>
+    <div class="team-kpi-graphic">
+      <div class="team-kpi-icon team-kpi-icon-glyph <%- @eskalasi_breach_state_class %>">!</div>
+    </div>
+    <div class="team-kpi-value <%- @eskalasi_breach_state_class %>"><%- @eskalasi_breached %></div>
+    <div class="team-kpi-caption"><%- @T('saat ini, %s% dari %s tiket Eskalasi', @eskalasi_breach_rate_percent, @eskalasi_active) %></div>
+  </div>
 </div>

@@ -36,6 +36,16 @@
 #     raw volume snapshots, not a performance measure with an inherent
 #     "good/bad" direction (native itself leaves some widgets, e.g.
 #     Channel Distribution, uncolored for the same reason).
+#   - Eskalasi breach: reuses the exact same rate-bucket pattern as
+#     Escalated (>=20/40/65/90%), but as percent-of-tickets-in-Eskalasi
+#     that are past `escalation_deadline_at` -- see
+#     docs/DESIGN_ESCALATION_STATUS.md (gap analysis item No. 3/12). This
+#     is deliberately separate from `escalated_state` above: that one is
+#     native-SLA-based (Ticket#escalation_at, ticket_escalated), this one
+#     is the custom post-Eskalasi budget clock
+#     (Ticket#escalation_deadline_at, computed by
+#     Service::Escalation::CalculateDeadlines) -- a ticket can breach one
+#     without the other.
 # See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full rationale and the
 # calibration data behind these thresholds.
 class Service::Dashboard::TeamKpi
@@ -62,6 +72,9 @@ class Service::Dashboard::TeamKpi
     open_count  = ticket_count_by_state_type('open')
     escalated   = ticket_escalated_count
     escalation_rate = escalation_rate_percent(escalated, new_count, open_count)
+    eskalasi_active   = eskalasi_active_count
+    eskalasi_breached = eskalasi_breached_count
+    eskalasi_breach_rate = eskalasi_breach_rate_percent(eskalasi_breached, eskalasi_active)
 
     {
       frt_median_minutes:     frt,
@@ -73,6 +86,10 @@ class Service::Dashboard::TeamKpi
       ticket_escalated:       escalated,
       escalation_rate_percent: escalation_rate,
       escalated_state:        escalated_state(escalation_rate),
+      eskalasi_active:            eskalasi_active,
+      eskalasi_breached:          eskalasi_breached,
+      eskalasi_breach_rate_percent: eskalasi_breach_rate,
+      eskalasi_breach_state:      eskalasi_breach_state(eskalasi_breach_rate),
       window_days:            @window_days,
       generated_at:           Time.zone.now.iso8601,
     }
@@ -141,6 +158,28 @@ class Service::Dashboard::TeamKpi
     (escalated.to_f / denom * 100).round(1)
   end
 
+  def eskalasi_active_count
+    Ticket.where(state_id: eskalasi_state_id).count
+  end
+
+  def eskalasi_breached_count
+    Ticket
+      .where(state_id: eskalasi_state_id)
+      .where.not(escalation_deadline_at: nil)
+      .where(escalation_deadline_at: ..Time.zone.now)
+      .count
+  end
+
+  def eskalasi_state_id
+    @eskalasi_state_id ||= Ticket::State.find_by!(name: 'eskalasi').id
+  end
+
+  def eskalasi_breach_rate_percent(breached, active)
+    return 0.0 if active.zero?
+
+    (breached.to_f / active * 100).round(1)
+  end
+
   def frt_state(minutes)
     return nil if minutes.nil?
 
@@ -177,6 +216,21 @@ class Service::Dashboard::TeamKpi
 
   def escalated_state(rate_percent)
     t = Setting.get('team_kpi_escalated_thresholds')
+    if rate_percent >= t['superbad_min'].to_f
+      'superbad'
+    elsif rate_percent >= t['bad_min'].to_f
+      'bad'
+    elsif rate_percent >= t['ok_min'].to_f
+      'ok'
+    elsif rate_percent >= t['good_min'].to_f
+      'good'
+    else
+      'supergood'
+    end
+  end
+
+  def eskalasi_breach_state(rate_percent)
+    t = Setting.get('team_kpi_eskalasi_breach_thresholds')
     if rate_percent >= t['superbad_min'].to_f
       'superbad'
     elsif rate_percent >= t['bad_min'].to_f
