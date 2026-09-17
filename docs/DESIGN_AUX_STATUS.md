@@ -55,15 +55,27 @@ Zammad melacak siapa yang sedang terhubung real-time (titik hijau di avatar) —
 | # | Keputusan | Detail |
 |---|---|---|
 | 1 | **Daftar status AUX** (set standar, bisa ditambah/diubah lewat Setting nanti) | `Available` (tanpa batas waktu), `Busy Lunch` (30 menit), `Busy Meeting` (60 menit), `Busy Training` (60 menit), `Offline` (tanpa batas waktu) |
-| 2 | **Aturan routing saat >1 agent Available** | **Least Recently Used** — pola yang sama dengan strategi queue `leastrecent` di Asterisk PBX: tiket didorong ke agent Available yang **paling lama TIDAK menerima assignment tiket** (bukan round-robin urutan tetap) — butuh melacak `last_assigned_at` per agent |
+| 2 | **Aturan routing saat >1 agent Available** | **Bisa dipilih lewat Setting**, mengikuti 3 strategi queue Asterisk PBX (lihat tabel di bawah): `leastrecent` (default), `fewestcalls`, `roundrobin` — bisa diganti-ganti tanpa deploy ulang kode |
 | 3 | **Kalau semua agent Busy/Offline** | Tiket tetap dibuat sebagai **unassigned biasa** (owner "-"), diambil manual begitu ada agent yang kembali Available — tidak ada eskalasi/notifikasi khusus tambahan |
 | 4 | **Basis mekanisme** | **Independen, dorong proaktif** — begitu status berubah jadi Available (atau tiket baru masuk saat sudah ada agent Available), tiket langsung didorong tanpa perlu agent membuka Overview dulu. **Tidak** dibangun di atas `ticket_auto_assignment` native (yang sifatnya reaktif/klaim) |
 | 5 | **Otorisasi ubah status** | Agent bisa ubah status miliknya sendiri; **supervisor/admin juga bisa override** status agent lain (perlu permission terpisah, mis. `aux_status.override`) |
 | 6 | **Histori status** | **Ya, disimpan** — tiap perubahan status dicatat dengan timestamp, untuk kebutuhan laporan produktivitas nanti (mis. total waktu Available vs Busy per agent per hari, bisa jadi kandidat card baru di KPI Tim) |
 
-### Implikasi Teknis dari Keputusan Ini (Catatan Awal, Belum Final)
+### 2a. Metode Routing yang Bisa Dipilih (Setting `aux_status_routing_method`)
 
-- **Least Recently Used routing** butuh sumber kebenaran untuk "kapan agent terakhir menerima tiket" — kandidat paling sederhana: query `MAX(tickets.last_owner_update_at)` per agent (kolom ini sudah ada native di Ticket, dipakai juga oleh `assignment_timeout`), dibandingkan ke seluruh agent yang sedang `Available`, pilih yang nilainya paling lama (atau NULL = belum pernah dapat tiket sama sekali = prioritas tertinggi)
+Mengikuti permintaan supaya metode routing bisa diganti-ganti tanpa perlu ubah kode, disediakan 3 strategi (dropdown Setting baru, area `SISKA::AuxStatus`, sub-tab Admin > Settings > SISKA), meniru 3 strategi queue Asterisk PBX yang paling umum:
+
+| Strategi | Basis pemilihan agent | Sumber data |
+|---|---|---|
+| **`leastrecent`** (default) | Agent Available yang **paling lama tidak menerima assignment tiket** (recency-based) | `MAX(tickets.last_owner_update_at)` per agent (kolom native, sudah dipakai `assignment_timeout`) — dibandingkan ke seluruh agent Available, yang nilainya paling lama (atau NULL = belum pernah dapat tiket = prioritas tertinggi) dipilih |
+| **`fewestcalls`** | Agent Available dengan **beban kerja saat ini paling sedikit** — dihitung dari jumlah tiket **open aktif** (status Open/In Progress/Eskalasi) yang jadi milik agent tsb sekarang, BUKAN histori/total sepanjang waktu | `COUNT(tickets)` per agent, filter `owner_id = agent` AND state termasuk kategori `open`, dibandingkan ke seluruh agent Available, yang nilainya paling kecil dipilih |
+| **`roundrobin`** | Gilir tetap berurutan mengikuti daftar agent yang sedang Available (urutan tetap, mis. berdasar `id` atau nama), lanjut dari agent terakhir yang menerima giliran | Perlu 1 nilai state tersimpan ("pointer" agent terakhir yang dapat giliran) — kandidat: field kecil di Setting/tabel konfigurasi routing (bukan per-agent, cuma 1 pointer global) |
+
+- Setting ini **global untuk seluruh sistem** (bukan per Group/Organisasi) — cukup untuk kebutuhan saat ini, bisa diperluas ke override per-Group nanti kalau memang dibutuhkan (mengikuti pola yang sama seperti `escalation_budget_hours` di Fase 3, tapi belum diminta untuk item ini)
+- Perlu dipastikan `fewestcalls` dan `leastrecent` sama-sama dihitung real-time saat proses distribusi jalan (query langsung, bukan counter yang disimpan terpisah) supaya tidak ada risiko counter basi/tidak sinkron — `roundrobin` adalah satu-satunya yang butuh state tersimpan (pointer), karena urutannya tidak bisa diturunkan dari data tiket
+
+### Implikasi Teknis Lain (Catatan Awal, Belum Final)
+
 - **Histori status** kemungkinan perlu tabel/Custom Object Attribute terpisah (bukan cuma 1 field "status saat ini" di User) — perlu didesain apakah pakai mekanisme History bawaan Zammad (`History` model, sudah dipakai fitur native lain) atau tabel custom sendiri
 - **Durasi status dengan auto-expiry** (Busy Lunch 30 menit balik ke Available) butuh Scheduler polling berkala (mirip pola `Service::Escalation::CalculateDeadlines` di Fase 3) — cek tiap user yang statusnya sudah lewat durasi, kembalikan ke Available
 - **Distribusi proaktif** butuh titik pemicu (trigger point) yang jelas: kapan tepatnya percobaan distribusi dijalankan — candidate: (a) setiap kali tiket baru masuk (via Trigger `ticket.create`), (b) setiap kali status seorang agent berubah jadi Available (kalau ada tiket unassigned menunggu), atau keduanya
