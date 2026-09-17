@@ -59,10 +59,17 @@
 - [x] Buat aturan Core Workflow untuk validasi urutan transisi (Open tidak boleh lompat langsung ke Eskalasi, harus lewat In Progress dulu; Closed tetap bisa dari state manapun) — `script/create_escalation_workflow.rb`
 - [x] **2 bug ditemukan & diperbaiki saat implementasi Core Workflow** (keduanya gagal senyap, tanpa error): (1) format `perform` butuh key `'operator'` eksplisit, bukan langsung nama operator sebagai key; (2) nilai state ID harus string bukan integer, karena `Array#-` tidak melakukan type coercion. Ditemukan lewat reproduksi manual step-by-step, bukan dari membaca kode saja. Detail lengkap + pelajaran untuk Core Workflow rule berikutnya ada di `docs/DESIGN_ESCALATION_STATUS.md` Section 6
 - [x] **Diverifikasi end-to-end lewat API sungguhan** (bukan Rails console — ditemukan Core Workflow tidak aktif kalau update lewat `ticket.update!` langsung, cuma jalan lewat controller/API asli): Open→Eskalasi langsung berhasil diblokir (HTTP 422), Open→In Progress→Eskalasi berhasil, dan `escalation_started_at` otomatis terisi
-- [ ] **Putuskan**: sisa waktu (dihitung dari `escalation_started_at` + `escalation_budget_hours`) ditampilkan di mana (widget Ticket Zone / kolom Overview / card baru di KPI Tim)
-- [ ] Build Scheduler/service custom untuk menghitung sisa waktu dari `escalation_started_at` (wajib pakai kalender jam kerja `calendar.biz`, bukan pengurangan waktu polos) — menunggu keputusan lokasi tampilan di atas
+- [x] **Keputusan lokasi tampilan**: kombinasi kolom baru di Overview + card baru di dashboard "KPI Tim" (bukan widget Ticket Zone terpisah)
+- [x] Buat Custom Object Attribute `escalation_deadline_at` (Ticket, datetime, nilai TETAP bukan sisa-waktu dinamis) — `script/create_escalation_deadline_attribute.rb`
+- [x] Build service custom `Service::Escalation::CalculateDeadlines` — menghitung `escalation_deadline_at` = `escalation_started_at` + budget efektif (Group > Organisasi > global), **wajib pakai kalender jam kerja** `calendar.biz` (mekanisme sama dengan SLA native), bukan pengurangan waktu polos — `app/services/service/escalation/calculate_deadlines.rb`
+- [x] Daftarkan Scheduler "Eskalasi: calculate escalation deadlines" (tiap 5 menit, aktif langsung) — `script/create_escalation_scheduler.rb`
+- [x] **Kolom Overview** `escalation_deadline_at` — ternyata **murni konfigurasi native** (checkbox Attributes di Manage > Overviews), tidak perlu kode tambahan
+- [x] **Card KPI Tim baru** "Tiket Breach Eskalasi" (jumlah tiket Eskalasi yang breach dari total aktif, state-based color) — field baru di `team_kpi.rb` + Setting terpisah `team_kpi_eskalasi_breach_thresholds` + update `team_kpi.coffee`/`team_kpi.jst.eco`
+- [x] **Bug ditemukan & diperbaiki saat deploy**: kode custom yang dipanggil Scheduler harus di-deploy ke **dua container terpisah** (`zammad-app` dan `zammad-scheduler`, filesystem writable layer masing-masing beda meski image sama) — Scheduler awalnya gagal 11x berturut-turut lalu auto-nonaktif sendiri (perilaku bawaan Zammad) sebelum file di-copy ke container Scheduler juga. Detail di `docs/DESIGN_ESCALATION_STATUS.md` Section 7
+- [x] **Diverifikasi end-to-end di staging**: kalkulasi jam-kerja diuji manual (tiket masuk Eskalasi di luar jam kerja → deadline jatuh ke jam kerja berikutnya, sesuai ekspektasi), override Group diuji & di-revert, dan Scheduler dikonfirmasi jalan sendiri lewat siklus pollingnya (`status: "ok"`, tanpa error) setelah deploy ke kedua container
 - [ ] **Selaraskan ekspektasi dengan stakeholder**: SLA clock asli Zammad tidak reset — pastikan tidak ada asumsi keliru soal ini di UAT
-- [ ] Testing end-to-end alur status + notifikasi terkait
+- [ ] Notifikasi saat breach — belum diimplementasikan (saat ini cukup indikator angka/warna di KPI Tim), bisa ditambahkan nanti kalau dibutuhkan (perlu keputusan bisnis: notifikasi ke siapa, lewat kanal apa)
+- [ ] Testing end-to-end alur status + notifikasi terkait (UAT bersama stakeholder)
 
 ## Fase 4 — Item No. 1: AUX Status + Auto-distribusi Tiket (Medium-High effort)
 
@@ -93,3 +100,13 @@
 - [ ] Rebuild image `zammad-staging-app` dari source terbaru, deploy ke container staging
 - [ ] UAT bersama tim PKP di staging sebelum lanjut ke production
 - [ ] Rencana migrasi/rollout ke production (mengacu pada `zammad_production_backup.sql.gz` yang sudah ada)
+
+## Di Luar Fase — Anonimisasi Kontak User Non-Admin (Staging)
+
+- [x] **Anonimisasi permanen email/login/phone/mobile untuk 72.017 user non-admin** di staging (`zammad-staging-zammad-app-1`), setelah komplain email testing "nyasar" ke customer asli — ditemukan database staging adalah salinan penuh data production dengan SMTP outbound hidup, bukan data dummy
+- [x] Scope: semua user kecuali role Admin, akun sistem (id 1), dan domain `@pkp.co.id` (staf internal PKP + akun service `integration-kpi-api@pkp.co.id`)
+- [x] Backup otomatis nilai lama (72.017 baris) tersimpan sebelum eksekusi, dieksekusi lewat SQL mentah (tanpa callback/notifikasi apa pun) — `script/anonymize_non_admin_contacts.rb`
+- [x] Dijalankan manual oleh user (eksekusi tulis massal diblokir untuk Claude oleh auto-mode classifier, sesuai pola yang sama dengan koreksi bug timezone sebelumnya)
+- [x] Didokumentasikan lengkap (kriteria scope, format transformasi, contoh before/after ter-mask) di `docs/ANONYMIZATION_CONTACT_INFO.md`
+- [ ] **Belum diproses**: identitas Telegram (tidak ada kolom per-user yang stabil, kemungkinan cuma ada di `ticket_articles.preferences` per pesan — butuh investigasi terpisah)
+- [ ] Pindahkan file backup (`/tmp/anonymize_contacts_backup_20260917_010218.jsonl`, berisi PII asli) dari `/tmp` container ke penyimpanan permanen yang aman, di luar git — `/tmp` container bisa hilang kalau container di-recreate
