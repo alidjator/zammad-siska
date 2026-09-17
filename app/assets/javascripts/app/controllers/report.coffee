@@ -158,7 +158,25 @@ class Graph extends App.Controller
         ui:     @ui
       )
 
-  render: =>
+  # `silent`: true for the recurring background auto-refresh below (no
+  # loading indicator, so the chart doesn't flicker every few minutes on
+  # its own) -- false (default) for every user-initiated call (changing
+  # profile/metric/year, toggling a backend checkbox), where native
+  # Zammad previously gave NO feedback at all while `/reports/generate`
+  # was in flight, leaving the page looking unresponsive/frozen.
+  #
+  # Deliberately NOT using @startLoading()/@stopLoading() here: that
+  # pair is timer-based (a delayed injection that only fires if the
+  # request outlasts @startLoadingDelay, cancelled via a randomly
+  # generated key each call if no explicit key is passed -- see
+  # App.Delay#set/lib/app_post/delay.coffee) and was found to get stuck
+  # showing "Loading..." even after data had already arrived and
+  # @draw() had run. Injecting/clearing the loading view directly here
+  # is simpler and self-healing: @draw() below always does
+  # `$('#placeholder').empty()` before plotting, which unconditionally
+  # wipes whatever this put there, regardless of timing.
+  render: (silent = false) =>
+    @$('#placeholder').html(App.view('generic/page_loading')()) if !silent
 
     url = "#{@apiPath}/reports/generate"
     interval = 5 * 60000
@@ -189,6 +207,8 @@ class Graph extends App.Controller
       )
       processData: true
       error:       (xhr) =>
+        @$('#placeholder').empty() if !silent
+
         return if !_.include([401, 403, 404, 422, 502], xhr.status)
 
         @bodyModal = new App.ControllerTechnicalErrorModal(
@@ -197,7 +217,7 @@ class Graph extends App.Controller
         )
       success: (data) =>
         @update(data)
-        @delay(@render, interval, 'report-update', 'page')
+        @delay((=> @render(true)), interval, 'report-update', 'page')
     )
 
   draw: (data) =>
@@ -396,12 +416,36 @@ class Download extends App.Controller
     return if _.isEqual(@lastState, state)
     @lastState = $.extend(true, {}, state)
 
+    # No `silent` needed here (unlike Graph#render): tableUpdate() is
+    # only ever reached via a genuine param change (constructor,
+    # selectBackend) -- Graph#update's own unchanged-params guard
+    # already skips calling us during its silent background
+    # auto-refresh, so every call here is a real user-driven change.
+    #
+    # Deliberately NOT using @startLoading()/@stopLoading() -- see the
+    # matching note on Graph#render above; that timer-based pair was
+    # found to get stuck showing "Loading..." after data had already
+    # arrived. Injected/cleared directly instead: tableRender() below
+    # always replaces .js-dataDownloadTable's content on success, and
+    # the error branch clears it explicitly since tableRender() is
+    # skipped in that case.
+    @$('.js-dataDownloadTable').html(App.view('generic/page_loading')())
+
     @ajax(
       id: 'report_download'
       type:  'POST'
       url:   @apiPath + '/reports/sets'
       data: JSON.stringify(state)
       processData: true
+      error: (xhr) =>
+        @$('.js-dataDownloadTable').empty()
+
+        return if !_.include([401, 403, 404, 422, 502], xhr.status)
+
+        @bodyModal = new App.ControllerTechnicalErrorModal(
+          head:        __('The download data could not be loaded')
+          contentCode: xhr.responseJSON.error
+        )
       success: (data) =>
         App.Collection.loadAssets(data.assets)
         ticket_collection = []

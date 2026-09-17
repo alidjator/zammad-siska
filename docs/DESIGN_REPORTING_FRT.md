@@ -109,3 +109,60 @@ Ditambahkan atas permintaan user: di dunia bisnis nyata, kadang ada user yang se
 `Report::TicketMoved` dan `Report::TicketMerged` memakai jalur kode `history()` (bukan query SQL langsung seperti class FRT/CSAT/FirstSolution) untuk mendapatkan `ticket_ids` — jalur ini juga **tidak punya limit sendiri**, jadi guard dipasang tepat setelah `result = history(...)` didapat, sebelum proses assets/Excel dimulai (mencakup baik jalur unduhan Excel maupun tampilan daftar JSON biasa).
 
 **Catatan kalibrasi**: pengujian "-all- + 1 tahun penuh" pada First Solution Time menunjukkan hasil wajar bisa mencapai ~23.000 baris — di atas default 10.000. Kalau kebutuhan bisnis memang perlu unduhan sebesar itu dalam sekali klik, naikkan Setting `report_download_max_records` sesuai kebutuhan (konsekuensinya waktu proses lebih lama, ~440 baris/detik).
+
+## 6. Indikator Loading Saat Mengambil Data Grafik
+
+Ditemukan saat user meninjau UI Reporting: mengganti Profile/metric/tahun atau mencentang checkbox Median/Mean **tidak menampilkan indikator loading apa pun** — halaman terlihat "diam" sampai grafik tiba-tiba ter-update. Dicek langsung ke kode sumber (`app/assets/javascripts/app/controllers/report.coffee`, class `Graph`): method `render()` (yang memanggil `POST /api/reports/generate`, jalur pengambilan data grafik) memang **tidak pernah memanggil `@startLoading()`/`@stopLoading()`** — ini perilaku native Zammad, bukan sesuatu yang hilang akibat perubahan proyek ini. Indikator loading cuma ada satu kali, di pemuatan awal halaman (`GET /api/reports/config`), bukan di setiap refresh grafik berikutnya.
+
+**Perbaikan**: `render()` diubah menerima parameter `silent` (default `false`):
+- **`silent = false`** (semua pemanggilan dari aksi user — ganti Profile/metric/tahun, toggle checkbox) → menampilkan `@startLoading()`/`@stopLoading()` seperti biasa, supaya user tahu data sedang diproses.
+- **`silent = true`** (dipakai khusus untuk auto-refresh berkala di background, `@delay((=> @render(true)), interval, ...)`) → **tetap diam**, tidak menampilkan indikator — supaya grafik tidak "berkedip" loading setiap beberapa menit tanpa ada aksi user (pola yang sama dipakai `team_kpi.coffee` untuk auto-refresh KPI Tim).
+
+Diverifikasi: syntax CoffeeScript valid, precompile bersih, deploy & restart tanpa error di log.
+
+**Bug ditemukan pasca-deploy pertama**: user melaporkan indikator loading masih belum kelihatan setelah deploy pertama. Ditemukan penyebabnya di `startLoading()` bawaan Zammad sendiri (`_application_controller/_base.coffee`):
+
+```coffee
+startLoading: (el) =>
+  return if @initLoadingDone && !el   # <- di sini
+  @initLoadingDone = true
+  ...
+```
+
+Kalau dipanggil TANPA argumen `el`, method ini cuma benar-benar tampil **satu kali pertama** per instance controller (`@initLoadingDone` jadi `true` setelah panggilan pertama) — setiap pemanggilan berikutnya tanpa `el` langsung `return` diam-diam, tidak melakukan apa-apa. Karena constructor `Graph` sudah memanggil `@render()` sekali di awal (yang otomatis jadi "panggilan pertama" itu), semua pemanggilan `render()` berikutnya (saat user ganti Profile/tahun/checkbox) jadi tidak pernah menampilkan apa pun.
+
+Diperbaiki dengan menargetkan elemen spesifik: `@startLoading(@$('#placeholder'))` — `#placeholder` adalah div kontainer chart yang sama dipakai `draw()` untuk plot grafik (`$('#placeholder').empty()` lalu `$.plot(...)`), jadi loading indicator muncul persis di tempat grafik biasanya tampil, dan tidak mengganggu bagian sidebar/filter di sekitarnya.
+
+**Catatan perilaku native lain yang perlu diketahui**: `startLoading()` punya delay anti-flicker bawaan **1800ms** (`@startLoadingDelay: 1800`) — indikator baru benar-benar dirender kalau request belum selesai setelah 1.8 detik. Untuk kombinasi Profile/tahun yang responsnya cepat (di bawah 1.8 detik), user memang **tidak akan melihat spinner sama sekali** — ini perilaku bawaan Zammad untuk mencegah "kedipan" pada request cepat, bukan indikasi perbaikan tidak berfungsi.
+
+### Tabel di Bawah Grafik — Class Terpisah, Perlu Perbaikan Sendiri
+
+Setelah perbaikan di atas, user menanyakan kenapa **tabel daftar tiket di bawah tombol "DOWNLOAD ... RECORD(S)"** tidak ikut menampilkan loading. Ditemukan penyebabnya: tabel ini dirender oleh **class terpisah**, `Download` (bukan `Graph` yang sudah diperbaiki) — dengan AJAX-nya sendiri, `tableUpdate()`, memanggil `POST /api/reports/sets` (endpoint yang sama persis dipakai `Report::DownloadLimitGuard` di Section 5), bukan `/reports/generate`. Karena dua alur AJAX yang benar-benar independen, perbaikan di `Graph#render` sama sekali tidak menyentuh `Download#tableUpdate`.
+
+`tableUpdate()` juga ditemukan **tidak punya `error:` callback sama sekali** — artinya kalau permintaan tabel ini kena blokir oleh `Report::DownloadLimitGuard` (mengembalikan HTTP 422), sebelumnya user tidak akan melihat pesan error apa pun untuk bagian tabel ini (beda dengan tombol Download yang sudah punya modal error terpisah).
+
+**Perbaikan**: ditambahkan `@startLoading(@$('.js-dataDownloadTable'))` sebelum AJAX dimulai dan `@stopLoading()` di kedua callback (`success`/`error`), plus `error:` callback baru yang menampilkan `App.ControllerTechnicalErrorModal` — pola yang identik dengan `Graph#render`, termasuk daftar status code yang sama (`401, 403, 404, 422, 502`). **Tidak perlu parameter `silent`** untuk method ini (beda dengan `Graph#render`) — `tableUpdate()` cuma dipanggil dari constructor dan `selectBackend` (aksi user memilih backend/metric), sedangkan pemanggilan dari auto-refresh berkala `Graph#update` sudah punya guard sendiri (`return if @lastParams` yang tidak berubah) yang mencegah `downloadWidget.update()` terpanggil ulang selama auto-refresh diam-diam — jadi setiap pemanggilan `tableUpdate()` yang benar-benar sampai ke AJAX sudah pasti murni aksi user.
+
+Diverifikasi: format response 422 dari server (`{error: e.message}`, lihat `handles_errors.rb#humanize_error`) cocok persis dengan yang dibaca frontend (`xhr.responseJSON.error`) — jalur error sudah tersambung end-to-end. Syntax CoffeeScript valid, precompile bersih, deploy & restart tanpa error di log.
+
+### Bug ditemukan pasca-deploy: `startLoading()`/`stopLoading()` bisa macet
+
+User melaporkan indikator "Loading…" **tetap tampil terus** di area grafik meskipun console browser sudah menunjukkan data asli sudah diterima dan `draw()` sudah terpanggil (`App.n(draw)` dengan objek data lengkap). Ditelusuri lebih dalam ke mekanisme `startLoading()`/`App.Delay` bawaan Zammad (`lib/app_post/delay.coffee`):
+
+```coffee
+set: (callback, timeout, key, level, queue) =>
+  if key
+    @clear(key, level)
+  if !key
+    key = Math.floor(Math.random() * 99999)   # <- key ACAK kalau tidak dikasih eksplisit
+  ...
+```
+
+`startLoading(el)` sendiri memanggil `@delay(later, @constructor.startLoadingDelay)` **tanpa parameter `key` eksplisit** — jadi tiap kali dipanggil, dapat key ACAK yang berbeda. Kombinasi ini dengan timing race antara request AJAX (yang bisa selesai kapan saja) dan timer 1800ms yang menunda tampilnya "Loading…" ternyata bisa membuat indikator tetap "nyangkut" tampil walau data sebenarnya sudah datang dan `draw()` sudah jalan — kemungkinan karena `stopLoading()` cuma membatalkan TIMER-nya (`clearTimeout`), bukan mengembalikan konten yang SUDAH terlanjur di-inject kalau timer itu keburu jalan sebelum sempat dibatalkan.
+
+**Perbaikan final**: berhenti memakai `@startLoading()`/`@stopLoading()` sama sekali untuk `Graph#render` dan `Download#tableUpdate`. Diganti dengan injeksi/pembersihan langsung yang predictable:
+- Sebelum AJAX: `@$('#placeholder').html(App.view('generic/page_loading')())` (atau `.js-dataDownloadTable` untuk tabel) — muncul LANGSUNG, tanpa delay 1.8 detik (trade-off yang disengaja: lebih sering terlihat untuk request cepat, tapi dijamin tidak akan pernah macet).
+- Saat sukses: `@draw()`/`tableRender()` **selalu** menimpa ulang isi elemen yang sama (`.empty()` lalu `$.plot(...)`, atau `App.ControllerTable` baru) — otomatis membersihkan apa pun yang tadi ditampilkan, tidak bergantung pada `stopLoading()` sama sekali.
+- Saat gagal (`error:`): elemen dikosongkan secara eksplisit (`@$('#placeholder').empty()` / `@$('.js-dataDownloadTable').empty()`) sebelum menampilkan modal error, supaya tidak ada kondisi di mana "Loading…" tertinggal selamanya.
+
+Pendekatan ini jauh lebih sederhana untuk dinalar dan diverifikasi dibanding mekanisme timer+key-acak bawaan, dan tidak mewarisi risiko race condition-nya.
