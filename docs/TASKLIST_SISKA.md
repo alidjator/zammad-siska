@@ -110,3 +110,10 @@
 - [x] Didokumentasikan lengkap (kriteria scope, format transformasi, contoh before/after ter-mask) di `docs/ANONYMIZATION_CONTACT_INFO.md`
 - [ ] **Belum diproses**: identitas Telegram (tidak ada kolom per-user yang stabil, kemungkinan cuma ada di `ticket_articles.preferences` per pesan — butuh investigasi terpisah)
 - [x] Pindahkan file backup (berisi PII asli) dari `/tmp` container ke penyimpanan permanen di host: `/usr/local/src/claudeai/backups/anonymize_contacts_backup_20260917_010218.jsonl` (checksum SHA-256 diverifikasi cocok sebelum salinan lama di container dihapus)
+
+## Di Luar Fase — Investigasi Notifikasi Email Selama Pengujian
+
+- [x] **Investigasi ditemukan**: 121 notifikasi email (dari 168 total) di 5 tiket yang diperiksa terkirim ke 8 alamat staf/inbox tim asli sebagai efek samping perubahan status tiket saat pengujian (Fase 3 Eskalasi, CSAT) — penyebabnya perilaku bawaan Zammad (notifikasi ke anggota Group saat tiket berubah), bukan bug kode proyek. Metodologi: analisis tabel `histories` (notifikasi jenis ini tidak tercatat di `ticket_articles` maupun `production.log` level INFO)
+- [x] **Mitigasi #1 diimplementasikan**: Group baru `QA - Internal Testing` (id 89) dibuat khusus untuk tiket pengujian internal, sengaja **tanpa anggota** (`groups_users` kosong) — diverifikasi `User.group_access(89, 'full')` mengembalikan 0 penerima, sehingga tiket pengujian mendatang di Group ini tidak akan memicu notifikasi ke staf asli. Residual risk (di luar Group ini, tetap dalam kendali): Owner tiket & @mention eksplisit tetap bisa memicu notifikasi — hindari assign owner asli/mention saat testing. Script: `script/create_qa_testing_group.rb`
+- [ ] **Mitigasi #2 belum diimplementasikan**: penonaktifan sementara SMTP outbound staging selama sesi pengujian aktif (opsi: disable channel di Admin > Channels > Email, atau redirect sementara ke SMTP sink lokal) — perlu dikoordinasikan waktunya karena staging juga dipakai operasional nyata tim support
+- [ ] Pertimbangkan memindahkan tiket pengujian yang sudah ada (163027, 163032, 163036) ke Group `QA - Internal Testing` yang baru, atau biarkan (sudah selesai/tidak aktif lagi)
