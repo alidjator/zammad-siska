@@ -59,6 +59,7 @@ class App.DashboardTeamKpi extends App.Controller
 
   render: (data = {}) =>
     data.frt_display      = if data.frt_median_minutes? then "#{data.frt_median_minutes} #{__('min')}" else '-'
+    data.frt_mean_display  = if data.frt_mean_minutes? then "#{data.frt_mean_minutes} #{__('min')}" else '-'
     data.csat_display      = if data.csat_average? then "#{data.csat_average} / 5" else '-'
     data.ticket_new         ?= 0
     data.ticket_open         ?= 0

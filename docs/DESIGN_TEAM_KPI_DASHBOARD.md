@@ -16,19 +16,21 @@
 | Tiket Open | Hitungan tiket dengan state type `open` | Snapshot real-time |
 | Tiket Escalated | Hitungan tiket `escalation_at` sudah lewat & belum closed | Snapshot real-time |
 
-## 2. Kenapa FRT Pakai Median, Bukan Mean?
+## 2. FRT: Median sebagai Angka Utama, Mean sebagai Pembanding
 
-Ini keputusan desain penting yang sempat diuji langsung dengan data live sebelum diputuskan.
+Ini keputusan desain penting yang sempat diuji langsung dengan data live sebelum diputuskan, dan direvisi sekali (lihat catatan revisi di bawah).
 
-**Masalah dengan mean (rata-rata):** distribusi waktu respons tiket itu **condong (skewed)** — mayoritas tiket dijawab cepat, tapi ada sebagian kecil yang terlantar berhari-hari sebelum akhirnya dijawab. Saat diuji dengan data staging nyata, ditemukan 3 tiket yang tidak dijawab selama **11-13 hari**, lalu ketiganya dibalas dalam rentang **5 menit yang sama** (kemungkinan besar "sapuan pembersihan backlog" oleh agent/proses tertentu). Efeknya ke **mean**: rata-rata FRT bulan itu melonjak jadi **1700-2200 menit (~28-37 jam)** — angka yang sama sekali tidak mewakili performa CS sehari-hari, padahal mayoritas tiket lain dijawab jauh lebih cepat.
+**Masalah dengan mean (rata-rata) sebagai satu-satunya angka:** distribusi waktu respons tiket itu **condong (skewed)** — mayoritas tiket dijawab cepat, tapi ada sebagian kecil yang terlantar berhari-hari sebelum akhirnya dijawab. Saat diuji dengan data staging nyata, ditemukan 3 tiket yang tidak dijawab selama **11-13 hari**, lalu ketiganya dibalas dalam rentang **5 menit yang sama** (kemungkinan besar "sapuan pembersihan backlog" oleh agent/proses tertentu). Efeknya ke **mean**: rata-rata FRT bulan itu melonjak jadi **1700-2200 menit (~28-37 jam)** — angka yang sama sekali tidak mewakili performa CS sehari-hari, padahal mayoritas tiket lain dijawab jauh lebih cepat.
 
-**Kenapa median tidak kena masalah ini:** median cuma peduli pada "nilai di posisi tengah" kalau semua data diurutkan. Berapa pun ekstremnya 3 tiket telat itu (11 hari atau 111 hari, sama saja), posisinya tetap di ujung distribusi dan tidak menggeser median — beda dengan mean yang menjumlahkan SEMUA nilai lalu membagi rata, sehingga nilai ekstrem manapun ikut menyeret hasil akhir.
+**Kenapa median tidak kena masalah ini:** median cuma peduli pada "nilai di posisi tengah" kalau semua data diurutkan. Berapa pun ekstremnya 3 tiket telat itu (11 hari atau 111 hari, sama saja), posisinya tetap di ujung distribusi dan tidak menggeser median — beda dengan mean yang menjumlahkan SEMUA nilai lalu membagi rata, sehingga nilai ekstrem manapun ikut menyeret hasil akhir. Karena itu **median tetap jadi angka utama** yang mengontrol warna kartu (state) — representasi paling jujur soal "tiket tipikal".
+
+**Revisi: Mean ditambahkan kembali sebagai angka sekunder** (bukan menggantikan median) — setelah pengalaman serupa di UI Reporting native (lihat `docs/DESIGN_REPORTING_FRT.md` Section 3) menunjukkan bahwa jarak antara mean dan median itu sendiri adalah **sinyal yang berguna**: kalau mean jauh di atas median, itu tandanya ada sejumlah kecil tiket yang benar-benar terbengkalai — persis kasus 3 tiket 11-13 hari di atas. Kartu "First Response Time" sekarang menampilkan **keduanya**: median sebagai angka besar/berwarna (tetap yang menentukan status baik/buruk), mean sebagai angka kecil di bawahnya (murni konteks, tidak diberi warna status sendiri — lihat `team_kpi.jst.eco`/`team_kpi.scss`, class `.team-kpi-value-secondary`).
 
 **Kenapa CSAT tetap pakai average, bukan median:** skala CSAT dibatasi 1-5 — satu skor ekstrem (misal 1) tidak bisa menyeret rata-rata sejauh outlier waktu respons yang bisa berhari-hari/tak terbatas. Untuk data dengan rentang terbatas seperti ini, average tetap representatif dan merupakan konvensi umum untuk skala kepuasan (CSAT/NPS pada umumnya dilaporkan sebagai rata-rata).
 
-**Kesimpulan singkat:** median untuk metrik yang rentan outlier ekstrem tak terbatas (durasi/waktu), average untuk metrik dengan skala terbatas (CSAT).
+**Kesimpulan singkat:** median tetap jadi ukuran utama untuk metrik yang rentan outlier ekstrem tak terbatas (durasi/waktu), tapi mean ditampilkan berdampingan sebagai indikator "seberapa parah outlier-nya" — average untuk metrik dengan skala terbatas (CSAT) tetap berdiri sendiri.
 
-*(Implementasi teknis: FRT median dihitung langsung di Postgres pakai `percentile_cont(0.5)`, bukan ditarik ke Ruby dulu — supaya tetap cepat untuk rentang sampai 2 tahun yang bisa mencakup ratusan ribu tiket. Lihat komentar di `team_kpi.rb`.)*
+*(Implementasi teknis: FRT median dihitung langsung di Postgres pakai `percentile_cont(0.5)`, mean pakai `AVG(...)` biasa — keduanya dari populasi tiket yang persis sama (filter integritas data yang sama), bukan ditarik ke Ruby dulu, supaya tetap cepat untuk rentang sampai 2 tahun yang bisa mencakup ratusan ribu tiket. Lihat `frt_median_minutes`/`frt_mean_minutes` di `team_kpi.rb`.)*
 
 ## 3. Rolling Window, Bukan Kalender Bulan-Berjalan
 

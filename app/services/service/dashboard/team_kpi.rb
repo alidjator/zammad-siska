@@ -67,6 +67,7 @@ class Service::Dashboard::TeamKpi
 
   def call
     frt         = frt_median_minutes
+    frt_mean    = frt_mean_minutes
     csat        = csat_average
     new_count   = ticket_count_by_state_type('new')
     open_count  = ticket_count_by_state_type('open')
@@ -78,6 +79,7 @@ class Service::Dashboard::TeamKpi
 
     {
       frt_median_minutes:     frt,
+      frt_mean_minutes:       frt_mean,
       frt_state:              frt_state(frt),
       csat_average:           csat,
       csat_state:             csat_state(csat),
@@ -109,6 +111,27 @@ class Service::Dashboard::TeamKpi
       SELECT percentile_cont(0.5) WITHIN GROUP (
         ORDER BY EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60
       )
+      FROM tickets
+      WHERE first_response_at IS NOT NULL
+        AND first_response_at >= created_at
+        AND created_at >= ?
+    SQL
+
+    result = ActiveRecord::Base.connection.select_value(
+      ActiveRecord::Base.sanitize_sql_array([sql, since])
+    )
+    result.nil? ? nil : result.to_f.round(1)
+  end
+
+  # Mean alongside median, on the same population/filter (see
+  # frt_median_minutes) -- added so the dashboard can show both side by
+  # side. A mean well above the median flags a long tail of slow
+  # outlier tickets that the median alone hides (see
+  # docs/DESIGN_REPORTING_FRT.md Section 3 for the same reasoning
+  # applied to native Reporting).
+  def frt_mean_minutes
+    sql = <<~SQL.squish
+      SELECT AVG(EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60)
       FROM tickets
       WHERE first_response_at IS NOT NULL
         AND first_response_at >= created_at

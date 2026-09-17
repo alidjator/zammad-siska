@@ -13,13 +13,23 @@
   <div class="team-kpi-card">
     <div class="team-kpi-title">
       <%- @T('First Response Time') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Median waktu respons pertama, dihitung dari periode yang dipilih.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Median dan mean waktu respons pertama, dihitung dari periode yang dipilih. Mean jauh di atas median menandakan ada sejumlah kecil tiket yang direspons sangat lambat (long tail), tersembunyi kalau cuma melihat median.') %>" data-placement="bottom"><%- @Icon('help') %></div>
     </div>
     <div class="team-kpi-graphic">
       <%- @Icon('stopwatch', "team-kpi-icon team-kpi-icon--frt #{@frt_state_class}") %>
     </div>
-    <div class="team-kpi-value <%- @frt_state_class %>"><%- @frt_display %></div>
-    <div class="team-kpi-caption"><%- @T('median, %s hari terakhir', @window_days) %></div>
+    <div class="team-kpi-value-split">
+      <div class="team-kpi-value-split-item">
+        <div class="team-kpi-value-split-label"><%- @T('Median') %></div>
+        <div class="team-kpi-value <%- @frt_state_class %>"><%- @frt_display %></div>
+      </div>
+      <div class="team-kpi-value-split-sep">|</div>
+      <div class="team-kpi-value-split-item">
+        <div class="team-kpi-value-split-label"><%- @T('Mean') %></div>
+        <div class="team-kpi-value-secondary"><%- @frt_mean_display %></div>
+      </div>
+    </div>
+    <div class="team-kpi-caption"><%- @T('%s hari terakhir', @window_days) %></div>
   </div>
   <div class="team-kpi-card">
     <div class="team-kpi-title">
