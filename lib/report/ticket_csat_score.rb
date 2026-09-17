@@ -12,6 +12,9 @@
 # csat_score is bounded 1-5, so it isn't vulnerable to the multi-day-outlier
 # skew that motivated using median for FRT, and average is the standard,
 # expected way to summarize a bounded satisfaction scale.
+#
+# `.items` is guarded by Report::DownloadLimitGuard -- see that file and
+# docs/DESIGN_REPORTING_FRT.md.
 class Report::TicketCsatScore < Report::BaseSql
 
 =begin
@@ -105,6 +108,8 @@ returns
       params[:range_start],
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(close_at: :asc)
+
+    Report::DownloadLimitGuard.check!(ticket_list.count(:id))
 
     assets = {}
     ticket_ids = []

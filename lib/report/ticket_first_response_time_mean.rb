@@ -13,6 +13,9 @@
 # docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md for why) -- only the
 # aggregation function differs (mean vs median), so the two numbers are
 # directly comparable, not computed over different populations.
+#
+# `.items` is guarded by Report::DownloadLimitGuard -- see that file and
+# docs/DESIGN_REPORTING_FRT.md.
 class Report::TicketFirstResponseTimeMean < Report::BaseSql
 
 =begin
@@ -107,6 +110,8 @@ returns
       params[:range_start],
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(created_at: :asc)
+
+    Report::DownloadLimitGuard.check!(ticket_list.count(:id))
 
     assets = {}
     ticket_ids = []

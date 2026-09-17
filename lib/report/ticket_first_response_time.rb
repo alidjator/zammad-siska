@@ -14,6 +14,12 @@
 # tickets where `first_response_at < created_at` outright -- this is
 # self-correcting once the underlying bug is actually fixed, and it doesn't
 # discard the historical tickets that were recorded correctly.
+#
+# `.items` (used by the Reporting download/Excel export) is guarded by
+# Report::DownloadLimitGuard -- see lib/report/download_limit_guard.rb
+# and docs/DESIGN_REPORTING_FRT.md for why: it has no LIMIT and iterates
+# every matching ticket individually, so an over-broad Profile + date
+# range can otherwise hang the request indefinitely.
 class Report::TicketFirstResponseTime < Report::BaseSql
 
 =begin
@@ -108,6 +114,8 @@ returns
       params[:range_start],
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(created_at: :asc)
+
+    Report::DownloadLimitGuard.check!(ticket_list.count(:id))
 
     assets = {}
     ticket_ids = []
