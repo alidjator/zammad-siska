@@ -153,6 +153,10 @@ class Navigation extends App.Controller
 
     new App.DarkMode()
 
+    # AUX Status quick switcher (Fase 4) -- only for agents, mirrors
+    # DarkMode's own re-construct-on-every-render pattern above.
+    new App.AuxStatusSwitchWidget() if @permissionCheck('ticket.agent')
+
     # only start avatar widget on existing session
     if App.Session.get('id')
       new App.WidgetAvatar(
