@@ -15,11 +15,23 @@
 # This is a cheap COUNT check (not the expensive per-ticket loop) run
 # BEFORE that loop starts, so an over-broad request fails fast with a
 # clear message instead of hanging.
+#
+# Bypass: a user holding the 'report.unlimited_download' permission
+# (script/create_report_unlimited_download_permission.rb) skips this
+# check entirely -- added because real business users sometimes
+# legitimately need a large one-off download and are willing to accept
+# the slow request themselves. Deliberately a *dedicated* permission,
+# not reused from 'report' (held by everyone who can open Reporting at
+# all, which would make the limit meaningless) or 'admin.system' (ties
+# it to unrelated system-settings access) -- assign it via Admin >
+# Manage > Roles to exactly the people who should be exempt.
 module Report::DownloadLimitGuard
-  def self.check!(count)
+  def self.check!(count, user: nil)
+    return if user&.permissions?('report.unlimited_download')
+
     max = Setting.get('report_download_max_records').to_i
     return if max.zero? || count <= max
 
-    raise Exceptions::UnprocessableContent, "Terlalu banyak data untuk satu kali unduhan (#{count} tiket, batas saat ini #{max}). Persempit rentang waktu atau pilih Report Profile yang lebih spesifik. Batas ini bisa diubah di Admin > Settings > SISKA > Reporting."
+    raise Exceptions::UnprocessableContent, "Terlalu banyak data untuk satu kali unduhan (#{count} tiket, batas saat ini #{max}). Persempit rentang waktu atau pilih Report Profile yang lebih spesifik. Batas ini bisa diubah di Admin > Settings > SISKA > Reporting, atau minta permission 'report.unlimited_download' untuk melewati batas ini."
   end
 end

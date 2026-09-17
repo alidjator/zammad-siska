@@ -115,7 +115,7 @@ returns
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(created_at: :asc)
 
-    Report::DownloadLimitGuard.check!(ticket_list.count(:id))
+    Report::DownloadLimitGuard.check!(ticket_list.count(:id), user: params[:current_user])
 
     assets = {}
     ticket_ids = []

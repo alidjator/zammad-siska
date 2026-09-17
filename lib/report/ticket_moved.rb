@@ -122,7 +122,7 @@ returns
     local_params = defaults.merge(local_params)
     result = history(local_params)
 
-    Report::DownloadLimitGuard.check!(result[:ticket_ids].size)
+    Report::DownloadLimitGuard.check!(result[:ticket_ids].size, user: params[:current_user])
 
     return result if params[:sheet].present?
 

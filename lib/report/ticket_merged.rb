@@ -63,7 +63,7 @@ class Report::TicketMerged < Report::Base
   def self.items(params)
     result = history(query_params(params))
 
-    Report::DownloadLimitGuard.check!(result[:ticket_ids].size)
+    Report::DownloadLimitGuard.check!(result[:ticket_ids].size, user: params[:current_user])
 
     if params[:sheet].blank?
       result[:assets] = ApplicationModel::CanAssets

@@ -94,6 +94,18 @@ Setelah user menanyakan apakah batasan ini berlaku untuk semua metrik Reporting 
 | **Ticket Merged** | `Report::TicketMerged` | **Native, rentan** — sekarang **dilindungi** |
 | **First Solution Time** | `Report::TicketFirstSolution` | **Native, rentan** — sekarang **dilindungi**, dan uji langsung profile "-all-" + 1 tahun 2026 (22.977 tiket) **berhasil diblokir** oleh batas default 10.000 — bukti nyata mekanismenya bekerja |
 
+### Bypass: Permission `report.unlimited_download`
+
+Ditambahkan atas permintaan user: di dunia bisnis nyata, kadang ada user yang sengaja mau mengunduh data dalam jumlah besar dan menerima konsekuensi waktu proses yang lambat, tanpa mau dibatasi. Daripada menonaktifkan batasan secara global (Setting `report_download_max_records` = `0`, yang sudah didukung tapi menghapus proteksi untuk **semua** orang), dibuat **permission khusus** yang bisa di-assign selektif ke user/role tertentu.
+
+`Report::DownloadLimitGuard.check!` menerima parameter `user:` opsional — kalau user tersebut punya permission **`report.unlimited_download`**, pengecekan batas dilewati sepenuhnya untuk request itu, berapa pun jumlah datanya. Sengaja dibuat sebagai permission **baru dan sempit**, bukan reuse dari:
+- `report` (dipegang semua orang yang bisa buka Reporting sama sekali — kalau dipakai, batasan jadi nyaris tidak berarti untuk mayoritas user Reporting sehari-hari)
+- `admin.system` (mengaitkan kemampuan ini ke akses pengaturan sistem yang tidak berhubungan)
+
+**Cara assign**: Admin > Manage > Roles > pilih Role > bagian Permissions > cari "Reporting" > centang "Unlimited Report Download". Script pembuatan permission: `script/create_report_unlimited_download_permission.rb` (tidak otomatis di-assign ke Role manapun — assign manual sesuai kebutuhan).
+
+**Diverifikasi lewat pengujian langsung** (Role & user test sementara, dihapus setelah pengujian): user tanpa permission tetap terblokir (127.001 tiket melebihi batas), user dengan permission `report.unlimited_download` berhasil melewati batas dan memproses seluruh 127.001 tiket sampai selesai (lambat karena volume asli, bukan hang tanpa akhir seperti sebelum ada guard).
+
 `Report::TicketMoved` dan `Report::TicketMerged` memakai jalur kode `history()` (bukan query SQL langsung seperti class FRT/CSAT/FirstSolution) untuk mendapatkan `ticket_ids` — jalur ini juga **tidak punya limit sendiri**, jadi guard dipasang tepat setelah `result = history(...)` didapat, sebelum proses assets/Excel dimulai (mencakup baik jalur unduhan Excel maupun tampilan daftar JSON biasa).
 
 **Catatan kalibrasi**: pengujian "-all- + 1 tahun penuh" pada First Solution Time menunjukkan hasil wajar bisa mencapai ~23.000 baris — di atas default 10.000. Kalau kebutuhan bisnis memang perlu unduhan sebesar itu dalam sekali klik, naikkan Setting `report_download_max_records` sesuai kebutuhan (konsekuensinya waktu proses lebih lama, ~440 baris/detik).
