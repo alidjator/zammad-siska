@@ -129,6 +129,12 @@ class Navigation extends App.Controller
     worker.switch(val)
 
   renderPersonal: =>
+    # AUX Status row registration (Fase 4) -- MUST run before
+    # @getItems below reads NavBarRight, since the row count is dynamic
+    # (Setting aux_status_options, see aux_status_switch.coffee) rather
+    # than a fixed set registered once at file-load time.
+    App.AuxStatusSwitch.syncNavBarEntries() if @permissionCheck('ticket.agent')
+
     @recentViewNavbarItemsRebuild()
     items = clone(@getItems(navbar: @Config.get('NavBarRight')), true)
 
@@ -156,6 +162,13 @@ class Navigation extends App.Controller
     # AUX Status quick switcher (Fase 4) -- only for agents, mirrors
     # DarkMode's own re-construct-on-every-render pattern above.
     new App.AuxStatusSwitchWidget() if @permissionCheck('ticket.agent')
+
+    # AUX Status freeze overlay (Fase 4) -- unlike the two widgets above,
+    # this one is a singleton (see aux_status_freeze.coffee) checked on
+    # every renderPersonal call rather than re-constructed each time, so
+    # it also fires on the very first render at login/page load (when a
+    # timed status is already active), not just on later re-renders.
+    App.AuxStatusFreezeWidget.sync() if @permissionCheck('ticket.agent')
 
     # only start avatar widget on existing session
     if App.Session.get('id')

@@ -1,0 +1,30 @@
+<form class="settings-entry" id="<%= @setting.name %>">
+  <h2><%- @T(@setting.title) %></h2>
+  <p class="help-text"><%- @T('Tambah atau hapus baris untuk menambah/mengurangi status AUX yang tersedia. Durasi 0 menit berarti status tidak akan otomatis berakhir.') %></p>
+
+  <table class="settings-entry-table">
+    <thead>
+      <tr>
+        <th><%- @T('Value') %></th>
+        <th><%- @T('Label') %></th>
+        <th><%- @T('Durasi (menit)') %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for option, index in @options: %>
+        <tr class="js-aux-status-option-row" data-index="<%= index %>">
+          <td><input type="text" class="form-control js-aux-status-option-value" value="<%= option.value %>" placeholder="busy_coaching"></td>
+          <td><input type="text" class="form-control js-aux-status-option-label" value="<%= option.label %>" placeholder="Busy Coaching"></td>
+          <td><input type="number" min="0" class="form-control js-aux-status-option-duration" value="<%= option.duration_minutes %>"></td>
+          <td><button type="button" class="btn btn--text js-aux-status-option-remove"><%- @T('Remove') %></button></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="horizontal end">
+    <button type="button" class="btn js-aux-status-option-add"><%- @T('Add Status') %></button>
+    <button type="submit" class="btn btn--primary"><%- @T('Submit') %></button>
+  </div>
+</form>

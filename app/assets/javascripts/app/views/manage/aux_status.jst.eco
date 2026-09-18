@@ -1,0 +1,18 @@
+<div class="page-header">
+  <div class="page-header-title">
+    <h1><%- @T('AUX Status') %> <small><%- @T('Management') %></small></h1>
+  </div>
+</div>
+
+<div class="page-content">
+  <p class="u-textMuted"><%- @T('Override any agent\'s current AUX status. Changes are logged and take effect immediately.') %></p>
+
+  <div class="searchfield">
+    <input class="js-aux-status-search form-control" type="search" placeholder="<%- @Ti('Search for agent (name, login, or email)…') %>">
+    <%- @Icon('magnifier') %>
+  </div>
+
+  <div class="js-aux-status-body"></div>
+</div>
+
+<div class="page-footer"></div>

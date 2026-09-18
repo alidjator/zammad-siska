@@ -1,0 +1,35 @@
+<p class="u-textMuted js-aux-status-summary">
+  <%- @T('Total: %s agents', @totalCount) %>
+</p>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th><%- @T('Agent') %></th>
+      <th><%- @T('Status') %></th>
+      <th><%- @T('Since') %></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% for agent in @agents: %>
+      <tr data-id="<%= agent.id %>">
+        <td><%= agent.fullname %></td>
+        <td>
+          <select class="form-control js-aux-status-select">
+            <% for status in @statuses: %>
+              <option value="<%= status.value %>" <% if agent.aux_status is status.value: %>selected<% end %>><%= status.label %></option>
+            <% end %>
+          </select>
+        </td>
+        <td><% if agent.aux_status_since: %><%- @humanTime(agent.aux_status_since) %><% end %></td>
+      </tr>
+    <% end %>
+    <% if _.isEmpty(@agents): %>
+      <tr>
+        <td colspan="3" class="u-textMuted"><%- @T('No agents found.') %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%- App.view('generic/table_pager')(page: @page, pages: @lastPageIndex) %>

@@ -30,4 +30,10 @@ class App.DarkMode extends App.Controller
 
     @quickToggle.prop('checked', if event.theme is 'dark' then true else false)
 
-App.Config.set('DarkMode', { prio: 1000, parent: '#current_user', name: __('Dark Mode'), translate: true, toggle: 'dark-mode-quick', checked: (-> document.documentElement.dataset.theme == 'dark'), permission: ['user_preferences.appearance'] }, 'NavBarRight')
+# divider: true added (Fase 4, AUX Status) -- with the new AUX Status
+# group now registered right before this one (prio 950-954, see
+# aux_status_switch.coffee), Dark Mode needs its own leading divider to
+# stay visually separated, the same way Logout separates itself from
+# whatever's above it (logout.coffee, prio 1800, divider: true) --
+# dividers are always owned by the item AFTER the gap, not before.
+App.Config.set('DarkMode', { prio: 1000, parent: '#current_user', name: __('Dark Mode'), translate: true, toggle: 'dark-mode-quick', checked: (-> document.documentElement.dataset.theme == 'dark'), permission: ['user_preferences.appearance'], divider: true }, 'NavBarRight')

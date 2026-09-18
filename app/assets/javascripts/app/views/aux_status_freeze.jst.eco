@@ -1,0 +1,8 @@
+<div class="aux-status-freeze">
+  <div class="aux-status-freeze-card">
+    <div class="aux-status-freeze-icon"><%- @Icon('clock') %></div>
+    <div class="aux-status-freeze-status"><%= @statusName %></div>
+    <div class="js-aux-status-countdown aux-status-freeze-countdown">--:--</div>
+    <button type="button" class="btn btn--primary js-aux-status-end-break"><%- @T('End Break Now') %></button>
+  </div>
+</div>

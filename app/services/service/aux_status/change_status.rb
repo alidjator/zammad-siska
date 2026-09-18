@@ -58,15 +58,27 @@ class Service::AuxStatus::ChangeStatus
     raise Exceptions::UnprocessableContent, "Unknown AUX status: #{@status}"
   end
 
-  # Reads live from the User#aux_status select options (Object Manager),
-  # not a hardcoded list -- so an admin adding a new status value there
-  # (e.g. "Busy Coaching") is immediately accepted here too.
+  # Reads live from Setting aux_status_options -- an admin adding/
+  # removing a status there (Admin > Settings > SISKA > AUX Status)
+  # takes effect immediately, no code change or redeploy needed. See
+  # script/create_aux_status_object_attributes.rb for why this Setting
+  # is a JSON STRING, not a native Array/Hash.
   def allowed_statuses
-    ObjectManager::Attribute.get(object: 'User', name: 'aux_status').data_option['options'].keys
+    self.class.options.pluck('value')
   end
 
   def duration_minutes
-    Setting.get('aux_status_durations')[@status].to_i
+    self.class.options.find { |option| option['value'] == @status }&.dig('duration_minutes').to_i
+  end
+
+  # Malformed JSON (an admin saved broken input) fails CLOSED (no
+  # statuses allowed) rather than raising and breaking every status
+  # change app-wide -- the Admin UI edit is what needs fixing, not this
+  # code path.
+  def self.options
+    JSON.parse(Setting.get('aux_status_options').to_s)
+  rescue JSON::ParserError
+    []
   end
 
   def expires_at

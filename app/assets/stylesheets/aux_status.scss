@@ -1,0 +1,105 @@
+// Fase 4 -- AUX Status quick switcher (aux_status_switch.coffee).
+//
+// Bug found via user report + live screenshot: after clicking a status
+// row in the personal nav dropdown, the just-selected row's text became
+// invisible. Root cause traced to zammad.scss:
+//
+//   .dropdown-menu.dropdown-menu--light li.is-active {
+//     color: var(--text-inverted); // white
+//   }
+//
+// This native rule has no matching background change in the light-
+// dropdown context it's scoped to, so any <li> that picks up
+// `.is-active` here renders white text on the light dropdown background
+// -- invisible. Our rows are plain action rows (href="#", prevented),
+// not real navigable tabs, so they should never actually need this
+// active-tab styling in the first place. Scoped ONLY to our own rows
+// (.js-aux-status-row) rather than touching the shared native rule,
+// which presumably behaves correctly wherever it's normally used (a
+// dark/highlighted background elsewhere).
+.dropdown-menu.dropdown-menu--light li.js-aux-status-row.is-active {
+  color: var(--text-normal);
+}
+
+// Full-screen freeze overlay (aux_status_freeze.coffee) shown while a
+// TIMED AUX status (Busy Lunch/Meeting/Training) is active. z-index
+// 5000 -- deliberately well above the highest value used anywhere else
+// in zammad.scss (.zIndex-12 = 1200) so it sits above every modal,
+// notification, and dropdown.
+.aux-status-freeze {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-quaternary);
+}
+
+.aux-status-freeze-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 64px;
+  border-radius: 12px;
+  background: var(--background-secondary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  text-align: center;
+}
+
+.aux-status-freeze-icon svg {
+  width: 48px;
+  height: 48px;
+  fill: var(--text-muted);
+}
+
+.aux-status-freeze-status {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.aux-status-freeze-countdown {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-normal);
+}
+
+.aux-status-freeze-card .btn {
+  margin-top: 12px;
+}
+
+// Row-based editor for Setting aux_status_options
+// (_settings/area_aux_status_options.coffee), replacing a raw JSON
+// textarea per explicit user request.
+.settings-entry-table {
+  width: 100%;
+  margin-bottom: 16px;
+
+  th {
+    text-align: left;
+    padding-bottom: 6px;
+    color: var(--text-muted);
+    font-weight: normal;
+    font-size: 12px;
+  }
+
+  td {
+    padding: 4px 6px 4px 0;
+    vertical-align: middle;
+  }
+
+  input.js-aux-status-option-value,
+  input.js-aux-status-option-label {
+    min-width: 140px;
+  }
+
+  input.js-aux-status-option-duration {
+    min-width: 80px;
+  }
+}

@@ -18,5 +18,6 @@ if defined?(Dartsass)
     'print.scss'          => 'print.css',
     'knowledge_base.scss' => 'knowledge_base.css',
     'team_kpi.scss'       => 'team_kpi.css',
+    'aux_status.scss'     => 'aux_status.css',
   }
 end

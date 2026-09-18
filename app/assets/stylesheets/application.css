@@ -14,6 +14,7 @@
  *= require ./jquery.enableObjectResizingShim.css
  *= require zammad
  *= require team_kpi
+ *= require aux_status
  *
  *= require_tree ./addons/
  *= require_tree ./custom/

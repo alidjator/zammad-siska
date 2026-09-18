@@ -10,6 +10,38 @@
 class AuxStatusesController < ApplicationController
   prepend_before_action :authentication_check
 
+  # GET /api/v1/aux_statuses?query=...
+  # Daftar agent (dicari lewat `query`) + status AUX-nya saat ini --
+  # dipakai layar Admin > Manage > AUX Status (override) di
+  # app/assets/javascripts/app/controllers/_manage/aux_status.coffee.
+  # Sengaja butuh permission 'aux_status.override' juga di sini (bukan
+  # cuma 'ticket.agent') -- agent biasa tidak perlu bisa melihat status
+  # SELURUH agent lain, cuma yang punya hak override yang butuh daftar
+  # ini.
+  #
+  # `query` WAJIB diisi -- kalau kosong langsung return array kosong
+  # TANPA menyentuh tabel `users` sama sekali. Ini disengaja: organisasi
+  # ini punya 513 akun ber-permission ticket.agent (lihat
+  # docs/DESIGN_AUX_STATUS.md Section 6b), dan mengecek
+  # `permissions?('ticket.agent')` satu-per-satu untuk SEMUANYA di setiap
+  # kunjungan halaman (termasuk yang tidak butuh lihat siapa-siapa, cuma
+  # mau override 1 agent) lambat dan boros -- per permintaan user,
+  # halaman ini sekarang search-first, bukan tampilkan-semua-lalu-
+  # paginate.
+  def index
+    raise Exceptions::Forbidden if !current_user.permissions?('aux_status.override')
+
+    query = params[:query].to_s.strip
+    return render(json: []) if query.blank?
+
+    like = "%#{User.sanitize_sql_like(query)}%"
+    agents = User.where(active: true)
+                 .where('firstname ILIKE :q OR lastname ILIKE :q OR login ILIKE :q OR email ILIKE :q', q: like)
+                 .limit(100)
+                 .select { |u| u.permissions?('ticket.agent') }
+    render json: agents.map { |u| status_json(u).merge(fullname: u.fullname) }, status: :ok
+  end
+
   # PUT /api/v1/aux_status
   # Ubah status milik diri sendiri.
   def update
