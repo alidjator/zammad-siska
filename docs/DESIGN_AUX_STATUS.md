@@ -363,6 +363,16 @@ Diverifikasi lewat `rails runner` dan HTTP asli (curl, token API):
 
 Dideploy (docker cp + restart container, controller Ruby biasa tidak butuh precompile asset) dan diverifikasi ulang tepat setelah deploy -- semua 3 skenario di atas dijalankan LANGSUNG lewat HTTP asli pasca-deploy, bukan cuma di `rails runner` sebelum deploy.
 
+### 6t. Tampilan Tabel Disamakan dengan Tabel Native Zammad Lainnya
+
+User meminta tampilan tabel Manage > AUX Status disamakan dengan tabel-tabel native Zammad lain (Roles, Groups, dst.). Sebelumnya tabel ini sudah memakai class dasar yang sama (`table table-hover`, dikonfirmasi 6m), tapi ditelusuri lebih dalam dengan membandingkan langsung ke `views/generic/table.jst.eco` (view native yang dirender `App.ControllerTable` untuk semua tabel Admin) -- ditemukan 2 perbedaan struktural nyata:
+
+1. **Markup header**: native membungkus judul kolom dalam `<div class="table-column-head table-column-head-unclickable"><div class="table-column-title">...</div><div class="table-column-sortIcon"></div></div>` di dalam tiap `<th class="js-tableHead">` -- bukan teks polos langsung di `<th>`. CSS `.table-column-head`/`.table-column-title` (dikonfirmasi ada di `zammad.scss`) memberi layout flex dan truncation yang konsisten dengan tabel lain. Tabel AUX Status sebelumnya pakai `<th>` teks polos.
+2. **Penempatan pager**: ditelusuri `table.coffee`'s `renderPager` -- memakai `el.find('.js-pager')` (bukan `.first()`), artinya native tables SELALU mengisi pager di DUA tempat sekaligus (atas DAN bawah tabel, dua `<div class="js-pager">` di `generic/table.jst.eco`). Tabel AUX Status sebelumnya cuma menampilkan pager di bawah.
+3. **Empty state**: native memakai `generic/admin/empty.jst.eco` saat tidak ada baris -- `<p>` penjelasan + `<table class="table table--placeholder"><thead><tr><th>No Entries</table>` (class `table--placeholder` dikonfirmasi ada di `zammad.scss`, bukan ditebak). Tabel AUX Status sebelumnya cuma baris `<td colspan="3">` polos.
+
+Ketiganya diterapkan ke `manage/aux_status_table.jst.eco` MENIRU markup nativenya persis (bukan class yang mirip-mirip) -- keputusan disengaja untuk tidak migrasi penuh ke `App.ControllerTable` (yang terikat erat ke `App.Collection`/sorting/bulk-action/checkbox, jauh lebih berat untuk sekadar menampilkan array hasil pencarian dari server), cukup menyalin markup HTML-nya saja supaya CSS yang sudah ada otomatis berlaku sama. Deployment (asset precompile + restart) dikonfirmasi bersih, markup baru dikonfirmasi ada di compiled bundle. **Verifikasi visual langsung di browser belum dilakukan user di sesi ini.**
+
 ### 6r. Sisa Pekerjaan
 
 - **Verifikasi fitur freeze + countdown** di browser sungguhan: set status Busy Lunch/Meeting/Training, pastikan layar freeze muncul, countdown berjalan mundur dengan benar, tombol "End Break Now" mengembalikan ke Available.
