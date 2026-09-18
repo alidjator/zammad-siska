@@ -112,15 +112,22 @@
 ## Fase 5 — Item No. 5 & 6: Live Chat Enhancement (High effort, berisiko)
 
 **Item 5 — Auto-create ticket saat chat mulai**
-- [ ] Riset kode channel chat di source Zammad untuk titik hook saat sesi dibuka
-- [ ] Prototype pembuatan ticket otomatis di awal sesi (hindari duplikasi dengan tombol "Turn into ticket" existing)
+- [x] **Riset kode channel chat selesai** (`docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md`) — titik hook ditemukan: `lib/sessions/event/chat_session_start.rb#run` (saat agent accept chat, state waiting→running). Ditemukan juga: tombol "Turn into ticket" YANG SUDAH ADA (`chat.coffee#ticketCreate`) BUKAN relasi sungguhan — cuma membuka layar New Ticket dengan body pra-isi, tidak ada kolom `ticket_id` di `chat_sessions` sama sekali. **Masalah terbuka ditemukan**: live chat visitor anonim by default (tidak ada email/customer_id tertangkap), Ticket Zammad wajib `customer_id` — perlu keputusan user (buat User placeholder / tunda pembuatan tiket sampai email diketahui / wajibkan pre-chat form) sebelum desain teknis rinci lanjut
+- [x] **Keputusan user**: wajibkan form nama+email sebelum chat mulai (opsi paling bersih datanya)
+- [x] **Desain teknis rinci selesai** (Section 5.1, `docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md`) — migration `chat_sessions.email`/`ticket_id`; form pra-chat di widget; validasi server-side berlapis di `ChatSessionInit`; resolusi customer PAKAI ULANG `Channel::Filter::BaseIdentifyUser.user_create` (mekanisme native yang sudah teruji jalur email, bukan logika baru); resolusi Group via preferensi per-topik chat atau Setting global baru, dengan fallback aman (skip auto-create, bukan crash) kalau belum dikonfigurasi; sinkron transkrip real-time ke tiket via `chat_session_message`; tombol "Turn into ticket" existing diubah jadi "Open Ticket" kalau tiket sudah ada (hindari duplikasi sesuai catatan tasklist)
+- [x] **Keputusan final** (Section 5.1.6): Group default `chat_auto_ticket_group_id` = **"QA - Internal Testing"** untuk pengembangan/pengujian dulu — **WAJIB diarahkan ulang ke Group produksi sebelum dipakai untuk chat customer asli** (kalau dibiarkan, tiket customer asli masuk ke Group tanpa anggota). State/priority tiket baru ikut default sistem, tidak perlu nilai khusus
+- [ ] Prototype pembuatan ticket otomatis di awal sesi
 - [ ] Regression test menyeluruh pada fitur chat setelah perubahan
 
 **Item 6 — Attachment di Live Chat**
-- [ ] Evaluasi ulang cost/benefit — fitur ini belum pernah direalisasikan Zammad di versi manapun; pertimbangkan tetap pakai workaround (link eksternal) alih-alih custom dev
-- [ ] Jika tetap dikerjakan: desain endpoint upload + perubahan widget chat frontend + penyimpanan/link ke ticket
+- [x] **Riset selesai** (`docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md`) — dikonfirmasi `chat_messages` TIDAK punya kolom/relasi attachment apa pun (cuma `content` teks). Model `Store` (dipakai Ticket::Article) bisa dipakai ulang untuk penyimpanan. TAPI cakupan pekerjaan genuinely luas: menyentuh 2 codebase terpisah (Rails app + widget standalone `public/assets/chat/`, toolchain build sendiri, bukan Vite/asset pipeline utama), butuh endpoint upload baru, dan permukaan keamanan baru (upload dari pengunjung anonim)
+- [x] **Keputusan user**: tetap lanjut desain teknis rinci meski risiko tinggi
+- [x] **Desain teknis rinci selesai** (Section 5.2, `docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md`) — TIDAK butuh migration (Store sudah polimorfik lewat object+o_id, dikonfirmasi dari `CanCloneAttachments` concern yang sudah dipakai Ticket::Article/Knowledge::Base::Answer); endpoint upload BARU (bukan `UploadCachesController` yang sudah ada — itu wajib login, visitor chat anonim), otorisasi berbasis validitas `session_id` bukan token/akun (preseden sudah ada di proyek ini sendiri: halaman feedback CSAT publik Fase 1); integrasi ke tiket (kalau Item 5 aktif) pakai ulang pola `Store.create!` yang sama seperti `clone_attachments`
+- [x] **Keputusan final** (Section 5.2.4): whitelist tipe file SELALU aktif (baseline, gambar+dokumen umum, TOLAK executable/script apa pun), batas 5 MB/file maksimum 5 file/sesi chat
+- [x] **Desain integrasi ClamAV plug-and-play** (Section 5.2.5) — user bertanya bisa tidak dipindai ClamAV. Dicek dulu kapasitas server: RAM tersedia cuma ~1,9 GB, disk 96% penuh — memasang ClamAV (`clamd` butuh ~1-1,5 GB RAM) SEKARANG berisiko. Dirancang integrasi dalam kondisi NO-OP by default (2 Setting baru `chat_attachment_clamav_host`/`_port`, kosong = nonaktif), service class `Service::Chat::VirusScan` (protokol INSTREAM ClamAV, fail-CLOSED kalau sudah dikonfigurasi tapi clamd tak terhubung — bukan fail-open), docker-compose snippet disiapkan sebagai referensi belum diaktifkan. Begitu ClamAV tersedia (di server ini atau terpisah), tinggal isi 2 Setting, tanpa perubahan kode/deploy ulang
+- [ ] Implementasi endpoint upload + perubahan widget chat frontend + penyimpanan/link ke ticket + service ClamAV di atas
 
-> ⚠️ Kedua item ini menyentuh core code channel chat yang tidak punya extension point resmi — risiko konflik saat upgrade Zammad berikutnya paling tinggi di sini.
+> ⚠️ Kedua item ini menyentuh core code channel chat yang tidak punya extension point resmi — risiko konflik saat upgrade Zammad berikutnya paling tinggi di sini. Dikonfirmasi lewat riset kode langsung, bukan cuma dugaan awal.
 
 ## Fase 6 — QA, Merge & Rollout
 
