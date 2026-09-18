@@ -437,6 +437,11 @@
   padding: 0 0.8em;
   cursor: pointer;
   color: hsl(0, 0%, 60%);
+  // `.zammad-chat-controls` pakai `align-items: flex-end` -- tanpa
+  // ini, ikon attach nempel di bawah baris input, bukan sejajar
+  // tengah dengan kotak input & tombol Send (dilaporkan user,
+  // screenshot beranotasi tangan).
+  align-self: center;
 }
 
 .zammad-chat-attach svg {
