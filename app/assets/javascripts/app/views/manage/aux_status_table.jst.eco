@@ -2,34 +2,52 @@
   <%- @T('Total: %s agents', @totalCount) %>
 </p>
 
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th><%- @T('Agent') %></th>
-      <th><%- @T('Status') %></th>
-      <th><%- @T('Since') %></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% for agent in @agents: %>
-      <tr data-id="<%= agent.id %>">
-        <td><%= agent.fullname %></td>
-        <td>
-          <select class="form-control js-aux-status-select">
-            <% for status in @statuses: %>
-              <option value="<%= status.value %>" <% if agent.aux_status is status.value: %>selected<% end %>><%= status.label %></option>
-            <% end %>
-          </select>
-        </td>
-        <td><% if agent.aux_status_since: %><%- @humanTime(agent.aux_status_since) %><% end %></td>
-      </tr>
-    <% end %>
-    <% if _.isEmpty(@agents): %>
+<% if _.isEmpty(@agents): %>
+  <p><%- @T('No agents found matching your search.') %></p>
+  <div class="js-pager"></div>
+  <table class="table table--placeholder">
+    <thead><tr><th><%- @T('No Entries') %>
+  </table>
+<% else: %>
+  <div class="js-pager"><%- App.view('generic/table_pager')(page: @page, pages: @lastPageIndex) %></div>
+  <table class="table table-hover">
+    <thead>
       <tr>
-        <td colspan="3" class="u-textMuted"><%- @T('No agents found.') %></td>
+        <th class="js-tableHead">
+          <div class="table-column-head table-column-head-unclickable">
+            <div class="table-column-title"><%- @T('Agent') %></div>
+            <div class="table-column-sortIcon"></div>
+          </div>
+        </th>
+        <th class="js-tableHead">
+          <div class="table-column-head table-column-head-unclickable">
+            <div class="table-column-title"><%- @T('Status') %></div>
+            <div class="table-column-sortIcon"></div>
+          </div>
+        </th>
+        <th class="js-tableHead">
+          <div class="table-column-head table-column-head-unclickable">
+            <div class="table-column-title"><%- @T('Since') %></div>
+            <div class="table-column-sortIcon"></div>
+          </div>
+        </th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<%- App.view('generic/table_pager')(page: @page, pages: @lastPageIndex) %>
+    </thead>
+    <tbody>
+      <% for agent in @agents: %>
+        <tr data-id="<%= agent.id %>">
+          <td><%= agent.fullname %></td>
+          <td>
+            <select class="form-control js-aux-status-select">
+              <% for status in @statuses: %>
+                <option value="<%= status.value %>" <% if agent.aux_status is status.value: %>selected<% end %>><%= status.label %></option>
+              <% end %>
+            </select>
+          </td>
+          <td><% if agent.aux_status_since: %><%- @humanTime(agent.aux_status_since) %><% end %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <div class="js-pager"><%- App.view('generic/table_pager')(page: @page, pages: @lastPageIndex) %></div>
+<% end %>
