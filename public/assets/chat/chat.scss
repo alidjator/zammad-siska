@@ -460,7 +460,19 @@
   text-decoration: underline;
 }
 
-.zammad-chat-message {
+.zammad-chat-message-body {
+  // Bug KEDUA ditemukan dari laporan user (screenshot): `position:
+  // relative` sebelumnya dipasang di `.zammad-chat-message` (wrapper
+  // LUAR, lebar penuh/block), padahal bubble yang TERLIHAT adalah
+  // `.zammad-chat-message-body` (inline-block, `max-width: 70%`).
+  // Akibatnya ikon reply (`position: absolute`) mengambang relatif ke
+  // wrapper lebar-penuh itu -- muncul jauh di kanan, dekat scrollbar,
+  // bukan menempel di pojok bubble seperti di sisi agent. Dipindah ke
+  // sini (bubble yang sesungguhnya) + markup ikon di `message.eco`
+  // ikut dipindah jadi ANAK dari `.zammad-chat-message-body` (bukan
+  // sibling lagi), supaya positioning-nya benar -- pola yang sama
+  // persis seperti sisi agent (`chat_enhancements.scss`, ikon jadi
+  // anak langsung dari `.chat-message`, elemen bubble itu sendiri).
   position: relative;
 }
 

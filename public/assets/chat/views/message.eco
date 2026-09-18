@@ -4,8 +4,8 @@
       <span class="zammad-chat-message-quote"><%= @replyTo.substr(0, 80) %></span>
     <% end %>
     <%- @message %>
+    <% if @id: %>
+      <span class="zammad-chat-message-reply js-message-reply">&#8617;</span>
+    <% end %>
   </span>
-  <% if @id: %>
-    <span class="zammad-chat-message-reply js-message-reply">&#8617;</span>
-  <% end %>
 </div>

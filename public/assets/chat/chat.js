@@ -417,13 +417,13 @@ window.zammadChatTemplates["message"] = function(__obj) {
     
       __out.push(this.message);
     
-      __out.push('\n  </span>\n  ');
+      __out.push('\n    ');
     
       if (this.id) {
-        __out.push('\n    <span class="zammad-chat-message-reply js-message-reply">&#8617;</span>\n  ');
+        __out.push('\n      <span class="zammad-chat-message-reply js-message-reply">&#8617;</span>\n    ');
       }
     
-      __out.push('\n</div>');
+      __out.push('\n  </span>\n</div>');
     
     }).call(this);
     
