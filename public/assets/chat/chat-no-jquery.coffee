@@ -1634,6 +1634,16 @@ do(window) ->
       @el.querySelector('.zammad-chat-agent').innerHTML = @view('agent')
         agent: @agent
 
+      # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
+      # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
+      # by default (views/chat.eco) -- server yang memutuskan boleh
+      # tidaknya lewat flag ini, dikirim di payload chat_session_start
+      # yang sama.
+      if data.attachment_enabled
+        @el.querySelector('.js-chat-attach').classList.remove('zammad-chat-is-hidden')
+      else
+        @el.querySelector('.js-chat-attach').classList.add('zammad-chat-is-hidden')
+
       @enableInput()
 
       @hideModal()

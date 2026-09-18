@@ -192,7 +192,7 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push(this.T(this.scrollHint));
     
-      __out.push('\n  </div>\n  <div class="zammad-chat-body"></div>\n  <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>\n  <form class="zammad-chat-controls">\n    <div class="zammad-chat-attach js-chat-attach">\n      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>\n    </div>\n    <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n    <div class="zammad-chat-input" rows="1" placeholder="');
+      __out.push('\n  </div>\n  <div class="zammad-chat-body"></div>\n  <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>\n  <form class="zammad-chat-controls">\n    <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">\n      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>\n    </div>\n    <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n    <div class="zammad-chat-input" rows="1" placeholder="');
     
       __out.push(this.T('Compose your message…'));
     
@@ -2797,6 +2797,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.el.find('.zammad-chat-agent').html(this.view('agent')({
         agent: this.agent
       }));
+      this.el.find('.js-chat-attach').toggleClass('zammad-chat-is-hidden', !data.attachment_enabled);
       this.enableInput();
       this.hideModal();
       this.el.find('.zammad-chat-welcome').addClass('zammad-chat-is-hidden');

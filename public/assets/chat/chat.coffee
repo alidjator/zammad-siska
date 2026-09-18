@@ -1628,6 +1628,14 @@ do($ = window.jQuery, window) ->
       @el.find('.zammad-chat-agent').html @view('agent')
         agent: @agent
 
+      # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
+      # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
+      # by default (views/chat.eco) -- server yang memutuskan boleh
+      # tidaknya lewat flag ini (widget tidak bisa baca Setting/
+      # preferensi agent secara langsung), dikirim di payload
+      # chat_session_start yang sama.
+      @el.find('.js-chat-attach').toggleClass('zammad-chat-is-hidden', !data.attachment_enabled)
+
       @enableInput()
 
       @hideModal()
