@@ -303,6 +303,24 @@ end
 
 **Jadi "plug-and-play"-nya secara konkret**: begitu container/server ClamAV tersedia (di mana pun), isi `chat_attachment_clamav_host`/`_port` lewat Admin Settings -- TIDAK ada kode yang perlu diubah, TIDAK ada deploy ulang. `Service::Chat::VirusScan.scan` otomatis mulai memindai upload berikutnya. Untuk mematikan lagi, cukup kosongkan `chat_attachment_clamav_host`.
 
+#### 5.2.6 Enable/Disable Attachment -- Global + Per-Agent
+
+Atas permintaan user: attachment perlu bisa dinyalakan/dimatikan baik secara GLOBAL (admin) maupun PER-AGENT (agent mengatur untuk dirinya sendiri) -- kalau global mati, tetap mati untuk semua agent apa pun preferensi masing-masing; kalau global nyala, tiap agent MASIH perlu menyalakannya sendiri (klarifikasi user: **default global NYALA, default per-agent MATI**).
+
+**2 lapis, KEDUANYA harus lolos**:
+1. **Setting global** `chat_attachment_enabled` (`frontend: true`, default `true`) -- satu saklar utama untuk seluruh sistem.
+2. **Preferensi per-agent** `preferences[:chat][:attachment_enabled]` pada `User` -- pola YANG SAMA dengan `preferences[:chat][:active]` (aktivasi topik chat) yang sudah ada, bukan mekanisme baru. Default `false`/tidak ada -- agent harus mengaktifkan sendiri lewat Chat Settings (`.js-settings`, modal yang sudah ada, class `Setting extends App.ControllerModal` di `chat.coffee`).
+
+**Dipusatkan di SATU tempat**: `Chat::Session#attachment_enabled?` (method baru di model, `app/models/chat/session.rb`) -- BUKAN diulang terpisah di `ChatAttachmentsController` dan `ChatSessionStart`, karena keduanya butuh logika PERSIS sama. Kalau `chat_session.user_id` masih kosong (customer masih di antrean, belum ada agent yang menerima), attachment DITOLAK -- preferensi agent belum bisa dicek sama sekali di titik itu.
+
+**Enforcement (backend, sumber kebenaran)**: `ChatAttachmentsController#create` memanggil `chat_session.attachment_enabled?` SEBELUM validasi lain (whitelist/ukuran/ClamAV) -- kalau gagal, upload ditolak (403) dengan pesan jelas.
+
+**UI Agent**: checkbox baru di `customer_chat/setting.jst.eco` ("Allow customers to send file attachments in my chats"), HANYA ditampilkan kalau Setting global menyala (`App.Config.get('chat_attachment_enabled')`, dilewatkan dari `Setting#content` di `chat.coffee`) -- kalau admin mematikan secara global, opsi ini disembunyikan sepenuhnya dari agent supaya tidak membingungkan (checkbox yang ada tapi tidak berpengaruh apa pun). Tombol attach di jendela chat agent sendiri ikut disembunyikan/ditampilkan sesuai 2 lapis yang sama, dicek ulang di `ChatWindow#render` (client-side, UX saja -- backend tetap penegak utama).
+
+**UI Widget Customer**: widget TIDAK BISA membaca Setting/preferensi agent secara langsung (anonim, tidak ada sesi Zammad). Tombol attach disembunyikan BY DEFAULT (`views/chat.eco`), server yang memutuskan lewat field baru `attachment_enabled` di payload `chat_session_start` yang SUDAH ADA (bukan endpoint/event baru) -- begitu chat terhubung ke agent, `onConnectionEstablished` menampilkan/menyembunyikan tombol sesuai flag itu. Diterapkan ke KEDUA varian widget.
+
+Diverifikasi lewat `rails runner` untuk semua kombinasi: agent ON+global ON = aktif; agent ON+global OFF = nonaktif (global menang); agent OFF (default)+global ON = nonaktif -- ketiganya sesuai spesifikasi. Diuji juga lewat HTTP asli: upload ditolak 403 dengan pesan jelas saat agent belum mengaktifkan.
+
 ### 5.3 Fitur Tambahan: Reply ke Pesan Spesifik (Seperti WhatsApp)
 
 Atas permintaan user -- fitur baru di jendela chat (BUKAN bagian Item 5/6 dari Gap Analysis awal, tapi tambahan langsung untuk pengalaman chat itu sendiri), berlaku untuk KEDUA sisi (widget customer & panel agent), karena keduanya berbagi konsep "pesan" yang sama.
