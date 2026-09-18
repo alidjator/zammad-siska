@@ -22,24 +22,59 @@ class AuxStatusesController < ApplicationController
   # `query` WAJIB diisi -- kalau kosong langsung return array kosong
   # TANPA menyentuh tabel `users` sama sekali. Ini disengaja: organisasi
   # ini punya 513 akun ber-permission ticket.agent (lihat
-  # docs/DESIGN_AUX_STATUS.md Section 6b), dan mengecek
-  # `permissions?('ticket.agent')` satu-per-satu untuk SEMUANYA di setiap
-  # kunjungan halaman (termasuk yang tidak butuh lihat siapa-siapa, cuma
-  # mau override 1 agent) lambat dan boros -- per permintaan user,
-  # halaman ini sekarang search-first, bukan tampilkan-semua-lalu-
-  # paginate.
+  # docs/DESIGN_AUX_STATUS.md Section 6b), dan halaman ini search-first,
+  # bukan tampilkan-semua-lalu-paginate, per permintaan user.
+  #
+  # Server-side pagination (docs/DESIGN_REPORTING_FRT.md Section 8):
+  # `page`/`per_page` menentukan baris mana yang dikirim lewat SQL
+  # LIMIT/OFFSET langsung -- BUKAN mengambil sejumlah baris lalu
+  # memfilter/memotongnya di Ruby.
+  #
+  # BUG YANG SUDAH DIPERBAIKI: versi sebelumnya mengambil 100 baris
+  # ter-ILIKE-match dulu (CANDIDATE_WINDOW) baru memfilter
+  # `permissions?('ticket.agent')` satu-per-satu di Ruby, karena
+  # `permissions?` adalah method instance, bukan kolom, jadi kelihatannya
+  # tidak bisa didorong ke SQL. Ini SALAH untuk query luas: dari 71.771
+  # user aktif cuma 513 (~0.7%) yang agent, jadi window 100 baris --
+  # bagaimanapun cara mengurutkannya (termasuk sudah dicoba ORDER BY
+  # firstname/lastname, tetap gagal) -- punya peluang besar tidak berisi
+  # SATU PUN agent asli. Query "anon" yang cocok ke 71 ribu+ baris
+  # akhirnya konsisten mengembalikan 0 hasil walau 508 agent asli cocok.
+  #
+  # PERBAIKAN: `Permission.join_with` (dipakai native Zammad sendiri di
+  # User::HasGroups#group_access) mendorong pengecekan permission ke SQL
+  # via JOIN roles -> role_permissions -> permissions, BUKAN loop Ruby
+  # setelah LIMIT. Dengan ini filter ILIKE + filter permission jadi SATU
+  # query SQL, sehingga `.count` akurat dan `.limit/.offset` benar-benar
+  # membagi HASIL AKHIR (bukan kandidat sebelum difilter) -- tidak ada
+  # lagi jendela kandidat yang bisa "kehabisan" agent asli.
+  DEFAULT_PER_PAGE = 25
+  MAX_PER_PAGE     = 100
+
   def index
     raise Exceptions::Forbidden if !current_user.permissions?('aux_status.override')
 
     query = params[:query].to_s.strip
-    return render(json: []) if query.blank?
+    return render(json: { count: 0, agents: [] }) if query.blank?
 
-    like = "%#{User.sanitize_sql_like(query)}%"
-    agents = User.where(active: true)
-                 .where('firstname ILIKE :q OR lastname ILIKE :q OR login ILIKE :q OR email ILIKE :q', q: like)
-                 .limit(100)
-                 .select { |u| u.permissions?('ticket.agent') }
-    render json: agents.map { |u| status_json(u).merge(fullname: u.fullname) }, status: :ok
+    like    = "%#{User.sanitize_sql_like(query)}%"
+    matched = Permission.join_with(User, 'ticket.agent')
+                         .where(users: { active: true })
+                         .where('firstname ILIKE :q OR lastname ILIKE :q OR login ILIKE :q OR email ILIKE :q', q: like)
+                         .distinct
+
+    page     = [params[:page].to_i, 1].max
+    per_page = params[:per_page].to_i
+    per_page = DEFAULT_PER_PAGE if per_page <= 0
+    per_page = MAX_PER_PAGE if per_page > MAX_PER_PAGE
+
+    total_count = matched.count
+    page_agents = matched.order(:firstname, :lastname).limit(per_page).offset((page - 1) * per_page)
+
+    render json: {
+      count:  total_count,
+      agents: page_agents.map { |u| status_json(u).merge(fullname: u.fullname) },
+    }, status: :ok
   end
 
   # PUT /api/v1/aux_status

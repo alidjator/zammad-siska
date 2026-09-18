@@ -182,6 +182,36 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+# Rows per page for Admin > Manage > AUX Status (docs/DESIGN_AUX_STATUS.md
+# Section 6m/6q) -- client-side pagination over whatever the search
+# already returned (that page never fetches more than `limit(100)`
+# worth from the DB regardless, see AuxStatusesController#index), so
+# this Setting is read ONLY by the frontend (App.Config.get, hence
+# frontend: true) -- no backend/query-level counterpart, unlike
+# report_preview_per_page (script/create_reporting_settings.rb), which
+# drives a real SQL LIMIT.
+puts '== Setting: aux_status_manage_per_page =='
+Setting.create_if_not_exists(
+  title:       'AUX Status Management Rows Per Page',
+  name:        'aux_status_manage_per_page',
+  area:        'SISKA::AuxStatus',
+  description: 'Jumlah agent per halaman di tabel Admin > Manage > AUX Status (dipaginate di sisi client, lihat docs/DESIGN_AUX_STATUS.md).',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'aux_status_manage_per_page',
+        tag:     'input',
+        type:    'number',
+      },
+    ],
+  },
+  state:       25,
+  preferences: { permission: ['admin.system'] },
+  frontend:    true,
+)
+
 puts '== Setting: aux_status_roundrobin_pointer (internal state, no Admin UI) =='
 Setting.create_if_not_exists(
   title:       'AUX Status Round Robin Pointer (internal)',

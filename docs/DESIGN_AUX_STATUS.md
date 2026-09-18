@@ -324,17 +324,52 @@ User meminta lebih lanjut: "pada saat halaman di muat, saya tidak mau menampilka
 Diubah jadi pola **search-first**:
 - `GET /api/v1/aux_statuses` sekarang WAJIB diberi parameter `query` -- kalau kosong, langsung `render json: []` TANPA menyentuh tabel `users` sama sekali (dikonfirmasi lewat pengujian langsung: query kosong 0.15 detik vs sebelumnya perlu iterasi 513 baris). Kalau `query` diisi, difilter dulu di level SQL (`firstname/lastname/login/email ILIKE`, plus `limit(100)` sebagai pagar tambahan) SEBELUM baru dicek `permissions?('ticket.agent')` satu per satu ke himpunan yang jauh lebih kecil itu.
 - Frontend (`_manage/aux_status.coffee`) tidak lagi otomatis fetch saat halaman dibuka -- cuma menampilkan kotak pencarian + pesan "Type at least 2 characters to search". Pencarian di-debounce 300ms (`@delay`, pola yang sama dipakai `Navigation`'s search box sendiri) supaya tidak nge-hit API di setiap ketukan huruf, dan hasil pencarian yang "usang" (kalau user sudah mengetik lebih lanjut sebelum response lama sempat kembali) dibuang, dicek lewat pencocokan `query` yang tersimpan saat request dikirim vs `@query` terkini.
-- Pagination (6m) tetap dipertahankan di atas hasil pencarian saat ini -- kalau pencarian mengembalikan banyak hasil (mis. nama depan yang umum), tetap dipaginate 25 per halaman.
+- Pagination (6m) tetap dipertahankan di atas hasil pencarian saat ini -- kalau pencarian mengembalikan banyak hasil (mis. nama depan yang umum), tetap dipaginate (ukurannya kini bisa diatur, lihat 6q).
 
 Diuji end-to-end langsung lewat API (token API dengan permission yang sesuai): `query` kosong mengembalikan `[]` dalam 0.15 detik; `query=peg` dan `query=hasbiallah` (login vs nama depan agent yang sama) sama-sama berhasil menemukan agent yang tepat. **Verifikasi interaktif langsung di browser (mengetik di kotak pencarian, melihat hasil muncul) belum dilakukan user di sesi ini.**
 
-### 6p. Sisa Pekerjaan
+### 6q. Setting untuk Ukuran Halaman
+
+Menyusul pertanyaan user apakah Setting ukuran halaman (dibangun untuk tabel preview Reporting, `docs/DESIGN_REPORTING_FRT.md` Section 7) berlaku untuk semua tabel di Zammad -- dijawab TIDAK (tiap tabel punya mekanisme paginationnya sendiri-sendiri) -- lalu diminta dibuatkan yang serupa untuk halaman ini juga.
+
+Ditambahkan **`aux_status_manage_per_page`** (`script/create_aux_status_object_attributes.rb`, area `SISKA::AuxStatus`, default 25, `frontend: true`). Beda dari `report_preview_per_page` (yang mengontrol `LIMIT` SQL sungguhan di backend) -- Setting ini murni memengaruhi cara `App.ManageAuxStatus#renderPage` memotong-motong array HASIL PENCARIAN yang sudah ada di memori (client-side), karena endpoint pencarian sendiri sudah dibatasi `limit(100)` terpisah (Section 6o) -- jadi tidak ada query backend yang perlu diubah untuk fitur ini, cuma method `pageSize()` baru di `_manage/aux_status.coffee` yang menggantikan konstanta `PAGE_SIZE: 25` yang lama.
+
+### 6s. Bug Ditemukan & Diperbaiki: Pencarian Luas di Manage > AUX Status Mengembalikan 0 Hasil
+
+Bagian dari instruksi user "buat semua menjadi server-side untuk semua yang masih belum server-side, terlepas datanya besar atau kecil" (`docs/DESIGN_REPORTING_FRT.md` Section 8) -- paginasi client-side 6m/6o diubah jadi genuinely server-side (`page`/`per_page` menentukan baris yang dikirim lewat SQL, bukan array penuh dipotong di JS).
+
+Saat pengujian ulang endpoint yang baru, ditemukan bug nyata: query luas seperti `"a"` atau `"anon"` (cocok ke puluhan ribu baris tabel `users`) mengembalikan `count: 0, agents: []` padahal agent yang cocok sungguhan ada. Ditelusuri lewat `rails runner` langsung ke query yang dipakai controller: `User.where(active: true).where(ILIKE...).limit(100).select { |u| u.permissions?('ticket.agent') }` -- 100 baris hasil `.limit(100)` TANPA `.order(...)` eksplisit sebelumnya, jadi urutan yang dikembalikan PostgreSQL untuk query tanpa `ORDER BY` tidak terjamin/tidak dapat diprediksi (tergantung query planner). Untuk organisasi ini, dari 71.771 user aktif cuma 513 (~0,7%) yang benar-benar agent (`ticket.agent`) -- percobaan pertama menunjukkan 100 baris yang kembali semuanya ID besar berurutan (72820-72919), tidak satupun agent asli.
+
+**Percobaan perbaikan pertama GAGAL**: menambahkan `.order(:firstname, :lastname)` sebelum `.limit(100)` tetap menghasilkan 0 agent di 100 baris pertama untuk query "anon" -- diverifikasi langsung lewat `rails runner`. Root cause sebenarnya bukan soal urutan per se, tapi soal PROPORSI: 100 baris kandidat dari ~71 ribu baris yang cocok (0,7% di antaranya agent) secara matematis punya ekspektasi jauh di bawah 1 agent per jendela 100 baris, APAPUN urutannya -- pendekatan "ambil N baris dulu, filter permission belakangan di Ruby" pada dasarnya tidak bisa diandalkan untuk query yang cocok ke sebagian besar tabel `users`.
+
+**Perbaikan sesungguhnya**: mendorong pengecekan permission `ticket.agent` ke level SQL, BUKAN loop Ruby setelah `LIMIT`. Ditemukan Zammad sendiri sudah punya mekanisme untuk ini -- `Permission.join_with(object, permissions)` (`app/models/permission.rb`), dipakai native di `User::HasGroups#group_access` -- yang men-`.joins(roles: :permissions).where(roles: {active: true}, permissions: {name: permissions, active: true})`. Query controller diubah total:
+
+```ruby
+matched = Permission.join_with(User, 'ticket.agent')
+                     .where(users: { active: true })
+                     .where('firstname ILIKE :q OR lastname ILIKE :q OR login ILIKE :q OR email ILIKE :q', q: like)
+                     .distinct
+
+total_count = matched.count
+page_agents = matched.order(:firstname, :lastname).limit(per_page).offset((page - 1) * per_page)
+```
+
+Filter ILIKE dan filter permission sekarang jadi SATU query SQL (JOIN + WHERE), bukan dua tahap terpisah -- `CANDIDATE_WINDOW` (100 baris kandidat sebelum difilter) yang jadi akar masalah dihapus seluruhnya, tidak dibutuhkan lagi karena tidak ada lagi tahap "ambil dulu, filter belakangan".
+
+Diverifikasi lewat `rails runner` dan HTTP asli (curl, token API):
+- Query `"anon"` (luas): `count: 508` (akurat, dicek manual = jumlah agent sungguhan yang punya "anon" di salah satu field), halaman 1 & 2 tidak overlap.
+- Query `"a"` (paling luas, cocok ke semua nama yang mengandung huruf "a"): `count: 513` -- SELURUH agent organisasi ini ditemukan, sesuai definisi Section 6b.
+- Query `"peg"` (spesifik, regresi): tetap `count: 1`, agent `peg123456` yang tepat.
+
+Dideploy (docker cp + restart container, controller Ruby biasa tidak butuh precompile asset) dan diverifikasi ulang tepat setelah deploy -- semua 3 skenario di atas dijalankan LANGSUNG lewat HTTP asli pasca-deploy, bukan cuma di `rails runner` sebelum deploy.
+
+### 6r. Sisa Pekerjaan
 
 - **Verifikasi fitur freeze + countdown** di browser sungguhan: set status Busy Lunch/Meeting/Training, pastikan layar freeze muncul, countdown berjalan mundur dengan benar, tombol "End Break Now" mengembalikan ke Available.
 - **Verifikasi editor baris AUX Status baru** (6l): tambah/hapus baris, isi Value/Label/Durasi, Submit, pastikan tersimpan dan tercermin di dropdown menu personal setelah reload halaman.
-- **Verifikasi pagination & pencarian baru di Manage > AUX Status** (6m/6o): ketik nama/login agent di kotak pencarian, pastikan hasil muncul; kalau hasil banyak, klik nomor halaman & Prev/Next.
+- **Verifikasi pagination server-side & pencarian di Manage > AUX Status** (6m/6o/6q/6s) di browser sungguhan: ketik nama/login agent di kotak pencarian, pastikan hasil muncul; kalau hasil banyak, klik nomor halaman & Prev/Next; ubah `aux_status_manage_per_page` dan cek ukuran halaman berubah. Sudah diverifikasi lewat API langsung (curl), belum diklik langsung di browser oleh user.
 - **Testing lanjutan dengan multi-agent nyata di luar Group "QA - Internal Testing"** belum dilakukan -- sengaja tidak dilakukan sepihak karena berisiko benar-benar meng-assign ulang tiket unassigned ASLI ke agent nyata sebagai efek samping (persis mekanisme yang sedang diuji). Perlu keputusan/pengawasan langsung dari user soal Group mana yang aman dipakai dan kapan waktu yang tepat (mis. di luar jam sibuk).
 
 ---
 
-*Riset, keputusan desain, desain teknis rinci, dan implementasi inti (termasuk UI override supervisor) sudah selesai dan terverifikasi (Section 6). Permission `aux_status.override` sudah dikonfirmasi tersimpan di Role "Admin". Bug tampilan (teks status/divider, 6f) dan bug halaman Manage macet loading (6k) sudah diperbaiki. Fitur layar freeze + popup timer (6h), editor baris untuk Setting AUX Status (6l, menggantikan textarea JSON), pagination (6m, reuse partial native `table_pager`), dan halaman Manage jadi search-first bukan load-semua (6o) sudah dibangun dan di-deploy, backend sudah diuji langsung. Sisa: verifikasi UI interaktif untuk fitur-fitur baru dan testing multi-agent nyata di luar Group QA (Section 6p).*
+*Riset, keputusan desain, desain teknis rinci, dan implementasi inti (termasuk UI override supervisor) sudah selesai dan terverifikasi (Section 6). Permission `aux_status.override` sudah dikonfirmasi tersimpan di Role "Admin". Bug tampilan (teks status/divider, 6f) dan bug halaman Manage macet loading (6k) sudah diperbaiki. Fitur layar freeze + popup timer (6h), editor baris untuk Setting AUX Status (6l, menggantikan textarea JSON), pagination (6m, reuse partial native `table_pager`), halaman Manage jadi search-first bukan load-semua (6o), dan Setting ukuran halaman (6q) sudah dibangun dan di-deploy, backend sudah diuji langsung. Sisa: verifikasi UI interaktif untuk fitur-fitur baru dan testing multi-agent nyata di luar Group QA (Section 6r).*
