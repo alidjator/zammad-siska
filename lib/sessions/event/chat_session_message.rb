@@ -57,11 +57,26 @@ return is sent as message back to peer
     # hidup mengikuti percakapan.
     sync_message_to_ticket(chat_session, chat_message)
 
+    # BUG DITEMUKAN & DIPERBAIKI (lewat pengujian screenshot end-to-end,
+    # bukan cuma baca kode) -- Section 5.3. `chat_message` sebagai
+    # object ActiveRecord MENTAH, saat di-serialize ke JSON, HANYA
+    # menyertakan kolom (termasuk `reply_to_id` sebagai angka polos),
+    # BUKAN isi pesan yang direferensikan. Akibatnya pihak yang
+    # MENERIMA balasan (bukan yang mengirim -- pengirim melihat kutipan
+    # dari state LOKAL client-nya sendiri, bukan dari broadcast ini)
+    # tidak pernah melihat kutipan sama sekali. Diperbaiki dengan
+    # menyertakan `reply_to` (cuma `content`, secukupnya untuk potongan
+    # kutipan) secara eksplisit di payload.
+    message_payload = chat_message.attributes
+    if chat_message.reply_to.present?
+      message_payload['reply_to'] = { 'content' => chat_message.reply_to.content }
+    end
+
     message = {
       event: 'chat_session_message',
       data:  {
         session_id: chat_session.session_id,
-        message:    chat_message,
+        message:    message_payload,
       },
     }
 
@@ -73,7 +88,7 @@ return is sent as message back to peer
       event: 'chat_session_message',
       data:  {
         session_id:   chat_session.session_id,
-        message:      chat_message,
+        message:      message_payload,
         self_written: true,
       },
     }

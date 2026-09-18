@@ -1169,6 +1169,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.isOpen = false;
 
+    ZammadChat.prototype.restingBottom = 20;
+
     ZammadChat.prototype.blinkOnlineInterval = null;
 
     ZammadChat.prototype.stopBlinOnlineStateTimeout = null;
@@ -2444,13 +2446,13 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       }
       this.el.addClass('zammad-chat-is-open');
       remainerHeight = this.el.height() - this.el.find('.zammad-chat-header').outerHeight();
-      this.el.css('bottom', -remainerHeight);
+      this.el.css('bottom', this.restingBottom - remainerHeight);
       if (!this.sessionId) {
         return this.el.animate({
-          bottom: 0
+          bottom: this.restingBottom
         }, 500, this.onOpenAnimationEnd);
       } else {
-        this.el.css('bottom', 0);
+        this.el.css('bottom', this.restingBottom);
         return this.onOpenAnimationEnd();
       }
     };

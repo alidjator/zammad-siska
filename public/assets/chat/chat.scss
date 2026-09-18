@@ -2,7 +2,10 @@
   color: black;
   position: fixed;
   right: 30px;
-  bottom: 0;
+  // Jarak dari tepi bawah layar -- sebelumnya 0 (menempel pas ke tepi),
+  // diubah atas permintaan user setelah dicoba langsung di browser
+  // sungguhan terasa terlalu mepet.
+  bottom: 20px;
   font-size: 12px;
   width: 33em;
   height: 3.5em;
@@ -462,18 +465,26 @@
 }
 
 .zammad-chat-message-reply {
+  // Diperbaiki setelah dicoba langsung oleh user (sisi customer) --
+  // sebelumnya `right/left: -1.6em` (DI LUAR kotak bubble) memicu
+  // scrollbar horizontal yang tidak diinginkan di area pesan, dan
+  // `opacity: 0` (baru terlihat saat hover) membuat visitor biasa
+  // (bukan agent yang terbiasa pakai tool profesional) tidak pernah
+  // tahu tombol ini ada sama sekali. Sekarang diposisikan DI DALAM
+  // bubble (tidak memperluas lebar konten) dan SELALU sedikit terlihat
+  // (opacity 0.5), makin jelas saat hover -- bukan tersembunyi total.
   position: absolute;
-  top: 0;
-  right: -1.6em;
-  opacity: 0;
+  top: 2px;
+  right: 4px;
+  opacity: 0.5;
   cursor: pointer;
   transition: opacity 150ms;
-  color: hsl(0, 0%, 60%);
+  color: hsl(0, 0%, 40%);
 }
 
 .zammad-chat-message--customer .zammad-chat-message-reply {
   right: auto;
-  left: -1.6em;
+  left: 4px;
 }
 
 .zammad-chat-message:hover .zammad-chat-message-reply {

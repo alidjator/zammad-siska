@@ -183,6 +183,10 @@ do($ = window.jQuery, window) ->
     logPrefix: 'chat'
     _messageCount: 0
     isOpen: false
+    # Jarak dari tepi bawah layar saat jendela terbuka -- HARUS sama
+    # dengan `bottom` di chat.scss (.zammad-chat), supaya animasi
+    # buka/tutup berhenti tepat di posisi yang benar.
+    restingBottom: 20
     blinkOnlineInterval: null
     stopBlinOnlineStateTimeout: null
     showTimeEveryXMinutes: 2
@@ -1317,12 +1321,16 @@ do($ = window.jQuery, window) ->
 
       remainerHeight = @el.height() - @el.find('.zammad-chat-header').outerHeight()
 
-      @el.css 'bottom', -remainerHeight
+      # Fase 5 -- jarak dari tepi bawah (@restingBottom, sesuai
+      # `bottom: 20px` di chat.scss) dipertahankan konsisten saat
+      # animasi buka/tutup, bukan menempel pas ke tepi (0) seperti
+      # sebelumnya.
+      @el.css 'bottom', @restingBottom - remainerHeight
 
       if !@sessionId
-        @el.animate { bottom: 0 }, 500, @onOpenAnimationEnd
+        @el.animate { bottom: @restingBottom }, 500, @onOpenAnimationEnd
       else
-        @el.css 'bottom', 0
+        @el.css 'bottom', @restingBottom
         @onOpenAnimationEnd()
 
     # Fase 5 -- Item No. 5 (Auto-Create Ticket). See

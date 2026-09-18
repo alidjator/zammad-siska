@@ -2,7 +2,7 @@
   color: black;
   position: fixed;
   right: 30px;
-  bottom: 0;
+  bottom: 20px;
   font-size: 12px;
   width: 33em;
   height: 3.5em;
@@ -538,19 +538,19 @@
 
 .zammad-chat-message-reply {
   position: absolute;
-  top: 0;
-  right: -1.6em;
-  opacity: 0;
+  top: 2px;
+  right: 4px;
+  opacity: 0.5;
   cursor: pointer;
   -webkit-transition: opacity 150ms;
   -o-transition: opacity 150ms;
   transition: opacity 150ms;
-  color: hsl(0deg, 0%, 60%);
+  color: hsl(0deg, 0%, 40%);
 }
 
 .zammad-chat-message--customer .zammad-chat-message-reply {
   right: auto;
-  left: -1.6em;
+  left: 4px;
 }
 
 .zammad-chat-message:hover .zammad-chat-message-reply {
