@@ -188,8 +188,20 @@ Endpoint baru (nama controller final ditentukan saat implementasi, mis. `Chat::A
 
 #### 5.2.4 Keputusan Final (Keamanan)
 
-- **Whitelist tipe file SELALU aktif** (baseline, tidak bergantung ClamAV) -- gambar umum (`jpg/jpeg/png/gif/webp`), dokumen umum (`pdf/doc/docx/xls/xlsx`) -- SELALU tolak tipe executable/script (`exe/sh/bat/js/html`, dst) apa pun konfigurasinya.
+- **Whitelist tipe file SELALU aktif** (baseline, tidak bergantung ClamAV) -- daftarnya sekarang **configurable lewat Setting** (lihat 5.2.4a di bawah), bukan hardcode. SELALU tolak tipe executable/script (`exe/sh/bat/js/html`, dst) apa pun konfigurasinya -- pagar ini TIDAK bisa dilonggarkan lewat Setting.
 - Batas ukuran file & jumlah attachment per sesi chat -- 5 MB per file, maksimum 5 file per sesi chat -- titik awal, bisa disesuaikan lewat Setting.
+
+#### 5.2.4a Setting untuk Daftar Tipe File yang Diizinkan
+
+Atas permintaan user, daftar whitelist (5.2.4) dibuat jadi Setting, bukan angka/daftar tetap di kode -- mengikuti pola yang sama dipakai `aux_status_options`/`report_preview_per_page` sepanjang proyek ini (Setting sebagai satu-satunya sumber kebenaran, dibaca backend saat validasi).
+
+**Setting baru**: `chat_attachment_allowed_extensions` (`frontend: false`, cuma dibaca backend saat validasi upload) -- string berisi daftar EKSTENSI dipisah koma, mis. `jpg,jpeg,png,gif,webp,pdf,doc,docx,xls,xlsx`. Dipilih format teks-koma-sederhana (BUKAN JSON/array, dan BUKAN editor baris seperti `aux_status_options`) -- karena ini cuma satu daftar string datar, tidak ada pasangan value/label/durasi seperti AUX Status, jadi textarea/text-input biasa (`App.UiElement.textarea`/`input` generik) sudah cukup ramah tanpa perlu UI kustom.
+
+**Validasi 2 lapis, BUKAN cuma baca Setting mentah-mentah**:
+1. **Denylist keras di kode, tidak bisa di-override Setting apa pun** -- daftar kecil ekstensi berbahaya (`exe, bat, cmd, sh, ps1, js, html, htm, php, jar, msi, com, scr, vbs`, dst) SELALU ditolak lebih dulu, SEBELUM Setting dicek sama sekali. Ini mencegah kesalahan konfigurasi (admin tidak sengaja mengetik `exe` ke dalam Setting) tetap membuka celah keamanan nyata.
+2. **Baru setelah lolos poin 1**, ekstensi file dicocokkan ke `chat_attachment_allowed_extensions`. Kalau tidak ada di daftar itu, ditolak dengan pesan jelas (bukan diam-diam gagal).
+
+**Lokasi di Admin UI**: tab "Live Chat" baru di Admin > Settings > SISKA (mengikuti pola tab-per-fase yang sudah ada: AUX Status, Reporting, Overview, dst, `_manage/siska_settings.coffee`) -- ditambahkan saat implementasi Item 5/6, belum ada tab-nya sekarang karena belum ada Setting Fase 5 yang benar-benar dibuat (baru desain).
 - **Pemindaian ClamAV -- OPSIONAL, plug-and-play** (lihat 5.2.5) -- user bertanya apakah bisa dipindai ClamAV. Dicek dulu kondisi server sebelum menjawab: **RAM tersedia cuma ~1,9 GB dari 7,5 GB total, disk sudah 96% penuh (6,3 GB sisa dari 130 GB)** -- `clamd` butuh ~1-1,5 GB RAM cuma untuk memuat database signature, jadi memasangnya SEKARANG di server ini berisiko menekan sumber daya yang sudah ketat. Keputusan: **bangun dulu integrasinya dalam kondisi TIDAK AKTIF/no-op** (dikontrol lewat Setting, defaultnya kosong = mati) supaya begitu ClamAV benar-benar tersedia (di server ini setelah upgrade kapasitas, atau di server terpisah), mengaktifkannya cukup isi 2 Setting, TANPA perlu perubahan kode maupun deploy ulang.
 
 #### 5.2.5 Desain Integrasi ClamAV (Plug-and-Play)
