@@ -161,6 +161,29 @@ Titik hook (Section 2.1) tetap `lib/sessions/event/chat_session_start.rb#run`, d
 - **Group default `chat_auto_ticket_group_id`**: **"QA - Internal Testing"** (Group testing yang sudah ada sejak Fase 3, tanpa anggota, tidak mengirim notifikasi ke staf asli -- lihat `docs/TASKLIST_SISKA.md` "Di Luar Fase — Investigasi Notifikasi Email Selama Pengujian") -- dipakai untuk membangun & menguji fitur ini dulu. **Sebelum fitur ini diaktifkan untuk chat produksi sungguhan, Setting ini WAJIB diarahkan ulang ke Group produksi yang benar** -- kalau dibiarkan mengarah ke QA, semua tiket dari chat customer ASLI akan masuk ke Group tanpa anggota (tidak ada yang melihatnya).
 - State/priority tiket baru: ikut default sistem (state pertama yang ditandai `default_create`, priority default) -- tidak perlu nilai khusus untuk tiket asal live-chat.
 
+#### 5.1.7 Riwayat Chat Sebelumnya dari Customer yang Sama
+
+Atas permintaan user -- fitur TAMBAHAN yang baru mungkin dibangun berkat 5.1.2/5.1.3: karena visitor sekarang WAJIB mengisi email sebelum chat mulai, dan `chat_session.email` tersimpan di setiap sesi, agent yang menerima chat BARU dari visitor yang PERNAH chat sebelumnya (email sama) bisa diberi tahu riwayatnya -- bukan cuma melihat percakapan yang sedang berjalan seolah-olah orang itu baru pertama kali kontak.
+
+**Titik hook**: tetap `lib/sessions/event/chat_session_start.rb#run`, PERSIS sesudah 5.1.3 (resolusi customer & pembuatan tiket) -- di titik ini `chat_session.email` sudah pasti terisi (wajib sejak 5.1.2).
+
+**Query riwayat**:
+```ruby
+previous_sessions = Chat::Session
+  .where(email: chat_session.email)
+  .where.not(id: chat_session.id)
+  .where.not(email: [nil, ''])
+  .order(created_at: :desc)
+  .limit(5)
+```
+Dibatasi 5 sesi terakhir (bukan riwayat penuh tak terbatas) -- cukup untuk memberi konteks ke agent tanpa daftar panjang yang mengganggu, dan menghindari query berat untuk visitor yang sangat sering chat. Sesi-sesi LAMA (sebelum fitur 5.1.1-5.1.2 dibangun) TIDAK akan muncul di sini karena kolom `email`-nya kosong -- ini keterbatasan yang disengaja diterima (riwayat baru mulai tercatat sejak fitur ini aktif), bukan di-backfill dari data lama yang memang tidak pernah menyimpan email.
+
+**Payload ke agent**: ditambahkan ke event `chat_session_start` yang SUDAH dikirim ke agent (Section 2.1/5.1.3, bagian `data.session`) -- field baru `previous_sessions`, masing-masing berisi `created_at` dan `ticket_id` (kalau sesi itu sempat jadi tiket, lihat 5.1.3) supaya agent bisa langsung klik ke tiket lama tsb.
+
+**UI agent**: `app/assets/javascripts/app/controllers/chat.coffee` -- panel meta yang SUDAH ADA (`.js-meta`, dibuka lewat tombol info `.js-info`/`toggleMeta`, dipakai sekarang untuk form nama/tag sesi) diberi seksi baru "Riwayat Chat Sebelumnya": daftar tanggal + link ke tiket (kalau ada). Dipilih menumpang panel yang SUDAH ADA (bukan bikin UI baru terpisah) supaya tidak menambah elemen visual baru di jendela chat yang sudah padat.
+
+**Privasi/lingkup**: cuma dicocokkan by EMAIL (bukan nama, yang bisa berbeda ejaan/tidak unik) -- konsisten dengan cara resolusi customer di 5.1.3 sendiri. Ditampilkan ke SEMUA agent yang menerima chat visitor itu (bukan cuma agent yang sama dengan sesi sebelumnya) -- selaras dengan cara kerja tiket biasa di Zammad (riwayat customer memang bisa dilihat semua agent berwenang, bukan rahasia per-agent).
+
 ### 5.2 Item No. 6 — Attachment di Live Chat
 
 #### Skema
@@ -279,6 +302,44 @@ end
 ```
 
 **Jadi "plug-and-play"-nya secara konkret**: begitu container/server ClamAV tersedia (di mana pun), isi `chat_attachment_clamav_host`/`_port` lewat Admin Settings -- TIDAK ada kode yang perlu diubah, TIDAK ada deploy ulang. `Service::Chat::VirusScan.scan` otomatis mulai memindai upload berikutnya. Untuk mematikan lagi, cukup kosongkan `chat_attachment_clamav_host`.
+
+### 5.3 Fitur Tambahan: Reply ke Pesan Spesifik (Seperti WhatsApp)
+
+Atas permintaan user -- fitur baru di jendela chat (BUKAN bagian Item 5/6 dari Gap Analysis awal, tapi tambahan langsung untuk pengalaman chat itu sendiri), berlaku untuk KEDUA sisi (widget customer & panel agent), karena keduanya berbagi konsep "pesan" yang sama.
+
+#### Skema
+
+Dicek dulu `chat_messages` (Section 3.1) -- cuma `content`/`created_by_id`, tidak ada kolom referensi-diri. Ditambahkan:
+
+```ruby
+add_column :chat_messages, :reply_to_id, :integer, null: true
+add_foreign_key :chat_messages, :chat_messages, column: :reply_to_id
+```
+
+Dipilih kolom FK asli (BUKAN dititip ke kolom preferences seperti pola `chat_sessions`) -- ini relasi 1-ke-1 yang jelas & sederhana (satu pesan me-reply SATU pesan lain), tidak butuh fleksibilitas JSON, dan FK asli membuat Rails `belongs_to :reply_to, class_name: 'Chat::Message'` jalan langsung tanpa parsing manual.
+
+#### Backend: `ChatSessionMessage`
+
+`lib/sessions/event/chat_session_message.rb#run` (dibaca detail lengkapnya saat menulis desain ini) SAAT INI cuma terima `content` dari payload. Diubah:
+
+1. Terima `reply_to_id` opsional dari `@payload['data']['reply_to_id']`.
+2. **Validasi keamanan**: kalau diisi, PASTIKAN pesan yang direferensikan (`Chat::Message.find_by(id: reply_to_id)`) benar-benar milik `chat_session` YANG SAMA (`reply_to.chat_session_id == chat_session.id`) -- mencegah satu sesi chat mereferensikan/membocorkan potongan pesan dari sesi chat ORANG LAIN lewat id yang ditebak/dimanipulasi. Kalau tidak cocok, `reply_to_id` diabaikan (pesan tetap terkirim, cuma tanpa quote) -- bukan menolak seluruh pesan.
+3. `Chat::Message.create(chat_session_id:, content:, created_by_id:, reply_to_id:)`.
+4. Broadcast (ke customer & agent, kode yang sudah ada di `run` cukup diteruskan apa adanya karena `chat_message` di-serialize utuh) -- TAMBAHAN: eager-load `reply_to` dan sertakan isinya (content + pengirim) inline di payload, supaya penerima tidak perlu query/lookup terpisah untuk menampilkan potongan kutipan -- konten pesan tidak pernah diedit di chat ini (tidak ada fitur edit pesan), jadi menyertakan salinan konten saat itu juga TIDAK berisiko basi/tidak sinkron.
+
+#### UI -- Widget Customer & Panel Agent (Perubahan Paralel)
+
+Karena kedua sisi (`public/assets/chat/`, `app/assets/javascripts/app/controllers/chat.coffee`) punya markup pesan yang SANGAT flat sekarang (dicek langsung -- `views/message.eco` widget dan `customer_chat/chat_message.jst.eco` agent SAMA-SAMA cuma 1 `<div>` per pesan, tidak ada wrapper metadata sama sekali), 3 penyesuaian yang SAMA perlu dibuat di KEDUA tempat:
+
+1. **Affordance reply** -- ikon/tombol muncul saat hover (agent, desktop) atau tap-and-hold (customer, mobile-friendly) di sebuah bubble pesan, memicu "mode balas".
+2. **Indikator "membalas..."** di atas kotak input -- potongan singkat (mis. 80 karakter pertama) dari pesan yang direply + tombol batal (×). Dikirim bersama `content` sebagai `reply_to_id` saat pesan baru disubmit.
+3. **Render kutipan di bubble pesan baru** -- kalau `message.reply_to` ada, tampilkan blok kutipan kecil (gaya WhatsApp: garis vertikal + teks pudar) di ATAS isi pesan, sebelum konten pesan itu sendiri. Opsional/nice-to-have: tap pada kutipan men-scroll ke pesan asli (butuh pesan asli masih ada di DOM/scroll buffer saat ini -- untuk chat yang sangat panjang, pesan lama mungkin sudah di luar buffer yang dimuat, jadi scroll-to bisa gagal senyap kalau begitu; bukan blocker, cuma diterima sebagai keterbatasan kecil).
+
+**Catatan cakupan**: ini menambah SATU LAGI perubahan yang menyentuh 2 codebase terpisah (widget + app utama, lihat peringatan Item 6 Section 3.3/3.5) -- pola risiko yang sama, bukan yang baru.
+
+#### Integrasi ke Sinkronisasi Tiket (5.1.4)
+
+Kalau sesi chat terhubung ke tiket (Item 5), pesan yang di-relay jadi `Ticket::Article` (5.1.4) dan merupakan balasan ke pesan lain: body artikel diberi prefix blockquote berisi kutipan pesan asli sebelum isi balasannya -- pola blockquote-kutipan yang SAMA sudah dipakai proyek ini di halaman feedback CSAT (Fase 1, `docs/DESIGN_FEEDBACK_RATING.md`) untuk mengingatkan isi keluhan asli tiket. Supaya orang yang MEMBACA TIKET SAJA (tanpa buka jendela chat) tetap paham konteks balasan, bukan cuma teks lepas tanpa rujukan.
 
 ---
 
