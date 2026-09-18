@@ -2,10 +2,11 @@
 
 # Fase 5 -- Item No. 5 & 6 (Live Chat Enhancement). See
 # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.3/5.1.6/5.2.2a/
-# 5.2.4a/5.2.5. All Settings here are `frontend: false` -- read ONLY
-# backend-side (by lib/sessions/event/chat_*.rb and the new chat
-# attachment upload endpoint), never by the browser client, so there's
-# no need to push them into App.Config.
+# 5.2.4a/5.2.5/5.2.6. Most Settings here are `frontend: false` -- read
+# ONLY backend-side (by lib/sessions/event/chat_*.rb and the chat
+# attachment upload endpoint). `chat_attachment_enabled` is the
+# exception (`frontend: true`) -- the agent app (chat.coffee) needs to
+# read it to decide whether to show its own attach button at all.
 #
 #   bundle exec rails runner script/create_live_chat_settings.rb RAILS_ENV=production
 
@@ -118,6 +119,32 @@ Setting.create_if_not_exists(
   state:       3310,
   preferences: { permission: ['admin.system'] },
   frontend:    false,
+)
+
+puts '== Setting: chat_attachment_enabled =='
+Setting.create_if_not_exists(
+  title:       'Live Chat Attachment Enabled (Global)',
+  name:        'chat_attachment_enabled',
+  area:        'SISKA::LiveChat',
+  description: 'Saklar utama fitur attachment Live Chat (docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.2.6). Kalau MATI, attachment nonaktif total untuk SEMUA agent apa pun preferensi masing-masing. Kalau NYALA (default), tiap agent MASIH perlu mengaktifkannya sendiri lewat Chat Settings-nya -- default per-agent adalah NONAKTIF.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'chat_attachment_enabled',
+        tag:     'boolean',
+        options: {
+          true  => 'yes',
+          false => 'no',
+        },
+        translate: true,
+      },
+    ],
+  },
+  state:       true,
+  preferences: { permission: ['admin.system'] },
+  frontend:    true,
 )
 
 puts 'Done.'

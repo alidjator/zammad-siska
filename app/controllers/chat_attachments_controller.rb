@@ -64,6 +64,8 @@ class ChatAttachmentsController < ApplicationController
     chat_session = Chat::Session.find_by(session_id: params[:session_id])
     return render(json: { error: __('Invalid or expired chat session.') }, status: :not_found) if !chat_session || chat_session.state == 'closed'
 
+    return render(json: { error: __('Attachments are not enabled for this conversation.') }, status: :forbidden) if !chat_session.attachment_enabled?
+
     file = params[:File]
     return render(json: { error: __('No file provided.') }, status: :unprocessable_content) if !file
 

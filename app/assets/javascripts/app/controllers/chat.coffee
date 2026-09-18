@@ -540,6 +540,18 @@ class ChatWindow extends App.Controller
     @el.one('transitionend', @onTransitionend)
     @scrollHolder.on('scroll', @detectScrolledtoBottom)
 
+    # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
+    # global+per-agent. Section 5.2.6. Sembunyikan tombol attach kalau
+    # saklar global mati ATAU agent INI belum mengaktifkannya sendiri
+    # lewat Chat Settings (default nonaktif per-agent) -- 2 lapis yang
+    # SAMA dipakai backend (Chat::Session#attachment_enabled?), dicek
+    # ulang di sini karena backend belum tentu punya `chat_session.user_id`
+    # terisi saat window pertama kali dirender (baru terisi setelah
+    # chat_session_start, yang justru memicu render ini).
+    preferences = @Session.get('preferences')
+    attachmentEnabled = App.Config.get('chat_attachment_enabled') && preferences?.chat?.attachment_enabled
+    @$('.js-attachButton').toggleClass('hidden', !attachmentEnabled)
+
     # force repaint
     @el.prop('offsetHeight')
     @el.addClass('is-open')
@@ -1036,6 +1048,7 @@ class Setting extends App.ControllerModal
       chats: App.Chat.all()
       preferences: preferences
       errors: @errors || {}
+      chatAttachmentEnabled: App.Config.get('chat_attachment_enabled')
     )
 
   submit: (e) =>

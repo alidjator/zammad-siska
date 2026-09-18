@@ -64,10 +64,17 @@ return is sent as message back to peer
       data = {
         event: 'chat_session_start',
         data:  {
-          state:      'ok',
-          agent:      user,
-          session_id: chat_session.session_id,
-          chat_id:    chat_session.chat_id,
+          state:               'ok',
+          agent:               user,
+          session_id:          chat_session.session_id,
+          chat_id:             chat_session.chat_id,
+          # Fase 5 -- fitur tambahan enable/disable attachment
+          # global+per-agent, Section 5.2.6. Widget customer tidak bisa
+          # baca Setting/preferensi agent secara langsung -- dikirim di
+          # sini (satu-satunya payload yang benar-benar sampai ke
+          # customer) supaya tombol attach cuma muncul kalau memang
+          # boleh dipakai untuk sesi ini.
+          attachment_enabled: chat_session.attachment_enabled?,
         },
       }
       chat_session.send_to_recipients(data, @client_id)

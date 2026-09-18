@@ -18,6 +18,16 @@
     <input id="chat_alternative_name" class="form-control" name="chat::alternative_name" value="<%= @preferences.chat.alternative_name %>"/>
   </div>
 </div>
+<% if @chatAttachmentEnabled: %>
+<div class="select form-group">
+  <label class="checkbox-replacement checkbox-replacement--fullscreen">
+    <input type="checkbox" name="chat::attachment_enabled" <% if @preferences.chat.attachment_enabled: %>checked<% end %>>
+    <%- @Icon('checkbox', 'icon-unchecked') %>
+    <%- @Icon('checkbox-checked', 'icon-checked') %>
+    <%- @T('Allow customers to send file attachments in my chats') %>
+  </label>
+</div>
+<% end %>
 <div class="select form-group">
   <label for="chat_avatar_state"><%- @T('Avatar') %></label>
   <div class="u-positionOrigin">

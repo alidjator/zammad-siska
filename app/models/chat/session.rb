@@ -22,6 +22,33 @@ class Chat::Session < ApplicationModel
 
   store :preferences
 
+  # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
+  # global + per-agent. docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section
+  # 5.2.6. Dipusatkan di sini (bukan diulang di
+  # ChatAttachmentsController & ChatSessionStart) karena KEDUA tempat
+  # itu butuh logika PERSIS sama -- 2 lapis, DUA-DUANYA harus lolos:
+  #
+  # 1. Saklar GLOBAL `chat_attachment_enabled` (default NYALA) -- admin
+  #    mematikan ini = attachment nonaktif total untuk SEMUA agent.
+  # 2. Preferensi AGENT yang menerima sesi ini (`user_id`), disimpan di
+  #    `preferences[:chat][:attachment_enabled]` -- pola yang SAMA
+  #    dengan `preferences[:chat][:active]` yang sudah ada untuk topik
+  #    chat. Default NONAKTIF (beda dari saklar global) -- agent harus
+  #    mengaktifkannya sendiri dulu lewat Chat Settings.
+  #
+  # Kalau sesi belum punya agent (`user_id` masih kosong -- customer
+  # masih di antrean), attachment DITOLAK -- preferensi agent belum
+  # bisa dicek sama sekali di titik ini.
+  def attachment_enabled?
+    return false if !Setting.get('chat_attachment_enabled')
+    return false if user_id.blank?
+
+    agent = User.lookup(id: user_id)
+    return false if !agent
+
+    !!agent.preferences.dig(:chat, :attachment_enabled)
+  end
+
   def agent_user
     return if user_id.blank?
 
