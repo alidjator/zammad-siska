@@ -24,7 +24,7 @@ class Organization extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/organizations/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#organizations'
         buttons: [
           { name: __('Import'), 'data-type': 'import', class: 'btn' }

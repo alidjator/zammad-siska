@@ -23,7 +23,7 @@ class Index extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/webhook/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#webhooks'
         buttons: [
           { name: __('Example Payload'), 'data-type': 'payload', class: 'btn' }

@@ -19,7 +19,7 @@ class ReportProfile extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/report_profiles/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#report_profiles'
         buttons: [
           { name: __('New Profile'), 'data-type': 'new', class: 'btn--success' }

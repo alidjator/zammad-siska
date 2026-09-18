@@ -22,7 +22,7 @@ class Trigger extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/trigger/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#trigger'
         buttons: [
           { name: __('New Trigger'), 'data-type': 'new', class: 'btn--success' }

@@ -25,7 +25,7 @@ class Overview extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/overviews/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#overviews'
         buttons: [
           { name: __('New Overview'), 'data-type': 'new', class: 'btn--success' }

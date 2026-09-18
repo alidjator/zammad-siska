@@ -41,6 +41,7 @@ class SiskaSettings extends App.ControllerTabs
       { name: __('Reporting'), 'target': 'reporting', controller: App.SettingsArea, params: { area: 'Reporting::Base' } }
       { name: __('AUX Status'), 'target': 'aux_status', controller: App.SettingsArea, params: { area: 'SISKA::AuxStatus' } }
       { name: __('Overview'), 'target': 'overview', controller: App.SettingsArea, params: { area: 'UI::TicketOverview::TicketLimit' } }
+      { name: __('Admin List'), 'target': 'admin_list', controller: App.SettingsArea, params: { area: 'SISKA::AdminListPagination' } }
     ]
     @render()
 

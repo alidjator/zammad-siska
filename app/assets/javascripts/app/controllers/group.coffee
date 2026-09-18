@@ -19,7 +19,7 @@ class Group extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/groups/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#groups'
         notes:     [
           __('Groups are …')

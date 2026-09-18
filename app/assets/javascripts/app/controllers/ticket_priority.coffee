@@ -21,7 +21,7 @@ class TicketPriority extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/ticket_priorities/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         buttons: [
           { name: __('New Priority'), 'data-type': 'new', class: 'btn--success' }
         ]

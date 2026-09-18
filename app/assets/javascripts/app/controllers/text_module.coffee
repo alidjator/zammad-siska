@@ -25,7 +25,7 @@ class TextModule extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/text_modules/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#text_modules'
         notes:     [
           __('Text modules are …')

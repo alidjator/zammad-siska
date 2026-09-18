@@ -19,7 +19,7 @@ class Macro extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/macros/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#macros'
         buttons: [
           { name: __('New Macro'), 'data-type': 'new', class: 'btn--success' }

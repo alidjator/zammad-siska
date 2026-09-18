@@ -21,7 +21,7 @@ class CoreWorkflow extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/core_workflow/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#core_workflow'
         buttons: [
           { name: __('New Workflow'), 'data-type': 'new', class: 'btn--success' }

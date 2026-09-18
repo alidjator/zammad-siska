@@ -19,7 +19,7 @@ class Template extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/templates/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#templates'
         buttons: [
           { name: __('New Template'), 'data-type': 'new', class: 'btn--success' }

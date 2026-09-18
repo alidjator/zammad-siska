@@ -29,7 +29,7 @@ class TicketState extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/ticket_states/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         buttons: [
           { name: __('New Ticket State'), 'data-type': 'new', class: 'btn--success' }
         ]

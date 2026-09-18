@@ -22,7 +22,7 @@ class Role extends App.ControllerSubContent
         pagerAjax: true
         pagerBaseUrl: '#manage/roles/'
         pagerSelected: ( @page || 1 )
-        pagerPerPage: 50
+        pagerPerPage: parseInt(App.Config.get('ui_admin_list_per_page'), 10) || 50
         navupdate: '#roles'
         notes:     [
           __('Roles are …')
