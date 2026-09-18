@@ -89,3 +89,47 @@
 .chat-attachment-filename {
   text-decoration: underline;
 }
+
+// Riwayat Chat Sebelumnya -- Section 5.1.7. Transkrip lengkap per sesi
+// sebelumnya (permintaan lanjutan setelah fitur ini pertama kali
+// diverifikasi -- awalnya cuma tanggal + link tiket).
+.chat-previous-session {
+  summary {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    // Marker native <details> browser (segitiga bawaan) ternyata
+    // hampir tidak terlihat/tidak jelas artinya sebagai "bisa
+    // diklik" -- dikonfirmasi user sendiri lewat percobaan langsung
+    // (perlu ditanya dulu "coba diklik?" sebelum ketahuan ini
+    // sebenarnya SUDAH bekerja, cuma affordance-nya kurang jelas,
+    // pola yang sama seperti ikon reply widget -- entry 96). Diganti
+    // dengan panah kustom (::before) yang eksplisit berputar 90
+    // derajat saat dibuka, supaya jelas ada isi yang bisa ditampilkan.
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: '▸';
+      display: inline-block;
+      color: var(--text-muted);
+      transition: transform 150ms;
+    }
+  }
+
+  &[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  .js-previousMessages {
+    margin: 4px 0 8px 12px;
+    padding-left: 8px;
+    border-left: 2px solid var(--border-color);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+}

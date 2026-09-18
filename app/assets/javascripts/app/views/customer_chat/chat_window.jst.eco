@@ -35,16 +35,49 @@
     <hr>
     <ul>
       <li><%- @T('Created at:') %> <%- @Ttimestamp(@session.created_at) %></li>
+      <% if @session.ticket_id: %>
+        <!-- Atas permintaan user: tiket auto-create (Item 5) sudah
+             dibuat sejak chat MULAI, tapi link ke tiket itu (tombol
+             "Open Ticket" bawaan) baru muncul native SETELAH chat
+             berakhir (goOffline). Ditambahkan di sini supaya terlihat
+             SELAMA chat masih berlangsung juga -- pakai class
+             `js-openPreviousTicket` yang SUDAH ADA (5.1.7), bukan
+             handler baru, karena perilakunya (navigate ke tiket)
+             persis sama. -->
+        <li><%- @T('Ticket:') %> <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= @session.ticket_id %>"><%- @T('Open Ticket') %></a></li>
+      <% end %>
       <% if @previousSessions && @previousSessions.length: %>
         <li>
           <%- @T('Previous chats from this visitor:') %>
-          <ul>
+          <ul class="js-previousSessions">
             <% for previous in @previousSessions: %>
               <li>
-                <%- @Ttimestamp(previous.created_at) %>
-                <% if previous.ticket_id: %>
-                  -- <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= previous.ticket_id %>"><%- @T('Open Ticket') %></a>
-                <% end %>
+                <!-- Atas permintaan user: bukan cuma tanggal+link tiket,
+                     tapi transkrip LENGKAP sesi itu, supaya agent tidak
+                     perlu pindah ke tiket lama cuma untuk baca ulang.
+                     Dibungkus <details> (collapsed by default, native
+                     browser, tanpa JS tambahan) supaya panel tidak
+                     langsung penuh kalau ada beberapa sesi sebelumnya. -->
+                <details class="chat-previous-session">
+                  <summary>
+                    <%- @Ttimestamp(previous.created_at) %>
+                    <% if previous.ticket_id: %>
+                      -- <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= previous.ticket_id %>"><%- @T('Open Ticket') %></a>
+                    <% end %>
+                  </summary>
+                  <ul class="js-previousMessages">
+                    <% if previous.messages && previous.messages.length: %>
+                      <% for message in previous.messages: %>
+                        <li>
+                          <strong><%- if message.is_from_agent then @T('Agent') else @T('Customer') %>:</strong>
+                          <%- message.content %>
+                        </li>
+                      <% end %>
+                    <% else: %>
+                      <li><%- @T('(no messages)') %></li>
+                    <% end %>
+                  </ul>
+                </details>
               </li>
             <% end %>
           </ul>

@@ -56,7 +56,11 @@ return is sent as message back to peer
       session_attributes['messages'].push message.attributes
     end
     # Fase 5 -- fitur tambahan "Riwayat Chat Sebelumnya". Section 5.1.7.
-    session_attributes['previous_sessions'] = previous_sessions_for(chat_session)
+    # Dipindah jadi method di `Chat::Session` (`previous_sessions_summary`)
+    # supaya jendela chat yang RECONNECT (`Chat.active_chats_by_user_id`,
+    # dipicu reload halaman) juga dapat riwayat ini -- lihat komentar di
+    # model, sebelumnya field ini cuma dikirim sekali di sini saja.
+    session_attributes['previous_sessions'] = chat_session.previous_sessions_summary
 
     # send chat_session_init to customer client
     if session_attributes['messages'].blank?
@@ -132,23 +136,6 @@ return is sent as message back to peer
     chat_session.update!(ticket_id: ticket.id)
   rescue => e
     Rails.logger.error "Live Chat auto-ticket gagal dibuat untuk sesi #{chat_session.session_id}: #{e.message}"
-  end
-
-  # Fase 5 -- fitur tambahan "Riwayat Chat Sebelumnya dari Customer yang
-  # Sama". docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.7. Dibatasi
-  # 5 sesi terakhir -- cukup untuk konteks agent, tanpa daftar panjang
-  # atau query berat untuk visitor yang sangat sering chat. Sesi lama
-  # (sebelum email wajib diisi) tidak akan pernah muncul di sini
-  # (email-nya kosong) -- keterbatasan yang disengaja diterima.
-  def previous_sessions_for(chat_session)
-    return [] if chat_session.email.blank?
-
-    Chat::Session
-      .where(email: chat_session.email)
-      .where.not(id: chat_session.id)
-      .order(created_at: :desc)
-      .limit(5)
-      .map { |session| { created_at: session.created_at, ticket_id: session.ticket_id } }
   end
 
 end
