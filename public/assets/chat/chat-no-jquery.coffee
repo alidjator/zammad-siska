@@ -728,6 +728,14 @@ do(window) ->
 
       @io.connect()
 
+      # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3. null =
+      # tidak sedang membalas pesan mana pun. Cuma pesan dari AGENT yang
+      # bisa dibalas dari sisi customer (id server sungguhan cuma
+      # diketahui dari pesan yang DITERIMA, bukan yang baru dikirim
+      # sendiri -- lihat komentar di sendMessage).
+      @replyTo = null
+      @agentMessagesById = {}
+
     getScrollRoot: ->
       return document.scrollingElement if 'scrollingElement' of document
       html = document.documentElement
@@ -780,6 +788,17 @@ do(window) ->
       @input.addEventListener('input', @onInput)
       @input.addEventListener('paste', @onPaste)
       @input.addEventListener('drop', @onDrop)
+
+      # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3. Tidak
+      # ada delegasi bawaan seperti jQuery `.on(event, selector, ...)`
+      # di sini -- dicek manual di dalam `startReply` sendiri lewat
+      # `event.target.closest(...)`, karena bubble pesan ditambahkan
+      # dinamis setelah render awal ini.
+      @body.addEventListener('click', @startReply)
+
+      # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
+      @el.querySelector('.js-chat-attach').addEventListener('click', @triggerAttachmentInput)
+      @el.querySelector('.js-chat-attachment-input').addEventListener('change', @uploadAttachment)
 
       window.addEventListener('beforeunload', @onLeaveTemporary)
       window.addEventListener('hashchange', =>
@@ -1009,6 +1028,14 @@ do(window) ->
           when 'chat_session_message'
             return if pipe.data.self_written
             @receiveMessage pipe.data
+          when 'chat_session_attachment'
+            # Fase 5 -- Item No. 6. Server mem-broadcast ke KEDUA sisi
+            # TERMASUK pengunggah sendiri (tidak ada self_written di
+            # sini, beda dari chat_session_message) -- render dilakukan
+            # HANYA lewat jalur ini, tidak ada render optimis terpisah
+            # saat upload.
+            from = if pipe.data.message.created_by_id then 'agent' else 'customer'
+            @addAttachmentMessage(pipe.data.message, from)
           when 'chat_session_typing'
             return if pipe.data.self_written
             @onAgentTypingStart()
@@ -1016,6 +1043,12 @@ do(window) ->
             @onConnectionEstablished pipe.data
           when 'chat_session_queue'
             @onQueueScreen pipe.data
+          when 'chat_session_init'
+            # Fase 5 -- server menolak (nama/email tidak valid, lihat
+            # showPrechatForm di atas) -- munculkan lagi form pra-chat
+            # dengan pesan error, jangan biarkan loader berputar terus.
+            if pipe.data.state is 'failed'
+              @showPrechatForm(error: pipe.data.message)
           when 'chat_session_closed'
             @onSessionClosed pipe.data
           when 'chat_session_left'
@@ -1125,11 +1158,16 @@ do(window) ->
 
       sessionStorage.removeItem 'unfinished_message'
 
+      # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3.
+      replyToId = @replyTo?.id
+      replyToSnippet = @replyTo?.content
+
       messageElement = @view('message')
         message: message
         from: 'customer'
         id: @_messageCount++
         unreadClass: ''
+        replyTo: replyToSnippet
 
       @maybeAddTimestamp()
 
@@ -1145,10 +1183,14 @@ do(window) ->
       @scrollToBottom()
 
       # send message event
-      @send 'chat_session_message',
+      data =
         content: message
         id: @_messageCount
         session_id: @sessionId
+      data.reply_to_id = replyToId if replyToId
+      @send 'chat_session_message', data
+
+      @cancelReply()
 
     receiveMessage: (data) =>
       @inactiveTimeout.start()
@@ -1158,10 +1200,16 @@ do(window) ->
 
       @maybeAddTimestamp()
 
+      # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3. Cuma
+      # pesan dari AGENT (id server sungguhan) yang bisa jadi target
+      # balasan customer nanti.
+      @agentMessagesById[data.message.id] = data.message if data.message.id
+
       @renderMessage
         message: data.message.content
-        id: data.id
+        id: data.message.id
         from: 'agent'
+        replyTo: data.message.reply_to?.content
 
       @scrollToBottom showHint: true
 
@@ -1169,6 +1217,79 @@ do(window) ->
       @lastAddedType = "message--#{ data.from }"
       data.unreadClass = if document.hidden then ' zammad-chat-message--unread' else ''
       @body.insertAdjacentHTML('beforeend', @view('message')(data))
+
+    # Fitur tambahan "Reply ke Pesan Spesifik (Seperti WhatsApp)" --
+    # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
+    startReply: (event) =>
+      # delegasi manual -- lihat komentar pemasangan listener di renderBase.
+      return if !event.target.closest('.js-message-reply')
+      event.preventDefault()
+
+      target = event.target.closest('.zammad-chat-message')
+      return if !target
+      messageId = target.dataset.messageId
+      return if !messageId
+      message = @agentMessagesById[messageId]
+      return if !message
+
+      @replyTo = { id: messageId, content: message.content }
+      @renderReplyIndicator()
+      @input.focus()
+
+    cancelReply: (event) =>
+      event?.preventDefault()
+      @replyTo = null
+      @renderReplyIndicator()
+
+    renderReplyIndicator: =>
+      indicator = @el.querySelector('.js-reply-indicator')
+      if !@replyTo
+        indicator.classList.add('zammad-chat-is-hidden')
+        indicator.innerHTML = ''
+        return
+
+      snippet = @replyTo.content.replace(/<[^>]*>/g, '').substr(0, 80)
+      indicator.classList.remove('zammad-chat-is-hidden')
+      indicator.innerHTML = @view('reply_indicator')(
+        snippet: snippet
+      )
+      indicator.querySelector('.js-reply-cancel').addEventListener('click', @cancelReply)
+
+    # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
+    triggerAttachmentInput: (event) =>
+      event.preventDefault()
+      @el.querySelector('.js-chat-attachment-input').click()
+
+    uploadAttachment: (event) =>
+      file = event.target.files?[0]
+      return if !file
+
+      formData = new FormData()
+      formData.append('File', file)
+
+      xhr = new XMLHttpRequest()
+      xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
+      xhr.onload = =>
+        return if xhr.status >= 200 and xhr.status < 300
+        message = @T('The attachment could not be uploaded.')
+        try
+          parsed = JSON.parse(xhr.responseText)
+          message = parsed.error if parsed.error
+        @addStatus(message)
+      xhr.send(formData)
+
+      event.target.value = ''
+
+    addAttachmentMessage: (data, from) =>
+      @maybeAddTimestamp()
+      @lastAddedType = "message--#{ from }"
+      @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
+        from: from
+        filename: data.filename
+        url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
+        unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
+      )
+      @scrollToBottom showHint: true
 
     open: =>
       if @isOpen
@@ -1180,7 +1301,7 @@ do(window) ->
       @show()
 
       if !@sessionId
-        @showLoader()
+        @showPrechatForm()
 
       @el.classList.add 'zammad-chat-is-open'
       remainerHeight = @el.clientHeight - @el.querySelector('.zammad-chat-header').offsetHeight
@@ -1195,13 +1316,44 @@ do(window) ->
         @el.clientHeight
         # start animation
         @el.style.transform = ''
-
-        @send('chat_session_init'
-          url: window.location.href
-        )
       else
         @el.style.transform = ''
         @onOpenAnimationEnd()
+
+    # Fase 5 -- Item No. 5 (Auto-Create Ticket). See
+    # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.1. Nama & email
+    # SEKARANG WAJIB diisi SEBELUM `chat_session_init` dikirim -- server
+    # (lib/sessions/event/chat_session_init.rb) menolak sesi yang tidak
+    # membawa keduanya. Mirror persis dari chat.coffee (versi jQuery),
+    # disesuaikan ke DOM API polos yang dipakai file ini.
+    showPrechatForm: (params = {}) =>
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('prechat')(
+        error: params.error
+        name: params.name
+        email: params.email
+      )
+      @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
+
+    submitPrechatForm: (event) =>
+      event.preventDefault()
+
+      name  = @el.querySelector('.zammad-chat-prechat-name')?.value?.trim()
+      email = @el.querySelector('.zammad-chat-prechat-email')?.value?.trim()
+
+      emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+      if !name || !email || !emailFormat.test(email)
+        @showPrechatForm
+          error: @T('Please provide a valid name and email address.')
+          name:  name
+          email: email
+        return
+
+      @showLoader()
+      @send('chat_session_init'
+        url: window.location.href
+        name: name
+        email: email
+      )
 
     onOpenAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onOpenAnimationEnd
@@ -1526,6 +1678,15 @@ do(window) ->
       if scriptProtocol is 'https'
         protocol = 'wss://'
       @options.host = "#{ protocol }#{ scriptHost }/ws"
+
+    # Fase 5 -- Item No. 6 (Attachment). Section 5.2.1. Konversi
+    # ws(s):// -> http(s):// yang SAMA dipakai `loadCss` di bawah --
+    # `@options.host` adalah URL WebSocket, BUKAN origin HTTP.
+    apiBaseUrl: =>
+      @options.host
+        .replace(/^wss/i, 'https')
+        .replace(/^ws/i, 'http')
+        .replace(/\/ws$/i, '')
 
     loadCss: ->
       return if !@options.cssAutoload
