@@ -13,6 +13,9 @@ class Chat::Session < ApplicationModel
   has_many   :messages, class_name: 'Chat::Message', foreign_key: 'chat_session_id', dependent: :delete_all
   belongs_to :user,     class_name: 'User', optional: true
   belongs_to :chat,     class_name: 'Chat'
+  # Fase 5, Item No. 5 -- docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.
+  # Ticket auto-created when an agent accepts this chat session.
+  belongs_to :ticket,   class_name: 'Ticket', optional: true
   # rubocop:enable Rails/InverseOf
 
   before_create :generate_session_id

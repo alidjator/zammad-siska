@@ -5,6 +5,9 @@ class Chat::Message < ApplicationModel
 
   belongs_to :chat_session, class_name: 'Chat::Session'
   belongs_to :created_by, class_name: 'User', optional: true
+  # Fitur tambahan "Reply ke Pesan Spesifik" --
+  # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
+  belongs_to :reply_to, class_name: 'Chat::Message', optional: true
 
   sanitized_html :content
 end
