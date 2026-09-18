@@ -176,10 +176,22 @@ Endpoint baru (nama controller final ditentukan saat implementasi, mis. `Chat::A
 #### 5.2.2 Alur Upload
 
 1. Widget kirim file via `multipart/form-data` ke endpoint baru (WebSocket TIDAK dipakai untuk transfer file besar -- cuma dipakai untuk NOTIFIKASI setelah upload sukses, lihat poin 3).
-2. Backend validasi: ukuran file (Setting baru `chat_attachment_max_size_mb`, tidak ada Setting sejenis yang bisa dipakai ulang -- dicek `es_attachment_max_size_in_mb` yang sudah ada TERNYATA untuk indexing Elasticsearch, beda tujuan, tidak cocok dipakai ulang), tipe/ekstensi file (perlu Setting baru juga, mis. `chat_attachment_allowed_extensions`, karena tidak ditemukan Setting daftar ekstensi attachment generik yang bisa dipakai ulang di seluruh app ini).
+2. Backend validasi: ukuran file (Setting `chat_attachment_max_size_mb`, lihat 5.2.2a), tipe/ekstensi file (Setting `chat_attachment_allowed_extensions`, lihat 5.2.4a).
 3. Kalau lolos: buat `Chat::Message` baru (placeholder, mis. `content: '[attachment]'`), lalu `Store.create!(object: 'Chat::Message', o_id: message.id, data:, filename:, preferences: {content_type:})`.
 4. Broadcast event WebSocket BARU `chat_session_attachment` (mengikuti pola `chat_session_message` yang sudah ada) ke lawan bicara (agent<->customer), berisi `message_id`/`filename`/`size`/`content_type`/URL download.
 5. **Kalau `chat_session.ticket_id` terisi** (integrasi dengan Item 5, 5.1.3): pakai ULANG pola `Store.create!` yang sama (persis seperti `clone_attachments` di `CanCloneAttachments`, Section 3.2) untuk menyalin attachment yang sama ke `Ticket::Article` yang baru dibuat di poin 5.1.4 -- supaya file yang dikirim customer juga langsung terlihat di tiket, bukan cuma di jendela chat.
+
+#### 5.2.2a Setting untuk Ukuran Maksimum Upload
+
+Atas permintaan user, batas ukuran file (5.2.4, sebelumnya diusulkan sebagai angka tetap 5 MB) dibuat jadi Setting -- pola yang sama dengan `report_preview_per_page`/`aux_status_manage_per_page` sepanjang proyek ini (Setting sebagai sumber kebenaran, bukan angka hardcode).
+
+**Setting baru**: `chat_attachment_max_size_mb` (`frontend: false`, cuma dibaca backend saat validasi upload) -- angka (MB), default **5**. Dicek dulu apakah ada Setting ukuran-file GENERIK yang bisa dipakai ulang di app ini -- ditemukan `es_attachment_max_size_in_mb` yang sudah ada, TAPI itu untuk batas indexing Elasticsearch (tujuan beda: mencegah file besar memperlambat pengindeksan pencarian, bukan mengontrol apa yang BOLEH diunggah customer) -- tidak cocok dipakai ulang untuk kasus ini, Setting baru yang terpisah lebih tepat.
+
+**Validasi**: dicek di endpoint upload (5.2.1) SEBELUM file diproses lebih lanjut (sebelum whitelist ekstensi maupun `Store.create!`) -- file yang melebihi batas ditolak lebih awal, tidak perlu buang waktu memproses body request yang sudah pasti akan ditolak. Ukuran dicek dari `Content-Length` request DAN dari ukuran data aktual setelah diterima (dua kali cek -- header bisa dipalsukan, jadi ukuran sungguhan tetap perlu diverifikasi setelah data diterima).
+
+**Pagar tambahan yang TETAP hardcode, bukan Setting**: batas ATAS mutlak (mis. 20 MB) supaya admin yang tidak sengaja mengisi `chat_attachment_max_size_mb` dengan angka sangat besar (mis. 500) tidak bisa membuka celah penyalahgunaan penyimpanan server -- pola pagar-di-atas-Setting yang sama dipakai `MAX_PER_PAGE` di `Report::ItemsPaginator` (Fase 1).
+
+**Lokasi Admin UI**: tab "Live Chat" di Admin > Settings > SISKA (sama seperti 5.2.4a), dibuat saat implementasi.
 
 #### 5.2.3 Perubahan UI
 
@@ -189,7 +201,8 @@ Endpoint baru (nama controller final ditentukan saat implementasi, mis. `Chat::A
 #### 5.2.4 Keputusan Final (Keamanan)
 
 - **Whitelist tipe file SELALU aktif** (baseline, tidak bergantung ClamAV) -- daftarnya sekarang **configurable lewat Setting** (lihat 5.2.4a di bawah), bukan hardcode. SELALU tolak tipe executable/script (`exe/sh/bat/js/html`, dst) apa pun konfigurasinya -- pagar ini TIDAK bisa dilonggarkan lewat Setting.
-- Batas ukuran file & jumlah attachment per sesi chat -- 5 MB per file, maksimum 5 file per sesi chat -- titik awal, bisa disesuaikan lewat Setting.
+- **Batas ukuran file per upload SEKARANG juga configurable lewat Setting** (`chat_attachment_max_size_mb`, lihat 5.2.2a) -- default 5 MB, dengan pagar batas atas mutlak yang tetap hardcode.
+- Jumlah maksimum attachment per sesi chat -- 5 file per sesi, titik awal (belum dijadikan Setting -- bisa menyusul kalau memang dibutuhkan nanti).
 
 #### 5.2.4a Setting untuk Daftar Tipe File yang Diizinkan
 
