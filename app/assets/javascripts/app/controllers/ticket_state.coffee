@@ -19,6 +19,17 @@ class TicketState extends App.ControllerSubContent
         objects: __('Ticket States')
         searchPlaceholder: __('Search for ticket states')
         navupdate: '#ticket_states'
+        # Server-side pagination (survey: "buat semua menjadi server-side
+        # untuk semua yang masih belum server-side" -- see
+        # docs/DESIGN_REPORTING_FRT.md Section 7/8) -- mirrors
+        # group.coffee's own pagerAjax config exactly (same
+        # App.ControllerGenericIndex, same generic manage/:target/:page/
+        # :search_query route already registered for every Manage page in
+        # manage.coffee, confirmed by reading it first).
+        pagerAjax: true
+        pagerBaseUrl: '#manage/ticket_states/'
+        pagerSelected: ( @page || 1 )
+        pagerPerPage: 50
         buttons: [
           { name: __('New Ticket State'), 'data-type': 'new', class: 'btn--success' }
         ]
@@ -60,6 +71,18 @@ class TicketState extends App.ControllerSubContent
       container: @el.closest('.content')
       veryLarge: true
     )
+
+  # Overrides App.ControllerSubContent's default no-arg show() -- needed
+  # so clicking a pager link (which navigates to
+  # #manage/ticket_states/:page/:search_query, handled generically by
+  # ManageRouter, manage.coffee) actually re-fetches that page from the
+  # server, exactly like group.coffee's own show() override does.
+  show: (params) =>
+    for key, value of params
+      if key isnt 'el' && key isnt 'shown' && key isnt 'match'
+        @[key] = value
+
+    @genericController.paginate(@page || 1, params)
 
   formHandler: (params, attribute, attributes, classname, form, ui) =>
     merged_state = App.TicketStateType.findByAttribute('name', 'merged')

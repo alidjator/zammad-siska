@@ -111,7 +111,17 @@ returns
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(created_at: :asc)
 
-    Report::DownloadLimitGuard.check!(ticket_list.count(:id), user: params[:current_user])
+    total_count = ticket_list.count(:id)
+
+    # sheet (Excel export) still needs every matching row -- guarded as
+    # before. On-screen preview is paginated instead (Section 7,
+    # docs/DESIGN_REPORTING_FRT.md) and skips the guard entirely, since
+    # a bounded page is safe regardless of the total match count.
+    if params[:sheet]
+      Report::DownloadLimitGuard.check!(total_count, user: params[:current_user])
+    else
+      ticket_list = Report::ItemsPaginator.apply(ticket_list, params)
+    end
 
     assets = {}
     ticket_ids = []
@@ -121,7 +131,7 @@ returns
       assets = ticket_full.assets(assets)
     end
     {
-      count:      ticket_ids.count,
+      count:      total_count,
       ticket_ids: ticket_ids,
       assets:     assets,
     }

@@ -38,4 +38,38 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+# Fase "Reporting server-side table" (docs/DESIGN_REPORTING_FRT.md
+# Section 7) -- how many tickets the preview table (below the Reporting
+# chart) fetches per page. Read by BOTH sides:
+#   - Ruby: Report::ItemsPaginator.default_per_page (lib/report/items_paginator.rb)
+#   - CoffeeScript: App.Config.get('report_preview_per_page') (report.coffee,
+#     class Download) -- hence frontend: true, unlike
+#     report_download_max_records above which only the backend needs.
+#
+# MAX_PER_PAGE (200) in Report::ItemsPaginator is NOT this Setting --
+# that's a hardcoded safety ceiling on top of whatever this Setting (or
+# a client-supplied per_page) asks for, so an admin raising this value
+# too high can't accidentally make every preview page as expensive as a
+# small export.
+Setting.create_if_not_exists(
+  title:       'Reporting Preview Rows Per Page',
+  name:        'report_preview_per_page',
+  area:        'Reporting::Base',
+  description: 'Jumlah tiket per halaman untuk tabel preview di bawah grafik Reporting (dipaginate server-side, lihat docs/DESIGN_REPORTING_FRT.md Section 7). Dibatasi maksimum 200 apa pun nilainya, sebagai pagar keamanan tambahan.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'report_preview_per_page',
+        tag:     'input',
+        type:    'number',
+      },
+    ],
+  },
+  state:       50,
+  preferences: { permission: ['admin.system'] },
+  frontend:    true,
+)
+
 puts 'Done.'

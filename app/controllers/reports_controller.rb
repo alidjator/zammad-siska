@@ -92,6 +92,13 @@ class ReportsController < ApplicationController
         selector:     backend[:condition],
         params:       backend[:params],
         sheet:        params[:sheet],
+        # Passed through for Report::ItemsPaginator (server-side
+        # pagination of the on-screen preview table, see
+        # docs/DESIGN_REPORTING_FRT.md Section 7) -- unused/harmless for
+        # a sheet=true export or for a backend that doesn't opt into
+        # pagination.
+        page:         params[:page],
+        per_page:     params[:per_page],
         timezone:     get_params[:timezone],
         current_user: current_user
       )

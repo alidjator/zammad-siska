@@ -32,6 +32,12 @@ class ChecklistTemplate extends App.ControllerSubContent
         searchPlaceholder: __('Search for checklist templates')
         subHead: false
         navupdate: '#checklists'
+        # Server-side pagination -- mirrors group.coffee's own pagerAjax
+        # config exactly (see docs/DESIGN_REPORTING_FRT.md Section 8).
+        pagerAjax: true
+        pagerBaseUrl: '#manage/checklists/'
+        pagerSelected: ( @page || 1 )
+        pagerPerPage: 50
         notes: [
           __('With checklist templates it is possible to pre-fill new checklists with initial items.')
         ]
@@ -49,6 +55,19 @@ class ChecklistTemplate extends App.ControllerSubContent
       checklistTemplatesTable.show()
     else
       checklistTemplatesTable.hide()
+
+  # Overrides App.ControllerSubContent's default no-arg show() -- see
+  # the identical override in ticket_state.coffee for why. render()
+  # rebuilds @genericController from scratch on every Setting change
+  # (unrelated to pagination), but a route navigation carrying a new
+  # :page/:search_query needs this separate hook to re-paginate the
+  # CURRENT instance instead.
+  show: (params) =>
+    for key, value of params
+      if key isnt 'el' && key isnt 'shown' && key isnt 'match'
+        @[key] = value
+
+    @genericController.paginate(@page || 1, params)
 
   validateOnSubmit: (params) ->
     errors = {}

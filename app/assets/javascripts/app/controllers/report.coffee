@@ -272,8 +272,26 @@ class Graph extends App.Controller
 
 
 class Download extends App.Controller
+  # Server-side pagination (Fase "Reporting server-side table", see
+  # docs/DESIGN_REPORTING_FRT.md Section 7) -- a real survey of this
+  # org's Report Profiles found ~10% of realistic profile+range
+  # combinations, including "-all-" for the current year, already
+  # exceed report_download_max_records and couldn't be previewed at all
+  # before this.
+  #
+  # perPage() reads Setting report_preview_per_page (frontend: true,
+  # script/create_reporting_settings.rb) instead of a hardcoded value --
+  # same admin-configurable default Report::ItemsPaginator.default_per_page
+  # (lib/report/items_paginator.rb) reads on the Ruby side. The two
+  # can't share actual code (one's Ruby, one's CoffeeScript), but both
+  # now read the SAME Setting rather than two independently-hardcoded
+  # numbers that could silently drift apart.
+  perPage: ->
+    parseInt(App.Config.get('report_preview_per_page'), 10) || 50
+
   events:
     'click .js-dataDownloadBackendSelector': 'selectBackend'
+    'click .js-page':                        'onPageClick'
 
   constructor: (data) ->
 
@@ -281,6 +299,7 @@ class Download extends App.Controller
     data.el.off('click .js-dataDownloadBackendSelector')
 
     super
+    @page = 0 # 0-indexed, matching generic/table_pager's own convention (reused as-is below)
     @render()
 
   selectBackend: (e) =>
@@ -329,12 +348,20 @@ class Download extends App.Controller
       @el.find('.js-dataDownloadHeader').html(downloadHeaderHtml)
       @downloadHeaderHtml = downloadHeaderHtml
 
+    # render() is only reached via a genuine filter change (constructor,
+    # selectBackend, or an external update()), never from a page click
+    # (onPageClick calls tableUpdate() directly, bypassing render()) --
+    # so resetting back to page 1 here matches the expected UX: changing
+    # any filter returns to the first page instead of keeping whatever
+    # page was scrolled to on the PREVIOUS query.
+    @page = 0
     @tableUpdate()
 
   tableRender: (tickets, count) =>
     if !@params.downloadBackendSelected
       @$('.js-dataDownloadButton').html('')
       @$('.js-dataDownloadTable').html('')
+      @$('.js-dataDownloadPager').html('')
       return
 
     profile_id = 0
@@ -384,6 +411,17 @@ class Download extends App.Controller
       el: @el.find('.js-dataDownloadTable')
       model: App.Ticket
       objects: tickets
+      # `tickets` is already just ONE server-paginated page (see
+      # tableUpdate() below) -- App.ControllerTable's own built-in
+      # client-side pager is for slicing an ALREADY-fully-loaded array,
+      # which no longer applies here, so it's disabled and our own
+      # pager (generic/table_pager, rendered into .js-dataDownloadPager
+      # below) drives paging instead via onPageClick -- NOT
+      # App.ControllerTable's own `pagerAjax` mode, which is tightly
+      # coupled to App.ControllerGenericIndex's URL-hash-based routing
+      # (confirmed by reading its `paginate()` handler first) and
+      # doesn't fit a widget embedded inside another page like this one.
+      pagerEnabled: false
       overviewAttributes: ['number', 'title', 'state', 'group', 'created_at']
       bindRow:
         events:
@@ -400,6 +438,12 @@ class Download extends App.Controller
     @table.releaseController() if @table
     @table = new App.ControllerTable(params)
 
+    lastPageIndex = Math.max(0, Math.ceil(count / @perPage()) - 1)
+    if lastPageIndex > 0
+      @$('.js-dataDownloadPager').html App.view('generic/table_pager')(page: @page, pages: lastPageIndex)
+    else
+      @$('.js-dataDownloadPager').html('')
+
   tableUpdate: =>
     return @tableRender([], 0) if !@params.downloadBackendSelected
 
@@ -412,15 +456,18 @@ class Download extends App.Controller
       timeRange:               @params.timeRange
       profiles:                @params.profileSelected
       downloadBackendSelected: @params.downloadBackendSelected
+      page:                    @page # included so a page-only change isn't skipped by the unchanged-state guard below
+      per_page:                @perPage()
     }
     return if _.isEqual(@lastState, state)
     @lastState = $.extend(true, {}, state)
 
     # No `silent` needed here (unlike Graph#render): tableUpdate() is
     # only ever reached via a genuine param change (constructor,
-    # selectBackend) -- Graph#update's own unchanged-params guard
-    # already skips calling us during its silent background
-    # auto-refresh, so every call here is a real user-driven change.
+    # selectBackend via render(), or a page click via onPageClick below)
+    # -- Graph#update's own unchanged-params guard already skips calling
+    # us during its silent background auto-refresh, so every call here
+    # is a real user-driven change.
     #
     # Deliberately NOT using @startLoading()/@stopLoading() -- see the
     # matching note on Graph#render above; that timer-based pair was
@@ -455,6 +502,20 @@ class Download extends App.Controller
             ticket_collection.push ticket
         @tableRender(ticket_collection, data.count)
     )
+
+  # Bound to the SAME '.js-page' class the reused generic/table_pager
+  # partial renders (see tableRender() above) -- deliberately a plain
+  # click handler here, not App.ControllerTable's own `pagerAjax` mode
+  # (see the comment on `pagerEnabled: false` above for why that mode
+  # doesn't fit).
+  onPageClick: (e) =>
+    e.preventDefault()
+    return if $(e.currentTarget).hasClass('is-disabled')
+
+    page = parseInt($(e.currentTarget).data('page'), 10)
+    return if isNaN(page) or page is @page
+    @page = page
+    @tableUpdate()
 
 class TimeRangePicker extends App.Controller
   events:

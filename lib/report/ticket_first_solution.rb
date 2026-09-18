@@ -101,8 +101,28 @@ returns
       params[:range_end],
     ).where(query, *bind_params).joins(tables).reorder(close_at: :asc)
 
-    Report::DownloadLimitGuard.check!(ticket_list.count(:id), user: params[:current_user])
+    total_count = ticket_list.count(:id)
 
+    # sheet (Excel export) still needs every matching row -- guarded as
+    # before. On-screen preview is paginated instead (Section 7,
+    # docs/DESIGN_REPORTING_FRT.md) and skips the guard entirely, since
+    # a bounded page is safe regardless of the total match count.
+    if params[:sheet]
+      Report::DownloadLimitGuard.check!(total_count, user: params[:current_user])
+    else
+      ticket_list = Report::ItemsPaginator.apply(ticket_list, params)
+    end
+
+    # NOTE: `count` below is a POST-filter count (only tickets closed
+    # within 15 minutes of creation count as "first solution") --
+    # smaller than `total_count` above, which is the raw SQL match count
+    # used for the sheet guard and, for a paginated preview request,
+    # for the pager's total/page-count math. This means the preview
+    # pager's page-count can be a little optimistic (some SQL-matched
+    # rows on a given page don't pass this post-filter, so the true
+    # final page can render with fewer rows than a full page) -- a
+    # pre-existing quirk of this metric being post-filtered at all, not
+    # something pagination introduces.
     count = 0
     assets = {}
     ticket_ids = []
@@ -117,7 +137,7 @@ returns
       assets = ticket_full.assets(assets)
     end
     {
-      count:      count,
+      count:      params[:sheet] ? count : total_count,
       ticket_ids: ticket_ids,
       assets:     assets,
     }

@@ -3,4 +3,5 @@
   <div class="js-dataDownloadButton"></div>
   <div class="spacer"></div>
   <div class="js-dataDownloadTable"></div>
+  <div class="js-dataDownloadPager"></div>
 </div>

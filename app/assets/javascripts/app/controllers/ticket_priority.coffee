@@ -16,6 +16,12 @@ class TicketPriority extends App.ControllerSubContent
         objects: __('Ticket Priorities')
         searchPlaceholder: __('Search for ticket priorities')
         navupdate: '#ticket_priorities'
+        # Server-side pagination -- mirrors group.coffee's own pagerAjax
+        # config exactly (see docs/DESIGN_REPORTING_FRT.md Section 8).
+        pagerAjax: true
+        pagerBaseUrl: '#manage/ticket_priorities/'
+        pagerSelected: ( @page || 1 )
+        pagerPerPage: 50
         buttons: [
           { name: __('New Priority'), 'data-type': 'new', class: 'btn--success' }
         ]
@@ -35,6 +41,15 @@ class TicketPriority extends App.ControllerSubContent
         }
       container: @el.closest('.content')
     )
+
+  # Overrides App.ControllerSubContent's default no-arg show() -- see
+  # the identical override in ticket_state.coffee for why.
+  show: (params) =>
+    for key, value of params
+      if key isnt 'el' && key isnt 'shown' && key isnt 'match'
+        @[key] = value
+
+    @genericController.paginate(@page || 1, params)
 
   formHandler: (params, attribute, attributes, classname, form, ui) ->
     form.find('[data-attribute-name="ui_icon"]').show()
