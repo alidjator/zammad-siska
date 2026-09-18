@@ -1,1 +1,9 @@
-<div class="chat-message chat-message--<%= @sender %><%= ' chat-message--new' if @isNew %>"><%- @message %></div>
+<div class="chat-message chat-message--<%= @sender %><%= ' chat-message--new' if @isNew %>"<% if @messageId: %> data-message-id="<%= @messageId %>"<% end %>>
+  <% if @replyTo: %>
+    <div class="chat-message-quote"><%- App.Utils.html2text(@replyTo.content).substr(0, 80) %></div>
+  <% end %>
+  <%- @message %>
+  <% if @messageId: %>
+    <div class="chat-message-reply js-replyMessage"><%- @Icon('reply') %></div>
+  <% end %>
+</div>

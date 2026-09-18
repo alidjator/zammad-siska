@@ -35,6 +35,21 @@
     <hr>
     <ul>
       <li><%- @T('Created at:') %> <%- @Ttimestamp(@session.created_at) %></li>
+      <% if @previousSessions && @previousSessions.length: %>
+        <li>
+          <%- @T('Previous chats from this visitor:') %>
+          <ul>
+            <% for previous in @previousSessions: %>
+              <li>
+                <%- @Ttimestamp(previous.created_at) %>
+                <% if previous.ticket_id: %>
+                  -- <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= previous.ticket_id %>"><%- @T('Open Ticket') %></a>
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </li>
+      <% end %>
       <% if @session && @session.preferences: %>
         <% if @session.preferences.geo_ip: %>
           <li>GeoIP: <%= @session.preferences.geo_ip.country_name %> <%= @session.preferences.geo_ip.city_name %></li>
@@ -51,7 +66,12 @@
     <form class="js-metaForm" style="max-width: 200px; width: 100%;"></form>
   </div>
 </div>
+<div class="chat-reply-indicator js-replyIndicator hidden"></div>
 <div class="chat-controls">
+  <div class="chat-attach js-attachButton">
+    <%- @Icon('paperclip') %>
+  </div>
+  <input type="file" class="js-attachmentInput hidden">
   <div class="chat-input">
     <div class="form-control form-control--small form-control--multiline js-customerChatInput" contenteditable="true"></div>
   </div>

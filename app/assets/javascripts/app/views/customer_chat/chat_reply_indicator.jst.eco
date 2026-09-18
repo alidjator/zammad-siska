@@ -1,0 +1,2 @@
+<div class="chat-reply-indicator-text"><%- @T('Replying to:') %> <%= @snippet %></div>
+<div class="chat-reply-indicator-cancel js-cancelReply"><%- @Icon('diagonal-cross') %></div>

@@ -5,6 +5,7 @@
 Zammad::Application.routes.draw do
   api_path = Rails.configuration.api_path
 
-  match api_path + '/chat_sessions/:session_id/attachments', to: 'chat_attachments#create', via: :post
+  match api_path + '/chat_sessions/:session_id/attachments',     to: 'chat_attachments#create', via: :post
+  match api_path + '/chat_sessions/:session_id/attachments/:id', to: 'chat_attachments#show',   via: :get
 
 end

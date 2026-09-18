@@ -1,0 +1,7 @@
+<div class="chat-message chat-message--<%= @sender %><%= ' chat-message--new' if @isNew %>">
+  <a href="<%= @url %>" class="chat-attachment" target="_blank" rel="noopener">
+    <%- @Icon('paperclip') %>
+    <span class="chat-attachment-filename"><%= @filename %></span>
+    <%- @Icon('download') %>
+  </a>
+</div>

@@ -399,6 +399,11 @@ class ChatWindow extends App.Controller
     'click .js-transferChat':        'transfer'
     'click .chat-message img':       'imageView'
     'submit .js-metaForm':           'sendMetaForm'
+    'click .js-replyMessage':        'startReply'
+    'click .js-cancelReply':         'cancelReply'
+    'click .js-openPreviousTicket':  'openPreviousTicket'
+    'click .js-attachButton':        'triggerAttachmentInput'
+    'change .js-attachmentInput':    'uploadAttachment'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -411,6 +416,8 @@ class ChatWindow extends App.Controller
     '.js-scrollHolder':              'scrollHolder'
     '.js-scrollHint':                'scrollHint'
     '.js-metaForm':                  'metaForm'
+    '.js-replyIndicator':            'replyIndicator'
+    '.js-attachmentInput':           'attachmentInput'
 
   sounds:
     message: new Audio('assets/sounds/chat_message.mp3')
@@ -432,6 +439,16 @@ class ChatWindow extends App.Controller
     if @session && !_.isEmpty(@session.name)
       @name = @session.name
 
+    # Fitur tambahan "Reply ke Pesan Spesifik" -- docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md
+    # Section 5.3. null = tidak sedang membalas pesan mana pun.
+    @replyTo = null
+
+    # dipetakan by id supaya render kutipan (5.3) bisa mengambil isi
+    # pesan asli tanpa perlu request/lookup terpisah -- konsisten
+    # dengan mengapa backend menyertakan reply_to inline di broadcast
+    # (lihat lib/sessions/event/chat_session_message.rb).
+    @messagesById = {}
+
     @on('layout-change', @onLayoutChange)
 
     @controllerBind('chat_session_typing', (data) =>
@@ -442,7 +459,19 @@ class ChatWindow extends App.Controller
     @controllerBind('chat_session_message', (data) =>
       return if data.session_id isnt @session.session_id
       return if data.self_written
-      @receiveMessage(data.message.content)
+      @receiveMessage(data.message)
+    )
+    # Fase 5 -- Item No. 6 (Attachment). docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md
+    # Section 5.2.2 poin 4. Broadcast BARU, terpisah dari
+    # chat_session_message -- server sudah kirim ke KEDUA sisi (customer
+    # & agent) tanpa mengecualikan pengirim, jadi cukup dengarkan di sini
+    # untuk merender attachment yang di-upload SIAPA PUN di sesi ini,
+    # tanpa perlu render optimis terpisah di sisi uploader.
+    @controllerBind('chat_session_attachment', (data) =>
+      return if data.session_id isnt @session.session_id
+      isFocused = @input.is(':focus')
+      sender = if data.message.created_by_id then 'agent' else 'customer'
+      @addAttachmentMessage(data.message, sender, !isFocused)
     )
     @controllerBind('chat_session_notice', (data) =>
       return if data.session_id isnt @session.session_id
@@ -505,6 +534,7 @@ class ChatWindow extends App.Controller
       name: @name
       session: @session
       chats: App.Chat.all()
+      previousSessions: @session.previous_sessions
     )
 
     @el.one('transitionend', @onTransitionend)
@@ -528,9 +558,9 @@ class ChatWindow extends App.Controller
       if @session.messages
         for message in @session.messages
           if message.created_by_id
-            @addMessage(message.content, 'agent', false, activeChat)
+            @addMessage(message, 'agent', false, activeChat)
           else
-            @addMessage(message.content, 'customer', false, activeChat)
+            @addMessage(message, 'customer', false, activeChat)
 
       # send init reply
       if activeChat && _.isEmpty(@session.messages)
@@ -656,12 +686,17 @@ class ChatWindow extends App.Controller
     return if !content
     return if @el.hasClass('is-offline')
 
+    # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3.
+    replyToId = @replyTo?.id
+
     send = =>
+      data =
+        content: content
+        session_id: @session.session_id
+      data.reply_to_id = replyToId if replyToId
       App.WebSocket.send(
         event:'chat_session_message'
-        data:
-          content: content
-          session_id: @session.session_id
+        data: data
       )
     if !delay
       send()
@@ -675,8 +710,9 @@ class ChatWindow extends App.Controller
       @delay(send, delay)
 
     @hideMeta()
-    @addMessage(content, 'agent')
+    @addMessage({ content: content, reply_to: @replyTo }, 'agent')
     @input.html('')
+    @cancelReply()
 
   updateModified: (state) =>
     @status.toggleClass('is-modified', state)
@@ -693,7 +729,7 @@ class ChatWindow extends App.Controller
       @sounds.message.play()
       @notifyDesktop(
         title: @name
-        body: App.Utils.html2text(message)
+        body: App.Utils.html2text(message.content)
         url: '#customer_chat'
         callback: =>
           App.Event.trigger('chat_focus', { session_id: @session.session_id })
@@ -712,16 +748,118 @@ class ChatWindow extends App.Controller
       @messageCallback(@session.session_id)
     @unreadMessagesCounter = 0
 
+  # `message` bisa berupa string polos (dipakai `sendMessage` untuk
+  # render optimis SEBELUM ada balasan sungguhan dari server, belum
+  # punya `id`) atau object `{id, content, reply_to}` (dari
+  # `chat_session_message`/replay histori sesi) -- fitur tambahan
+  # "Reply ke Pesan Spesifik", Section 5.3.
   addMessage: (message, sender, isNew, useMaybeAddTimestamp = true) =>
     @maybeAddTimestamp() if useMaybeAddTimestamp
 
     @lastAddedType = sender
 
+    if _.isString(message)
+      message = { content: message }
+
+    @messagesById[message.id] = message if message.id
+
     @body.append App.view('customer_chat/chat_message')(
-      message: message
+      message: message.content
+      messageId: message.id
+      replyTo: message.reply_to
       sender: sender
       isNew: isNew
       timestamp: Date.now()
+    )
+
+    @scrollToBottom(showHint: true)
+
+  # Fitur tambahan "Reply ke Pesan Spesifik (Seperti WhatsApp)" --
+  # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
+  startReply: (e) =>
+    e.preventDefault()
+    messageId = $(e.currentTarget).closest('.chat-message').data('message-id')
+    return if !messageId
+    message = @messagesById[messageId]
+    return if !message
+
+    @replyTo = { id: messageId, content: message.content }
+    @renderReplyIndicator()
+    @input.trigger('focus')
+
+  cancelReply: (e) =>
+    e?.preventDefault()
+    @replyTo = null
+    @renderReplyIndicator()
+
+  renderReplyIndicator: =>
+    return if !@replyIndicator.length
+
+    if !@replyTo
+      @replyIndicator.addClass('hidden').empty()
+      return
+
+    snippet = App.Utils.html2text(@replyTo.content)
+    snippet = snippet.substr(0, 80)
+    @replyIndicator.removeClass('hidden').html App.view('customer_chat/chat_reply_indicator')(
+      snippet: snippet
+    )
+
+  # Fitur tambahan "Riwayat Chat Sebelumnya dari Customer yang Sama" --
+  # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.7.
+  openPreviousTicket: (e) =>
+    e.preventDefault()
+    ticketId = $(e.currentTarget).data('ticket-id')
+    return if !ticketId
+    @navigate "#ticket/zoom/#{ticketId}"
+
+  # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
+  triggerAttachmentInput: (e) =>
+    e.preventDefault()
+    @attachmentInput.trigger('click')
+
+  uploadAttachment: (e) =>
+    file = e.currentTarget.files?[0]
+    return if !file
+
+    formData = new FormData()
+    formData.append('File', file)
+
+    @ajax(
+      id:          'chat-attachment-upload'
+      type:        'POST'
+      url:         "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments"
+      data:        formData
+      processData: false
+      contentType: false
+      cache:       false
+      success:     ->
+        # rendering dilakukan lewat broadcast chat_session_attachment
+        # (dikirim server ke KEDUA sisi termasuk pengunggah sendiri),
+        # bukan di sini, supaya tidak dobel & konsisten dengan cara
+        # pesan teks sendiri direfleksikan balik.
+      error: (xhr) =>
+        message = xhr.responseJSON?.error || __('The attachment could not be uploaded.')
+        new App.ControllerConfirm(
+          head:         __('Attachment')
+          message:      message
+          buttonCancel: false
+          buttonSubmit: __('OK')
+        )
+    )
+
+    @attachmentInput.val('')
+
+  addAttachmentMessage: (message, sender, isNew) =>
+    @maybeAddTimestamp()
+    @lastAddedType = sender
+
+    @body.append App.view('customer_chat/chat_attachment_message')(
+      sender:      sender
+      isNew:       isNew
+      filename:    message.filename
+      url:         "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
+      timestamp:   Date.now()
     )
 
     @scrollToBottom(showHint: true)
@@ -747,8 +885,13 @@ class ChatWindow extends App.Controller
     @el.addClass('is-offline')
     @input.attr('disabled', true)
 
-    # add footer with create ticket button
-    @body.append App.view('customer_chat/chat_footer')()
+    # add footer with create ticket button -- tombol berubah jadi
+    # "Open Ticket" kalau tiket sudah otomatis dibuat sejak awal
+    # (Fase 5, Item No. 5, Section 5.1.5), supaya tidak duplikat
+    # dengan tiket yang sudah ada.
+    @body.append App.view('customer_chat/chat_footer')(
+      ticketId: @session.ticket_id
+    )
 
   maybeAddTimestamp: ->
     timestamp = Date.now()
@@ -833,6 +976,13 @@ class ChatWindow extends App.Controller
 
   ticketCreate: (e) =>
     e.preventDefault()
+
+    # Fase 5, Item No. 5, Section 5.1.5 -- kalau tiket sudah otomatis
+    # dibuat sejak sesi ini mulai, buka LANGSUNG tiket yang sudah ada,
+    # bukan buka form New Ticket kosong lagi (menghindari duplikasi).
+    if @session.ticket_id
+      @navigate "#ticket/zoom/#{@session.ticket_id}"
+      return
 
     id = Math.floor( Math.random() * 99999 )
     @navigate "#ticket/create/id/#{id}"

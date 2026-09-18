@@ -19,5 +19,6 @@ if defined?(Dartsass)
     'knowledge_base.scss' => 'knowledge_base.css',
     'team_kpi.scss'       => 'team_kpi.css',
     'aux_status.scss'     => 'aux_status.css',
+    'chat_enhancements.scss' => 'chat_enhancements.css',
   }
 end

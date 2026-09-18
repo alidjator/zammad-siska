@@ -1,0 +1,91 @@
+// Fase 5 -- Live Chat Enhancement (Item No. 5 & 6, reply-to-message).
+// See docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5. File TERPISAH
+// (bukan menyisipkan ke zammad.scss langsung) supaya perubahan Fase 5
+// mudah ditinjau/dibatalkan sendiri -- pola yang sama dipakai
+// aux_status.scss di Fase 4.
+
+// Reply ke Pesan Spesifik (Seperti WhatsApp) -- Section 5.3.
+.chat-message {
+  position: relative;
+
+  &:hover .chat-message-reply {
+    opacity: 1;
+  }
+}
+
+.chat-message-reply {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.chat-message-quote {
+  border-left: 3px solid var(--text-muted);
+  padding: 2px 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.chat-reply-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 12px;
+  background: var(--background-primary);
+  border-top: 1px solid var(--border-color);
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.chat-reply-indicator-cancel {
+  cursor: pointer;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+// Attachment (Item No. 6) -- Section 5.2.3.
+.chat-attach {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0 8px;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.chat-attachment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.chat-attachment-filename {
+  text-decoration: underline;
+}

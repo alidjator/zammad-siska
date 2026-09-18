@@ -1,3 +1,7 @@
 <div class="chat-footer">
-  <div class="btn btn--primary js-createTicket"><%- @T('Turn chat into ticket') %></div>
+  <% if @ticketId: %>
+    <div class="btn btn--primary js-createTicket"><%- @T('Open Ticket') %></div>
+  <% else: %>
+    <div class="btn btn--primary js-createTicket"><%- @T('Turn chat into ticket') %></div>
+  <% end %>
 </div>

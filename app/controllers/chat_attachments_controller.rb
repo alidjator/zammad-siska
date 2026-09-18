@@ -35,6 +35,30 @@ class ChatAttachmentsController < ApplicationController
   # Setting `chat_attachment_allowed_extensions` apa pun isinya.
   DENYLIST_EXTENSIONS = %w[exe bat cmd sh ps1 js html htm php jar msi com scr vbs].freeze
 
+  # GET /api/v1/chat_sessions/:session_id/attachments/:id
+  # Dipakai widget customer & panel agent dua-duanya untuk menampilkan
+  # kembali/mengunduh attachment yang sudah terkirim -- otorisasi SAMA
+  # seperti upload (kepemilikan session_id), bukan token/akun, supaya
+  # customer anonim yang refresh halaman chat-nya tetap bisa melihat
+  # attachment yang dia kirim sendiri sebelumnya.
+  def show
+    chat_session = Chat::Session.find_by(session_id: params[:session_id])
+    return head(:not_found) if !chat_session
+
+    chat_message = Chat::Message.find_by(id: params[:id], chat_session_id: chat_session.id)
+    return head(:not_found) if !chat_message
+
+    store = Store.list(object: 'Chat::Message', o_id: chat_message.id).first
+    return head(:not_found) if !store
+
+    send_data(
+      store.content,
+      filename:    store.filename,
+      type:        store.preferences['Content-Type'] || 'application/octet-stream',
+      disposition: 'inline',
+    )
+  end
+
   # POST /api/v1/chat_sessions/:session_id/attachments
   def create
     chat_session = Chat::Session.find_by(session_id: params[:session_id])

@@ -15,6 +15,7 @@
  *= require zammad
  *= require team_kpi
  *= require aux_status
+ *= require chat_enhancements
  *
  *= require_tree ./addons/
  *= require_tree ./custom/
