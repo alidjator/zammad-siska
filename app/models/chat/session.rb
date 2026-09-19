@@ -154,7 +154,7 @@ class Chat::Session < ApplicationModel
     chat_session
       .messages
       .reorder(created_at: :asc)
-      .map(&:attributes)
+      .map { |message| message_attributes_with_reply_to(message) }
   end
 
   def self.active_chats_by_user_id(user_id)
@@ -163,7 +163,7 @@ class Chat::Session < ApplicationModel
       session_attributes = session.attributes
       session_attributes['messages'] = []
       Chat::Message.where(chat_session_id: session.id).reorder(created_at: :asc).each do |message|
-        session_attributes['messages'].push message.attributes
+        session_attributes['messages'].push message_attributes_with_reply_to(message)
       end
       # Fase 5 -- lihat komentar `previous_sessions_summary` di atas.
       # Disertakan JUGA di jalur reconnect ini (bukan cuma accept
@@ -173,6 +173,25 @@ class Chat::Session < ApplicationModel
     end
     actice_sessions
   end
+
+  # Bug ditemukan lewat laporan user (screenshot widget customer: hard
+  # refresh -> kutipan "Membalas: ..." hilang dari bubble pesan yang
+  # SEBELUM reload sempat tampil dgn kutipan) -- `.map(&:attributes)`
+  # yang dipakai KEDUA method riwayat di atas cuma menyertakan kolom
+  # mentah (`reply_to_id` sbg angka polos), BUKAN isi pesan yang
+  # direferensikan -- pola bug yang PERSIS SAMA sudah pernah ditemukan
+  # & diperbaiki utk jalur REAL-TIME (`chat_session_message.rb`, Fase
+  # 5), TAPI jalur RIWAYAT/BULK (method di atas, dipakai widget
+  # customer maupun jendela agent) TIDAK PERNAH ikut diperbaiki dgn
+  # cara yang sama. Diterapkan ULANG di sini (bukan logika baru).
+  def self.message_attributes_with_reply_to(message)
+    attrs = message.attributes
+    if message.reply_to.present?
+      attrs['reply_to'] = { 'content' => message.reply_to.content }
+    end
+    attrs
+  end
+  private_class_method :message_attributes_with_reply_to
 
   private
 
