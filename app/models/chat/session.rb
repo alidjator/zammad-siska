@@ -154,7 +154,7 @@ class Chat::Session < ApplicationModel
     chat_session
       .messages
       .reorder(created_at: :asc)
-      .map { |message| message_attributes_with_reply_to(message) }
+      .map { |message| enrich_message_attributes(message) }
   end
 
   def self.active_chats_by_user_id(user_id)
@@ -163,7 +163,7 @@ class Chat::Session < ApplicationModel
       session_attributes = session.attributes
       session_attributes['messages'] = []
       Chat::Message.where(chat_session_id: session.id).reorder(created_at: :asc).each do |message|
-        session_attributes['messages'].push message_attributes_with_reply_to(message)
+        session_attributes['messages'].push enrich_message_attributes(message)
       end
       # Fase 5 -- lihat komentar `previous_sessions_summary` di atas.
       # Disertakan JUGA di jalur reconnect ini (bukan cuma accept
@@ -184,14 +184,31 @@ class Chat::Session < ApplicationModel
   # 5), TAPI jalur RIWAYAT/BULK (method di atas, dipakai widget
   # customer maupun jendela agent) TIDAK PERNAH ikut diperbaiki dgn
   # cara yang sama. Diterapkan ULANG di sini (bukan logika baru).
-  def self.message_attributes_with_reply_to(message)
+  #
+  # Bug KEDUA ditemukan lewat pengujian LANGSUNG (bukan cuma laporan
+  # user) saat menyiapkan fitur reply-pada-attachment: pesan attachment
+  # SETELAH reload tampil sbg bubble teks POLOS berbunyi literal
+  # "[attachment]" (isi kolom `content` apa adanya, lihat
+  # `chat_attachments_controller.rb`) TANPA link unduh sama sekali --
+  # frontend (`onReopenSession`) tidak punya cara membedakan pesan
+  # attachment dari pesan teks biasa di riwayat, krn keduanya SAMA-SAMA
+  # cuma `Chat::Message` polos (attachment yg sesungguhnya disimpan
+  # TERPISAH sbg `Store`, bukan kolom di `chat_messages`). Disertakan
+  # `filename` di sini (ADA-nya field ini dipakai frontend sbg penanda
+  # "pesan ini attachment") kalau ada `Store` terkait -- KEHADIRAN
+  # attachment tetap terdeteksi walau isi pesannya kosong/generik.
+  def self.enrich_message_attributes(message)
     attrs = message.attributes
     if message.reply_to.present?
       attrs['reply_to'] = { 'content' => message.reply_to.content }
     end
+    store = Store.list(object: 'Chat::Message', o_id: message.id).first
+    if store
+      attrs['filename'] = store.filename
+    end
     attrs
   end
-  private_class_method :message_attributes_with_reply_to
+  private_class_method :enrich_message_attributes
 
   private
 
