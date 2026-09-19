@@ -61,26 +61,49 @@ return is sent as message back to peer
     # dipicu reload halaman) juga dapat riwayat ini -- lihat komentar di
     # model, sebelumnya field ini cuma dikirim sekali di sini saja.
     session_attributes['previous_sessions'] = chat_session.previous_sessions_summary
+    # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md. Disertakan di
+    # `session_attributes` (dipakai KEDUA payload di bawah) supaya
+    # `ChatWindow` milik USER LOGIN (bukan agent yang di-assign ke
+    # sesi ini) bisa tahu apakah attachment boleh dipakai untuk SESI
+    # INI -- lihat comment di `chat.coffee#render` (tidak bisa lagi
+    # cuma mengandalkan preferensi pribadi orang yang sedang login,
+    # karena bisa jadi customer, bukan agent).
+    session_attributes['attachment_enabled'] = chat_session.attachment_enabled?
 
     # send chat_session_init to customer client
     if session_attributes['messages'].blank?
-      user = chat_session.agent_user
-      data = {
-        event: 'chat_session_start',
-        data:  {
-          state:               'ok',
-          agent:               user,
-          session_id:          chat_session.session_id,
-          chat_id:             chat_session.chat_id,
-          # Fase 5 -- fitur tambahan enable/disable attachment
-          # global+per-agent, Section 5.2.6. Widget customer tidak bisa
-          # baca Setting/preferensi agent secara langsung -- dikirim di
-          # sini (satu-satunya payload yang benar-benar sampai ke
-          # customer) supaya tombol attach cuma muncul kalau memang
-          # boleh dipakai untuk sesi ini.
-          attachment_enabled: chat_session.attachment_enabled?,
-        },
-      }
+      data = if chat_session.preferences[:self_service]
+               # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md Section 5.5.
+               # Customer di sini adalah App.ChatWindow, KOMPONEN YANG
+               # SAMA PERSIS dipakai agent -- butuh bentuk payload
+               # LENGKAP yang sama seperti agent terima (termasuk
+               # previous_sessions untuk riwayat), BUKAN payload datar
+               # ala widget publik anonim di bawah (yang punya parser
+               # JS sendiri, cuma butuh field-field itu).
+               {
+                 event: 'chat_session_start',
+                 data:  { session: session_attributes },
+               }
+             else
+               # widget anonim (Item 5 asli) -- TIDAK BERUBAH SAMA SEKALI.
+               user = chat_session.agent_user
+               {
+                 event: 'chat_session_start',
+                 data:  {
+                   state:               'ok',
+                   agent:               user,
+                   session_id:          chat_session.session_id,
+                   chat_id:             chat_session.chat_id,
+                   # Fase 5 -- fitur tambahan enable/disable attachment
+                   # global+per-agent, Section 5.2.6. Widget customer tidak bisa
+                   # baca Setting/preferensi agent secara langsung -- dikirim di
+                   # sini (satu-satunya payload yang benar-benar sampai ke
+                   # customer) supaya tombol attach cuma muncul kalau memang
+                   # boleh dipakai untuk sesi ini.
+                   attachment_enabled: chat_session.attachment_enabled?,
+                 },
+               }
+             end
       chat_session.send_to_recipients(data, @client_id)
     end
 
@@ -106,6 +129,14 @@ return is sent as message back to peer
 
   # Fase 5 -- docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.3.
   def create_ticket_for_chat_session(chat_session)
+    # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md Section 5.4. Sesi
+    # follow-up (Fase 6) SUDAH terkait tiket SEJAK chat_session_init
+    # (bukan visitor anonim yang belum punya tiket sama sekali) --
+    # auto-create DILEWATI TOTAL, satu-satunya perubahan di method ini.
+    # Jalur widget anonim (Item 5 asli) tidak terpengaruh: ticket_id
+    # mereka memang masih kosong di titik ini.
+    return if chat_session.ticket_id.present?
+
     group_id = chat_session.chat.preferences[:ticket_group_id] || Setting.get('chat_auto_ticket_group_id')
     if group_id.blank?
       Rails.logger.info "Live Chat auto-ticket dilewati untuk sesi #{chat_session.session_id} -- chat_auto_ticket_group_id belum dikonfigurasi."

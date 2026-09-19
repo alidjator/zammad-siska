@@ -1,0 +1,30 @@
+<div class="my-chat-content my-chat-ticket-list">
+  <h1><%- @T('Live Chat') %></h1>
+  <p class="my-chat-ticket-list-intro"><%- @T('Start a live chat to follow up on one of your existing tickets below.') %></p>
+
+  <% if @loading: %>
+    <div class="my-chat-ticket-list-status"><%- @T('Loading...') %></div>
+  <% end %>
+
+  <% if !@loading && @failed: %>
+    <div class="my-chat-ticket-list-status my-chat-ticket-list-status--error"><%- @T('Unable to load your tickets right now, please try again later.') %></div>
+  <% end %>
+
+  <% if !@loading && !@failed && (!@tickets || @tickets.length is 0): %>
+    <div class="my-chat-ticket-list-status"><%- @T('You have no open tickets that can be followed up via chat.') %></div>
+  <% end %>
+
+  <% if !@loading && !@failed && @tickets && @tickets.length > 0: %>
+    <ul class="my-chat-ticket-list-items">
+      <% for ticket in @tickets: %>
+        <li class="my-chat-ticket-list-item">
+          <div class="my-chat-ticket-list-item-info">
+            <span class="my-chat-ticket-list-item-number">#<%= ticket.number %></span>
+            <span class="my-chat-ticket-list-item-title"><%= ticket.title %></span>
+          </div>
+          <button type="button" class="btn btn--primary btn--slim js-startChat" data-ticket-id="<%= ticket.id %>"><%- @T('Chat') %></button>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+</div>

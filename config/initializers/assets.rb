@@ -20,5 +20,6 @@ if defined?(Dartsass)
     'team_kpi.scss'       => 'team_kpi.css',
     'aux_status.scss'     => 'aux_status.css',
     'chat_enhancements.scss' => 'chat_enhancements.css',
+    'my_chat.scss'           => 'my_chat.css',
   }
 end

@@ -1,0 +1,95 @@
+// Fase 6 -- Live Chat Follow-Up Tiket untuk Semua User Login. See
+// docs/DESIGN_CHAT_SELF_SERVICE.md. File TERPISAH (bukan disisipkan
+// ke zammad.scss/chat_enhancements.scss langsung) supaya perubahan
+// Fase 6 mudah ditinjau/dibatalkan sendiri -- pola yang sama dipakai
+// aux_status.scss (Fase 4) & chat_enhancements.scss (Fase 5).
+//
+// Atas laporan user: jendela chat aktif (App.ChatWindow) sempat
+// nempel batas lebar `.my-chat-page` (dibuat sempit untuk 2 state lain
+// di bawah), jadi TIDAK selebar/sepenuh jendela di sisi agent
+// (`.chat-workspace`, native, `display: flex` supaya `.chat-window`
+// bisa `flex: 1 0 25%` membesar mengisi ruang tersedia). `.my-chat-page`
+// diubah jadi flex column TANPA batas lebar (meniru `.chat` native),
+// batas lebar 640px dipindah ke `.my-chat-content` -- HANYA dipakai
+// bungkus 2 state lain (daftar tiket, menunggu agent), BUKAN
+// `.chat-window` sendiri. `App.MyChat#renderActive` membungkus
+// `chat.el` dengan `.chat-workspace` (class NATIVE yang sudah ada,
+// dipakai ulang apa adanya, bukan dibuat baru) supaya sizing-nya
+// PERSIS sama seperti sisi agent.
+.my-chat-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 14px;
+}
+
+.my-chat-content {
+  max-width: 640px;
+  padding: 20px 0;
+}
+
+.my-chat-ticket-list-intro {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.my-chat-ticket-list-status {
+  padding: 16px;
+  color: var(--text-muted);
+  background: var(--background-primary);
+  border-radius: 6px;
+
+  &--error {
+    color: var(--danger-color);
+  }
+}
+
+.my-chat-ticket-list-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.my-chat-ticket-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: var(--background-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.my-chat-ticket-list-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.my-chat-ticket-list-item-number {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.my-chat-ticket-list-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Atas laporan user: tampilan "menunggu agent" diminta gaya loading
+// native yang sudah dipakai di tempat lain aplikasi ini (mis. saat
+// tiket sedang dimuat, `layout_ref/loading_placeholder.jst.eco`) --
+// full screen, bukan kartu kecil rata tengah custom seperti
+// sebelumnya. Dipakai ULANG class native `.fullscreenMessage
+// fullscreenMessage--placeholder` + `.loading.icon` (`zammad.scss`,
+// sudah ada spinner & layoutnya sendiri) -- cuma `<p>` posisi antrean
+// yang butuh sedikit gaya tambahan di sini, teksnya sendiri TIDAK
+// berubah dari sebelumnya.
+.my-chat-waiting-position {
+  color: var(--text-muted);
+  font-size: 12px;
+}

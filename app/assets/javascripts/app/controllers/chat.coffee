@@ -321,7 +321,7 @@ class App.CustomerChat extends App.Controller
 
   addChat: (session) ->
     return if @chatWindows[session.session_id]
-    chat = new ChatWindow(
+    chat = new App.ChatWindow(
       session: session
       removeCallback: @removeChat
       messageCallback: @updateNavMenu
@@ -383,7 +383,12 @@ class App.CustomerChat extends App.Controller
   currentPosition: =>
     @$('.main').scrollTop()
 
-class ChatWindow extends App.Controller
+# Fase 6 -- diekspor sebagai App.ChatWindow (bukan cuma ChatWindow
+# top-level) supaya bisa dipakai ulang secara EKSPLISIT dari controller
+# lain (App.MyChat, my_chat.coffee) untuk live chat follow-up tiket
+# oleh user login -- lihat docs/DESIGN_CHAT_SELF_SERVICE.md Section 4.1.
+# Rename MURNI, tidak ada logika di bawah ini yang berubah.
+class App.ChatWindow extends App.Controller
   className: 'chat-window'
 
   events:
@@ -434,8 +439,17 @@ class ChatWindow extends App.Controller
     @scrolledToBottom = true
     @scrollSnapTolerance = 10 # pixels
 
+    # Fase 6 -- `App.Chat` (koleksi asset topik chat) cuma pernah
+    # dikirim ke sisi AGENT (lewat broadcast `chat_status_agent`),
+    # tidak pernah ke sisi customer/user. Jendela chat follow-up milik
+    # USER (App.MyChat, docs/DESIGN_CHAT_SELF_SERVICE.md Section 4.1)
+    # jadi TIDAK PUNYA `App.Chat` untuk topik itu -- `find` bisa balik
+    # `undefined`. Dipakai `?.` (bukan `.displayName()` langsung) supaya
+    # tidak crash; `@session.name` (SELALU terisi untuk sesi follow-up,
+    # lihat ChatSessionInit#run) tetap jadi sumber nama yang benar,
+    # sama seperti sebelumnya untuk sesi widget anonim yang punya nama.
     @chat = App.Chat.find(@session.chat_id)
-    @name = @chat.displayName()
+    @name = @chat?.displayName() || ''
     if @session && !_.isEmpty(@session.name)
       @name = @session.name
 
@@ -548,8 +562,28 @@ class ChatWindow extends App.Controller
     # ulang di sini karena backend belum tentu punya `chat_session.user_id`
     # terisi saat window pertama kali dirender (baru terisi setelah
     # chat_session_start, yang justru memicu render ini).
-    preferences = @Session.get('preferences')
-    attachmentEnabled = App.Config.get('chat_attachment_enabled') && preferences?.chat?.attachment_enabled
+    #
+    # Fase 6 -- `ChatWindow` ini sekarang JUGA dipakai untuk jendela
+    # milik USER LOGIN sendiri (docs/DESIGN_CHAT_SELF_SERVICE.md), bukan
+    # cuma agent. `@Session.get('preferences')` selalu berarti "preferensi
+    # SIAPA PUN yang sedang login melihat jendela ini" -- benar untuk
+    # AGENT (memang preferensi PER-AGENT), tapi SALAH untuk user login
+    # yang bukan agent (preferensi attachment mereka sendiri tidak ada
+    # artinya sama sekali, chat_attachment_enabled hasilnya SELALU
+    # tersembunyi walau agent yang menangani sesi ini sudah mengizinkan).
+    # Dibedakan lewat perbandingan yang SAMA seperti backend menentukan
+    # customer vs agent (created_by_id == chat_session.user_id, lihat
+    # chat_session_message.rb) -- kalau user yang login SAAT INI adalah
+    # agent yang di-assign ke sesi ini, pakai preferensi PRIBADI seperti
+    # sebelumnya; kalau bukan (customer/self-service), pakai keputusan
+    # yang SUDAH dihitung server per-sesi (`@session.attachment_enabled`,
+    # sekarang selalu disertakan di `session_attributes`).
+    isAssignedAgent = @Session.get('id') is @session.user_id
+    attachmentEnabled = if isAssignedAgent
+      preferences = @Session.get('preferences')
+      App.Config.get('chat_attachment_enabled') && preferences?.chat?.attachment_enabled
+    else
+      !!@session.attachment_enabled
     @$('.js-attachButton').toggleClass('hidden', !attachmentEnabled)
 
     # force repaint

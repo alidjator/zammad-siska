@@ -16,6 +16,7 @@
  *= require team_kpi
  *= require aux_status
  *= require chat_enhancements
+ *= require my_chat
  *
  *= require_tree ./addons/
  *= require_tree ./custom/

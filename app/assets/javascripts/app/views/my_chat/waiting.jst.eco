@@ -1,0 +1,10 @@
+<div class="my-chat-content">
+  <h1><%- @T('Live Chat') %></h1>
+</div>
+<div class="fullscreenMessage fullscreenMessage--placeholder">
+  <div class="loading icon"></div>
+  <h2><%- @T('Waiting for an available agent...') %></h2>
+  <% if @position: %>
+    <p class="my-chat-waiting-position"><%- @T('Queue position: %s', @position) %></p>
+  <% end %>
+</div>
