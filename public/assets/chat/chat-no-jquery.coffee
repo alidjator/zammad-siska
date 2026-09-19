@@ -769,17 +769,27 @@ do(window) ->
 
     renderBase: ->
       @el.remove() if @el
+      @launcherEl.remove() if @launcherEl
       @options.target.insertAdjacentHTML('beforeend', @view('chat')(
         title: @options.title,
         scrollHint: @options.scrollHint
       ))
       @el = @options.target.querySelector('.zammad-chat')
+
+      # Struktur baru (atas permintaan user): tombol bulat mengambang
+      # TERPISAH dari panel -- SATU-SATUNYA elemen yang tampil saat
+      # widget tertutup. Mirror persis dari chat.coffee -- `@el`
+      # (panel) TIDAK diubah maknanya, tetap `.zammad-chat` seperti
+      # dulu.
+      @options.target.insertAdjacentHTML('beforeend', @view('launcher')())
+      @launcherEl = @options.target.querySelector('.zammad-chat-launcher')
+      @launcherEl.addEventListener('click', @toggle)
+
       @input = @el.querySelector('.zammad-chat-input')
       @body = @el.querySelector('.zammad-chat-body')
 
       # start bindings
-      @el.querySelector('.js-chat-open').addEventListener('click', @open)
-      @el.querySelector('.js-chat-toggle').addEventListener('click', @toggle)
+      @el.querySelector('.js-chat-close').addEventListener('click', @close)
       @el.querySelector('.js-chat-status').addEventListener('click', @stopPropagation)
       @el.querySelector('.zammad-chat-controls').addEventListener('submit', @onSubmit)
       @body.addEventListener('scroll', @detectScrolledtoBottom)
@@ -796,9 +806,50 @@ do(window) ->
       # dinamis setelah render awal ini.
       @body.addEventListener('click', @startReply)
 
+      # Atas permintaan user (mockup `Waiting.dc.html`, koreksi "keluar
+      # dari antrian kembali ke home") -- tombol Batalkan dirender ulang
+      # tiap kali `.zammad-chat-modal` diisi ulang (loader/waiting/dst.)
+      # -- delegasi manual dari `.zammad-chat-modal` sendiri (elemen
+      # statis), pola yang sama dgn delegasi `[data-tab]` di bawah,
+      # supaya tidak perlu bind ulang tiap render spt `renderReplyIndicator`.
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-waiting-cancel')
+        return if !target
+        @cancelQueue(event)
+
       # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
       @el.querySelector('.js-chat-attach').addEventListener('click', @triggerAttachmentInput)
       @el.querySelector('.js-chat-attachment-input').addEventListener('change', @uploadAttachment)
+
+      # Fase 7 -- Widget bergaya tab (Home/Messages/Help). Section 4.2/4.3.
+      # Home & Help TIDAK PUNYA konten dinamis per-sesi -- cukup diisi
+      # SEKALI di sini. Mirror persis dari chat.coffee (versi jQuery).
+      @el.querySelector('.zammad-chat-tab-body--home').innerHTML = @view('home')()
+      @el.querySelector('.zammad-chat-tab-body--help').innerHTML = @view('help')()
+      @el.querySelector('.zammad-chat-tabbar').innerHTML = @view('tabbar')()
+      @el.querySelector('.js-emoji-picker').innerHTML = @view('emoji_picker')()
+      @activeTab = 'home'
+      @updateHeader('home')
+
+      # Delegasi manual (bukan `.on(event, selector, ...)` seperti
+      # jQuery) -- tombol tab bar & tombol pintasan tab Home SAMA-SAMA
+      # dikenali lewat atribut `data-tab` (Section 4.1: "reuse switch
+      # tab, bukan event baru").
+      @el.addEventListener 'click', (event) =>
+        target = event.target.closest('[data-tab]')
+        return if !target
+        @switchTab target.dataset.tab
+
+      # Revisi desain (gaya Able Pro) -- ikon smile membuka/menutup
+      # panel emoji; klik satu emoji menyisipkannya ke posisi kursor
+      # terakhir di kotak ketik. Mirror persis dari chat.coffee.
+      @el.querySelector('.js-emoji-toggle').addEventListener('click', @toggleEmojiPicker)
+      @el.querySelector('.js-emoji-picker').addEventListener 'click', (event) =>
+        item = event.target.closest('.js-emoji-item')
+        return if !item
+        @insertEmoji item.dataset.emoji
+
+      @el.querySelector('.js-kb-search').addEventListener('input', @onKbSearchInput)
 
       window.addEventListener('beforeunload', @onLeaveTemporary)
       window.addEventListener('hashchange', =>
@@ -810,6 +861,82 @@ do(window) ->
           return
         @idleTimeout.start()
       )
+
+    # Fase 7 -- Widget bergaya tab (Home/Messages/Help). Section 4.3.
+    # Mirror persis dari chat.coffee (versi jQuery), disesuaikan ke DOM
+    # API polos yang dipakai file ini.
+    switchTab: (tabName) =>
+      return if @activeTab is tabName
+      @activeTab = tabName
+
+      for body in @el.querySelectorAll('.zammad-chat-tab-body')
+        body.classList.remove('is-active')
+      activeBody = @el.querySelector(".zammad-chat-tab-body--#{tabName}")
+      activeBody?.classList.add('is-active')
+
+      for item in @el.querySelectorAll('.zammad-chat-tabbar-item')
+        item.classList.remove('is-active')
+      activeItem = @el.querySelector(".zammad-chat-tabbar-item[data-tab='#{tabName}']")
+      activeItem?.classList.add('is-active')
+
+      @updateHeader(tabName)
+
+    # Revisi desain (identik referensi Intercom/Claude) -- isi header
+    # BERBEDA per tab. Mirror persis dari chat.coffee.
+    updateHeader: (tabName) =>
+      tabName ?= @activeTab
+
+      showAgent   = tabName is 'messages' and @agent?
+      showWelcome = tabName is 'home' and !showAgent
+      showTitle   = !showWelcome and !showAgent
+
+      @el.querySelector('.zammad-chat-header').classList.toggle('zammad-chat-header--tinted', showWelcome)
+      @el.querySelector('.zammad-chat-welcome').classList.toggle('zammad-chat-is-hidden', !showWelcome)
+      @el.querySelector('.zammad-chat-agent').classList.toggle('zammad-chat-is-hidden', !showAgent)
+      @el.querySelector('.zammad-chat-agent-status').classList.toggle('zammad-chat-is-hidden', !showAgent)
+      @el.querySelector('.zammad-chat-header-title').classList.toggle('zammad-chat-is-hidden', !showTitle)
+
+      if showTitle
+        title = if tabName is 'help' then @T('Help') else @T('Messages')
+        @el.querySelector('.js-header-title-text').textContent = title
+
+    # Revisi desain (gaya Able Pro). Mirror persis dari chat.coffee.
+    toggleEmojiPicker: (event) =>
+      event?.preventDefault()
+      @el.querySelector('.js-emoji-picker').classList.toggle('zammad-chat-is-hidden')
+
+    insertEmoji: (emoji) =>
+      @input.focus()
+      document.execCommand('insertText', false, emoji)
+      @el.querySelector('.js-emoji-picker').classList.add('zammad-chat-is-hidden')
+      @onInput()
+
+    # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
+    # pola timer yang sama dipakai `onAgentTypingStart` (@stopTypingId).
+    onKbSearchInput: (event) =>
+      query = event.currentTarget.value?.trim() || ''
+
+      if @kbSearchDelayId
+        clearTimeout(@kbSearchDelayId)
+
+      @kbSearchDelayId = setTimeout((=>
+        @send 'chat_knowledge_base_search',
+          query: query
+      ), 400)
+
+    onKnowledgeBaseSearchResult: (data) =>
+      results = @el.querySelector('.zammad-chat-kb-results')
+      results.innerHTML = ''
+
+      emptyMessage = @el.querySelector('.zammad-chat-kb-empty')
+
+      if !data.result || data.result.length is 0
+        emptyMessage?.classList.remove('zammad-chat-is-hidden')
+        return
+
+      emptyMessage?.classList.add('zammad-chat-is-hidden')
+      for item in data.result
+        results.insertAdjacentHTML('beforeend', @view('kb_result')(item))
 
     stopPropagation: (event) ->
       event.stopPropagation()
@@ -1053,6 +1180,8 @@ do(window) ->
             @onSessionClosed pipe.data
           when 'chat_session_left'
             @onSessionClosed pipe.data
+          when 'chat_knowledge_base_search'
+            @onKnowledgeBaseSearchResult pipe.data
           when 'chat_status_customer'
             switch pipe.data.state
               when 'online'
@@ -1300,25 +1429,28 @@ do(window) ->
       @log.debug 'open widget'
       @show()
 
-      if !@sessionId
+      if @sessionId
+        # Fase 7 -- ada sesi chat yang sedang berjalan (reconnect) --
+        # langsung ke tab Messages. Section 4.3. Mirror persis dari
+        # chat.coffee.
+        @switchTab('messages')
+      else
+        # Revisi desain (gaya Able Pro) -- form pra-chat langsung
+        # mengisi `.zammad-chat-modal` di sini. Mirror persis dari
+        # chat.coffee.
         @showPrechatForm()
 
+      # Fase 7 -- struktur baru "tombol bulat mengambang + panel
+      # terpisah" (atas permintaan user, meniru gaya Intercom/Claude).
+      # Mirror persis dari chat.coffee: transisi tampil/sembunyi murni
+      # CSS (opacity+transform) lewat class `zammad-chat-is-open`,
+      # TIDAK ADA lagi animasi geser posisi manual (`translateY` dari
+      # tinggi panel) seperti sebelumnya -- tidak dibutuhkan lagi
+      # karena panel sekarang SELALU tersembunyi total saat tertutup,
+      # bukan cuma digeser sebagian ke luar layar.
+      @launcherEl.classList.add 'zammad-chat-is-open'
+      @el.addEventListener 'transitionend', @onOpenAnimationEnd
       @el.classList.add 'zammad-chat-is-open'
-      remainerHeight = @el.clientHeight - @el.querySelector('.zammad-chat-header').offsetHeight
-      @el.style.transform = "translateY(#{remainerHeight}px)"
-      # force redraw
-      @el.clientHeight
-
-      if !@sessionId
-        @el.addEventListener 'transitionend', @onOpenAnimationEnd
-        @el.classList.add 'zammad-chat--animate'
-        # force redraw
-        @el.clientHeight
-        # start animation
-        @el.style.transform = ''
-      else
-        @el.style.transform = ''
-        @onOpenAnimationEnd()
 
     # Fase 5 -- Item No. 5 (Auto-Create Ticket). See
     # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.1. Nama & email
@@ -1357,7 +1489,6 @@ do(window) ->
 
     onOpenAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onOpenAnimationEnd
-      @el.classList.remove 'zammad-chat--animate'
       @idleTimeout.stop()
 
       if @isFullscreen
@@ -1382,6 +1513,20 @@ do(window) ->
 
       @setSessionId undefined
 
+    # Atas permintaan user (mockup `Waiting.dc.html` + koreksi "keluar
+    # dari antrian kembali ke home") -- mirror persis dari chat.coffee
+    # (versi jQuery). `sessionClose()` valid dipanggil walau sesi belum
+    # tersambung ke agent (dicek ke `lib/sessions/event/
+    # chat_session_close.rb`), `.zammad-chat-modal` diisi ulang dengan
+    # form pra-chat segar supaya visitor yang buka tab Messages lagi
+    # LEWAT tab bar tidak melihat layar antre lama yang sudah berlaku.
+    cancelQueue: (event) =>
+      event?.preventDefault()
+      @sessionClose()
+      @inQueue = false
+      @showPrechatForm()
+      @switchTab('home')
+
     toggle: (event) =>
       if @isOpen
         @close(event)
@@ -1405,24 +1550,18 @@ do(window) ->
       if @isFullscreen
         @enableScrollOnRoot()
 
-      # close window
-      remainerHeight = @el.clientHeight - @el.querySelector('.zammad-chat-header').offsetHeight
+      # Fase 7 -- lihat komentar sama di open().
+      @launcherEl.classList.remove 'zammad-chat-is-open'
       @el.addEventListener 'transitionend', @onCloseAnimationEnd
-      @el.classList.add 'zammad-chat--animate'
-      # force redraw
-      document.offsetHeight
-      # animate out
-      @el.style.transform = "translateY(#{remainerHeight}px)"
+      @el.classList.remove 'zammad-chat-is-open'
 
     onCloseAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onCloseAnimationEnd
-      @el.classList.remove 'zammad-chat-is-open', 'zammad-chat--animate'
-      @el.style.transform = ''
 
-      @showLoader()
-      @el.querySelector('.zammad-chat-welcome').classList.remove('zammad-chat-is-hidden')
-      @el.querySelector('.zammad-chat-agent').classList.add('zammad-chat-is-hidden')
-      @el.querySelector('.zammad-chat-agent-status').classList.add('zammad-chat-is-hidden')
+      # Revisi desain -- lihat komentar sama di chat.coffee.
+      if !@sessionId
+        @agent = undefined
+        @switchTab('home')
 
       @isOpen = false
       @options.onCloseAnimationEnd?()
@@ -1431,15 +1570,20 @@ do(window) ->
 
     onWebSocketClose: =>
       return if @isOpen
-      if @el
-        @el.classList.remove('zammad-chat-is-shown')
-        @el.classList.remove('zammad-chat-is-loaded')
+      # Fase 7 -- gerbang "tersedia sama sekali" sekarang ada di
+      # @launcherEl (lihat show()), BUKAN @el lagi.
+      if @launcherEl
+        @launcherEl.classList.remove('zammad-chat-is-shown')
+        @launcherEl.classList.remove('zammad-chat-is-loaded')
 
     show: ->
       return if @state is 'offline'
 
-      @el.classList.add('zammad-chat-is-loaded')
-      @el.classList.add('zammad-chat-is-shown')
+      # Fase 7 -- gerbang "widget ini tersedia sama sekali" sekarang
+      # ada di tombol mengambang (@launcherEl). Mirror persis dari
+      # chat.coffee.
+      @launcherEl.classList.add('zammad-chat-is-loaded')
+      @launcherEl.classList.add('zammad-chat-is-shown')
 
     disableInput: ->
       @inputDisabled = true
@@ -1570,6 +1714,7 @@ do(window) ->
 
       if params.remove && @el
         @el.remove()
+        @launcherEl?.remove()
 
         # Remove button, because it can no longer be used.
         btn = document.querySelector(".#{ @options.buttonClass }")
@@ -1603,11 +1748,16 @@ do(window) ->
       @addStatus @T('Connection re-established')
       @options.onConnectionReestablished?()
 
-    onSessionClosed: (data) ->
+    onSessionClosed: (data) =>
       @addStatus @T('Chat closed by %s', data.realname)
       @disableInput()
       @setAgentOnlineState 'offline'
       @inactiveTimeout.stop()
+
+      # Revisi desain -- lihat komentar sama di chat.coffee.
+      @agent = undefined
+      @updateHeader()
+
       @options.onSessionClosed?(data)
 
     setSessionId: (id) =>
@@ -1647,9 +1797,7 @@ do(window) ->
       @enableInput()
 
       @hideModal()
-      @el.querySelector('.zammad-chat-welcome').classList.add('zammad-chat-is-hidden')
-      @el.querySelector('.zammad-chat-agent').classList.remove('zammad-chat-is-hidden')
-      @el.querySelector('.zammad-chat-agent-status').classList.remove('zammad-chat-is-hidden')
+      @updateHeader()
 
       @input.focus() if not @isFullscreen
 

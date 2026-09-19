@@ -183,10 +183,6 @@ do($ = window.jQuery, window) ->
     logPrefix: 'chat'
     _messageCount: 0
     isOpen: false
-    # Jarak dari tepi bawah layar saat jendela terbuka -- HARUS sama
-    # dengan `bottom` di chat.scss (.zammad-chat), supaya animasi
-    # buka/tutup berhenti tepat di posisi yang benar.
-    restingBottom: 20
     blinkOnlineInterval: null
     stopBlinOnlineStateTimeout: null
     showTimeEveryXMinutes: 2
@@ -774,11 +770,21 @@ do($ = window.jQuery, window) ->
       ))
       @options.target.append @el
 
+      # Struktur baru (atas permintaan user): tombol bulat mengambang
+      # TERPISAH dari panel -- SATU-SATUNYA elemen yang tampil saat
+      # widget tertutup (meniru gaya Intercom/Claude), bukan pil header
+      # yang bisa diklik seperti sebelumnya. `@el` (panel) TIDAK
+      # diubah maknanya sama sekali -- tetap `.zammad-chat` seperti
+      # dulu, supaya SEMUA `@el.find(...)` yang sudah ada di file ini
+      # tidak perlu disentuh.
+      @launcherEl = $(@view('launcher')())
+      @options.target.append @launcherEl
+      @launcherEl.on 'click', @toggle
+
       @input = @el.find('.zammad-chat-input')
 
       # start bindings
-      @el.find('.js-chat-open').on 'click', @open
-      @el.find('.js-chat-toggle').on 'click', @toggle
+      @el.find('.js-chat-close').on 'click', @close
       @el.find('.js-chat-status').on 'click', @stopPropagation
       @el.find('.zammad-chat-controls').on 'submit', @onSubmit
       @el.find('.zammad-chat-body').on 'scroll', @detectScrolledtoBottom
@@ -790,9 +796,47 @@ do($ = window.jQuery, window) ->
       @el.find('.zammad-chat-body').on 'click', '.js-message-reply', @startReply
       @el.find('.js-reply-indicator').on 'click', '.js-reply-cancel', @cancelReply
 
+      # Atas permintaan user (mockup `Waiting.dc.html`, koreksi "keluar
+      # dari antrian kembali ke home") -- tombol Batalkan dirender ulang
+      # tiap kali `.zammad-chat-modal` diisi ulang (loader/waiting/dst.,
+      # pola yang sama seperti `.js-reply-cancel` di atas), jadi
+      # didelegasikan dari `.zammad-chat-modal` sendiri (elemen statis).
+      @el.find('.zammad-chat-modal').on 'click', '.js-waiting-cancel', @cancelQueue
+
       # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
       @el.find('.js-chat-attach').on 'click', @triggerAttachmentInput
       @el.find('.js-chat-attachment-input').on 'change', @uploadAttachment
+
+      # Fase 7 -- Widget bergaya tab (Home/Messages/Help). Section 4.2/4.3.
+      # Home & Help TIDAK PUNYA konten dinamis per-sesi (beda dari
+      # `.zammad-chat-modal`, yang diisi ulang tiap state chat berubah)
+      # -- cukup diisi SEKALI di sini, pola yang sama dipakai `.zammad-chat-agent`
+      # (diisi lewat @view() saat kondisinya baru terjadi, bukan tiap render).
+      @el.find('.zammad-chat-tab-body--home').html @view('home')()
+      @el.find('.zammad-chat-tab-body--help').html @view('help')()
+      @el.find('.zammad-chat-tabbar').html @view('tabbar')()
+      @el.find('.js-emoji-picker').html @view('emoji_picker')()
+      @activeTab = 'home'
+      @updateHeader('home')
+
+      # Delegasi (bukan dipasang ulang tiap render) -- tombol tab bar
+      # (statis) & tombol pintasan tab Home (statis) SAMA-SAMA cukup
+      # dikenali lewat atribut `data-tab` (Section 4.1: "reuse switch
+      # tab, bukan event baru").
+      @el.on 'click', '[data-tab]', (event) =>
+        @switchTab $(event.currentTarget).data('tab')
+
+      # Revisi desain (gaya Able Pro) -- ikon smile membuka/menutup
+      # panel emoji; klik satu emoji menyisipkannya ke posisi kursor
+      # terakhir di kotak ketik (`document.execCommand('insertText')`,
+      # BUKAN cuma ditambahkan di akhir -- pola native yang sama dipakai
+      # `document.execCommand('bold')` dkk. di handler richTextControl).
+      @el.find('.js-emoji-toggle').on 'click', @toggleEmojiPicker
+      @el.find('.js-emoji-picker').on 'click', '.js-emoji-item', (event) =>
+        @insertEmoji $(event.currentTarget).data('emoji')
+
+      @el.find('.js-kb-search').on 'input', @onKbSearchInput
+
       @input.on(
         keydown: @checkForEnter
         input: @onInput
@@ -1018,6 +1062,85 @@ do($ = window.jQuery, window) ->
           focus: @onFocus
           focusout: @onFocusOut
 
+    # Fase 7 -- Widget bergaya tab (Home/Messages/Help). Section 4.3.
+    # Toggle class `is-active` -- pola yang SAMA seperti toggle
+    # `zammad-chat-is-hidden` yang sudah dipakai di banyak tempat lain
+    # di widget ini, bukan mekanisme baru.
+    switchTab: (tabName) =>
+      return if @activeTab is tabName
+      @activeTab = tabName
+
+      @el.find('.zammad-chat-tab-body').removeClass('is-active')
+      @el.find(".zammad-chat-tab-body--#{tabName}").addClass('is-active')
+
+      @el.find('.zammad-chat-tabbar-item').removeClass('is-active')
+      @el.find(".zammad-chat-tabbar-item[data-tab='#{tabName}']").addClass('is-active')
+
+      @updateHeader(tabName)
+
+    # Revisi desain (identik referensi Intercom/Claude) -- isi header
+    # BERBEDA per tab: Home gelap dengan sapaan besar, Messages/Help
+    # putih dengan judul polos di tengah -- KECUALI tab Messages saat
+    # ada agent yang sedang menangani (`@agent` terisi, lihat
+    # onConnectionEstablished), header tetap menampilkan info agent
+    # SAMA seperti sebelumnya, apa pun tab yang aktif saat itu terjadi.
+    updateHeader: (tabName) =>
+      tabName ?= @activeTab
+
+      showAgent   = tabName is 'messages' and @agent?
+      showWelcome = tabName is 'home' and !showAgent
+      showTitle   = !showWelcome and !showAgent
+
+      @el.find('.zammad-chat-header').toggleClass('zammad-chat-header--tinted', showWelcome)
+      @el.find('.zammad-chat-welcome').toggleClass('zammad-chat-is-hidden', !showWelcome)
+      @el.find('.zammad-chat-agent').toggleClass('zammad-chat-is-hidden', !showAgent)
+      @el.find('.zammad-chat-agent-status').toggleClass('zammad-chat-is-hidden', !showAgent)
+      @el.find('.zammad-chat-header-title').toggleClass('zammad-chat-is-hidden', !showTitle)
+
+      if showTitle
+        title = if tabName is 'help' then @T('Help') else @T('Messages')
+        @el.find('.js-header-title-text').text(title)
+
+    # Revisi desain (gaya Able Pro) -- panel emoji, sama seperti
+    # `.zammad-chat-modal` yang lain: TIDAK disembunyikan/ditampilkan
+    # ulang tiap kali, cukup toggle `zammad-chat-is-hidden` (isinya
+    # statis, dirender sekali di renderBase).
+    toggleEmojiPicker: (event) =>
+      event?.preventDefault()
+      @el.find('.js-emoji-picker').toggleClass('zammad-chat-is-hidden')
+
+    insertEmoji: (emoji) =>
+      @input.trigger('focus')
+      document.execCommand('insertText', false, emoji)
+      @el.find('.js-emoji-picker').addClass('zammad-chat-is-hidden')
+      @onInput()
+
+    # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
+    # pola timer yang sama dipakai `onAgentTypingStart` (@stopTypingId)
+    # -- supaya tidak kirim event WebSocket di SETIAP keystroke.
+    onKbSearchInput: (event) =>
+      query = $(event.currentTarget).val()?.trim() || ''
+
+      if @kbSearchDelayId
+        clearTimeout(@kbSearchDelayId)
+
+      @kbSearchDelayId = setTimeout((=>
+        @send 'chat_knowledge_base_search',
+          query: query
+      ), 400)
+
+    onKnowledgeBaseSearchResult: (data) =>
+      results = @el.find('.zammad-chat-kb-results')
+      results.empty()
+
+      if !data.result || data.result.length is 0
+        @el.find('.zammad-chat-kb-empty').removeClass('zammad-chat-is-hidden')
+        return
+
+      @el.find('.zammad-chat-kb-empty').addClass('zammad-chat-is-hidden')
+      for item in data.result
+        results.append @view('kb_result')(item)
+
     stopPropagation: (event) ->
       event.stopPropagation()
 
@@ -1068,6 +1191,8 @@ do($ = window.jQuery, window) ->
             @onSessionClosed pipe.data
           when 'chat_session_notice'
             @addStatus @T(pipe.data.message)
+          when 'chat_knowledge_base_search'
+            @onKnowledgeBaseSearchResult pipe.data
           when 'chat_status_customer'
             switch pipe.data.state
               when 'online'
@@ -1314,24 +1439,32 @@ do($ = window.jQuery, window) ->
       @log.debug 'open widget'
       @show()
 
-      if !@sessionId
+      if @sessionId
+        # Fase 7 -- ada sesi chat yang sedang berjalan (reconnect) --
+        # langsung ke tab Messages supaya visitor tidak kehilangan
+        # percakapannya sendiri di balik tab Home. Section 4.3.
+        @switchTab('messages')
+      else
+        # Revisi desain (gaya Able Pro) -- form pra-chat (nama+email)
+        # langsung mengisi `.zammad-chat-modal` di sini, SEBELUM
+        # visitor pindah ke tab Messages -- bukan menunggu klik tombol
+        # tersendiri. Kalau nanti visitor pindah tab (lewat tombol Home
+        # ATAU tab bar), tab Messages SUDAH berisi form ini, tidak perlu
+        # mekanisme "status kosong" terpisah lagi.
         @showPrechatForm()
 
+      # Fase 7 -- struktur baru "tombol bulat mengambang + panel
+      # terpisah" (atas permintaan user, meniru gaya Intercom/Claude) --
+      # panel (@el) dan tombol (@launcherEl) SAMA-SAMA cukup diberi
+      # class `zammad-chat-is-open`, transisi tampil/sembunyi (opacity+
+      # transform) MURNI CSS lewat class ini (lihat chat.scss), TIDAK
+      # ADA lagi animasi geser posisi `bottom` manual seperti
+      # sebelumnya -- tidak dibutuhkan lagi karena panel sekarang
+      # SELALU tersembunyi total saat tertutup (bukan menyisakan
+      # header mengambang), bukan cuma digeser sebagian ke luar layar.
+      @launcherEl.addClass('zammad-chat-is-open')
       @el.addClass('zammad-chat-is-open')
-
-      remainerHeight = @el.height() - @el.find('.zammad-chat-header').outerHeight()
-
-      # Fase 5 -- jarak dari tepi bawah (@restingBottom, sesuai
-      # `bottom: 20px` di chat.scss) dipertahankan konsisten saat
-      # animasi buka/tutup, bukan menempel pas ke tepi (0) seperti
-      # sebelumnya.
-      @el.css 'bottom', @restingBottom - remainerHeight
-
-      if !@sessionId
-        @el.animate { bottom: @restingBottom }, 500, @onOpenAnimationEnd
-      else
-        @el.css 'bottom', @restingBottom
-        @onOpenAnimationEnd()
+      @el.one('transitionend', @onOpenAnimationEnd)
 
     # Fase 5 -- Item No. 5 (Auto-Create Ticket). See
     # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.1. Nama & email
@@ -1393,6 +1526,29 @@ do($ = window.jQuery, window) ->
 
       @setSessionId undefined
 
+    # Atas permintaan user (mockup `Waiting.dc.html` + koreksi "keluar
+    # dari antrian kembali ke home") -- klik tombol Batalkan saat masih
+    # di antrean (baik `loader.eco` maupun `waiting.eco`, KEDUANYA
+    # sama-sama status "sudah masuk antrean" sejak `chat_session_init`
+    # terkirim, lihat `showLoader()`). `sessionClose()` SUDAH menangani
+    # sisi backend (event `chat_session_close`, valid utk sesi yang
+    # BELUM tersambung ke agent juga -- dicek ke
+    # `lib/sessions/event/chat_session_close.rb`: cukup set
+    # `state: 'closed'` + broadcast posisi antrean ke sesi lain yang
+    # masih menunggu, tidak mengasumsikan ada agent) + reset timer +
+    # sessionId. Ditambahkan di sini: reset `@inQueue` (dicek di tempat
+    # lain utk tahu status sedang antre atau tidak) + `.zammad-chat-modal`
+    # diisi ULANG dengan form pra-chat segar (bukan dibiarkan berisi
+    # layar antre basi -- kalau visitor nanti buka tab Messages lagi
+    # LEWAT tab bar, bukan lewat tombol Home, tanpa ini mereka akan
+    # melihat layar antre lama yang sudah tidak berlaku).
+    cancelQueue: (event) =>
+      event?.preventDefault()
+      @sessionClose()
+      @inQueue = false
+      @showPrechatForm()
+      @switchTab('home')
+
     toggle: (event) =>
       if @isOpen
         @close(event)
@@ -1416,18 +1572,22 @@ do($ = window.jQuery, window) ->
       if @isFullscreen
         @enableScrollOnRoot()
 
-      # close window
-      remainerHeight = @el.height() - @el.find('.zammad-chat-header').outerHeight()
-      @el.animate { bottom: -remainerHeight }, 500, @onCloseAnimationEnd
-
-    onCloseAnimationEnd: =>
-      @el.css 'bottom', ''
+      # Fase 7 -- lihat komentar sama di open().
+      @launcherEl.removeClass('zammad-chat-is-open')
+      @el.one('transitionend', @onCloseAnimationEnd)
       @el.removeClass('zammad-chat-is-open')
 
-      @showLoader()
-      @el.find('.zammad-chat-welcome').removeClass('zammad-chat-is-hidden')
-      @el.find('.zammad-chat-agent').addClass('zammad-chat-is-hidden')
-      @el.find('.zammad-chat-agent-status').addClass('zammad-chat-is-hidden')
+    onCloseAnimationEnd: =>
+      # Revisi desain -- balik ke tab Home HANYA kalau memang tidak ada
+      # sesi yang sedang berjalan/menunggu (`@sessionId` kosong) --
+      # kalau ADA, biarkan tab Messages+modal apa adanya, reconnect
+      # nanti akan mengembalikan tampilan yang benar sendiri lewat
+      # onQueueScreen/onConnectionEstablished. Modal tidak perlu
+      # ditimpa apa pun di sini -- `open()` berikutnya akan mengisi
+      # ulang form pra-chat dari awal kalau memang belum ada sesi.
+      if !@sessionId
+        @agent = undefined
+        @switchTab('home')
 
       @isOpen = false
       @options.onCloseAnimationEnd?()
@@ -1436,16 +1596,22 @@ do($ = window.jQuery, window) ->
 
     onWebSocketClose: =>
       return if @isOpen
-      if @el
-        @el.removeClass('zammad-chat-is-shown')
-        @el.removeClass('zammad-chat-is-loaded')
+      # Fase 7 -- gerbang "tersedia sama sekali" sekarang ada di
+      # @launcherEl (lihat show()), BUKAN @el lagi.
+      if @launcherEl
+        @launcherEl.removeClass('zammad-chat-is-shown')
+        @launcherEl.removeClass('zammad-chat-is-loaded')
 
     show: ->
       return if @state is 'offline'
 
-      @el.addClass('zammad-chat-is-loaded')
+      # Fase 7 -- gerbang "widget ini tersedia sama sekali" sekarang
+      # ada di tombol mengambang (@launcherEl), bukan di panel (@el
+      # lagi) -- panel sendiri tampil/sembunyi murni lewat
+      # `zammad-chat-is-open` (lihat open()/close()).
+      @launcherEl.addClass('zammad-chat-is-loaded')
 
-      @el.addClass('zammad-chat-is-shown')
+      @launcherEl.addClass('zammad-chat-is-shown')
 
     disableInput: ->
       @inputDisabled = true
@@ -1575,6 +1741,7 @@ do($ = window.jQuery, window) ->
 
       if params.remove && @el
         @el.remove()
+        @launcherEl?.remove()
         # Remove button, because it can no longer be used.
         $(".#{ @options.buttonClass }").hide()
 
@@ -1605,11 +1772,19 @@ do($ = window.jQuery, window) ->
       @addStatus @T('Connection re-established')
       @options.onConnectionReestablished?()
 
-    onSessionClosed: (data) ->
+    onSessionClosed: (data) =>
       @addStatus @T('Chat closed by %s', data.realname)
       @disableInput()
       @setAgentOnlineState 'offline'
       @inactiveTimeout.stop()
+
+      # Revisi desain -- header tab Messages balik ke judul polos
+      # "Messages" (bukan tetap menampilkan nama agent dari sesi yang
+      # SUDAH berakhir) begitu sesi ditutup, tanpa perlu tunggu ganti
+      # tab dulu.
+      @agent = undefined
+      @updateHeader()
+
       @options.onSessionClosed?(data)
 
     setSessionId: (id) =>
@@ -1647,9 +1822,7 @@ do($ = window.jQuery, window) ->
       @enableInput()
 
       @hideModal()
-      @el.find('.zammad-chat-welcome').addClass('zammad-chat-is-hidden')
-      @el.find('.zammad-chat-agent').removeClass('zammad-chat-is-hidden')
-      @el.find('.zammad-chat-agent-status').removeClass('zammad-chat-is-hidden')
+      @updateHeader()
 
       @input.trigger('focus') if not @isFullscreen
 

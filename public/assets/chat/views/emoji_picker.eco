@@ -1,0 +1,21 @@
+<div class="zammad-chat-emoji-picker-title"><%- @T('Emoji') %></div>
+<div class="zammad-chat-emoji-picker-grid">
+  <span class="js-emoji-item" data-emoji="😀">😀</span>
+  <span class="js-emoji-item" data-emoji="😂">😂</span>
+  <span class="js-emoji-item" data-emoji="😍">😍</span>
+  <span class="js-emoji-item" data-emoji="😊">😊</span>
+  <span class="js-emoji-item" data-emoji="🙏">🙏</span>
+  <span class="js-emoji-item" data-emoji="👍">👍</span>
+  <span class="js-emoji-item" data-emoji="👋">👋</span>
+  <span class="js-emoji-item" data-emoji="❤️">❤️</span>
+  <span class="js-emoji-item" data-emoji="😢">😢</span>
+  <span class="js-emoji-item" data-emoji="😮">😮</span>
+  <span class="js-emoji-item" data-emoji="🎉">🎉</span>
+  <span class="js-emoji-item" data-emoji="🔥">🔥</span>
+  <span class="js-emoji-item" data-emoji="✅">✅</span>
+  <span class="js-emoji-item" data-emoji="💡">💡</span>
+  <span class="js-emoji-item" data-emoji="🤔">🤔</span>
+  <span class="js-emoji-item" data-emoji="👌">👌</span>
+  <span class="js-emoji-item" data-emoji="🙌">🙌</span>
+  <span class="js-emoji-item" data-emoji="😎">😎</span>
+</div>

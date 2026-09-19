@@ -1,10 +1,25 @@
-<div class="zammad-chat-modal-text">
+<div class="zammad-chat-prechat">
+  <div class="zammad-chat-prechat-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+  </div>
+  <div class="zammad-chat-prechat-title"><%- @T('Let\'s get started') %></div>
+  <div class="zammad-chat-prechat-subtext"><%- @T('Please share a few details so our agent can help you faster.') %></div>
+
   <form class="zammad-chat-prechat-form">
     <% if @error: %>
       <div class="zammad-chat-prechat-error"><%- @error %></div>
     <% end %>
-    <input type="text" class="zammad-chat-prechat-name" placeholder="<%- @T('Your name') %>" value="<%- @name || '' %>" required>
-    <input type="email" class="zammad-chat-prechat-email" placeholder="<%- @T('Your email') %>" value="<%- @email || '' %>" required>
-    <button type="submit" class="zammad-chat-button zammad-chat-prechat-submit"<%= " style='background: #{ @background }'" if @background %>><%- @T('Start chat') %></button>
+    <div class="zammad-chat-prechat-field">
+      <label><%- @T('Your name') %></label>
+      <input type="text" class="zammad-chat-prechat-name" value="<%- @name || '' %>" required>
+    </div>
+    <div class="zammad-chat-prechat-field">
+      <label><%- @T('Your email') %></label>
+      <input type="email" class="zammad-chat-prechat-email" value="<%- @email || '' %>" required>
+    </div>
+    <button type="submit" class="zammad-chat-prechat-submit">
+      <span><%- @T('Start chat') %></span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
   </form>
 </div>

@@ -20,6 +20,22 @@ class ChatAttachmentsController < ApplicationController
   # cookie (visitor chat tidak pernah punya sesi Zammad sama sekali).
   skip_before_action :verify_csrf_token
 
+  # Fase 7 -- celah CORS ditemukan saat riset (lihat
+  # docs/DESIGN_WIDGET_HOME_MESSAGES_HELP.md Section 2.2/5.4).
+  # `ApplicationController::SetsHeaders#set_access_control_headers`
+  # (sudah otomatis ke-include lewat ApplicationController) HANYA
+  # mengirim header CORS untuk request ber-autentikasi token/basic --
+  # visitor chat anonim (TIDAK PERNAH login, lihat komentar di atas)
+  # sama sekali tidak dapat header ini, jadi browser MEMBLOKIR
+  # response-nya kalau widget ditempel di domain lain (beda origin
+  # dari server SISKA, kondisi produksi sebenarnya). `cors_preflight_check`
+  # (before_action) sendiri SUDAH otomatis ter-include & sudah cukup
+  # untuk preflight OPTIONS -- yang kurang cuma header di response
+  # SESUNGGUHNYA (GET/POST). Mengikuti preseden native
+  # `FormController` (endpoint publik/anonim lain yang sudah benar):
+  # override tanpa syarat lewat `set_access_control_headers_execute`.
+  after_action :set_access_control_headers_execute
+
   # `authentication_check_only` (BUKAN `authenticate_and_authorize!`)
   # -- MENCOBA resolusi user kalau ada kredensial valid (token/sesi
   # agent), tapi TIDAK memaksa gagal kalau tidak ada sama sekali
