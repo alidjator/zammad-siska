@@ -1,11 +1,4 @@
 <div class="zammad-chat-message zammad-chat-message--<%= @from %><%= @unreadClass %>"<% if @id: %> data-message-id="<%= @id %>"<% end %>>
-  <span class="zammad-chat-message-body"<%= " style='background: #{ @background }'" if @background and @from is 'customer' %>>
-    <% if @replyTo: %>
-      <span class="zammad-chat-message-quote"><%= @replyTo.substr(0, 80) %></span>
-    <% end %>
-    <%- @message %>
-    <% if @id: %>
-      <span class="zammad-chat-message-reply js-message-reply">&#8617;</span>
-    <% end %>
-  </span>
+  <span class="zammad-chat-message-avatar"><%= @avatarInitials %></span>
+  <span class="zammad-chat-message-content"><span class="zammad-chat-message-body"<%= " style='background: #{ @background }'" if @background and @from is 'customer' %>><% if @replyTo: %><span class="zammad-chat-message-quote"><%= @replyTo.substr(0, 80) %></span><% end %><%- @message %><% if @from is 'agent' and @id: %><span class="zammad-chat-message-reply js-message-reply"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></span><% end %></span><span class="zammad-chat-message-time"><%= @time %></span></span>
 </div>

@@ -129,10 +129,9 @@
 
 .zammad-chat-header {
   position: relative;
-  padding: 0 16px;
+  padding: 14px 16px;
   background: white;
   color: #141413;
-  height: 42px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -243,10 +242,42 @@
   gap: 10px;
 }
 
+.zammad-chat-agent-avatar-wrap {
+  position: relative;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+
 .zammad-chat-agent-avatar {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   border-radius: 100%;
   width: 38px;
   height: 38px;
+}
+
+.zammad-chat-agent-avatar--initials {
+  background: rgba(70, 128, 255, 0.08);
+  color: #4680ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.zammad-chat-agent-sentence {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
 }
 
 .zammad-chat-agent-name {
@@ -254,36 +285,28 @@
   font-size: 14px;
 }
 
+.zammad-chat-agent-subtext {
+  font-size: 11px;
+  color: #5b6b79;
+}
+
 .zammad-chat-agent-status {
-  margin: 0 7px 0 0;
-  display: inline-block;
-  line-height: 24px;
-  padding: 0 8px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
-}
-
-.zammad-chat-agent-status::before {
-  content: "";
-  background: #dc2626;
-  display: inline-block;
-  height: 10px;
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
   width: 10px;
+  height: 10px;
   border-radius: 100%;
-  position: relative;
-  margin-right: 4px;
-  vertical-align: middle;
-  -webkit-box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04) inset;
+  background: #dc2626;
+  border: 2px solid white;
+  font-size: 0;
 }
 
-.zammad-chat-agent-status[data-status=online]::before {
+.zammad-chat-agent-status[data-status=online] {
   background: #2ca87f;
 }
 
-.zammad-chat-agent-status[data-status=connecting]::before {
+.zammad-chat-agent-status[data-status=connecting] {
   -webkit-animation: linear connect-fade 600ms infinite alternate;
   animation: linear connect-fade 600ms infinite alternate;
   background: #e58a00;
@@ -407,13 +430,88 @@
 }
 
 .zammad-chat-message {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 82%;
   margin: 4px 0;
+}
+
+.zammad-chat-message--customer {
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: reverse;
+  -ms-flex-direction: row-reverse;
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.zammad-chat-message-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(70, 128, 255, 0.08);
+  color: #4680ff;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-avatar {
+  background: #e8ebee;
+  color: #5b6b79;
+}
+
+.zammad-chat-message-content {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-content {
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+}
+
+.zammad-chat-message-time {
+  font-size: 10.5px;
+  color: #5b6b79;
+  margin-top: 4px;
+  margin-left: 2px;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-time {
+  margin-left: 0;
+  margin-right: 2px;
 }
 
 .zammad-chat-message-body {
   white-space: pre-line;
   overflow-wrap: break-word;
   border-radius: 8px;
+  min-width: 0;
 }
 
 .zammad-chat-status-inner,
@@ -423,7 +521,6 @@
   font-size: 14px;
   background: white;
   display: inline-block;
-  max-width: 70%;
   -webkit-box-shadow: none;
   box-shadow: none;
 }
@@ -433,10 +530,7 @@
   border-radius: 8px;
   font-size: 13px;
   color: #5b6b79;
-}
-
-.zammad-chat-message--customer {
-  text-align: right;
+  max-width: 70%;
 }
 
 .zammad-chat-message--customer + .zammad-chat-message--agent,
@@ -450,7 +544,7 @@
 }
 
 .zammad-chat-message--unread {
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .zammad-chat-message--typing .zammad-chat-message-body {
@@ -509,13 +603,14 @@
 .zammad-chat-controls {
   overflow: visible;
   display: none;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  gap: 8px;
   border-top: 1px solid #e8ebee;
-  padding: 0 4px;
+  padding: 10px 12px 12px;
   margin: 0;
-  line-height: 20px;
   position: relative;
   background: white;
 }
@@ -528,8 +623,12 @@
 
 .zammad-chat-input {
   margin: 0;
-  padding: 8px;
-  float: left;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid #e8ebee;
+  border-radius: 12px;
+  padding: 10px 14px;
   max-height: 96px;
   min-height: 20px;
   font-family: inherit;
@@ -538,28 +637,39 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border: none;
-  background: none;
+  background: white;
   -webkit-box-shadow: none;
   box-shadow: none;
-  -webkit-box-sizing: content-box;
-  box-sizing: content-box;
   outline: none;
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
   overflow: auto;
+  -webkit-transition: border-color 100ms ease;
+  -o-transition: border-color 100ms ease;
+  transition: border-color 100ms ease;
+}
+.zammad-chat-input:focus {
+  border: 2px solid #4680ff;
+  padding: 9px 13px;
 }
 
-.zammad-chat-input::-webkit-input-placeholder {
+.zammad-chat-input:empty::before {
+  content: attr(placeholder);
   color: #5b6b79;
+  pointer-events: none;
 }
 
 .zammad-chat-is-hidden {
   display: none;
 }
 
-.zammad-chat-send,
+.zammad-chat-controls-icons {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
 .zammad-chat-emoji-toggle,
 .zammad-chat-attach {
   display: -webkit-box;
@@ -573,9 +683,8 @@
   justify-content: center;
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  margin: 6px 0;
+  width: 30px;
+  height: 30px;
   padding: 0;
   border: none;
   border-radius: 8px;
@@ -588,27 +697,15 @@
   -webkit-box-shadow: none;
   box-shadow: none;
   font-family: inherit;
-  -ms-flex-item-align: center;
-  align-self: center;
 }
-.zammad-chat-send svg,
 .zammad-chat-emoji-toggle svg,
 .zammad-chat-attach svg {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
-.zammad-chat-send:hover,
 .zammad-chat-emoji-toggle:hover,
 .zammad-chat-attach:hover {
   background: #f8f9fa;
-}
-
-.zammad-chat-send {
-  margin-right: 6px;
-  color: #4680ff;
-}
-.zammad-chat-send svg {
-  fill: currentColor;
 }
 
 .zammad-chat-emoji-toggle {
@@ -617,6 +714,56 @@
 .zammad-chat-emoji-toggle svg {
   fill: none;
   stroke: currentColor;
+}
+.zammad-chat-emoji-toggle.is-active {
+  background: #f8f9fa;
+  color: #4680ff;
+}
+
+.zammad-chat-attach {
+  color: #5b6b79;
+}
+.zammad-chat-attach svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-send {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #4680ff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  font-family: inherit;
+}
+.zammad-chat-send svg {
+  width: 15px;
+  height: 15px;
+  fill: white;
+}
+.zammad-chat-send:hover {
+  -webkit-filter: brightness(0.92);
+  filter: brightness(0.92);
 }
 
 .zammad-chat-input:disabled {
@@ -676,13 +823,6 @@
   # Fase 5 -- Live Chat Enhancement (Item No. 5 & 6, reply-to-message).
   # See docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.
 */
-.zammad-chat-attach {
-  color: #5b6b79;
-}
-.zammad-chat-attach svg {
-  fill: currentColor;
-}
-
 .zammad-chat-attachment {
   display: -webkit-inline-box;
   display: -ms-inline-flexbox;
@@ -713,6 +853,8 @@
   position: absolute;
   top: 2px;
   right: 4px;
+  width: 13px;
+  height: 13px;
   opacity: 0.5;
   cursor: pointer;
   -webkit-transition: opacity 150ms;
@@ -720,10 +862,10 @@
   transition: opacity 150ms;
   color: #5b6b79;
 }
-
-.zammad-chat-message--customer .zammad-chat-message-reply {
-  right: auto;
-  left: 4px;
+.zammad-chat-message-reply svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .zammad-chat-message:hover .zammad-chat-message-reply {

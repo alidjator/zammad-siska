@@ -759,6 +759,10 @@ do($ = window.jQuery, window) ->
 
       # get current chat status
       @sessionId = sessionStorage.getItem('sessionId')
+      # dipulihkan bersamaan dgn sessionId (lihat submitPrechatForm) --
+      # dibutuhkan `onReopenSession` utk avatar inisial pesan customer
+      # sendiri saat riwayat percakapan dimuat ulang setelah reconnect.
+      @customerName = sessionStorage.getItem('customerName')
       @send 'chat_status_customer',
         session_id: @sessionId
         url: window.location.href
@@ -785,7 +789,14 @@ do($ = window.jQuery, window) ->
 
       # start bindings
       @el.find('.js-chat-close').on 'click', @close
-      @el.find('.js-chat-status').on 'click', @stopPropagation
+      # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
+      # (dot online di avatar) -- dirender ULANG setiap
+      # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal.
+      # Didelegasikan dari `.zammad-chat-agent` (elemen statis, SELALU
+      # ada meski masih kosong) supaya tetap kena walau isinya diganti
+      # berkali-kali -- binding langsung di sini TIDAK AKAN PERNAH kena
+      # elemen yang baru dirender belakangan.
+      @el.find('.zammad-chat-agent').on 'click', '.js-chat-status', @stopPropagation
       @el.find('.zammad-chat-controls').on 'submit', @onSubmit
       @el.find('.zammad-chat-body').on 'scroll', @detectScrolledtoBottom
       @el.find('.zammad-scroll-hint').on 'click', @onScrollHintClick
@@ -1093,8 +1104,12 @@ do($ = window.jQuery, window) ->
 
       @el.find('.zammad-chat-header').toggleClass('zammad-chat-header--tinted', showWelcome)
       @el.find('.zammad-chat-welcome').toggleClass('zammad-chat-is-hidden', !showWelcome)
+      # `.zammad-chat-agent-status` (dot online) sekarang dirender SEBAGAI
+      # BAGIAN dari `.zammad-chat-agent` (views/agent.eco, di dalam
+      # avatar) -- toggle induknya saja sudah cukup, tidak perlu
+      # ditoggle terpisah lagi.
       @el.find('.zammad-chat-agent').toggleClass('zammad-chat-is-hidden', !showAgent)
-      @el.find('.zammad-chat-agent-status').toggleClass('zammad-chat-is-hidden', !showAgent)
+      @el.find('.js-chat-info').toggleClass('zammad-chat-is-hidden', !showAgent)
       @el.find('.zammad-chat-header-title').toggleClass('zammad-chat-is-hidden', !showTitle)
 
       if showTitle
@@ -1108,11 +1123,13 @@ do($ = window.jQuery, window) ->
     toggleEmojiPicker: (event) =>
       event?.preventDefault()
       @el.find('.js-emoji-picker').toggleClass('zammad-chat-is-hidden')
+      @el.find('.js-emoji-toggle').toggleClass('is-active')
 
     insertEmoji: (emoji) =>
       @input.trigger('focus')
       document.execCommand('insertText', false, emoji)
       @el.find('.js-emoji-picker').addClass('zammad-chat-is-hidden')
+      @el.find('.js-emoji-toggle').removeClass('is-active')
       @onInput()
 
     # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
@@ -1242,11 +1259,40 @@ do($ = window.jQuery, window) ->
       if data.agent
         @onConnectionEstablished(data)
 
+        # Bug ditemukan lewat laporan user (hard refresh Ctrl+Shift+R
+        # -> avatar & jam pesan hilang dari SEMUA riwayat percakapan) --
+        # dua field ini (`avatarInitials`, `time`) ditambahkan ke
+        # `sendMessage`/`receiveMessage` (entri 124-125) TAPI TERLEWAT
+        # di jalur riwayat/reconnect ini -- titik ke-3 yang merender
+        # `message.eco`, tidak ikut ke-update sebelumnya.
         for message in data.session
+          isAgentMessage = !!message.created_by_id
           @renderMessage
             message: message.content
             id: message.id
-            from: if message.created_by_id then 'agent' else 'customer'
+            from: if isAgentMessage then 'agent' else 'customer'
+            avatarInitials: @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
+            time: @formatTime(message.created_at)
+            # Bug ke-3 ditemukan lewat laporan user (screenshot: kutipan
+            # "Membalas: ..." hilang dari bubble setelah reload) --
+            # `replyTo` TIDAK PERNAH disertakan sama sekali di loop ini
+            # (beda dari `receiveMessage` yg sudah pakai `data.message.
+            # reply_to?.content` sejak Fase 5). Backend
+            # (`Chat::Session.messages_by_session_id`) SEKARANG JUGA
+            # menyertakan `reply_to.content` (lihat
+            # `app/models/chat/session.rb`), field ini tinggal dipakai.
+            replyTo: message.reply_to?.content
+
+          # Bug ke-2 ditemukan lewat simulasi LANGSUNG diminta user
+          # (hard refresh lalu klik ikon reply) -- ikon reply TETAP
+          # tampil (markup-nya tidak bergantung ke ini) tapi TIDAK
+          # BERFUNGSI SAMA SEKALI setelah reload: `startReply` cuma
+          # baca `@agentMessagesById[messageId]` (diisi HANYA oleh
+          # `receiveMessage`, jalur real-time), balik `undefined` utk
+          # SEMUA pesan hasil replay riwayat ini -> `return if
+          # !message` diam-diam gagal tanpa error apa pun. Diisi juga
+          # di sini, sama persis dgn yang dilakukan `receiveMessage`.
+          @agentMessagesById[message.id] = message if isAgentMessage and message.id
 
         if unfinishedMessage
           @input.html(unfinishedMessage)
@@ -1315,6 +1361,8 @@ do($ = window.jQuery, window) ->
         id: @_messageCount++
         unreadClass: ''
         replyTo: replyToSnippet
+        avatarInitials: @initialsOf(@customerName)
+        time: @formatTime()
 
       @maybeAddTimestamp()
 
@@ -1357,6 +1405,8 @@ do($ = window.jQuery, window) ->
         id: data.message.id
         from: 'agent'
         replyTo: data.message.reply_to?.content
+        avatarInitials: @initialsOf(@agent?.name)
+        time: @formatTime(data.message.created_at)
 
       @scrollToBottom showHint: true
 
@@ -1493,6 +1543,21 @@ do($ = window.jQuery, window) ->
           name:  name
           email: email
         return
+
+      # Dipakai lagi nanti utk avatar inisial di bubble pesan sendiri
+      # (views/message.eco) -- tidak pernah disimpan sebelumnya, cuma
+      # dikirim ke server & dibuang. Disimpan JUGA ke `sessionStorage`
+      # (pola sama dgn `sessionId`) -- bug ditemukan lewat laporan user
+      # (hard refresh Ctrl+Shift+R menghilangkan avatar & jam pesan):
+      # `@customerName` cuma variabel JS di memori, HILANG total saat
+      # reload, padahal `onReopenSession` (riwayat pesan setelah
+      # reconnect) butuh nama ini utk avatar inisial pesan customer
+      # sendiri -- server sendiri TIDAK PERNAH mengirim balik nama
+      # customer di payload reconnect (dicek ke
+      # `Chat#customer_state`), jadi HARUS disimpan sendiri di sisi
+      # client.
+      @customerName = name
+      sessionStorage.setItem 'customerName', name
 
       @showLoader()
       @send('chat_session_init'
@@ -1810,6 +1875,7 @@ do($ = window.jQuery, window) ->
 
       @el.find('.zammad-chat-agent').html @view('agent')
         agent: @agent
+        initials: @initialsOf(@agent?.name)
 
       # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
       # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
@@ -1852,6 +1918,31 @@ do($ = window.jQuery, window) ->
 
     showLoader: ->
       @el.find('.zammad-chat-modal').html @view('loader')()
+
+    # Atas permintaan user (mockup `Messages.dc.html`) -- avatar
+    # inisial dipakai di header (agent.eco) MAUPUN di tiap bubble pesan
+    # (message.eco). Dihitung SEKALI di sini (bukan diduplikasi di tiap
+    # tempat) -- 2 kata pertama, huruf awal masing-masing, huruf besar.
+    initialsOf: (name) ->
+      return '' if !name
+      parts = name.trim().split(/\s+/)
+      ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
+
+    # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
+    # per chat") -- jam kecil di bawah TIAP bubble pesan (dulu HANYA
+    # ada satu pembagi tanggal/jam per hari/jeda lama, lihat
+    # `maybeAddTimestamp`, TIDAK PERNAH per-pesan). Format "HH:MM"
+    # SAMA persis dgn yang sudah dipakai pembagi tanggal itu
+    # (`toTimeString().substr(0,5)`), supaya konsisten satu gaya jam di
+    # seluruh widget -- bukan format baru. `isoString` opsional: pesan
+    # AGENT dari server sudah bawa `created_at` asli (`chat_message.
+    # attributes`, lib/sessions/event/chat_session_message.rb) --
+    # dipakai itu, BUKAN jam klik lokal (bisa meleset kalau ada
+    # latency). Pesan CUSTOMER sendiri (render lokal instan, sebelum
+    # respons server) tidak punya itu -- fallback ke jam saat ini.
+    formatTime: (isoString) ->
+      date = if isoString then new Date(isoString) else new Date()
+      date.toTimeString().substr(0, 5)
 
     setAgentOnlineState: (state) =>
       @state = state

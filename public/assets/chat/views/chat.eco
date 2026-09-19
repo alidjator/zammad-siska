@@ -8,7 +8,9 @@
     </div>
     <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>
     <div class="zammad-chat-header-controls">
-      <span class="zammad-chat-agent-status zammad-chat-is-hidden js-chat-status" data-status="online"></span>
+      <button type="button" class="zammad-chat-header-icon zammad-chat-is-hidden js-chat-info" aria-label="<%- @T('Info') %>">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.9" fill="currentColor" stroke="none"/></svg>
+      </button>
       <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="<%- @T('Close') %>">
         <svg class="zammad-chat-header-icon-close" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
       </button>
@@ -26,17 +28,19 @@
     <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>
     <form class="zammad-chat-controls">
       <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>
-      <div class="zammad-chat-emoji-toggle js-emoji-toggle">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.9" fill="currentColor" stroke="none"/></svg>
-      </div>
-      <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">
-        <svg width="16" height="16" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
-      </div>
-      <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">
       <div class="zammad-chat-input" rows="1" placeholder="<%- @T('Compose your message…') %>" contenteditable="true"></div>
-      <button type="submit" class="zammad-chat-send" aria-label="<%- @T('Send') %>"<%= " style='color: #{ @background }'" if @background %>>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-      </button>
+      <div class="zammad-chat-controls-icons">
+        <div class="zammad-chat-emoji-toggle js-emoji-toggle">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.9" fill="currentColor" stroke="none"/></svg>
+        </div>
+        <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6"/></svg>
+        </div>
+        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">
+        <button type="submit" class="zammad-chat-send" aria-label="<%- @T('Send') %>"<%= " style='background: #{ @background }'" if @background %>>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+        </button>
+      </div>
     </form>
   </div>
 

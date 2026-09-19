@@ -763,6 +763,9 @@ do(window) ->
 
       # get current chat status
       @sessionId = sessionStorage.getItem('sessionId')
+      # dipulihkan bersamaan dgn sessionId -- dibutuhkan
+      # `onReopenSession` utk avatar inisial pesan customer sendiri.
+      @customerName = sessionStorage.getItem('customerName')
       @send 'chat_status_customer',
         session_id: @sessionId
         url: window.location.href
@@ -790,7 +793,18 @@ do(window) ->
 
       # start bindings
       @el.querySelector('.js-chat-close').addEventListener('click', @close)
-      @el.querySelector('.js-chat-status').addEventListener('click', @stopPropagation)
+      # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
+      # (dot online di avatar) -- dirender ULANG setiap
+      # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal
+      # (beda dari sebelumnya). Binding LANGSUNG di sini akan CRASH
+      # (`querySelector` balik `null`) krn elemen belum ada saat
+      # `renderBase()` jalan -- didelegasikan dari `.zammad-chat-agent`
+      # (elemen statis, SELALU ada meski masih kosong), pola manual yg
+      # sama dgn delegasi `[data-tab]`/`.js-waiting-cancel`.
+      @el.querySelector('.zammad-chat-agent').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-chat-status')
+        return if !target
+        @stopPropagation(event)
       @el.querySelector('.zammad-chat-controls').addEventListener('submit', @onSubmit)
       @body.addEventListener('scroll', @detectScrolledtoBottom)
       @el.querySelector('.zammad-scroll-hint').addEventListener('click', @onScrollHintClick)
@@ -892,8 +906,15 @@ do(window) ->
 
       @el.querySelector('.zammad-chat-header').classList.toggle('zammad-chat-header--tinted', showWelcome)
       @el.querySelector('.zammad-chat-welcome').classList.toggle('zammad-chat-is-hidden', !showWelcome)
+      # `.zammad-chat-agent-status` (dot online) sekarang dirender
+      # SEBAGAI BAGIAN dari `.zammad-chat-agent` (views/agent.eco, di
+      # dalam avatar) -- toggle induknya saja sudah cukup. PENTING:
+      # elemen ini TIDAK ADA di DOM statis lagi (cuma muncul setelah
+      # `onConnectionEstablished` merender `agent.eco`) -- querySelector
+      # terpisah di sini akan balik `null` & CRASH kalau tetap dipanggil
+      # (beda dari jQuery yang no-op diam-diam pada seleksi kosong).
       @el.querySelector('.zammad-chat-agent').classList.toggle('zammad-chat-is-hidden', !showAgent)
-      @el.querySelector('.zammad-chat-agent-status').classList.toggle('zammad-chat-is-hidden', !showAgent)
+      @el.querySelector('.js-chat-info').classList.toggle('zammad-chat-is-hidden', !showAgent)
       @el.querySelector('.zammad-chat-header-title').classList.toggle('zammad-chat-is-hidden', !showTitle)
 
       if showTitle
@@ -904,11 +925,13 @@ do(window) ->
     toggleEmojiPicker: (event) =>
       event?.preventDefault()
       @el.querySelector('.js-emoji-picker').classList.toggle('zammad-chat-is-hidden')
+      @el.querySelector('.js-emoji-toggle').classList.toggle('is-active')
 
     insertEmoji: (emoji) =>
       @input.focus()
       document.execCommand('insertText', false, emoji)
       @el.querySelector('.js-emoji-picker').classList.add('zammad-chat-is-hidden')
+      @el.querySelector('.js-emoji-toggle').classList.remove('is-active')
       @onInput()
 
     # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
@@ -1237,11 +1260,30 @@ do(window) ->
       if data.agent
         @onConnectionEstablished(data)
 
+        # Bug ditemukan lewat laporan user (hard refresh -> avatar &
+        # jam pesan hilang dari riwayat) -- mirror persis dari
+        # chat.coffee.
         for message in data.session
+          isAgentMessage = !!message.created_by_id
           @renderMessage
             message: message.content
             id: message.id
-            from: if message.created_by_id then 'agent' else 'customer'
+            from: if isAgentMessage then 'agent' else 'customer'
+            avatarInitials: @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
+            time: @formatTime(message.created_at)
+            # Bug ke-3 ditemukan lewat laporan user (kutipan "Membalas:
+            # ..." hilang setelah reload) -- mirror persis dari
+            # chat.coffee, backend sekarang menyertakan
+            # `reply_to.content` (`app/models/chat/session.rb`).
+            replyTo: message.reply_to?.content
+
+          # Bug ke-2 ditemukan lewat simulasi LANGSUNG diminta user
+          # (hard refresh lalu klik ikon reply) -- mirror persis dari
+          # chat.coffee: `startReply` cuma baca
+          # `@agentMessagesById[messageId]` (diisi HANYA oleh
+          # `receiveMessage`), balik `undefined` utk pesan hasil replay
+          # ini, gagal diam-diam tanpa error.
+          @agentMessagesById[message.id] = message if isAgentMessage and message.id
 
         if unfinishedMessage
           @input.innerHTML = unfinishedMessage
@@ -1297,6 +1339,8 @@ do(window) ->
         id: @_messageCount++
         unreadClass: ''
         replyTo: replyToSnippet
+        avatarInitials: @initialsOf(@customerName)
+        time: @formatTime()
 
       @maybeAddTimestamp()
 
@@ -1339,6 +1383,8 @@ do(window) ->
         id: data.message.id
         from: 'agent'
         replyTo: data.message.reply_to?.content
+        avatarInitials: @initialsOf(@agent?.name)
+        time: @formatTime(data.message.created_at)
 
       @scrollToBottom showHint: true
 
@@ -1479,6 +1525,16 @@ do(window) ->
           name:  name
           email: email
         return
+
+      # Dipakai lagi nanti utk avatar inisial di bubble pesan sendiri
+      # (views/message.eco) -- disimpan JUGA ke `sessionStorage` (pola
+      # sama dgn `sessionId`, mirror persis dari chat.coffee) -- bug
+      # ditemukan lewat laporan user (hard refresh menghilangkan avatar
+      # & jam pesan): `@customerName` cuma variabel JS di memori,
+      # server TIDAK PERNAH mengirim balik nama customer di payload
+      # reconnect (`Chat#customer_state`).
+      @customerName = name
+      sessionStorage.setItem 'customerName', name
 
       @showLoader()
       @send('chat_session_init'
@@ -1783,6 +1839,7 @@ do(window) ->
 
       @el.querySelector('.zammad-chat-agent').innerHTML = @view('agent')
         agent: @agent
+        initials: @initialsOf(@agent?.name)
 
       # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
       # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
@@ -1824,12 +1881,33 @@ do(window) ->
     showLoader: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('loader')()
 
+    # Atas permintaan user (mockup `Messages.dc.html`) -- mirror persis
+    # dari chat.coffee. Avatar inisial dipakai di header (agent.eco)
+    # MAUPUN tiap bubble pesan (message.eco).
+    initialsOf: (name) ->
+      return '' if !name
+      parts = name.trim().split(/\s+/)
+      ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
+
+    # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
+    # per chat") -- mirror persis dari chat.coffee.
+    formatTime: (isoString) ->
+      date = if isoString then new Date(isoString) else new Date()
+      date.toTimeString().substr(0, 5)
+
     setAgentOnlineState: (state) =>
       @state = state
       return if !@el
       capitalizedState = state.charAt(0).toUpperCase() + state.slice(1)
-      @el.querySelector('.zammad-chat-agent-status').dataset.status = state
-      @el.querySelector('.zammad-chat-agent-status').textContent = @T(capitalizedState)
+      # `.zammad-chat-agent-status` sekarang cuma ada di DOM SETELAH
+      # `onConnectionEstablished` merender `agent.eco` (dulu elemen
+      # statis, selalu ada sejak render awal) -- dipanggil di sini juga
+      # oleh `render()` SEBELUM itu terjadi, jadi WAJIB null-guard
+      # (beda dari jQuery yang no-op diam-diam pada seleksi kosong).
+      statusEl = @el.querySelector('.zammad-chat-agent-status')
+      return if !statusEl
+      statusEl.dataset.status = state
+      statusEl.textContent = @T(capitalizedState)
 
     detectHost: ->
       protocol = 'ws://'

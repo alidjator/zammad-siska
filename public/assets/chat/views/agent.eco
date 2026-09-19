@@ -1,6 +1,12 @@
-<% if @agent.avatar: %>
-<img class="zammad-chat-agent-avatar" src="<%= @agent.avatar %>">
-<% end %>
+<div class="zammad-chat-agent-avatar-wrap">
+  <% if @agent.avatar: %>
+    <img class="zammad-chat-agent-avatar" src="<%= @agent.avatar %>">
+  <% else: %>
+    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials"><%= @initials %></span>
+  <% end %>
+  <span class="zammad-chat-agent-status js-chat-status" data-status="online"></span>
+</div>
 <span class="zammad-chat-agent-sentence">
   <span class="zammad-chat-agent-name"><%= @agent.name %></span>
+  <span class="zammad-chat-agent-subtext"><%- @T('Active now') %></span>
 </span>
