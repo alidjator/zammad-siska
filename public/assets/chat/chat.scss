@@ -537,6 +537,16 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   align-items: flex-end;
 }
 
+// Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
+// reply berada diluar bubble") -- baris yang membungkus bubble + ikon
+// reply berdampingan (BUKAN lagi ikon absolut menumpuk di pojok dalam
+// bubble).
+.zammad-chat-message-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .zammad-chat-message-time {
   font-size: 10.5px;
   color: $siska-text-muted;
@@ -901,38 +911,26 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   text-decoration: underline;
 }
 
-.zammad-chat-message-body {
-  // Bug KEDUA ditemukan dari laporan user (screenshot): `position:
-  // relative` sebelumnya dipasang di `.zammad-chat-message` (wrapper
-  // LUAR, lebar penuh/block), padahal bubble yang TERLIHAT adalah
-  // `.zammad-chat-message-body` (inline-block, `max-width: 70%`).
-  // Akibatnya ikon reply (`position: absolute`) mengambang relatif ke
-  // wrapper lebar-penuh itu -- muncul jauh di kanan, dekat scrollbar,
-  // bukan menempel di pojok bubble seperti di sisi agent. Dipindah ke
-  // sini (bubble yang sesungguhnya) + markup ikon di `message.eco`
-  // ikut dipindah jadi ANAK dari `.zammad-chat-message-body` (bukan
-  // sibling lagi), supaya positioning-nya benar -- pola yang sama
-  // persis seperti sisi agent (`chat_enhancements.scss`, ikon jadi
-  // anak langsung dari `.chat-message`, elemen bubble itu sendiri).
-  position: relative;
-}
-
-// Bug ditemukan lewat laporan user (screenshot browser sungguhan) --
-// ikon reply SEBELUMNYA cuma karakter Unicode mentah (`&#8617;`,
-// "&#x21A9;") -- terlihat benar di preview mockup (Artifact, satu
-// browser/font tertentu), TAPI di Chrome/Windows sungguhan milik
-// user, karakter panah itu di-render dgn PRESENTASI EMOJI BERWARNA
-// (kotak biru mencolok) krn font-substitution sistem, bukan gaya teks
-// polos spt di mockup -- risiko lintas-platform yang sama SEKALI TIDAK
-// ADA kalau pakai SVG (spt SEMUA ikon lain di widget ini). Diganti SVG
-// stroke (preseden ikon "reply" gaya Feather/Able Pro), BUKAN
-// karakter font lagi.
+// Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
+// reply berada diluar bubble") -- ikon reply BUKAN lagi anak
+// `.zammad-chat-message-body` yang diposisikan absolut menumpuk di
+// pojok bubble, tapi SIBLING normal-flow di `.zammad-chat-message-row`
+// (message.eco). `.zammad-chat-message-body` sendiri (rule sudah ada
+// di atas, dekat definisi awal) TIDAK PERLU `position:relative` lagi
+// (dulu anchor utk ikon absolut itu) -- SUDAH TIDAK ADA di rule-nya,
+// dihapus di sini, bukan didefinisikan ulang.
 .zammad-chat-message-reply {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  width: 13px;
-  height: 13px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 150ms;
@@ -940,8 +938,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
   svg {
     display: block;
-    width: 100%;
-    height: 100%;
+    width: 14px;
+    height: 14px;
   }
 }
 

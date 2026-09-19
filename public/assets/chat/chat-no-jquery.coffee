@@ -1206,6 +1206,9 @@ do(window) ->
           when 'chat_knowledge_base_search'
             @onKnowledgeBaseSearchResult pipe.data
           when 'chat_status_customer'
+            # Atas permintaan user ("logo pada home mengambil dari
+            # setting logo zammad") -- mirror persis dari chat.coffee.
+            @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
             switch pipe.data.state
               when 'online'
                 @sessionId = undefined
@@ -1265,17 +1268,35 @@ do(window) ->
         # chat.coffee.
         for message in data.session
           isAgentMessage = !!message.created_by_id
-          @renderMessage
-            message: message.content
-            id: message.id
-            from: if isAgentMessage then 'agent' else 'customer'
-            avatarInitials: @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
-            time: @formatTime(message.created_at)
-            # Bug ke-3 ditemukan lewat laporan user (kutipan "Membalas:
-            # ..." hilang setelah reload) -- mirror persis dari
-            # chat.coffee, backend sekarang menyertakan
-            # `reply_to.content` (`app/models/chat/session.rb`).
-            replyTo: message.reply_to?.content
+          avatarInitials = @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
+          time = @formatTime(message.created_at)
+
+          # Bug KEDUA ditemukan lewat pengujian langsung -- mirror
+          # persis dari chat.coffee: pesan attachment di riwayat
+          # SEBELUMNYA di-render sbg bubble teks "[attachment]" TANPA
+          # link unduh. `filename` dipakai sbg penanda attachment.
+          if message.filename
+            @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
+              from: if isAgentMessage then 'agent' else 'customer'
+              id: message.id
+              filename: message.filename
+              url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{message.id}"
+              unreadClass: ''
+              avatarInitials: avatarInitials
+              time: time
+            )
+          else
+            @renderMessage
+              message: message.content
+              id: message.id
+              from: if isAgentMessage then 'agent' else 'customer'
+              avatarInitials: avatarInitials
+              time: time
+              # Bug ke-3 ditemukan lewat laporan user (kutipan
+              # "Membalas: ..." hilang setelah reload) -- mirror persis
+              # dari chat.coffee, backend sekarang menyertakan
+              # `reply_to.content` (`app/models/chat/session.rb`).
+              replyTo: message.reply_to?.content
 
           # Bug ke-2 ditemukan lewat simulasi LANGSUNG diminta user
           # (hard refresh lalu klik ikon reply) -- mirror persis dari
@@ -1455,15 +1476,21 @@ do(window) ->
 
       event.target.value = ''
 
+    # Bug ditemukan lewat laporan user ("kenapa pada attachment tidak
+    # terdapat reply?") -- mirror persis dari chat.coffee.
     addAttachmentMessage: (data, from) =>
       @maybeAddTimestamp()
       @lastAddedType = "message--#{ from }"
       @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
         from: from
+        id: data.id
         filename: data.filename
         url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
         unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
+        avatarInitials: @initialsOf(if from is 'agent' then @agent?.name else @customerName)
+        time: @formatTime(data.created_at)
       )
+      @agentMessagesById[data.id] = data if from is 'agent' and data.id
       @scrollToBottom showHint: true
 
     open: =>
@@ -1888,6 +1915,21 @@ do(window) ->
       return '' if !name
       parts = name.trim().split(/\s+/)
       ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
+
+    # Atas permintaan user ("logo pada home mengambil dari setting
+    # logo zammad") -- mirror persis dari chat.coffee.
+    updateHomeLogo: (url) =>
+      mark = @el.querySelector('.zammad-chat-home-logo-mark')
+      return if !mark
+      mark.style.background = 'none'
+      img = document.createElement('img')
+      img.src = url
+      img.alt = ''
+      img.style.width = '100%'
+      img.style.height = '100%'
+      img.style.objectFit = 'contain'
+      mark.innerHTML = ''
+      mark.appendChild(img)
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- mirror persis dari chat.coffee.

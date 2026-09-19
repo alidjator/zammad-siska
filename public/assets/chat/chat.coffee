@@ -1211,6 +1211,11 @@ do($ = window.jQuery, window) ->
           when 'chat_knowledge_base_search'
             @onKnowledgeBaseSearchResult pipe.data
           when 'chat_status_customer'
+            # Atas permintaan user ("logo pada home mengambil dari
+            # setting logo zammad") -- disertakan di SEMUA state
+            # respons ini (bukan cuma 'online'), backend sudah
+            # menggabungkannya (`chat_status_customer.rb`).
+            @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
             switch pipe.data.state
               when 'online'
                 @sessionId = undefined
@@ -1267,21 +1272,46 @@ do($ = window.jQuery, window) ->
         # `message.eco`, tidak ikut ke-update sebelumnya.
         for message in data.session
           isAgentMessage = !!message.created_by_id
-          @renderMessage
-            message: message.content
-            id: message.id
-            from: if isAgentMessage then 'agent' else 'customer'
-            avatarInitials: @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
-            time: @formatTime(message.created_at)
-            # Bug ke-3 ditemukan lewat laporan user (screenshot: kutipan
-            # "Membalas: ..." hilang dari bubble setelah reload) --
-            # `replyTo` TIDAK PERNAH disertakan sama sekali di loop ini
-            # (beda dari `receiveMessage` yg sudah pakai `data.message.
-            # reply_to?.content` sejak Fase 5). Backend
-            # (`Chat::Session.messages_by_session_id`) SEKARANG JUGA
-            # menyertakan `reply_to.content` (lihat
-            # `app/models/chat/session.rb`), field ini tinggal dipakai.
-            replyTo: message.reply_to?.content
+          avatarInitials = @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
+          time = @formatTime(message.created_at)
+
+          # Bug KEDUA ditemukan lewat pengujian LANGSUNG (bukan laporan
+          # user) saat menyiapkan reply-pada-attachment: pesan
+          # attachment di riwayat SEBELUMNYA selalu di-render lewat
+          # `@renderMessage` (`message.eco`, template TEKS biasa) --
+          # tampil sbg bubble berbunyi literal "[attachment]" (isi
+          # kolom `content` apa adanya) TANPA link unduh sama sekali.
+          # `filename` (backend baru menyertakan ini, lihat
+          # `Chat::Session.enrich_message_attributes`) dipakai sbg
+          # penanda "pesan ini attachment" -- kalau ada, render lewat
+          # `attachment_message.eco` (view+URL yang SAMA dgn
+          # `addAttachmentMessage`), bukan sbg teks.
+          if message.filename
+            @el.find('.zammad-chat-body').append @view('attachment_message')(
+              from: if isAgentMessage then 'agent' else 'customer'
+              id: message.id
+              filename: message.filename
+              url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{message.id}"
+              unreadClass: ''
+              avatarInitials: avatarInitials
+              time: time
+            )
+          else
+            @renderMessage
+              message: message.content
+              id: message.id
+              from: if isAgentMessage then 'agent' else 'customer'
+              avatarInitials: avatarInitials
+              time: time
+              # Bug ke-3 ditemukan lewat laporan user (screenshot:
+              # kutipan "Membalas: ..." hilang dari bubble setelah
+              # reload) -- `replyTo` TIDAK PERNAH disertakan sama
+              # sekali di loop ini (beda dari `receiveMessage` yg
+              # sudah pakai `data.message.reply_to?.content` sejak
+              # Fase 5). Backend (`messages_by_session_id`) SEKARANG
+              # JUGA menyertakan `reply_to.content`, field ini tinggal
+              # dipakai.
+              replyTo: message.reply_to?.content
 
           # Bug ke-2 ditemukan lewat simulasi LANGSUNG diminta user
           # (hard refresh lalu klik ikon reply) -- ikon reply TETAP
@@ -1469,15 +1499,33 @@ do($ = window.jQuery, window) ->
 
       @el.find('.js-chat-attachment-input').val('')
 
+    # Bug ditemukan lewat laporan user ("kenapa pada attachment tidak
+    # terdapat reply?") -- `attachment_message.eco` TIDAK PERNAH ikut
+    # diberi avatar/ikon-reply/jam saat ketiganya ditambahkan ke
+    # `message.eco` (entri 124-125) -- pesan attachment jadi tampil
+    # "yatim" (mengambang tanpa avatar, tanpa jam, TIDAK BISA dibalas)
+    # dibanding pesan teks biasa. Disamakan strukturnya: `id`
+    # (dibutuhkan `startReply` & `data-message-id`), `avatarInitials`,
+    # `time` (dari `created_at` ASLI server, `data` di sini adalah
+    # `chat_message.attributes` lengkap -- lihat
+    # `chat_attachments_controller.rb`).
     addAttachmentMessage: (data, from) =>
       @maybeAddTimestamp()
       @lastAddedType = "message--#{ from }"
       @el.find('.zammad-chat-body').append @view('attachment_message')(
         from: from
+        id: data.id
         filename: data.filename
         url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
         unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
+        avatarInitials: @initialsOf(if from is 'agent' then @agent?.name else @customerName)
+        time: @formatTime(data.created_at)
       )
+      # Reply ke pesan attachment mereferensikan `content` (server
+      # SELALU set `'[attachment]'` utk jenis pesan ini, lihat
+      # `chat_attachments_controller.rb`) -- diisi persis spt
+      # `receiveMessage` isi utk pesan agent yg bisa jadi target reply.
+      @agentMessagesById[data.id] = data if from is 'agent' and data.id
       @scrollToBottom showHint: true
 
     open: =>
@@ -1927,6 +1975,19 @@ do($ = window.jQuery, window) ->
       return '' if !name
       parts = name.trim().split(/\s+/)
       ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
+
+    # Atas permintaan user ("logo pada home mengambil dari setting
+    # logo zammad") -- `home.eco` dirender SEKALI saat widget dimuat
+    # (`renderBase`, tanpa data server), jadi TIDAK BISA langsung berisi
+    # logo asli sejak awal -- diisi ULANG di sini begitu respons
+    # `chat_status_customer` (yg SUDAH SELALU dikirim tiap widget
+    # dimuat) datang membawa `logo_url`. `background:none` eksplisit --
+    # logo asli TIDAK dipaksa masuk kotak lencana biru spt ikon generik
+    # bawaan (banyak logo punya latar transparan/warna sendiri).
+    updateHomeLogo: (url) =>
+      mark = @el.find('.zammad-chat-home-logo-mark')
+      mark.css('background', 'none')
+      mark.html $('<img>').attr(src: url, alt: '').css(width: '100%', height: '100%', 'object-fit': 'contain')
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- jam kecil di bawah TIAP bubble pesan (dulu HANYA
