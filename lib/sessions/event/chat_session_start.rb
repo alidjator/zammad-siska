@@ -48,7 +48,13 @@ return is sent as message back to peer
     # PERSIS di sini (titik "agent benar-benar mulai kontak dengan
     # customer"), bukan di chat_session_init (customer baru masuk
     # antrean, belum tentu ada agent yang akan melayani).
-    create_ticket_for_chat_session(chat_session)
+    #
+    # Enhancement 1 -- Tahap 2: logikanya DIPINDAH ke
+    # `Chat::Session#create_ticket_for_chat!` (murni ekstraksi, TIDAK
+    # ADA perubahan perilaku) supaya bisa dipakai ulang dari alur
+    # pesan-offline (Tahap 3) yang tidak punya langkah "Accept" spt di
+    # sini.
+    chat_session.create_ticket_for_chat!
 
     session_attributes = chat_session.attributes
     session_attributes['messages'] = []
@@ -123,50 +129,6 @@ return is sent as message back to peer
     Chat.broadcast_customer_state_update(chat_session.chat_id)
 
     nil
-  end
-
-  private
-
-  # Fase 5 -- docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.3.
-  def create_ticket_for_chat_session(chat_session)
-    # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md Section 5.4. Sesi
-    # follow-up (Fase 6) SUDAH terkait tiket SEJAK chat_session_init
-    # (bukan visitor anonim yang belum punya tiket sama sekali) --
-    # auto-create DILEWATI TOTAL, satu-satunya perubahan di method ini.
-    # Jalur widget anonim (Item 5 asli) tidak terpengaruh: ticket_id
-    # mereka memang masih kosong di titik ini.
-    return if chat_session.ticket_id.present?
-
-    group_id = chat_session.chat.preferences[:ticket_group_id] || Setting.get('chat_auto_ticket_group_id')
-    if group_id.blank?
-      Rails.logger.info "Live Chat auto-ticket dilewati untuk sesi #{chat_session.session_id} -- chat_auto_ticket_group_id belum dikonfigurasi."
-      return
-    end
-
-    customer = Channel::Filter::BaseIdentifyUser.user_create(
-      email:     chat_session.email,
-      firstname: chat_session.name.presence || chat_session.email,
-      lastname:  '',
-    )
-
-    ticket = Ticket.create!(
-      title:       "Live Chat - #{chat_session.name.presence || chat_session.email}",
-      group_id:    group_id,
-      customer_id: customer.id,
-    )
-
-    Ticket::Article.create!(
-      ticket_id: ticket.id,
-      type:      Ticket::Article::Type.find_by(name: 'chat'),
-      sender:    Ticket::Article::Sender.find_by(name: 'System'),
-      from:      chat_session.name.presence || chat_session.email,
-      body:      __('Live chat dimulai.'),
-      internal:  false,
-    )
-
-    chat_session.update!(ticket_id: ticket.id)
-  rescue => e
-    Rails.logger.error "Live Chat auto-ticket gagal dibuat untuk sesi #{chat_session.session_id}: #{e.message}"
   end
 
 end

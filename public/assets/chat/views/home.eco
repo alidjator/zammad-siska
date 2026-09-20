@@ -1,14 +1,24 @@
 <div class="zammad-chat-home">
   <div class="zammad-chat-home-logo">
     <div class="zammad-chat-home-logo-mark">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
     </div>
-    <span class="zammad-chat-home-logo-text">SISKA</span>
   </div>
+
+  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.
+  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)
+  begitu `chat_status_customer` balas state 'offline' (SEMUA agent tidak
+  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->
+  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/></svg>
+    <span><%- @T('All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.') %></span>
+  </div>
+
   <div class="zammad-chat-home-actions">
-    <button type="button" class="zammad-chat-home-action" data-tab="messages">
-      <span><%- @T('Send us a message') %></span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">
+      <span class="js-home-start-label"><%- @T('Send us a message') %></span>
+      <svg class="zammad-chat-home-action-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      <svg class="zammad-chat-home-action-icon-offline zammad-chat-is-hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
     </button>
     <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">
       <span><%- @T('Search for help') %></span>

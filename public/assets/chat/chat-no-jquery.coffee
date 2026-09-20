@@ -194,6 +194,9 @@ do(window) ->
     inputTimeout: null
     isTyping: false
     state: 'offline'
+    # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee (lihat
+    # komentar detail di sana).
+    offlineMode: false
     initialQueueDelay: 10000
     translations:
     # ZAMMAD_TRANSLATIONS_START
@@ -649,6 +652,9 @@ do(window) ->
         'You are on waiting list position <strong>%s</strong>.': '您目前的等候位置是第 <strong>%s</strong> 位.'
     # ZAMMAD_TRANSLATIONS_END
     sessionId: undefined
+    # Enhancement 2 -- lihat catatan di `showFeedback`.
+    lastSessionId: undefined
+    feedbackScore: undefined
     scrolledToBottom: true
     scrollSnapTolerance: 10
     richTextFormatKey:
@@ -792,7 +798,10 @@ do(window) ->
       @body = @el.querySelector('.zammad-chat-body')
 
       # start bindings
-      @el.querySelector('.js-chat-close').addEventListener('click', @close)
+      # Atas permintaan user -- mirror persis dari chat.coffee: X di
+      # header sekarang mengakhiri chat (`exitChat`), bukan lagi
+      # menyembunyikan panel.
+      @el.querySelector('.js-chat-close').addEventListener('click', @exitChat)
       # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
       # (dot online di avatar) -- dirender ULANG setiap
       # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal
@@ -830,6 +839,57 @@ do(window) ->
         target = event.target.closest('.js-waiting-cancel')
         return if !target
         @cancelQueue(event)
+
+      # Enhancement 1 -- Tahap 3 (Offline Message + OTP) -- delegasi
+      # SAMA persis alasannya dgn `.js-waiting-cancel` di atas, mirror
+      # persis dari chat.coffee.
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-otp-submit')
+        return if !target
+        @submitOfflineOtp(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-otp-resend')
+        return if !target
+        @resendOfflineOtp(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-otp-change-email')
+        return if !target
+        @showPrechatForm()
+      @el.querySelector('.zammad-chat-modal').addEventListener 'input', (event) =>
+        target = event.target.closest('.js-otp-digit')
+        return if !target
+        @onOtpDigitInput(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'keydown', (event) =>
+        target = event.target.closest('.js-otp-digit')
+        return if !target
+        @onOtpDigitKeydown(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'paste', (event) =>
+        target = event.target.closest('.js-otp-digit')
+        return if !target
+        @onOtpDigitPaste(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-offline-compose-submit')
+        return if !target
+        @submitOfflineMessage(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-offline-sent-done')
+        return if !target
+        @finishOfflineFlow(event)
+
+      # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi sama
+      # persis alasannya dgn blok Enhancement 1 di atas.
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-feedback-star')
+        return if !target
+        @selectFeedbackScore(event, target.dataset.score)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-feedback-submit')
+        return if !target
+        @submitFeedback(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-feedback-skip')
+        return if !target
+        @skipFeedback(event)
 
       # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
       @el.querySelector('.js-chat-attach').addEventListener('click', @triggerAttachmentInput)
@@ -1203,8 +1263,26 @@ do(window) ->
             @onSessionClosed pipe.data
           when 'chat_session_left'
             @onSessionClosed pipe.data
+          # Atas permintaan user (mockup `Messages.dc.html`): penanda
+          # "sudah dibaca" ala WhatsApp -- mirror persis dari
+          # chat.coffee (lihat komentar detail di sana).
+          when 'chat_session_message_read'
+            @markMessagesRead()
           when 'chat_knowledge_base_search'
             @onKnowledgeBaseSearchResult pipe.data
+          # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee.
+          when 'chat_offline_session_init'
+            @onOfflineSessionInitResult pipe.data
+          when 'chat_offline_otp_verify'
+            @onOfflineOtpVerifyResult pipe.data
+          when 'chat_offline_otp_resend'
+            @onOfflineOtpResendResult pipe.data
+          when 'chat_offline_message_send'
+            @onOfflineMessageSendResult pipe.data
+          # Enhancement 2 -- Rating Kepuasan (Feedback) -- mirror
+          # persis dari chat.coffee.
+          when 'chat_session_feedback_submit'
+            @onFeedbackSubmitResult pipe.data
           when 'chat_status_customer'
             # Atas permintaan user ("logo pada home mengambil dari
             # setting logo zammad") -- mirror persis dari chat.coffee.
@@ -1218,7 +1296,9 @@ do(window) ->
                 else
                   @socketReady = true
               when 'offline'
-                @onError 'Zammad Chat: No agent online'
+                # Enhancement 1 -- Tahap 3 -- mirror persis dari
+                # chat.coffee (lihat komentar detail di sana).
+                @enterOfflineMode()
               when 'chat_disabled'
                 @onError 'Zammad Chat: Chat is disabled'
               when 'no_seats_available'
@@ -1275,6 +1355,13 @@ do(window) ->
           # persis dari chat.coffee: pesan attachment di riwayat
           # SEBELUMNYA di-render sbg bubble teks "[attachment]" TANPA
           # link unduh. `filename` dipakai sbg penanda attachment.
+          #
+          # Atas permintaan user (mockup `Messages.dc.html`): penanda
+          # "terkirim"/"sudah dibaca" -- mirror persis dari chat.coffee
+          # (`read_at` otomatis ikut ke `message.attributes`, kolom asli
+          # tabel).
+          isRead = !!message.read_at
+
           if message.filename
             @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
               from: if isAgentMessage then 'agent' else 'customer'
@@ -1284,6 +1371,7 @@ do(window) ->
               unreadClass: ''
               avatarInitials: avatarInitials
               time: time
+              isRead: isRead
             )
           else
             @renderMessage
@@ -1292,6 +1380,7 @@ do(window) ->
               from: if isAgentMessage then 'agent' else 'customer'
               avatarInitials: avatarInitials
               time: time
+              isRead: isRead
               # Bug ke-3 ditemukan lewat laporan user (kutipan
               # "Membalas: ..." hilang setelah reload) -- mirror persis
               # dari chat.coffee, backend sekarang menyertakan
@@ -1313,9 +1402,16 @@ do(window) ->
       if data.position
         @onQueue data
 
+      # Bug ditemukan lewat pengujian sendiri -- mirror persis dari
+      # chat.coffee: `@show()` HARUS tanpa syarat (mengembalikan
+      # visibilitas @launcherEl yg dihapus onWebSocketClose di tengah
+      # siklus reconnect minimize) -- hanya @open()/@scrollToBottom()
+      # (paksa-buka PANEL) yang di-skip kalau reconnect ini dipicu
+      # minimize, bukan reload halaman sungguhan.
       @show()
-      @open()
-      @scrollToBottom()
+      if !@minimizedWithSession
+        @open()
+        @scrollToBottom()
 
       if unfinishedMessage
         @input.focus()
@@ -1428,7 +1524,10 @@ do(window) ->
       message = @agentMessagesById[messageId]
       return if !message
 
-      @replyTo = { id: messageId, content: message.content }
+      # Atas permintaan user (screenshot: kutipan reply ke pesan
+      # attachment menampilkan literal "[attachment]") -- mirror persis
+      # dari chat.coffee (lihat komentar detail di sana).
+      @replyTo = { id: messageId, content: message.filename || message.content }
       @renderReplyIndicator()
       @input.focus()
 
@@ -1498,6 +1597,10 @@ do(window) ->
         @log.debug 'widget already open, block'
         return
 
+      # Dibalik lagi begitu user SENDIRI yang membuka panel -- mirror
+      # persis dari chat.coffee.
+      @minimizedWithSession = false
+
       @isOpen = true
       @log.debug 'open widget'
       @show()
@@ -1562,13 +1665,239 @@ do(window) ->
       # reconnect (`Chat#customer_state`).
       @customerName = name
       sessionStorage.setItem 'customerName', name
+      # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee
+      # (lihat komentar detail di sana).
+      @customerEmail = email
 
-      @showLoader()
-      @send('chat_session_init'
-        url: window.location.href
-        name: name
-        email: email
-      )
+      if @offlineMode
+        @send('chat_offline_session_init'
+          url:   window.location.href
+          name:  name
+          email: email
+        )
+      else
+        @showLoader()
+        @send('chat_session_init'
+          url: window.location.href
+          name: name
+          email: email
+        )
+
+    # ============================================================
+    # Enhancement 1 -- Tahap 3: Offline Message + Verifikasi OTP.
+    # Mirror persis dari chat.coffee (lihat komentar detail di sana),
+    # disesuaikan ke DOM API polos yang dipakai file ini.
+    # ============================================================
+
+    enterOfflineMode: =>
+      return if @offlineMode
+      @offlineMode = true
+
+      subtext = @el.querySelector('.zammad-chat-welcome-subtext')
+      if subtext
+        status = document.createElement('span')
+        status.className = 'zammad-chat-welcome-offline-status'
+        dot = document.createElement('span')
+        dot.className = 'zammad-chat-welcome-offline-dot'
+        status.appendChild(dot)
+        status.appendChild(document.createTextNode(@T("We're offline right now")))
+        subtext.replaceWith(status)
+
+      notice = @el.querySelector('.zammad-chat-home-offline-notice')
+      notice?.classList.remove('zammad-chat-is-hidden')
+
+      startAction = @el.querySelector('.js-home-start-action')
+      if startAction
+        startAction.querySelector('.js-home-start-label').textContent = @T('Leave us a message')
+        startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden')
+        startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden')
+
+      @show()
+
+    onOfflineSessionInitResult: (data) =>
+      if data.state isnt 'ok'
+        @showPrechatForm(error: data.message)
+        return
+
+      @setSessionId data.session_id
+      @showOfflineOtp()
+
+    showOfflineOtp: =>
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_otp')(email: @customerEmail)
+      @el.querySelector('.js-otp-digit')?.focus()
+
+    onOtpDigitInput: (event) =>
+      input = event.target
+      value = input.value.replace(/[^0-9]/g, '')
+      input.value = value.slice(-1)
+      if value
+        nextIndex = parseInt(input.dataset.index, 10) + 1
+        next = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='#{nextIndex}']")
+        next?.focus()
+
+    onOtpDigitKeydown: (event) =>
+      return if event.keyCode isnt 8
+      input = event.target
+      return if input.value
+
+      prevIndex = parseInt(input.dataset.index, 10) - 1
+      return if prevIndex < 0
+
+      prev = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='#{prevIndex}']")
+      if prev
+        prev.value = ''
+        prev.focus()
+
+    onOtpDigitPaste: (event) =>
+      event.preventDefault()
+      pasted = event.clipboardData?.getData('text')?.replace(/[^0-9]/g, '') || ''
+      return if !pasted
+
+      boxes = event.target.closest('.zammad-chat-offline-otp-boxes').querySelectorAll('.js-otp-digit')
+      boxes.forEach (el, i) ->
+        el.value = pasted.charAt(i) || ''
+      lastFilled = Math.min(pasted.length, boxes.length) - 1
+      boxes[Math.max(lastFilled, 0)]?.focus()
+
+    submitOfflineOtp: (event) =>
+      event?.preventDefault()
+      code = ''
+      @el.querySelectorAll('.js-otp-digit').forEach (el) ->
+        code += el.value || ''
+
+      if code.length isnt 6
+        @showOtpError @T('Please enter the full 6-digit code.')
+        return
+
+      @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
+
+    showOtpError: (message) =>
+      error = @el.querySelector('.js-otp-error')
+      return if !error
+
+      error.textContent = message
+      error.classList.remove('zammad-chat-is-hidden')
+
+    onOfflineOtpVerifyResult: (data) =>
+      if data.state is 'ok'
+        @showOfflineCompose()
+        return
+
+      @showOtpError data.message
+      @el.querySelectorAll('.js-otp-digit').forEach (el) -> el.value = ''
+      @el.querySelector('.js-otp-digit')?.focus()
+
+    resendOfflineOtp: (event) =>
+      event?.preventDefault()
+      @send('chat_offline_otp_resend', session_id: @sessionId)
+
+    onOfflineOtpResendResult: (data) =>
+      if data.state is 'ok'
+        @el.querySelectorAll('.js-otp-digit').forEach (el) -> el.value = ''
+        @el.querySelector('.js-otp-digit')?.focus()
+        @showOtpError @T('A new code has been sent.')
+        return
+
+      @showOtpError data.message || @T('Could not resend code. Please try again.')
+
+    showOfflineCompose: =>
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_compose')(email: @customerEmail)
+
+    submitOfflineMessage: (event) =>
+      event?.preventDefault()
+      content = @el.querySelector('.js-offline-message')?.value?.trim()
+      errorEl = @el.querySelector('.js-offline-compose-error')
+
+      if !content
+        if errorEl
+          errorEl.textContent = @T('Please write a message.')
+          errorEl.classList.remove('zammad-chat-is-hidden')
+        return
+
+      errorEl?.classList.add('zammad-chat-is-hidden')
+      submitBtn = @el.querySelector('.js-offline-compose-submit')
+      submitBtn?.setAttribute('disabled', 'disabled')
+      @send('chat_offline_message_send', session_id: @sessionId, content: content)
+
+    onOfflineMessageSendResult: (data) =>
+      @el.querySelector('.js-offline-compose-submit')?.removeAttribute('disabled')
+
+      if data.state isnt 'ok'
+        errorEl = @el.querySelector('.js-offline-compose-error')
+        if errorEl
+          errorEl.textContent = data.message
+          errorEl.classList.remove('zammad-chat-is-hidden')
+        return
+
+      # Enhancement 2 -- lihat catatan sama di chat.coffee.
+      @lastSessionId = @sessionId
+      @setSessionId undefined
+      @showOfflineSent()
+
+    showOfflineSent: =>
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_sent')(email: @customerEmail)
+
+    # Enhancement 2 -- lihat catatan sama di chat.coffee: tombol ini
+    # sekarang lanjut ke layar Feedback dulu, bukan langsung Home.
+    finishOfflineFlow: (event) =>
+      event?.preventDefault()
+      @showFeedback()
+
+    # Enhancement 2 -- Rating Kepuasan (Feedback) -- mirror persis dari
+    # chat.coffee (lihat catatan panjang di sana).
+    showFeedback: =>
+      @feedbackScore = undefined
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('feedback')()
+      # Lihat catatan sama di chat.coffee.
+      @agent = undefined
+      @updateHeader()
+
+    selectFeedbackScore: (event, score) =>
+      event?.preventDefault()
+      @feedbackScore = parseInt(score, 10)
+      @el.querySelectorAll('.js-feedback-star').forEach (el) =>
+        starScore = parseInt(el.dataset.score, 10)
+        el.classList.toggle('is-active', starScore <= @feedbackScore)
+
+    submitFeedback: (event) =>
+      event?.preventDefault()
+
+      errorEl = @el.querySelector('.js-feedback-error')
+      if !@feedbackScore
+        if errorEl
+          errorEl.textContent = @T('Please select a rating.')
+          errorEl.classList.remove('zammad-chat-is-hidden')
+        return
+
+      errorEl?.classList.add('zammad-chat-is-hidden')
+      submitBtn = @el.querySelector('.js-feedback-submit')
+      submitBtn?.setAttribute('disabled', 'disabled')
+
+      comment = @el.querySelector('.js-feedback-comment')?.value?.trim()
+      @send 'chat_session_feedback_submit',
+        session_id: @lastSessionId
+        score: @feedbackScore
+        comment: comment
+
+    onFeedbackSubmitResult: (data) =>
+      @el.querySelector('.js-feedback-submit')?.removeAttribute('disabled')
+
+      if data.state isnt 'ok'
+        errorEl = @el.querySelector('.js-feedback-error')
+        if errorEl
+          errorEl.textContent = data.message || @T('Could not save your feedback. Please try again.')
+          errorEl.classList.remove('zammad-chat-is-hidden')
+        return
+
+      @showFeedbackThanks()
+
+    skipFeedback: (event) =>
+      event?.preventDefault()
+      @goToStartChat()
+
+    showFeedbackThanks: =>
+      @el.querySelector('.zammad-chat-modal').innerHTML = @view('feedback_thanks')()
+      setTimeout @goToStartChat, 2000
 
     onOpenAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onOpenAnimationEnd
@@ -1594,6 +1923,8 @@ do(window) ->
       if @onInitialQueueDelayId
         clearTimeout(@onInitialQueueDelayId)
 
+      # Enhancement 2 -- lihat catatan sama di chat.coffee.
+      @lastSessionId = @sessionId
       @setSessionId undefined
 
     # Atas permintaan user (mockup `Waiting.dc.html` + koreksi "keluar
@@ -1616,15 +1947,23 @@ do(window) ->
       else
         @open(event)
 
+    # Bug ditemukan lewat laporan user ("tombol panah bawah... widget
+    # tidak exit chat") -- mirror persis dari chat.coffee. `close()`
+    # SEKARANG cuma menyembunyikan panel, TIDAK PERNAH mengakhiri sesi
+    # chat lagi.
     close: (event) =>
       if !@isOpen
         @log.debug 'can\'t close widget, it\'s not open'
         return
       if @initDelayId
         clearTimeout(@initDelayId)
-      if @sessionId
-        @log.debug 'session close before widget close'
-        @sessionClose()
+
+      # Bug KEDUA ditemukan lewat pengujian langsung -- mirror persis
+      # dari chat.coffee: `onReopenSession` (dipicu `@io.reconnect()`
+      # di `onCloseAnimationEnd`) SEBELUMNYA selalu memaksa panel
+      # terbuka lagi, meniadakan minimize sekarang bahwa sesi tetap
+      # hidup saat diminimize.
+      @minimizedWithSession = !!@sessionId
 
       @log.debug 'close widget'
 
@@ -1637,6 +1976,50 @@ do(window) ->
       @launcherEl.classList.remove 'zammad-chat-is-open'
       @el.addEventListener 'transitionend', @onCloseAnimationEnd
       @el.classList.remove 'zammad-chat-is-open'
+
+    # Atas permintaan user ("chat berakhir HANYA jika klik tombol
+    # exit") -- mirror persis dari chat.coffee.
+    #
+    # Revisi lanjutan ("hanya tombol X pada halaman Messages yang bisa
+    # untuk end chat, tombol X pada halaman lain berfungsi normal") --
+    # mirror persis dari chat.coffee: elemen `.js-chat-close` SATU-SATUNYA
+    # dipakai di SEMUA tab, jadi dibedakan lewat `@activeTab`. Di tab
+    # lain (bukan Messages), didelegasikan ke `close()` (perilaku
+    # "normal" = cuma sembunyikan panel, spt tombol minimize).
+    # Revisi lanjutan (mockup `EndingChat.dc.html`) -- mirror persis
+    # dari chat.coffee: tampilkan `.zammad-chat-modal` berisi spinner
+    # "Ending conversation…" selama 2 detik (customer TIDAK PERNAH
+    # menerima balasan `chat_session_closed` utk penutupan yg dia
+    # inisiasi sendiri -- lihat komentar detail di chat.coffee -- jadi
+    # transisi ini murni lokal/optimis, tidak menunggu server).
+    #
+    # Revisi lanjutan lagi ("...reload kembali ke halaman MULAI CHAT")
+    # -- mirror persis dari chat.coffee: tujuan akhir sekarang tab HOME
+    # dgn form pra-chat SUDAH disiapkan di modal Messages (pola SAMA
+    # dgn `cancelQueue()` yg sudah ada), bukan lagi cuma `hideModal()`
+    # diam di tab Messages.
+    exitChat: (event) =>
+      if @activeTab isnt 'messages'
+        @close(event)
+        return
+
+      event?.preventDefault()
+      event?.stopPropagation()
+
+      if @sessionId
+        @log.debug 'exit chat'
+        @el.querySelector('.zammad-chat-modal').innerHTML = @view('ending_chat')()
+        @sessionClose()
+        # Enhancement 2 -- lihat catatan sama di chat.coffee.
+        setTimeout @showFeedback, 2000
+      else
+        @goToStartChat()
+
+    # Diekstrak dari closure lokal -- lihat catatan sama di chat.coffee.
+    goToStartChat: =>
+      @agent = undefined
+      @showPrechatForm()
+      @switchTab('home')
 
     onCloseAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onCloseAnimationEnd
@@ -1842,6 +2225,19 @@ do(window) ->
       @updateHeader()
 
       @options.onSessionClosed?(data)
+
+    # Atas permintaan user (mockup `Messages.dc.html`): penanda
+    # "sudah dibaca" ala WhatsApp -- mirror persis dari chat.coffee
+    # (lihat komentar detail di sana).
+    markMessagesRead: =>
+      statusEls = @el.querySelectorAll('.zammad-chat-message--customer .zammad-chat-message-status--sent')
+      return if !statusEls.length
+
+      for statusEl in statusEls
+        statusEl.classList.remove('zammad-chat-message-status--sent')
+        statusEl.classList.add('zammad-chat-message-status--read')
+        statusEl.setAttribute('aria-label', @T('Read'))
+        statusEl.innerHTML = '<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>'
 
     setSessionId: (id) =>
       @sessionId = id

@@ -69,8 +69,13 @@ class Service::Csat::PrepareFeedbackSurveys
   end
 
   def send_surveys_for_newly_closed_tickets
+    # Enhancement 2 -- csat_submitted_at: nil mencegah survei async
+    # dikirim dobel utk tiket yg sudah dirating LEBIH DULU lewat
+    # widget chat (Sessions::Event::ChatSessionFeedbackSubmit) sebelum
+    # tiketnya ditutup.
     Ticket.where(state_id: closed_state_ids)
           .where(csat_email_sent_at: nil)
+          .where(csat_submitted_at: nil)
           .where(close_at: launched_at..)
           .find_each do |ticket|
       next if ticket.customer_id.blank?

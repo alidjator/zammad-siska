@@ -30,6 +30,16 @@ ObjectManager::Attribute.add(
 )
 
 puts '== Ticket: csat_submitted_at =='
+# PENTING: `diff:` HARUS `nil`, BUKAN `0` -- `0` itu Integer, dan di Ruby
+# Integer 0 itu truthy (cuma nil/false yg falsy). `ObjectManager::Attribute::
+# SetDefaults#build_value_datetime` (kode inti Zammad) mengecek `return if
+# !diff` -- kalau `diff` truthy (termasuk 0!), field ini akan OTOMATIS diisi
+# `Time.zone.now` (dibulatkan ke menit) di SETIAP tiket baru dibuat, padahal
+# field ini HARUS tetap kosong sampai customer BENERAN submit rating.
+# Dikonfirmasi bug nyata: 114 tiket (built sejak attribute ini dibuat
+# 2026-09-16) kena isi otomatis palsu. Attribute native Zammad sendiri
+# (`pending_time`) memang selalu pakai `diff: nil` utk kasus "tidak ada
+# auto-default" -- itu polanya yang benar, ditiru di sini.
 ObjectManager::Attribute.add(
   object:      'Ticket',
   name:        'csat_submitted_at',
@@ -38,7 +48,7 @@ ObjectManager::Attribute.add(
   data_option: {
     future:    true,
     past:      true,
-    diff:      0,
+    diff:      nil,
     null:      true,
     note:      'When the customer last (re)submitted their CSAT score.',
   },
@@ -83,6 +93,9 @@ ObjectManager::Attribute.add(
 )
 
 puts '== Ticket: csat_email_sent_at (internal) =='
+# `diff: nil` -- lihat catatan panjang di attribute `csat_submitted_at`
+# di atas (bug yg sama, field yg sama-sama HARUS tetap kosong sampai
+# scheduler CSAT beneran mengisinya).
 ObjectManager::Attribute.add(
   object:      'Ticket',
   name:        'csat_email_sent_at',
@@ -91,7 +104,7 @@ ObjectManager::Attribute.add(
   data_option: {
     future:    true,
     past:      true,
-    diff:      0,
+    diff:      nil,
     null:      true,
     note:      'Internal: when the CSAT survey was last sent, to avoid re-sending. Reset on reopen when the group allows re-rating.',
   },

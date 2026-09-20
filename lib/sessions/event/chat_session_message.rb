@@ -69,7 +69,10 @@ return is sent as message back to peer
     # kutipan) secara eksplisit di payload.
     message_payload = chat_message.attributes
     if chat_message.reply_to.present?
-      message_payload['reply_to'] = { 'content' => chat_message.reply_to.content }
+      # Atas permintaan user: kutipan pesan attachment pakai nama file
+      # aslinya (`Chat::Message#display_content`), bukan literal
+      # `'[attachment]'` yg tersimpan di kolom `content`.
+      message_payload['reply_to'] = { 'content' => chat_message.reply_to.display_content }
     end
 
     message = {

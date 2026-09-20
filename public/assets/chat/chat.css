@@ -1,4 +1,5 @@
 .zammad-chat {
+  background: white;
   color: #141413;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   position: fixed;
@@ -503,9 +504,18 @@
   -ms-flex-align: center;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .zammad-chat-message-time {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 3px;
   font-size: 10.5px;
   color: #5b6b79;
   margin-top: 4px;
@@ -515,6 +525,29 @@
 .zammad-chat-message--customer .zammad-chat-message-time {
   margin-left: 0;
   margin-right: 2px;
+}
+
+.zammad-chat-message-status {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+.zammad-chat-message-status svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-message-status--sent {
+  color: #5b6b79;
+}
+
+.zammad-chat-message-status--read {
+  color: #4680ff;
 }
 
 .zammad-chat-message-body {
@@ -841,6 +874,7 @@
   -ms-flex-align: center;
   align-items: center;
   gap: 5px;
+  max-width: 100%;
   color: inherit;
   text-decoration: none;
 }
@@ -852,6 +886,11 @@
 }
 
 .zammad-chat-attachment-filename {
+  min-width: 0;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-decoration: underline;
 }
 
@@ -895,6 +934,10 @@
 
 .zammad-chat-message-quote {
   display: block;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border-left: 3px solid #4680ff;
   padding-left: 6px;
   margin-bottom: 4px;
@@ -1165,14 +1208,13 @@
   -webkit-box-pack: center;
   -ms-flex-pack: center;
   justify-content: center;
-  gap: 10px;
   margin-bottom: 8px;
 }
 
 .zammad-chat-home-logo-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
   background: #4680ff;
   color: white;
   display: -webkit-box;
@@ -1190,12 +1232,6 @@
 .zammad-chat-home-logo-mark svg {
   fill: none;
   stroke: currentColor;
-}
-
-.zammad-chat-home-logo-text {
-  font-size: 17px;
-  font-weight: 700;
-  color: #141413;
 }
 
 .zammad-chat-home-actions {
@@ -1258,6 +1294,11 @@
   background: white;
   color: #4680ff;
   border: 1px solid #4680ff;
+}
+
+.zammad-chat-home-action .zammad-chat-home-action-icon-offline {
+  fill: none;
+  stroke: currentColor;
 }
 
 .zammad-chat-help {
@@ -1491,6 +1532,15 @@
   stroke: currentColor;
 }
 
+.zammad-chat-waiting-spinner-arc--danger {
+  border-top-color: #dc2626;
+  border-right-color: #dc2626;
+}
+
+.zammad-chat-waiting-spinner-icon--danger {
+  color: #dc2626;
+}
+
 .zammad-chat-waiting-title {
   font-size: 18px;
   font-weight: 700;
@@ -1524,4 +1574,546 @@
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
+}
+
+.zammad-chat-welcome-offline-status {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #5b6b79;
+}
+
+.zammad-chat-welcome-offline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa5b1;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+
+.zammad-chat-home-offline-notice {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8ebee;
+  color: #5b6b79;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+.zammad-chat-home-offline-notice svg {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  margin-top: 1px;
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-offline-otp {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.zammad-chat-offline-otp-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(70, 128, 255, 0.08);
+  color: #4680ff;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.zammad-chat-offline-otp-icon svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-offline-otp-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #141413;
+}
+
+.zammad-chat-offline-otp-subtitle {
+  font-size: 12.5px;
+  color: #5b6b79;
+  line-height: 1.5;
+  max-width: 280px;
+  margin-top: 20px;
+}
+
+.zammad-chat-offline-otp-boxes {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.zammad-chat-offline-otp-digit {
+  width: 42px;
+  height: 50px;
+  border: 1px solid #e8ebee;
+  border-radius: 10px;
+  background: white;
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  color: #141413;
+  text-align: center;
+  padding: 0;
+}
+.zammad-chat-offline-otp-digit:focus {
+  outline: none;
+  border-color: #4680ff;
+  background: rgba(70, 128, 255, 0.08);
+}
+
+.zammad-chat-offline-otp-error {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 5px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.zammad-chat-offline-otp-submit {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4680ff;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+}
+
+.zammad-chat-offline-otp-resend {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 22px;
+  font-size: 12.5px;
+  color: #5b6b79;
+}
+
+.zammad-chat-offline-otp-resend-btn {
+  border: none;
+  background: transparent;
+  color: #4680ff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.zammad-chat-offline-otp-resend-btn:disabled {
+  color: #5b6b79;
+  cursor: default;
+}
+
+.zammad-chat-offline-otp-change-email {
+  border: none;
+  background: transparent;
+  color: #5b6b79;
+  font-family: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 18px;
+  padding: 0;
+}
+
+.zammad-chat-offline-compose {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-offline-compose-verified {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 16px;
+  font-size: 12.5px;
+  color: #2ca87f;
+}
+.zammad-chat-offline-compose-verified svg {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-offline-compose-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #141413;
+  margin-bottom: 8px;
+}
+
+.zammad-chat-offline-compose-textarea {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  min-height: 160px;
+  resize: none;
+  border: 1px solid #e8ebee;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: #141413;
+  line-height: 1.5;
+  background: white;
+}
+.zammad-chat-offline-compose-textarea:focus {
+  outline: none;
+  border-color: #4680ff;
+}
+
+.zammad-chat-offline-compose-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.zammad-chat-offline-compose-submit {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4680ff;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 14px;
+}
+
+.zammad-chat-offline-sent {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-offline-sent-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(44, 168, 127, 0.1);
+  color: #2ca87f;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.zammad-chat-offline-sent-icon svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-offline-sent-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #141413;
+}
+
+.zammad-chat-offline-sent-subtitle {
+  font-size: 13px;
+  color: #5b6b79;
+  line-height: 1.55;
+  max-width: 270px;
+  margin-top: 8px;
+}
+
+.zammad-chat-offline-sent-button {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #4680ff;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+}
+
+.zammad-chat-feedback {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-feedback-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #141413;
+  margin-top: 8px;
+}
+
+.zammad-chat-feedback-subtitle {
+  font-size: 13px;
+  color: #5b6b79;
+  margin-top: 6px;
+}
+
+.zammad-chat-feedback-stars {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+.zammad-chat-feedback-star {
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #e8ebee;
+}
+.zammad-chat-feedback-star svg {
+  fill: none;
+  stroke: currentColor;
+}
+.zammad-chat-feedback-star.is-active {
+  color: #e58a00;
+}
+.zammad-chat-feedback-star.is-active svg {
+  fill: currentColor;
+}
+
+.zammad-chat-feedback-textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: none;
+  border: 1px solid #e8ebee;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: #141413;
+  line-height: 1.5;
+  background: white;
+  margin-top: 20px;
+}
+.zammad-chat-feedback-textarea:focus {
+  outline: none;
+  border-color: #4680ff;
+}
+
+.zammad-chat-feedback-error {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #dc2626;
+  text-align: left;
+}
+
+.zammad-chat-feedback-actions {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.zammad-chat-feedback-skip {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #e8ebee;
+  border-radius: 8px;
+  background: white;
+  color: #141413;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zammad-chat-feedback-submit {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4680ff;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zammad-chat-feedback-thanks {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-feedback-thanks-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(44, 168, 127, 0.1);
+  color: #2ca87f;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.zammad-chat-feedback-thanks-icon svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+.zammad-chat-feedback-thanks-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #141413;
+}
+
+.zammad-chat-feedback-thanks-subtitle {
+  font-size: 13px;
+  color: #5b6b79;
+  line-height: 1.55;
+  max-width: 270px;
+  margin-top: 8px;
 }

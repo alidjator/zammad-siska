@@ -10,4 +10,21 @@ class Chat::Message < ApplicationModel
   belongs_to :reply_to, class_name: 'Chat::Message', optional: true
 
   sanitized_html :content
+
+  # Atas permintaan user (screenshot: kutipan reply ke pesan attachment
+  # menampilkan literal "[attachment]", bukan nama filenya) -- `content`
+  # utk pesan attachment SELALU literal string `'[attachment]'`
+  # (lihat `chat_attachments_controller.rb`), nama file sungguhan
+  # cuma tersimpan terpisah lewat `Store` (pola SAMA persis dgn
+  # `Chat::Session.enrich_message_attributes`'s deteksi `filename`).
+  # Dipakai di KEDUA titik yang menyusun kutipan reply --
+  # `chat_session_message.rb` (broadcast real-time) DAN
+  # `Chat::Session.enrich_message_attributes` (riwayat/reconnect) --
+  # supaya keduanya konsisten tanpa duplikasi logika deteksi attachment.
+  def display_content
+    store = Store.list(object: 'Chat::Message', o_id: id).first
+    return store.filename if store
+
+    content
+  end
 end

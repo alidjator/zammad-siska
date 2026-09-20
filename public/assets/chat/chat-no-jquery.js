@@ -149,6 +149,18 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push(__sanitize(this.time));
     
+      if (this.from === 'customer') {
+        __out.push('<span class="zammad-chat-message-status zammad-chat-message-status--');
+        __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
+        __out.push('" aria-label="');
+        __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
+        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
+        if (this.isRead) {
+          __out.push('<polyline points="7 7 11 11 19 2"/>');
+        }
+        __out.push('</svg></span>');
+      }
+    
       __out.push('</span></span>\n</div>\n');
     
     }).call(this);
@@ -386,6 +398,195 @@ window.zammadChatTemplates["emoji_picker"] = function(__obj) {
 if (!window.zammadChatTemplates) {
   window.zammadChatTemplates = {};
 }
+window.zammadChatTemplates["ending_chat"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc zammad-chat-waiting-spinner-arc--danger"></span>\n    <span class="zammad-chat-waiting-spinner-icon zammad-chat-waiting-spinner-icon--danger">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+    
+      __out.push(this.T('Ending conversation…'));
+    
+      __out.push('</div>\n  <div class="zammad-chat-waiting-subtext">');
+    
+      __out.push(this.T('Please wait a moment.'));
+    
+      __out.push('</div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["feedback_thanks"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
+    
+      __out.push(this.T('Thank you for your feedback!'));
+    
+      __out.push('</div>\n  <div class="zammad-chat-feedback-thanks-subtitle">');
+    
+      __out.push(this.T('We appreciate you taking the time.'));
+    
+      __out.push('</div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["feedback"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-feedback">\n  <div class="zammad-chat-feedback-title">');
+    
+      __out.push(this.T('How was your experience?'));
+    
+      __out.push('</div>\n  <div class="zammad-chat-feedback-subtitle">');
+    
+      __out.push(this.T('Your feedback helps us improve.'));
+    
+      __out.push('</div>\n\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
+    
+      __out.push(this.T('Add a comment (optional)'));
+    
+      __out.push('"></textarea>\n\n  <div class="zammad-chat-feedback-error js-feedback-error zammad-chat-is-hidden"></div>\n\n  <div class="zammad-chat-feedback-actions">\n    <button type="button" class="zammad-chat-feedback-skip js-feedback-skip">');
+    
+      __out.push(this.T('Maybe later'));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-submit js-feedback-submit">');
+    
+      __out.push(this.T('Submit Feedback'));
+    
+      __out.push('</button>\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
 window.zammadChatTemplates["help"] = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -484,11 +685,15 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </div>\n    <span class="zammad-chat-home-logo-text">SISKA</span>\n  </div>\n  <div class="zammad-chat-home-actions">\n    <button type="button" class="zammad-chat-home-action" data-tab="messages">\n      <span>');
+      __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/></svg>\n    <span>');
+    
+      __out.push(this.T('All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+    
+      __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
     
       __out.push(this.T('Send us a message'));
     
-      __out.push('</span>\n      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
+      __out.push('</span>\n      <svg class="zammad-chat-home-action-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n      <svg class="zammad-chat-home-action-icon-offline zammad-chat-is-hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
     
       __out.push(this.T('Search for help'));
     
@@ -762,7 +967,240 @@ window.zammadChatTemplates["message"] = function(__obj) {
     
       __out.push(__sanitize(this.time));
     
+      if (this.from === 'customer') {
+        __out.push('<span class="zammad-chat-message-status zammad-chat-message-status--');
+        __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
+        __out.push('" aria-label="');
+        __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
+        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
+        if (this.isRead) {
+          __out.push('<polyline points="7 7 11 11 19 2"/>');
+        }
+        __out.push('</svg></span>');
+      }
+    
       __out.push('</span></span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["offline_compose"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n    <span><strong>');
+    
+      __out.push(__sanitize(this.email));
+    
+      __out.push('</strong> ');
+    
+      __out.push(this.T('verified'));
+    
+      __out.push('</span>\n  </div>\n\n  <label class="zammad-chat-offline-compose-label">');
+    
+      __out.push(this.T('Your message'));
+    
+      __out.push('</label>\n  <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="');
+    
+      __out.push(this.T('Tell us how we can help…'));
+    
+      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit">');
+    
+      __out.push(this.T('Send Message'));
+    
+      __out.push('</button>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["offline_otp"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
+    
+      __out.push(this.T('Enter verification code'));
+    
+      __out.push('</div>\n  <div class="zammad-chat-offline-otp-subtitle">');
+    
+      __out.push(this.T('We sent a 6-digit code to'));
+    
+      __out.push(' <strong>');
+    
+      __out.push(__sanitize(this.email));
+    
+      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
+    
+      __out.push(this.T('Verify'));
+    
+      __out.push('</button>\n\n  <div class="zammad-chat-offline-otp-resend">\n    <span>');
+    
+      __out.push(this.T("Didn't receive the code?"));
+    
+      __out.push('</span>\n    <button type="button" class="zammad-chat-offline-otp-resend-btn js-otp-resend">');
+    
+      __out.push(this.T('Resend code'));
+    
+      __out.push('</button>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-change-email js-otp-change-email">');
+    
+      __out.push(this.T('Change email address'));
+    
+      __out.push('</button>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["offline_sent"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
+    
+      __out.push(this.T('Your message has been sent!'));
+    
+      __out.push('</div>\n  <div class="zammad-chat-offline-sent-subtitle">');
+    
+      __out.push(this.T('Our team will reply to'));
+    
+      __out.push(' <strong>');
+    
+      __out.push(__sanitize(this.email));
+    
+      __out.push('</strong> ');
+    
+      __out.push(this.T('as soon as an agent is available.'));
+    
+      __out.push('</div>\n  <button type="button" class="zammad-chat-offline-sent-button js-offline-sent-done">');
+    
+      __out.push(this.T('Continue'));
+    
+      __out.push('</button>\n</div>\n');
     
     }).call(this);
     
@@ -1624,6 +2062,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.state = 'offline';
 
+    ZammadChat.prototype.offlineMode = false;
+
     ZammadChat.prototype.initialQueueDelay = 10000;
 
     ZammadChat.prototype.translations = {
@@ -2106,6 +2546,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.sessionId = void 0;
 
+    ZammadChat.prototype.lastSessionId = void 0;
+
+    ZammadChat.prototype.feedbackScore = void 0;
+
     ZammadChat.prototype.scrolledToBottom = true;
 
     ZammadChat.prototype.scrollSnapTolerance = 10;
@@ -2164,6 +2608,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.updateHomeLogo = bind(this.updateHomeLogo, this);
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
+      this.markMessagesRead = bind(this.markMessagesRead, this);
       this.onSessionClosed = bind(this.onSessionClosed, this);
       this.onConnectionReestablished = bind(this.onConnectionReestablished, this);
       this.reconnect = bind(this.reconnect, this);
@@ -2177,11 +2622,35 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onQueueScreen = bind(this.onQueueScreen, this);
       this.onWebSocketClose = bind(this.onWebSocketClose, this);
       this.onCloseAnimationEnd = bind(this.onCloseAnimationEnd, this);
+      this.goToStartChat = bind(this.goToStartChat, this);
+      this.exitChat = bind(this.exitChat, this);
       this.close = bind(this.close, this);
       this.toggle = bind(this.toggle, this);
       this.cancelQueue = bind(this.cancelQueue, this);
       this.sessionClose = bind(this.sessionClose, this);
       this.onOpenAnimationEnd = bind(this.onOpenAnimationEnd, this);
+      this.showFeedbackThanks = bind(this.showFeedbackThanks, this);
+      this.skipFeedback = bind(this.skipFeedback, this);
+      this.onFeedbackSubmitResult = bind(this.onFeedbackSubmitResult, this);
+      this.submitFeedback = bind(this.submitFeedback, this);
+      this.selectFeedbackScore = bind(this.selectFeedbackScore, this);
+      this.showFeedback = bind(this.showFeedback, this);
+      this.finishOfflineFlow = bind(this.finishOfflineFlow, this);
+      this.showOfflineSent = bind(this.showOfflineSent, this);
+      this.onOfflineMessageSendResult = bind(this.onOfflineMessageSendResult, this);
+      this.submitOfflineMessage = bind(this.submitOfflineMessage, this);
+      this.showOfflineCompose = bind(this.showOfflineCompose, this);
+      this.onOfflineOtpResendResult = bind(this.onOfflineOtpResendResult, this);
+      this.resendOfflineOtp = bind(this.resendOfflineOtp, this);
+      this.onOfflineOtpVerifyResult = bind(this.onOfflineOtpVerifyResult, this);
+      this.showOtpError = bind(this.showOtpError, this);
+      this.submitOfflineOtp = bind(this.submitOfflineOtp, this);
+      this.onOtpDigitPaste = bind(this.onOtpDigitPaste, this);
+      this.onOtpDigitKeydown = bind(this.onOtpDigitKeydown, this);
+      this.onOtpDigitInput = bind(this.onOtpDigitInput, this);
+      this.showOfflineOtp = bind(this.showOfflineOtp, this);
+      this.onOfflineSessionInitResult = bind(this.onOfflineSessionInitResult, this);
+      this.enterOfflineMode = bind(this.enterOfflineMode, this);
       this.submitPrechatForm = bind(this.submitPrechatForm, this);
       this.showPrechatForm = bind(this.showPrechatForm, this);
       this.open = bind(this.open, this);
@@ -2309,7 +2778,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.launcherEl.addEventListener('click', this.toggle);
       this.input = this.el.querySelector('.zammad-chat-input');
       this.body = this.el.querySelector('.zammad-chat-body');
-      this.el.querySelector('.js-chat-close').addEventListener('click', this.close);
+      this.el.querySelector('.js-chat-close').addEventListener('click', this.exitChat);
       this.el.querySelector('.zammad-chat-agent').addEventListener('click', (function(_this) {
         return function(event) {
           var target;
@@ -2336,6 +2805,116 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             return;
           }
           return _this.cancelQueue(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitOfflineOtp(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-resend');
+          if (!target) {
+            return;
+          }
+          return _this.resendOfflineOtp(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-change-email');
+          if (!target) {
+            return;
+          }
+          return _this.showPrechatForm();
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('input', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitInput(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('keydown', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitKeydown(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('paste', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitPaste(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-compose-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitOfflineMessage(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-sent-done');
+          if (!target) {
+            return;
+          }
+          return _this.finishOfflineFlow(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-star');
+          if (!target) {
+            return;
+          }
+          return _this.selectFeedbackScore(event, target.dataset.score);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitFeedback(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-skip');
+          if (!target) {
+            return;
+          }
+          return _this.skipFeedback(event);
         };
       })(this));
       this.el.querySelector('.js-chat-attach').addEventListener('click', this.triggerAttachmentInput);
@@ -2594,8 +3173,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           docType = 'text2';
           text = clipboardData.getData('text');
         }
-      } catch (error) {
-        e = error;
+      } catch (error1) {
+        e = error1;
         console.log('Sorry, can\'t insert markup because browser is not supporting it.');
         docType = 'text3';
         text = clipboardData.getData('text');
@@ -2754,8 +3333,26 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           case 'chat_session_left':
             this.onSessionClosed(pipe.data);
             break;
+          case 'chat_session_message_read':
+            this.markMessagesRead();
+            break;
           case 'chat_knowledge_base_search':
             this.onKnowledgeBaseSearchResult(pipe.data);
+            break;
+          case 'chat_offline_session_init':
+            this.onOfflineSessionInitResult(pipe.data);
+            break;
+          case 'chat_offline_otp_verify':
+            this.onOfflineOtpVerifyResult(pipe.data);
+            break;
+          case 'chat_offline_otp_resend':
+            this.onOfflineOtpResendResult(pipe.data);
+            break;
+          case 'chat_offline_message_send':
+            this.onOfflineMessageSendResult(pipe.data);
+            break;
+          case 'chat_session_feedback_submit':
+            this.onFeedbackSubmitResult(pipe.data);
             break;
           case 'chat_status_customer':
             if (pipe.data.logo_url) {
@@ -2771,7 +3368,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
                 }
                 break;
               case 'offline':
-                this.onError('Zammad Chat: No agent online');
+                this.enterOfflineMode();
                 break;
               case 'chat_disabled':
                 this.onError('Zammad Chat: Chat is disabled');
@@ -2824,7 +3421,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onReopenSession = function(data) {
-      var avatarInitials, isAgentMessage, j, len, message, ref, ref1, ref2, time, unfinishedMessage;
+      var avatarInitials, isAgentMessage, isRead, j, len, message, ref, ref1, ref2, time, unfinishedMessage;
       this.log.debug('old messages', data.session);
       this.inactiveTimeout.start();
       unfinishedMessage = sessionStorage.getItem('unfinished_message');
@@ -2836,6 +3433,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           isAgentMessage = !!message.created_by_id;
           avatarInitials = this.initialsOf(isAgentMessage ? (ref1 = data.agent) != null ? ref1.name : void 0 : this.customerName);
           time = this.formatTime(message.created_at);
+          isRead = !!message.read_at;
           if (message.filename) {
             this.body.insertAdjacentHTML('beforeend', this.view('attachment_message')({
               from: isAgentMessage ? 'agent' : 'customer',
@@ -2844,7 +3442,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
               url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments/" + message.id,
               unreadClass: '',
               avatarInitials: avatarInitials,
-              time: time
+              time: time,
+              isRead: isRead
             }));
           } else {
             this.renderMessage({
@@ -2853,6 +3452,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
               from: isAgentMessage ? 'agent' : 'customer',
               avatarInitials: avatarInitials,
               time: time,
+              isRead: isRead,
               replyTo: (ref2 = message.reply_to) != null ? ref2.content : void 0
             });
           }
@@ -2868,8 +3468,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         this.onQueue(data);
       }
       this.show();
-      this.open();
-      this.scrollToBottom();
+      if (!this.minimizedWithSession) {
+        this.open();
+        this.scrollToBottom();
+      }
       if (unfinishedMessage) {
         return this.input.focus();
       }
@@ -2990,7 +3592,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
       this.replyTo = {
         id: messageId,
-        content: message.content
+        content: message.filename || message.content
       };
       this.renderReplyIndicator();
       return this.input.focus();
@@ -3047,7 +3649,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             if (parsed.error) {
               message = parsed.error;
             }
-          } catch (error) {}
+          } catch (error1) {}
           return _this.addStatus(message);
         };
       })(this);
@@ -3081,6 +3683,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         this.log.debug('widget already open, block');
         return;
       }
+      this.minimizedWithSession = false;
       this.isOpen = true;
       this.log.debug('open widget');
       this.show();
@@ -3122,12 +3725,323 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
       this.customerName = name;
       sessionStorage.setItem('customerName', name);
-      this.showLoader();
-      return this.send('chat_session_init', {
-        url: window.location.href,
-        name: name,
-        email: email
+      this.customerEmail = email;
+      if (this.offlineMode) {
+        return this.send('chat_offline_session_init', {
+          url: window.location.href,
+          name: name,
+          email: email
+        });
+      } else {
+        this.showLoader();
+        return this.send('chat_session_init', {
+          url: window.location.href,
+          name: name,
+          email: email
+        });
+      }
+    };
+
+    ZammadChat.prototype.enterOfflineMode = function() {
+      var dot, notice, startAction, status, subtext;
+      if (this.offlineMode) {
+        return;
+      }
+      this.offlineMode = true;
+      subtext = this.el.querySelector('.zammad-chat-welcome-subtext');
+      if (subtext) {
+        status = document.createElement('span');
+        status.className = 'zammad-chat-welcome-offline-status';
+        dot = document.createElement('span');
+        dot.className = 'zammad-chat-welcome-offline-dot';
+        status.appendChild(dot);
+        status.appendChild(document.createTextNode(this.T("We're offline right now")));
+        subtext.replaceWith(status);
+      }
+      notice = this.el.querySelector('.zammad-chat-home-offline-notice');
+      if (notice != null) {
+        notice.classList.remove('zammad-chat-is-hidden');
+      }
+      startAction = this.el.querySelector('.js-home-start-action');
+      if (startAction) {
+        startAction.querySelector('.js-home-start-label').textContent = this.T('Leave us a message');
+        startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden');
+        startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden');
+      }
+      return this.show();
+    };
+
+    ZammadChat.prototype.onOfflineSessionInitResult = function(data) {
+      if (data.state !== 'ok') {
+        this.showPrechatForm({
+          error: data.message
+        });
+        return;
+      }
+      this.setSessionId(data.session_id);
+      return this.showOfflineOtp();
+    };
+
+    ZammadChat.prototype.showOfflineOtp = function() {
+      var ref;
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_otp')({
+        email: this.customerEmail
       });
+      return (ref = this.el.querySelector('.js-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.onOtpDigitInput = function(event) {
+      var input, next, nextIndex, value;
+      input = event.target;
+      value = input.value.replace(/[^0-9]/g, '');
+      input.value = value.slice(-1);
+      if (value) {
+        nextIndex = parseInt(input.dataset.index, 10) + 1;
+        next = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='" + nextIndex + "']");
+        return next != null ? next.focus() : void 0;
+      }
+    };
+
+    ZammadChat.prototype.onOtpDigitKeydown = function(event) {
+      var input, prev, prevIndex;
+      if (event.keyCode !== 8) {
+        return;
+      }
+      input = event.target;
+      if (input.value) {
+        return;
+      }
+      prevIndex = parseInt(input.dataset.index, 10) - 1;
+      if (prevIndex < 0) {
+        return;
+      }
+      prev = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='" + prevIndex + "']");
+      if (prev) {
+        prev.value = '';
+        return prev.focus();
+      }
+    };
+
+    ZammadChat.prototype.onOtpDigitPaste = function(event) {
+      var boxes, lastFilled, pasted, ref, ref1, ref2;
+      event.preventDefault();
+      pasted = ((ref = event.clipboardData) != null ? (ref1 = ref.getData('text')) != null ? ref1.replace(/[^0-9]/g, '') : void 0 : void 0) || '';
+      if (!pasted) {
+        return;
+      }
+      boxes = event.target.closest('.zammad-chat-offline-otp-boxes').querySelectorAll('.js-otp-digit');
+      boxes.forEach(function(el, i) {
+        return el.value = pasted.charAt(i) || '';
+      });
+      lastFilled = Math.min(pasted.length, boxes.length) - 1;
+      return (ref2 = boxes[Math.max(lastFilled, 0)]) != null ? ref2.focus() : void 0;
+    };
+
+    ZammadChat.prototype.submitOfflineOtp = function(event) {
+      var code;
+      if (event != null) {
+        event.preventDefault();
+      }
+      code = '';
+      this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+        return code += el.value || '';
+      });
+      if (code.length !== 6) {
+        this.showOtpError(this.T('Please enter the full 6-digit code.'));
+        return;
+      }
+      return this.send('chat_offline_otp_verify', {
+        session_id: this.sessionId,
+        code: code
+      });
+    };
+
+    ZammadChat.prototype.showOtpError = function(message) {
+      var error;
+      error = this.el.querySelector('.js-otp-error');
+      if (!error) {
+        return;
+      }
+      error.textContent = message;
+      return error.classList.remove('zammad-chat-is-hidden');
+    };
+
+    ZammadChat.prototype.onOfflineOtpVerifyResult = function(data) {
+      var ref;
+      if (data.state === 'ok') {
+        this.showOfflineCompose();
+        return;
+      }
+      this.showOtpError(data.message);
+      this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+        return el.value = '';
+      });
+      return (ref = this.el.querySelector('.js-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.resendOfflineOtp = function(event) {
+      if (event != null) {
+        event.preventDefault();
+      }
+      return this.send('chat_offline_otp_resend', {
+        session_id: this.sessionId
+      });
+    };
+
+    ZammadChat.prototype.onOfflineOtpResendResult = function(data) {
+      var ref;
+      if (data.state === 'ok') {
+        this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+          return el.value = '';
+        });
+        if ((ref = this.el.querySelector('.js-otp-digit')) != null) {
+          ref.focus();
+        }
+        this.showOtpError(this.T('A new code has been sent.'));
+        return;
+      }
+      return this.showOtpError(data.message || this.T('Could not resend code. Please try again.'));
+    };
+
+    ZammadChat.prototype.showOfflineCompose = function() {
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_compose')({
+        email: this.customerEmail
+      });
+    };
+
+    ZammadChat.prototype.submitOfflineMessage = function(event) {
+      var content, errorEl, ref, ref1, submitBtn;
+      if (event != null) {
+        event.preventDefault();
+      }
+      content = (ref = this.el.querySelector('.js-offline-message')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
+      errorEl = this.el.querySelector('.js-offline-compose-error');
+      if (!content) {
+        if (errorEl) {
+          errorEl.textContent = this.T('Please write a message.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
+        return;
+      }
+      if (errorEl != null) {
+        errorEl.classList.add('zammad-chat-is-hidden');
+      }
+      submitBtn = this.el.querySelector('.js-offline-compose-submit');
+      if (submitBtn != null) {
+        submitBtn.setAttribute('disabled', 'disabled');
+      }
+      return this.send('chat_offline_message_send', {
+        session_id: this.sessionId,
+        content: content
+      });
+    };
+
+    ZammadChat.prototype.onOfflineMessageSendResult = function(data) {
+      var errorEl, ref;
+      if ((ref = this.el.querySelector('.js-offline-compose-submit')) != null) {
+        ref.removeAttribute('disabled');
+      }
+      if (data.state !== 'ok') {
+        errorEl = this.el.querySelector('.js-offline-compose-error');
+        if (errorEl) {
+          errorEl.textContent = data.message;
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
+        return;
+      }
+      this.lastSessionId = this.sessionId;
+      this.setSessionId(void 0);
+      return this.showOfflineSent();
+    };
+
+    ZammadChat.prototype.showOfflineSent = function() {
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_sent')({
+        email: this.customerEmail
+      });
+    };
+
+    ZammadChat.prototype.finishOfflineFlow = function(event) {
+      if (event != null) {
+        event.preventDefault();
+      }
+      return this.showFeedback();
+    };
+
+    ZammadChat.prototype.showFeedback = function() {
+      this.feedbackScore = void 0;
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('feedback')();
+      this.agent = void 0;
+      return this.updateHeader();
+    };
+
+    ZammadChat.prototype.selectFeedbackScore = function(event, score) {
+      if (event != null) {
+        event.preventDefault();
+      }
+      this.feedbackScore = parseInt(score, 10);
+      return this.el.querySelectorAll('.js-feedback-star').forEach((function(_this) {
+        return function(el) {
+          var starScore;
+          starScore = parseInt(el.dataset.score, 10);
+          return el.classList.toggle('is-active', starScore <= _this.feedbackScore);
+        };
+      })(this));
+    };
+
+    ZammadChat.prototype.submitFeedback = function(event) {
+      var comment, errorEl, ref, ref1, submitBtn;
+      if (event != null) {
+        event.preventDefault();
+      }
+      errorEl = this.el.querySelector('.js-feedback-error');
+      if (!this.feedbackScore) {
+        if (errorEl) {
+          errorEl.textContent = this.T('Please select a rating.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
+        return;
+      }
+      if (errorEl != null) {
+        errorEl.classList.add('zammad-chat-is-hidden');
+      }
+      submitBtn = this.el.querySelector('.js-feedback-submit');
+      if (submitBtn != null) {
+        submitBtn.setAttribute('disabled', 'disabled');
+      }
+      comment = (ref = this.el.querySelector('.js-feedback-comment')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
+      return this.send('chat_session_feedback_submit', {
+        session_id: this.lastSessionId,
+        score: this.feedbackScore,
+        comment: comment
+      });
+    };
+
+    ZammadChat.prototype.onFeedbackSubmitResult = function(data) {
+      var errorEl, ref;
+      if ((ref = this.el.querySelector('.js-feedback-submit')) != null) {
+        ref.removeAttribute('disabled');
+      }
+      if (data.state !== 'ok') {
+        errorEl = this.el.querySelector('.js-feedback-error');
+        if (errorEl) {
+          errorEl.textContent = data.message || this.T('Could not save your feedback. Please try again.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
+        return;
+      }
+      return this.showFeedbackThanks();
+    };
+
+    ZammadChat.prototype.skipFeedback = function(event) {
+      if (event != null) {
+        event.preventDefault();
+      }
+      return this.goToStartChat();
+    };
+
+    ZammadChat.prototype.showFeedbackThanks = function() {
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('feedback_thanks')();
+      return setTimeout(this.goToStartChat, 2000);
     };
 
     ZammadChat.prototype.onOpenAnimationEnd = function() {
@@ -3150,6 +4064,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (this.onInitialQueueDelayId) {
         clearTimeout(this.onInitialQueueDelayId);
       }
+      this.lastSessionId = this.sessionId;
       return this.setSessionId(void 0);
     };
 
@@ -3179,10 +4094,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (this.initDelayId) {
         clearTimeout(this.initDelayId);
       }
-      if (this.sessionId) {
-        this.log.debug('session close before widget close');
-        this.sessionClose();
-      }
+      this.minimizedWithSession = !!this.sessionId;
       this.log.debug('close widget');
       if (event) {
         event.stopPropagation();
@@ -3193,6 +4105,33 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.launcherEl.classList.remove('zammad-chat-is-open');
       this.el.addEventListener('transitionend', this.onCloseAnimationEnd);
       return this.el.classList.remove('zammad-chat-is-open');
+    };
+
+    ZammadChat.prototype.exitChat = function(event) {
+      if (this.activeTab !== 'messages') {
+        this.close(event);
+        return;
+      }
+      if (event != null) {
+        event.preventDefault();
+      }
+      if (event != null) {
+        event.stopPropagation();
+      }
+      if (this.sessionId) {
+        this.log.debug('exit chat');
+        this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('ending_chat')();
+        this.sessionClose();
+        return setTimeout(this.showFeedback, 2000);
+      } else {
+        return this.goToStartChat();
+      }
+    };
+
+    ZammadChat.prototype.goToStartChat = function() {
+      this.agent = void 0;
+      this.showPrechatForm();
+      return this.switchTab('home');
     };
 
     ZammadChat.prototype.onCloseAnimationEnd = function() {
@@ -3437,6 +4376,23 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.agent = void 0;
       this.updateHeader();
       return typeof (base = this.options).onSessionClosed === "function" ? base.onSessionClosed(data) : void 0;
+    };
+
+    ZammadChat.prototype.markMessagesRead = function() {
+      var j, len, results1, statusEl, statusEls;
+      statusEls = this.el.querySelectorAll('.zammad-chat-message--customer .zammad-chat-message-status--sent');
+      if (!statusEls.length) {
+        return;
+      }
+      results1 = [];
+      for (j = 0, len = statusEls.length; j < len; j++) {
+        statusEl = statusEls[j];
+        statusEl.classList.remove('zammad-chat-message-status--sent');
+        statusEl.classList.add('zammad-chat-message-status--read');
+        statusEl.setAttribute('aria-label', this.T('Read'));
+        results1.push(statusEl.innerHTML = '<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>');
+      }
+      return results1;
     };
 
     ZammadChat.prototype.setSessionId = function(id) {

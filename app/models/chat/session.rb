@@ -74,6 +74,131 @@ class Chat::Session < ApplicationModel
       .map { |session| session.send(:previous_session_summary_entry) }
   end
 
+  # Enhancement 1 -- Tahap 2 (fondasi). Method ini SEBELUMNYA method
+  # PRIVAT di `Sessions::Event::ChatSessionStart` (`create_ticket_for_
+  # chat_session`, Fase 5 Item No. 5), dipindah ke sini SUPAYA bisa
+  # dipakai ULANG dari event pesan-offline (Enhancement 1 -- Tahap 3,
+  # tidak ada agent yang "Accept" utk memicunya spt chat biasa).
+  #
+  # Parameter `article:` DITAMBAHKAN di Tahap 3 -- kebutuhan KONKRET
+  # (bukan spekulatif): pesan offline butuh artikel pertama tiket
+  # berisi PESAN VISITOR SENDIRI (sender Customer, type web), BEDA
+  # dari chat biasa yang cuma catatan sistem generik "Live chat
+  # dimulai.". Default param (`nil`) mereproduksi PERSIS perilaku
+  # lama -- pemanggil chat biasa (`chat_session_start.rb`) TIDAK
+  # PERLU diubah sama sekali.
+  def create_ticket_for_chat!(article: nil)
+    return if ticket_id.present?
+
+    group_id = chat.preferences[:ticket_group_id] || Setting.get('chat_auto_ticket_group_id')
+    if group_id.blank?
+      Rails.logger.info "Live Chat auto-ticket dilewati untuk sesi #{session_id} -- chat_auto_ticket_group_id belum dikonfigurasi."
+      return
+    end
+
+    customer = Channel::Filter::BaseIdentifyUser.user_create(
+      email:     email,
+      firstname: name.presence || email,
+      lastname:  '',
+    )
+
+    # Bug ditemukan lewat pengujian LANGSUNG (rails runner, bukan lewat
+    # WS sungguhan) saat menyiapkan Tahap 3: `Ticket`/`Ticket::Article`
+    # WAJIB `created_by_id`/`updated_by_id` (NOT NULL) -- utk chat
+    # BIASA ini SELALU aman krn dipanggil dari konteks agent yang
+    # sedang login (`UserInfo.current_user_id` ambient TERISI otomatis
+    # oleh dispatcher WS), TAPI utk pesan OFFLINE (Tahap 3) pemanggilnya
+    # visitor ANONIM -- TIDAK ADA user login sama sekali, ambient itu
+    # kosong. `user_id` (agent yang menerima sesi ini, kalau ada) jadi
+    # aktor; fallback ke user System (id 1) kalau kosong -- preseden
+    # SAMA PERSIS dgn `chat_attachments_controller.rb`.
+    actor_id = user_id.presence || 1
+
+    ticket = Ticket.create!(
+      title:         "Live Chat - #{name.presence || email}",
+      group_id:      group_id,
+      customer_id:   customer.id,
+      created_by_id: actor_id,
+      updated_by_id: actor_id,
+    )
+
+    article ||= {
+      type_name:   'chat',
+      sender_name: 'System',
+      from:        name.presence || email,
+      body:        __('Live chat dimulai.'),
+    }
+
+    Ticket::Article.create!(
+      ticket_id:     ticket.id,
+      type:          Ticket::Article::Type.find_by(name: article[:type_name]),
+      sender:        Ticket::Article::Sender.find_by(name: article[:sender_name]),
+      from:          article[:from],
+      body:          article[:body],
+      internal:      false,
+      created_by_id: actor_id,
+      updated_by_id: actor_id,
+    )
+
+    update!(ticket_id: ticket.id)
+  rescue => e
+    Rails.logger.error "Live Chat auto-ticket gagal dibuat untuk sesi #{session_id}: #{e.message}"
+  end
+
+  # Enhancement 1 -- Tahap 3 (Offline Message + Verifikasi OTP). Dipakai
+  # KEDUA jalur yang butuh kode baru (`chat_offline_session_init` --
+  # pengiriman PERTAMA -- dan `chat_offline_otp_resend`) supaya
+  # logikanya SATU tempat, tidak diduplikasi. Kode disimpan sbg HASH
+  # (`Digest::SHA256`) -- lihat komentar migrasi `otp_code` utk
+  # alasannya.
+  def generate_and_send_otp!
+    code = format('%06d', SecureRandom.random_number(1_000_000))
+    expiry_minutes = Setting.get('chat_offline_otp_expiry_minutes').to_i
+
+    update!(
+      otp_code:         Digest::SHA256.hexdigest(code),
+      otp_expires_at:   expiry_minutes.minutes.from_now,
+      otp_code_sent_at: Time.zone.now,
+      otp_verified_at:  nil,
+      otp_attempts:     0,
+    )
+
+    deliver_otp_email(code, expiry_minutes)
+    true
+  end
+
+  # Hasil balik berupa simbol (bukan boolean) SENGAJA -- pemanggil
+  # (`chat_offline_otp_verify.rb`) perlu tahu ALASAN gagal (kedaluwarsa
+  # vs kode salah vs sudah kehabisan percobaan) utk balas pesan error
+  # yang tepat ke widget, bukan cuma "gagal" generik.
+  def verify_otp(code)
+    return :expired if otp_expires_at.blank? || otp_expires_at < Time.zone.now
+    return :too_many_attempts if otp_attempts >= Setting.get('chat_offline_otp_max_attempts').to_i
+
+    if otp_code != Digest::SHA256.hexdigest(code.to_s.strip)
+      increment!(:otp_attempts)
+      return :incorrect
+    end
+
+    update!(otp_verified_at: Time.zone.now)
+    :verified
+  end
+
+  private
+
+  def deliver_otp_email(code, expiry_minutes)
+    NotificationFactory::Mailer.deliver(
+      recipient:    { id: nil, email: email },
+      subject:      __('Kode verifikasi SISKA Live Chat'),
+      body:         format(__("Halo,\n\nKode verifikasi Anda: %<code>s\n\nKode ini berlaku selama %<minutes>s menit. Kalau Anda tidak meminta kode ini, abaikan email ini."), code: code, minutes: expiry_minutes),
+      content_type: 'text/plain',
+    )
+  rescue => e
+    Rails.logger.error "Enhancement 1 -- gagal kirim email OTP ke #{email} (sesi #{session_id}): #{e.message}"
+  end
+
+  public
+
   def agent_user
     return if user_id.blank?
 
@@ -200,7 +325,11 @@ class Chat::Session < ApplicationModel
   def self.enrich_message_attributes(message)
     attrs = message.attributes
     if message.reply_to.present?
-      attrs['reply_to'] = { 'content' => message.reply_to.content }
+      # Atas permintaan user: kutipan pesan attachment pakai nama file
+      # aslinya (`Chat::Message#display_content`), bukan literal
+      # `'[attachment]'` yg tersimpan di kolom `content` -- konsisten
+      # dgn perbaikan yg sama di `chat_session_message.rb`.
+      attrs['reply_to'] = { 'content' => message.reply_to.display_content }
     end
     store = Store.list(object: 'Chat::Message', o_id: message.id).first
     if store

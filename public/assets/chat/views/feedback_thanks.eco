@@ -1,0 +1,7 @@
+<div class="zammad-chat-feedback-thanks">
+  <div class="zammad-chat-feedback-thanks-icon">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <div class="zammad-chat-feedback-thanks-title"><%- @T('Thank you for your feedback!') %></div>
+  <div class="zammad-chat-feedback-thanks-subtitle"><%- @T('We appreciate you taking the time.') %></div>
+</div>

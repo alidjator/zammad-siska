@@ -603,10 +603,26 @@ class App.ChatWindow extends App.Controller
 
       if @session.messages
         for message in @session.messages
-          if message.created_by_id
-            @addMessage(message, 'agent', false, activeChat)
+          sender = if message.created_by_id then 'agent' else 'customer'
+
+          # Bug ditemukan (bukan cuma diduga) lewat pengecekan silang
+          # thd bug yang SAMA PERSIS di widget customer
+          # (public/assets/chat/, lihat docs/ACTIVITY_LOG_SISKA.md
+          # entri 131): jendela chat ini JUGA cuma punya SATU jalur
+          # render pesan riwayat (`@addMessage`, template TEKS biasa)
+          # -- pesan attachment lama tampil sbg bubble berbunyi
+          # literal "[attachment]" TANPA link unduh sama sekali begitu
+          # agent reload halaman utk chat yang masih berjalan. Backend
+          # (`Chat::Session.active_chats_by_user_id`) SUDAH menyertakan
+          # `filename` sejak perbaikan widget customer (dipakai
+          # method `enrich_message_attributes` yang SAMA utk KEDUA
+          # sisi) -- di sini tinggal dipakai sbg penanda utk pilih
+          # jalur render yang benar, belum pernah dipakai sama sekali
+          # sebelumnya.
+          if message.filename
+            @addAttachmentMessage(message, sender, false)
           else
-            @addMessage(message, 'customer', false, activeChat)
+            @addMessage(message, sender, false, activeChat)
 
       # send init reply
       if activeChat && _.isEmpty(@session.messages)
@@ -682,9 +698,29 @@ class App.ChatWindow extends App.Controller
     @el.remove()
 
   clearUnread: =>
+    hadUnread = @unreadMessagesCounter > 0
     @$('.chat-message--new').removeClass('chat-message--new')
     @updateModified(false)
     @resetUnreadMessages()
+
+    # Atas permintaan user (penanda "sudah dibaca" ala WhatsApp di
+    # widget customer, mockup `Messages.dc.html`) -- SEBELUMNYA method
+    # ini (dipicu fokus ke kotak ketik ATAU klik di mana pun di jendela
+    # chat, lihat `events` di atas) MURNI efek visual lokal (badge
+    # unread milik agent sendiri), TIDAK PERNAH mengirim sinyal apa pun
+    # ke customer. Sekarang jadi titik pemicu utk memberi tahu server
+    # "agent sudah melihat pesan customer" -- server yang menentukan
+    # pesan mana saja yang perlu ditandai (lihat
+    # `chat_session_message_read.rb`), di sini cukup kirim event kalau
+    # MEMANG ada sesuatu yang belum terbaca (hindari kirim event
+    # percuma tiap klik di jendela chat yang tidak ada perubahan apa
+    # pun).
+    if hadUnread
+      App.WebSocket.send(
+        event: 'chat_session_message_read'
+        data:
+          session_id: @session.session_id
+      )
 
   onKeydown: (event) =>
     TABKEY = 9

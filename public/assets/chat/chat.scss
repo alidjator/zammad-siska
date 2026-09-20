@@ -50,6 +50,25 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // tampil adalah tombol bulat -- panel tersembunyi TOTAL (opacity 0 +
 // pointer-events none), bukan menyisakan header mengambang.
 .zammad-chat {
+  // Bug ditemukan lewat laporan user (screenshot: teks halaman
+  // "masuk" ke area widget, "seolah-olah widget itu transparent") --
+  // DIBUKTIKAN sungguhan (bukan cuma diduga dari screenshot) lewat
+  // pengujian Playwright: teks percobaan diposisikan PERSIS di
+  // belakang header, `getComputedStyle` panel ini balik
+  // `rgba(0,0,0,0)` -- panel ROOT ini TIDAK PERNAH punya `background`
+  // sama sekali sejak direstrukturisasi (Fase 7 "tombol mengambang"),
+  // beda dari mockup manapun yang SELALU eksplisit `background:
+  // #ffffff` di elemen panel-nya (cek ulang `Home.dc.html`). Widget
+  // SELAMA INI kelihatan "putih" murni karena KEBETULAN konten
+  // dibawahnya (di semua halaman uji) memang kosong/putih polos di
+  // titik itu -- begitu ada TEKS/warna SUNGGUHAN dari halaman klien
+  // yang jatuh di belakang panel (mis. header tint 8% opacity yang
+  // MEMANG didesain menumpuk di atas latar putih SOLID, bukan "apa
+  // pun yang kebetulan ada di baliknya"), langsung tembus. Diperbaiki
+  // dgn `background: white` di ROOT, satu sumber kebenaran utk SELURUH
+  // panel (anak-anaknya -- tab-body, home, dst. -- SENGAJA tidak
+  // diberi background sendiri2, mengandalkan ini).
+  background: white;
   color: $siska-text;
   font-family: $siska-font;
   position: fixed;
@@ -541,13 +560,30 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // reply berada diluar bubble") -- baris yang membungkus bubble + ikon
 // reply berdampingan (BUKAN lagi ikon absolut menumpuk di pojok dalam
 // bubble).
+// `min-width: 0` -- bug ditemukan lewat pengukuran LANGSUNG (bukan
+// cuma dibaca kodenya): row ini flex-item dari `.zammad-chat-message-
+// content` (kolom, `align-items` non-stretch) -- tanpa `min-width: 0`,
+// ukuran-minimum row TETAP dipatok ke min-content anaknya. Utk bubble
+// TEKS biasa ini tidak kentara (min-content teks SUDAH kecil berkat
+// `overflow-wrap: break-word` di `.zammad-chat-message-body`), TAPI
+// utk lampiran (`.zammad-chat-attachment-filename`, sengaja
+// `white-space: nowrap` demi `text-overflow: ellipsis`) min-content-
+// nya SAMA DENGAN lebar penuh nama file -- row (dan seluruh baris
+// pesan) jadi ikut melebar tanpa batas, ellipsis di lapisan dalam
+// tidak pernah sempat berlaku krn ukuran box-nya sendiri sudah kadung
+// selebar itu.
 .zammad-chat-message-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .zammad-chat-message-time {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   font-size: 10.5px;
   color: $siska-text-muted;
   margin-top: 4px;
@@ -557,6 +593,32 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .zammad-chat-message--customer .zammad-chat-message-time {
   margin-left: 0;
   margin-right: 2px;
+}
+
+// Atas permintaan user (mockup `Messages.dc.html`): penanda
+// "terkirim"/"sudah dibaca" ala WhatsApp -- HANYA pesan customer yang
+// dapat penanda ini (agent tidak melihat status baca miliknya sendiri
+// di widget ini, di luar scope permintaan). `--sent` (1 centang, abu2)
+// = default begitu pesan dirender (optimis, TIDAK menunggu balasan
+// server -- lihat `sendMessage()`); `--read` (2 centang, biru) =
+// setelah event `chat_session_message_read` diterima dari agent.
+.zammad-chat-message-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+.zammad-chat-message-status--sent {
+  color: $siska-text-muted;
+}
+
+.zammad-chat-message-status--read {
+  color: $siska-primary;
 }
 
 .zammad-chat-message-body {
@@ -894,10 +956,28 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   # See docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.
 */
 
+// Bug ditemukan lewat laporan user (screenshot: nama file panjang
+// bikin SELURUH jendela chat scroll horizontal) -- root cause: sbg
+// `inline-flex`, `.zammad-chat-attachment` jadi kotak inline ATOMIK
+// (spt inline-block) di mata `.zammad-chat-message-body` (bubble)
+// -- `overflow-wrap: break-word` pada bubble (dipakai utk teks pesan
+// biasa) TIDAK PERNAH berlaku DI DALAM kotak flex ini, dan flex-item
+// (`.zammad-chat-attachment-filename`) defaultnya `min-width: auto`
+// (TIDAK bisa menyusut di bawah lebar teks aslinya) -- gabungan
+// keduanya bikin nama file panjang MEMAKSA seluruh kotak melebar
+// tanpa batas, bukan cuma di dalam bubble. `max-width: 100%` di sini
+// (bukan `min-width: 0` -- ini BUKAN flex-item, `.zammad-chat-message-
+// body` adalah `inline-block` biasa) memaksa kotak ATOMIK ini tunduk
+// ke lebar bubble yang sudah dibatasi row (`.zammad-chat-message {
+// max-width: 82% }`), baru di dalamnya `.zammad-chat-attachment-
+// filename` (poin fix SEBENARNYA) dipotong pakai `text-overflow:
+// ellipsis` -- proporsional mengikuti sisa ruang, bukan angka piksel
+// tetap.
 .zammad-chat-attachment {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  max-width: 100%;
   color: inherit;
   text-decoration: none;
 }
@@ -908,6 +988,10 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 }
 
 .zammad-chat-attachment-filename {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-decoration: underline;
 }
 
@@ -951,8 +1035,18 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // (dulu abu-abu netral), konsisten dengan bubble AGENT yang sekarang
 // putih+border (kutipan tetap kelihatan jelas di kedua sisi tanpa
 // perlu warna berbeda untuk bubble customer).
+// Atas permintaan user ("lakukan truncate juga untuk ini") -- SEKARANG
+// kutipan bisa berisi nama file attachment asli (bisa panjang, lihat
+// `Chat::Message#display_content`), bukan cuma literal "[attachment]"
+// yang pendek spt sebelumnya -- disamakan perlakuannya dgn
+// `.zammad-chat-attachment-filename` (1 baris + ellipsis, TIDAK
+// dibiarkan wrap ke banyak baris via `overflow-wrap` yang diwarisi
+// dari `.zammad-chat-message-body`).
 .zammad-chat-message-quote {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   border-left: 3px solid $siska-primary;
   padding-left: 6px;
   margin-bottom: 4px;
@@ -1193,21 +1287,26 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   justify-content: center;
 }
 
-// Revisi desain (gaya Able Pro, BARU) -- logo/wordmark kecil di atas
-// tombol pintasan tab Home. Placeholder (ikon chat generik + teks
-// "SISKA") -- tinggal ganti `<img>` kalau ada aset logo resmi.
+// Atas permintaan user (Enhancement 3 -- "logo di semua halaman widget
+// ambil dari Setting aplikasi, tampilkan HANYA logo tanpa teks") --
+// SEBELUMNYA lockup ikon+teks "SISKA" berdampingan (lihat riwayat git
+// utk versi lama). Teks wordmark DIHAPUS TOTAL -- `updateHomeLogo()`
+// (chat.coffee) tetap TIDAK BERUBAH, cuma pernah menyentuh
+// `.zammad-chat-home-logo-mark`, tidak pernah menyentuh teks ini,
+// jadi aman dihapus tanpa efek samping ke JS. Kotak mark diperbesar
+// (40px -> 52px) supaya tetap seimbang berdiri sendiri tanpa teks
+// di sampingnya.
 .zammad-chat-home-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   margin-bottom: 8px;
 }
 
 .zammad-chat-home-logo-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
   background: $siska-primary;
   color: white;
   display: flex;
@@ -1219,12 +1318,6 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     fill: none;
     stroke: currentColor;
   }
-}
-
-.zammad-chat-home-logo-text {
-  font-size: 17px;
-  font-weight: 700;
-  color: $siska-text;
 }
 
 .zammad-chat-home-actions {
@@ -1290,6 +1383,19 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   background: white;
   color: $siska-primary;
   border: 1px solid $siska-primary;
+}
+
+// Bug ditemukan lewat screenshot Playwright (ikon amplop "Leave us a
+// message" tampil sbg blok putih solid, bukan garis luar) -- pola
+// SAMA PERSIS dgn bug attach-icon entri 121/127: rule `svg { fill:
+// currentColor }` di `.zammad-chat-home-action` (BENAR utk ikon kirim
+// paper-plane yg memang solid) ikut menimpa ikon amplop BARU
+// (Enhancement 1 -- Tahap 3) yang seharusnya outline. Selector 2
+// class (bukan `!important`) menang scr spesifisitas CSS murni tanpa
+// mengubah rule umum di atas.
+.zammad-chat-home-action .zammad-chat-home-action-icon-offline {
+  fill: none;
+  stroke: currentColor;
 }
 
 .zammad-chat-help {
@@ -1495,6 +1601,20 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   }
 }
 
+// Atas permintaan user ("mockup loading proses chat berakhir") --
+// modifier warna dipakai `ending_chat.eco` (spinner "Mengakhiri
+// percakapan…") supaya beda dari spinner biru "Menghubungkan ke
+// agent…" (`loader.eco`/`waiting.eco`) -- struktur/ukuran/animasi
+// TETAP reuse penuh 3 class di atas, cuma warnanya yang ditimpa.
+.zammad-chat-waiting-spinner-arc--danger {
+  border-top-color: $siska-error;
+  border-right-color: $siska-error;
+}
+
+.zammad-chat-waiting-spinner-icon--danger {
+  color: $siska-error;
+}
+
 .zammad-chat-waiting-title {
   font-size: 18px;
   font-weight: 700;
@@ -1542,4 +1662,469 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
+}
+
+// ============================================================
+// Enhancement 1 -- Tahap 3: Offline Message + Verifikasi OTP.
+// Mockup: OfflineHome.dc.html, OfflineOtp.dc.html,
+// OfflineCompose.dc.html, OfflineSent.dc.html.
+// ============================================================
+
+// -- Home tab, varian offline (views/home.eco, toggle lewat
+// `enterOfflineMode()`) --
+.zammad-chat-welcome-offline-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $siska-text-muted;
+}
+
+.zammad-chat-welcome-offline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa5b1;
+  flex-shrink: 0;
+}
+
+.zammad-chat-home-offline-notice {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: $siska-radius-lg;
+  background: $siska-container-bg;
+  border: 1px solid $siska-border;
+  color: $siska-text-muted;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+// -- Verifikasi OTP (views/offline_otp.eco) --
+.zammad-chat-offline-otp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.zammad-chat-offline-otp-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: $siska-primary-tint;
+  color: $siska-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+.zammad-chat-offline-otp-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $siska-text;
+}
+
+.zammad-chat-offline-otp-subtitle {
+  font-size: 12.5px;
+  color: $siska-text-muted;
+  line-height: 1.5;
+  max-width: 280px;
+  margin-top: 20px;
+}
+
+.zammad-chat-offline-otp-boxes {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.zammad-chat-offline-otp-digit {
+  width: 42px;
+  height: 50px;
+  border: 1px solid $siska-border;
+  border-radius: 10px;
+  background: white;
+  font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  color: $siska-text;
+  text-align: center;
+  padding: 0;
+
+  &:focus {
+    outline: none;
+    border-color: $siska-primary;
+    background: $siska-primary-tint;
+  }
+}
+
+.zammad-chat-offline-otp-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 20px;
+  font-size: 12px;
+  color: $siska-error;
+}
+
+.zammad-chat-offline-otp-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+}
+
+.zammad-chat-offline-otp-resend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 22px;
+  font-size: 12.5px;
+  color: $siska-text-muted;
+}
+
+.zammad-chat-offline-otp-resend-btn {
+  border: none;
+  background: transparent;
+  color: $siska-primary;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+
+  &:disabled {
+    color: $siska-text-muted;
+    cursor: default;
+  }
+}
+
+.zammad-chat-offline-otp-change-email {
+  border: none;
+  background: transparent;
+  color: $siska-text-muted;
+  font-family: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 18px;
+  padding: 0;
+}
+
+// -- Tulis pesan offline (views/offline_compose.eco) --
+.zammad-chat-offline-compose {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-offline-compose-verified {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 16px;
+  font-size: 12.5px;
+  color: $siska-success;
+
+  svg {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+.zammad-chat-offline-compose-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $siska-text;
+  margin-bottom: 8px;
+}
+
+.zammad-chat-offline-compose-textarea {
+  flex: 1;
+  min-height: 160px;
+  resize: none;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-lg;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: $siska-text;
+  line-height: 1.5;
+  background: white;
+
+  &:focus {
+    outline: none;
+    border-color: $siska-primary;
+  }
+}
+
+.zammad-chat-offline-compose-error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: $siska-error;
+}
+
+.zammad-chat-offline-compose-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 14px;
+}
+
+// -- Konfirmasi pesan offline terkirim (views/offline_sent.eco) --
+.zammad-chat-offline-sent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-offline-sent-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(44, 168, 127, 0.1);
+  color: $siska-success;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+.zammad-chat-offline-sent-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: $siska-text;
+}
+
+.zammad-chat-offline-sent-subtitle {
+  font-size: 13px;
+  color: $siska-text-muted;
+  line-height: 1.55;
+  max-width: 270px;
+  margin-top: 8px;
+}
+
+.zammad-chat-offline-sent-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 22px;
+}
+
+// -- Enhancement 2 -- Rating Kepuasan (Feedback) (views/feedback.eco) --
+.zammad-chat-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-feedback-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: $siska-text;
+  margin-top: 8px;
+}
+
+.zammad-chat-feedback-subtitle {
+  font-size: 13px;
+  color: $siska-text-muted;
+  margin-top: 6px;
+}
+
+.zammad-chat-feedback-stars {
+  display: flex;
+  gap: 6px;
+  margin-top: 22px;
+}
+
+// Ikon outline (bukan `svg { fill: currentColor }` generik yang ada
+// jauh di bawah file ini) -- lihat catatan panjang di dekat baris 852
+// soal kenapa aturan itu HARUS dikalahkan secara eksplisit per ikon
+// baru, bukan cuma diandalkan/dihapus.
+.zammad-chat-feedback-star {
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: $siska-border;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  &.is-active {
+    color: $siska-warning;
+
+    svg {
+      fill: currentColor;
+    }
+  }
+}
+
+.zammad-chat-feedback-textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: none;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-lg;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: $siska-text;
+  line-height: 1.5;
+  background: white;
+  margin-top: 20px;
+
+  &:focus {
+    outline: none;
+    border-color: $siska-primary;
+  }
+}
+
+.zammad-chat-feedback-error {
+  width: 100%;
+  margin-top: 10px;
+  font-size: 12px;
+  color: $siska-error;
+  text-align: left;
+}
+
+.zammad-chat-feedback-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.zammad-chat-feedback-skip {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-sm;
+  background: white;
+  color: $siska-text;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zammad-chat-feedback-submit {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+// -- Enhancement 2 -- Terima kasih setelah feedback (views/feedback_thanks.eco) --
+.zammad-chat-feedback-thanks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+
+.zammad-chat-feedback-thanks-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(44, 168, 127, 0.1);
+  color: $siska-success;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
+.zammad-chat-feedback-thanks-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: $siska-text;
+}
+
+.zammad-chat-feedback-thanks-subtitle {
+  font-size: 13px;
+  color: $siska-text-muted;
+  line-height: 1.55;
+  max-width: 270px;
+  margin-top: 8px;
 }

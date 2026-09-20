@@ -416,12 +416,29 @@ returns
 
 =end
 
+  # Enhancement 1 -- Tahap 3 (Offline Message + OTP), docs pembahasan
+  # sesi ini. "AUX Status" (Fase 4, `docs/DESIGN_AUX_STATUS.md`) SUDAH
+  # ADA sejak sebelumnya TAPI TIDAK PERNAH terhubung ke logika
+  # online/offline live-chat sama sekali (dikonfirmasi lewat riset:
+  # nol referensi `aux_status` di `chat.rb`/`chat/agent.rb`/event chat
+  # manapun sebelum perubahan ini). Sesuai permintaan user ("semua
+  # agent offline KECUALI AUX" harus memicu alur offline-message) --
+  # agent yang SEDANG aux (busy_lunch/busy_meeting/busy_training/
+  # offline, APA PUN selain 'available') TIDAK dihitung "tersedia"
+  # utk chat, meski `Chat::Agent.active` (toggle "Customer Chat")
+  # masih nyala. Pola `(user.aux_status || 'available') == 'available'`
+  # PERSIS SAMA dgn idiom yg SUDAH ADA di
+  # `Service::AuxStatus::DistributeTicket` -- reuse, bukan bikin
+  # aturan baru. `nil` (agent yg tidak pernah pakai fitur AUX sama
+  # sekali) tetap dianggap 'available' -- TIDAK ADA perubahan
+  # perilaku utk mayoritas agent yang tidak pernah menyentuh AUX.
   def self.active_agent_count(chat_ids, diff = 2.minutes)
     count = 0
     Chat::Agent.where(active: true).where('updated_at > ?', Time.zone.now - diff).each do |record|
       user = User.lookup(id: record.updated_by_id)
       next if !user
       next if !agent_active_chat?(user, chat_ids)
+      next if (user.aux_status || 'available') != 'available'
 
       count += 1
     end
@@ -440,12 +457,17 @@ returns
 
 =end
 
+  # Enhancement 1 -- Tahap 3. Filter AUX SAMA PERSIS dgn
+  # `active_agent_count` di atas (lihat komentar detail di sana) --
+  # method sejenis, disamakan supaya tidak diam-diam berbeda definisi
+  # "agent tersedia" kalau method ini mulai dipakai nanti.
   def self.active_agents(chat_ids, diff = 2.minutes)
     users = []
     Chat::Agent.where(active: true).where('updated_at > ?', Time.zone.now - diff).each do |record|
       user = User.lookup(id: record.updated_by_id)
       next if !user
       next if !agent_active_chat?(user, chat_ids)
+      next if (user.aux_status || 'available') != 'available'
 
       users.push user
     end
