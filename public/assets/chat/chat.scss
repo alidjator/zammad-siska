@@ -34,6 +34,12 @@ $siska-warning: #e58a00;
 $siska-error: #dc2626;
 $siska-container-bg: #f8f9fa;
 $siska-warning-tint: #f7dcb3;
+// Ditambahkan atas permintaan user ("konsistenkan Home dan OfflineHome
+// sesuai style ablepro") -- dot status "offline" (welcome subtext)
+// SEBELUMNYA pakai literal mentah `#9aa5b1` (ditebak, bukan token) --
+// diganti `inputBorder` (dicek LANGSUNG ke `vuetify.ts`), token abu
+// netral ASLI Able Pro yang belum pernah dipakai di file ini.
+$siska-input-border: #bec8d0;
 $siska-radius-sm: 8px;
 $siska-radius-lg: 12px;
 // Font emoji dicantumkan eksplisit (bukan mengandalkan fallback
@@ -154,6 +160,16 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(70, 128, 255, 0.35);
   z-index: 1000;
+
+  // Atas permintaan user: tombol launcher (ikon mengambang) jadi
+  // abu-abu saat agent tidak tersedia -- ditempel/dilepas
+  // `applyOfflineHomeState()` (SELALU sinkron dgn `@offlineMode`,
+  // KEDUA ARAH -- lihat catatan panjang di sana). `$siska-text-muted`
+  // dipakai, SAMA dgn warna teks status "We're offline right now".
+  &.zammad-chat-launcher--offline {
+    background: $siska-text-muted;
+    box-shadow: 0 8px 20px rgba(91, 107, 121, 0.35);
+  }
   opacity: 0;
   transform: scale(0.8);
   transition: opacity 200ms ease, transform 200ms ease;
@@ -173,20 +189,14 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   }
 }
 
-// Ikon "open" (bubble chat) diganti outline stroke (sebelumnya fill
-// solid dgn path beda) -- disamakan ke mockup (`Closed.dc.html`, path
-// sama dgn ikon "Messages" di tabbar/logo).
-.zammad-chat-launcher-icon-open {
-  fill: none;
-  stroke: currentColor;
-}
-
-// Ikon "close" diganti chevron-down stroke (sebelumnya X diamond
-// fill-based) -- disamakan ke mockup (`Home.dc.html`: ikon panel
-// terbuka pakai `<polyline points="6 9 12 15 18 9">`).
+// Ikon "open"/"close" pakai path ASLI sprite Able Pro
+// (`custom-message-outline`/`custom-chevron-down`, keduanya fill-based
+// di sprite aslinya, BUKAN stroke) -- WAJIB pakai sprite Able Pro,
+// atas permintaan user.
+.zammad-chat-launcher-icon-open,
 .zammad-chat-launcher-icon-close {
-  fill: none;
-  stroke: currentColor;
+  fill: currentColor;
+  stroke: none;
 }
 
 .zammad-chat-launcher-icon-close {
@@ -290,7 +300,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   height: 32px;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: $siska-radius-sm;
   background: transparent;
   display: flex;
   align-items: center;
@@ -298,13 +308,11 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   cursor: pointer;
   color: $siska-text-muted;
   font: inherit;
-}
+  transition: background-color 0.15s;
 
-.zammad-chat-header-icon-close {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
+  &:hover {
+    background: $siska-container-bg;
+  }
 }
 
 // Bug ditemukan lewat laporan user ("tab messages tidak sesuai
@@ -892,7 +900,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   svg {
     width: 15px;
     height: 15px;
-    fill: white;
+    fill: none;
+    stroke: white;
   }
 
   &:hover {
@@ -902,7 +911,10 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
 .zammad-chat-input:disabled {
   cursor: not-allowed;
-  opacity: 0.3;
+  // 0.26 = nilai asli `.v-btn--disabled { opacity }` Vuetify/Able Pro
+  // (dicek ke `VBtn.css` sungguhan), dipakai seragam di SEMUA state
+  // disabled widget ini (atas permintaan user, kategori Button).
+  opacity: 0.26;
 }
 
 // Panel `position: absolute; bottom: 100%` relatif ke
@@ -1174,6 +1186,34 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-size: 13px;
 }
 
+// Atas permintaan user: gaya notice SUKSES Able Pro (`v-alert`
+// tonal) -- background+border SENADA hijau (pola sama dgn badge
+// "verified" `OfflineCompose`), radius 8px (`rounded="md"`, konvensi
+// SEMUA v-alert Able Pro), BUKAN teks polos spt `.zammad-chat-
+// prechat-error` (dipakai kasus BEDA -- kabar baik, bukan gagal
+// validasi).
+// Style `outline` Able Pro (v-alert--variant-outlined): background
+// transparan, border solid `currentColor`, teks & ikon ikut warna
+// semantik yg sama -- diminta user utk SEMUA notice pada widget.
+.zammad-chat-prechat-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: $siska-radius-sm;
+  background: transparent;
+  border: 1px solid currentColor;
+  color: $siska-success;
+  font-size: 13px;
+  line-height: 1.4;
+
+  svg {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+  }
+}
+
 /*
   # Flat Design
 */
@@ -1315,8 +1355,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   flex-shrink: 0;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor;
+    stroke: none;
   }
 }
 
@@ -1345,9 +1385,18 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // `.zammad-chat-button` lama: submit form pra-chat, tombol "Start new
 // conversation" di 2 layar timeout -- konsisten satu struktur utk
 // semua, sesuai permintaan user.
+// Enhancement 1 (OTP) -- ditambahkan belakangan lewat audit Able Pro
+// user ("mulai offlineOtp"): tombol Verify SEBELUMNYA py block
+// styling SENDIRI (padding 13px 16px, font 14px/600) -- PERSIS pola
+// LAMA yang komentar ini sendiri sudah bilang "bukan tombol Able Pro
+// sungguhan". Disatukan ke sini spy konsisten, BUKAN didefinisikan
+// ulang lagi.
 .zammad-chat-home-action,
 .zammad-chat-prechat-submit,
-.zammad-chat-timeout-restart {
+.zammad-chat-timeout-restart,
+.zammad-chat-offline-otp-submit,
+.zammad-chat-offline-compose-submit,
+.zammad-chat-offline-sent-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1373,9 +1422,15 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   flex-shrink: 0;
 
   svg {
-    fill: currentColor;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
     width: 18px;
     height: 18px;
+  }
+
+  &:hover {
+    filter: brightness(0.92);
   }
 }
 
@@ -1383,19 +1438,6 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   background: white;
   color: $siska-primary;
   border: 1px solid $siska-primary;
-}
-
-// Bug ditemukan lewat screenshot Playwright (ikon amplop "Leave us a
-// message" tampil sbg blok putih solid, bukan garis luar) -- pola
-// SAMA PERSIS dgn bug attach-icon entri 121/127: rule `svg { fill:
-// currentColor }` di `.zammad-chat-home-action` (BENAR utk ikon kirim
-// paper-plane yg memang solid) ikut menimpa ikon amplop BARU
-// (Enhancement 1 -- Tahap 3) yang seharusnya outline. Selector 2
-// class (bukan `!important`) menang scr spesifisitas CSS murni tanpa
-// mengubah rule umum di atas.
-.zammad-chat-home-action .zammad-chat-home-action-icon-offline {
-  fill: none;
-  stroke: currentColor;
 }
 
 .zammad-chat-help {
@@ -1468,8 +1510,14 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   // dari 16px asli, horizontal 0.2em=2.4px nyaris tidak ada.
   gap: 12px;
   padding: 16px 4px;
+  border-radius: $siska-radius-sm;
   color: inherit;
   text-decoration: none;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: $siska-container-bg;
+  }
 }
 
 // Revisi desain (gaya Able Pro, BARU) -- ikon dalam kotak tint, pola
@@ -1596,8 +1644,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   color: $siska-primary;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor;
+    stroke: none;
   }
 }
 
@@ -1684,27 +1732,67 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9aa5b1;
+  background: $siska-input-border;
   flex-shrink: 0;
 }
 
-.zammad-chat-home-offline-notice {
+// Diperbaiki sesuai audit Able Pro (temuan: notice ini berbentuk kotak
+// mirip `v-alert`, tapi MELEPAS elemen paling khas dari alert Able Pro
+// -- warna tonal semantik & radius 8px seragam yg dipakai SEMUA
+// varian alert). Latar/border netral abu-abu -> tonal biru (senada
+// warna primary, pesan ini sifatnya informatif); radius 12px -> 8px
+// (`$siska-radius-sm`, PERSIS `rounded="md"` yg dipakai Able Pro utk
+// SEMUA v-alert tanpa kecuali); padding & gap dirapikan ke kelipatan
+// 4px (skala resmi `$spacer` Able Pro/Vuetify).
+//
+// Bug ditemukan user ("notice muncul padahal ada agent online") --
+// pola CSS SAMA PERSIS dgn bug ikon error OTP (entri 151): `display:
+// flex` di sini & `display: none` milik `.zammad-chat-is-hidden`
+// (baris 791, LEBIH AWAL di file ini) SAMA-SAMA cuma 1 class --
+// spesifisitas SAMA, rule yg LEBIH BELAKANGAN di file (blok ini)
+// SELALU menang apa pun class yg sedang aktif di elemen. Bug LATEN
+// sejak notice ini pertama dibuat (Enhancement 1), TIDAK PERNAH
+// ketahuan krn dulu class `is-hidden` cuma pernah DILEPAS sekali
+// (tidak pernah ditempel BALIK) -- begitu perbaikan reconnect (entri
+// 160/161) mulai menggambar ulang & menempel BALIK class ini saat
+// state kembali online, baru nyata. Diperbaiki `:not(.zammad-chat-is-
+// hidden)` (pola yg sama dipakai berkali-kali di file ini).
+// Style `outline` Able Pro (v-alert--variant-outlined): background
+// transparan, border solid `currentColor`, teks & ikon ikut warna
+// semantik yg sama -- diminta user utk SEMUA notice pada widget
+// (menggantikan style `tonal` sebelumnya).
+//
+// Khusus notice INI: atas permintaan user (persis contoh
+// `UiAlert.vue` baris 278, `variant="outlined" prominent` + prop
+// `border="top"` + `type="warning"` -- teks lorem "Duis arcu
+// tortor...") -- warna semantik `warning` (oranye), BUKAN `primary`
+// (biru) spt notice-notice lain hasil audit entri 165, krn user
+// eksplisit minta pola persis contoh ini termasuk warnanya. Detail
+// dicek ke `VAlert.css`: (1) ikon BESAR & SOLID (lingkaran penuh
+// warna warning + simbol seru putih, bukan lagi ikon garis 20px),
+// rata TENGAH thd teks multi-baris; (2) prop `border="top"` nambah
+// AKSEN garis TEBAL (8px, opacity 0.38 -- `.v-alert__border`) HANYA
+// di sisi atas, TERPISAH & DI ATAS border tipis 1px milik variant
+// `outlined` yg sudah ada di 3 sisi lain. `padding-top` +8px (24px)
+// mengikuti `.v-alert--density-default.v-alert--border-top` biar
+// teks tidak mepet ke aksen tebal itu.
+.zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden) {
   display: flex;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: $siska-radius-lg;
-  background: $siska-container-bg;
-  border: 1px solid $siska-border;
-  color: $siska-text-muted;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  padding-top: 24px;
+  border-radius: $siska-radius-sm;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-top: 8px solid rgba(229, 138, 0, 0.38);
+  color: $siska-warning;
   font-size: 12.5px;
   line-height: 1.5;
   margin-bottom: 4px;
 
   svg {
     flex-shrink: 0;
-    margin-top: 1px;
-    fill: none;
-    stroke: currentColor;
   }
 }
 
@@ -1754,15 +1842,22 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 24px;
 }
 
+// Diperbaiki sesuai audit Able Pro (rujukan langsung
+// `AuthCodeVerification.vue`'s `v-otp-input`): radius 10px (angka
+// pilihan sendiri, bukan token manapun) -> `$siska-radius-sm` (8px,
+// = `rounded="md"` Able Pro); height 50px -> 46px (persis
+// `height="46"` Able Pro); font 19px/700 -> 13px TANPA bold (persis
+// override `.v-otp-input__field` Able Pro, yg TIDAK menebalkan digit
+// sama sekali).
 .zammad-chat-offline-otp-digit {
   width: 42px;
-  height: 50px;
+  height: 46px;
   border: 1px solid $siska-border;
-  border-radius: 10px;
+  border-radius: $siska-radius-sm;
   background: white;
   font-family: inherit;
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 400;
   color: $siska-text;
   text-align: center;
   padding: 0;
@@ -1774,30 +1869,39 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   }
 }
 
-.zammad-chat-offline-otp-error {
+// Bug ditemukan user (ikon error tampil SENDIRIAN tanpa teks, SEBELUM
+// "Verify" pernah diklik): `display: flex` di sini & `display: none`
+// milik `.zammad-chat-is-hidden` (baris 791, LEBIH AWAL di file ini)
+// SAMA-SAMA cuma 1 class -- spesifisitas SAMA, jadi menang berdasar
+// URUTAN di file (rule yg LEBIH BELAKANGAN menang), bukan berdasar
+// class mana yg sedang aktif di elemen. Bug ini SEBENARNYA SUDAH ADA
+// sejak awal (div ini sudah lama py `display: flex` + `is-hidden`
+// sekaligus), cuma TIDAK TERLIHAT selama ini krn div-nya kosong total
+// (`.text()` doang, tidak ada elemen anak permanen) -- begitu ikon
+// SVG statis ditambahkan (entri 150), baru ketahuan nyata krn ikon
+// itu SELALU ada di DOM tapi div-nya ternyata tidak pernah benar2
+// tersembunyi. Diperbaiki dgn `:not(.zammad-chat-is-hidden)` (pola yg
+// SAMA dipakai berkali-kali di file ini utk menang lewat spesifisitas
+// murni -- 2 class ketimbang 1 -- BUKAN `!important`).
+.zammad-chat-offline-otp-error:not(.zammad-chat-is-hidden) {
   display: flex;
   align-items: center;
   gap: 5px;
   margin-top: 20px;
   font-size: 12px;
   color: $siska-error;
+
+  svg {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+  }
 }
 
+// Tampilan tombol (warna/ukuran/font/dst) sekarang DISATUKAN ke
+// selector bersama `.zammad-chat-home-action, ...` di atas (lihat
+// catatan di sana) -- di sini cuma sisa jarak KHUSUS layar ini.
 .zammad-chat-offline-otp-submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 13px 16px;
-  border: none;
-  border-radius: $siska-radius-sm;
-  background: $siska-primary;
-  color: white;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
   margin-top: 22px;
 }
 
@@ -1810,6 +1914,13 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   color: $siska-text-muted;
 }
 
+// Diperbaiki sesuai audit Able Pro: `AuthCodeVerification.vue` pakai
+// komponen tombol ASLI (`v-btn variant="text"`, py state hover/focus
+// bawaan Vuetify) utk "Resend Code" -- SEBELUMNYA di sini `<button>`
+// polos TANPA state apa pun sama sekali. Padding+margin negatif
+// dipakai supaya AREA hover/klik jadi lebih besar & py radius,
+// TANPA menggeser posisi visual teks di baris (padding menambah area
+// ke luar, margin negatif menariknya balik).
 .zammad-chat-offline-otp-resend-btn {
   border: none;
   background: transparent;
@@ -1818,7 +1929,14 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: $siska-radius-sm;
+  transition: background-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: $siska-primary-tint;
+  }
 
   &:disabled {
     color: $siska-text-muted;
@@ -1839,18 +1957,41 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 }
 
 // -- Tulis pesan offline (views/offline_compose.eco) --
+// Bug ditemukan user ("Message"/"Your message" kenapa di tengah?"):
+// `.zammad-chat-modal` (leluhurnya) py `text-align: center` (dipakai
+// LAYAR STATUS/LOADING spt Otp/Waiting/EndingChat -- semuanya memang
+// dirancang center). OfflineCompose BEDA -- ini layar bergaya FORM
+// (mockup: label, textarea, baris lampiran SEMUANYA rata kiri), jadi
+// warisan center itu HARUS dipatahkan di sini, bukan ditambal per
+// elemen satu-satu.
 .zammad-chat-offline-compose {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
+  text-align: left;
 }
 
+// Perbaikan sesuai mockup `OfflineCompose.dc.html`: badge ini
+// SEHARUSNYA jadi strip terpisah SELEBAR PANEL (garis pembatas
+// bawah), BUKAN teks polos di dalam padding body --
+// `.zammad-chat-modal` (leluhurnya) py `padding: 20px` di SEMUA
+// sisi, jadi margin negatif dipakai utk "kabur" dari padding itu
+// (bentang penuh ke tepi panel), lalu padding internal ditambahkan
+// lagi persis nilai mockup.
+//
+// Style `outline` Able Pro (v-alert--variant-outlined, terverifikasi
+// dari source Vuetify): background TRANSPARAN (bukan tonal/tint),
+// border solid pakai `currentColor`, teks & ikon ikut warna
+// semantik yg sama -- diminta user utk SEMUA notice pada widget.
 .zammad-chat-offline-compose-verified {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 0 16px;
+  margin: -20px -20px 16px -20px;
+  padding: 10px 16px;
+  background: transparent;
+  border-bottom: 1px solid currentColor;
   font-size: 12.5px;
   color: $siska-success;
 
@@ -1865,6 +2006,10 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-size: 13px;
   font-weight: 600;
   color: $siska-text;
+  // Diperbaiki sesuai audit Able Pro (menang atas mockup, atas
+  // keputusan user): 22px (nilai mockup, dipasang sebelumnya atas
+  // permintaan user langsung) DIBALIK ke 8px -- persis `mb-2` Able
+  // Pro (`ReviewPopup.vue`'s `v-label`, `$spacer` 4px x 2).
   margin-bottom: 8px;
 }
 
@@ -1880,10 +2025,16 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   color: $siska-text;
   line-height: 1.5;
   background: white;
+  transition: border-color 100ms ease;
 
+  // Disamakan ke pola fokus kontrol lain (`.zammad-chat-input`,
+  // `.zammad-chat-prechat-field input`, `.zammad-chat-help-search`)
+  // -- border MENEBAL 1px->2px, bukan cuma ganti warna (atas
+  // permintaan user, kategori Input & Textarea).
   &:focus {
     outline: none;
-    border-color: $siska-primary;
+    border: 2px solid $siska-primary;
+    padding: 11px 13px;
   }
 }
 
@@ -1893,22 +2044,83 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   color: $siska-error;
 }
 
+// Properti tombol (ukuran/font/hover/dst) disatukan ke selector CTA
+// bersama (`.zammad-chat-home-action, ...` di atas) atas permintaan
+// user ("wajib pakai style Able Pro" -- kategori Button) -- di sini
+// tinggal jarak layout spesifik form ini.
 .zammad-chat-offline-compose-submit {
+  margin-top: 14px;
+}
+
+// -- Item lampiran OfflineCompose (follow-up terpisah dari
+// Enhancement 4 awal) --
+.zammad-chat-offline-compose-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Perbaikan sesuai mockup: kotak NETRAL (border tipis + background
+// abu-abu muda), BUKAN hijau bergaya "badge sukses" -- warna hijau
+// dilepas krn di mockup chip lampiran sebelum-terkirim itu netral,
+// hijau dipakai KHUSUS utk badge email "verified" di atasnya
+// (beda konteks, jangan disamakan).
+.zammad-chat-offline-compose-attachment-chip {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  width: 100%;
-  padding: 13px 16px;
-  border: none;
-  border-radius: $siska-radius-sm;
-  background: $siska-primary;
-  color: white;
-  font-family: inherit;
+  padding: 10px 12px;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-lg;
+  background: $siska-container-bg;
+  color: $siska-text-muted;
+  // 14px (bukan 12.5px) -- persis token typography "button" Able Pro
+  // yg dipakai `v-chip` (padanan terdekat elemen ini).
   font-size: 14px;
+
+  svg {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+  }
+
+  span {
+    color: $siska-text-muted;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+}
+
+.zammad-chat-offline-compose-attach {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: $siska-primary;
+  font-family: inherit;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  margin-top: 14px;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+  }
+
+  &:disabled {
+    opacity: 0.26;
+    cursor: default;
+  }
 }
 
 // -- Konfirmasi pesan offline terkirim (views/offline_sent.eco) --
@@ -1935,8 +2147,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-bottom: 8px;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor;
+    stroke: none;
   }
 }
 
@@ -1954,20 +2166,10 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 8px;
 }
 
+// Properti tombol disatukan ke selector CTA bersama (lihat baris
+// ~1391) atas permintaan user (kategori Button) -- tinggal jarak
+// layout spesifik layar ini.
 .zammad-chat-offline-sent-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: $siska-radius-sm;
-  background: $siska-primary;
-  color: white;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
   margin-top: 22px;
 }
 
@@ -2038,10 +2240,14 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   line-height: 1.5;
   background: white;
   margin-top: 20px;
+  transition: border-color 100ms ease;
 
+  // Disamakan ke pola fokus kontrol lain (lihat catatan di
+  // `.zammad-chat-offline-compose-textarea`).
   &:focus {
     outline: none;
-    border-color: $siska-primary;
+    border: 2px solid $siska-primary;
+    padding: 11px 13px;
   }
 }
 
@@ -2060,30 +2266,55 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 16px;
 }
 
+// Ukuran/font disamakan ke skala tombol CTA lain (height 44px, font
+// 16px/400, capitalize) atas permintaan user (kategori Button) --
+// TETAP `flex: 1` berdampingan (bukan `width: 100%` spt CTA berdiri
+// sendiri lainnya), warna masing-masing (netral vs primer) TIDAK
+// diubah.
 .zammad-chat-feedback-skip {
   flex: 1;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
   border: 1px solid $siska-border;
   border-radius: $siska-radius-sm;
   background: white;
   color: $siska-text;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: capitalize;
   cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: $siska-container-bg;
+  }
 }
 
 .zammad-chat-feedback-submit {
   flex: 1;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
   border: none;
   border-radius: $siska-radius-sm;
   background: $siska-primary;
   color: white;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: capitalize;
   cursor: pointer;
+  transition: filter 0.15s;
+
+  &:hover {
+    filter: brightness(0.92);
+  }
 }
 
 // -- Enhancement 2 -- Terima kasih setelah feedback (views/feedback_thanks.eco) --
@@ -2110,8 +2341,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-bottom: 8px;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor;
+    stroke: none;
   }
 }
 

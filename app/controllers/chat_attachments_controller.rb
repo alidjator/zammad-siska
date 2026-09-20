@@ -162,7 +162,14 @@ class ChatAttachmentsController < ApplicationController
     }
     chat_session.send_to_recipients(broadcast)
 
-    sync_attachment_to_ticket(chat_session, chat_message, store)
+    # Enhancement 4 (item lampiran OfflineCompose) -- logika sinkron
+    # DIPINDAH ke `Chat::Session#sync_attachment_to_ticket!` (badan
+    # identik) supaya method yang SAMA bisa dipakai ULANG utk sinkron
+    # RETROAKTIF saat tiket pesan offline baru lahir (lihat
+    # `Chat::Session#sync_pending_attachments_to_ticket!` -- tiket
+    # belum tentu ada SAAT upload ini utk sesi offline, beda dgn chat
+    # biasa yang tiketnya sudah pasti ada di titik ini).
+    chat_session.sync_attachment_to_ticket!(chat_message)
 
     render json: {
       id:           chat_message.id,
@@ -170,42 +177,6 @@ class ChatAttachmentsController < ApplicationController
       size:         store.size,
       content_type: content_type,
     }, status: :created
-  end
-
-  private
-
-  # Fase 5 -- Item No. 5 (integrasi dengan tiket auto-create). Section
-  # 5.2.2 poin 5. Pola clone Store yang sama seperti
-  # `CanCloneAttachments#clone_attachments`.
-  def sync_attachment_to_ticket(chat_session, chat_message, store)
-    return if chat_session.ticket_id.blank?
-
-    is_from_agent = chat_message.created_by_id.present? && chat_message.created_by_id == chat_session.user_id
-    sender_name   = is_from_agent ? 'Agent' : 'Customer'
-    actor_id      = is_from_agent ? chat_session.user_id : chat_session.ticket.customer_id
-    from          = is_from_agent ? chat_session.agent_user&.dig(:name) : (chat_session.name.presence || chat_session.email)
-
-    article = Ticket::Article.create!(
-      ticket_id:     chat_session.ticket_id,
-      type:          Ticket::Article::Type.find_by(name: 'chat'),
-      sender:        Ticket::Article::Sender.find_by(name: sender_name),
-      from:          from,
-      body:          __('Attachment: %s') % store.filename,
-      internal:      false,
-      created_by_id: actor_id,
-      updated_by_id: actor_id,
-    )
-
-    Store.create!(
-      object:        'Ticket::Article',
-      o_id:          article.id,
-      data:          store.content,
-      filename:      store.filename,
-      preferences:   store.preferences,
-      created_by_id: actor_id,
-    )
-  rescue => e
-    Rails.logger.error "Live Chat gagal sinkron attachment ke tiket #{chat_session.ticket_id}: #{e.message}"
   end
 
 end

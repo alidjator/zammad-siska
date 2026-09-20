@@ -133,7 +133,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push(__sanitize(this.url));
     
-      __out.push('" class="zammad-chat-attachment" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg><span class="zammad-chat-attachment-filename">');
+      __out.push('" class="zammad-chat-attachment" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.3291 21.3399C11.2391 21.3399 10.1491 20.9299 9.31906 20.0999C7.65906 18.4399 7.65906 15.7499 9.31906 14.0899L11.7991 11.6199C12.0891 11.3299 12.5691 11.3299 12.8591 11.6199C13.1491 11.9099 13.1491 12.3899 12.8591 12.6799L10.3791 15.1499C9.30906 16.2199 9.30906 17.9699 10.3791 19.0399C11.4491 20.1099 13.1991 20.1099 14.2691 19.0399L18.1591 15.1499C19.3391 13.9699 19.9891 12.3999 19.9891 10.7299C19.9891 9.05986 19.3391 7.48986 18.1591 6.30986C15.7191 3.86986 11.7591 3.86986 9.31906 6.30986L5.07906 10.5499C4.08906 11.5399 3.53906 12.8599 3.53906 14.2599C3.53906 15.6599 4.08906 16.9799 5.07906 17.9699C5.36906 18.2599 5.36906 18.7399 5.07906 19.0299C4.78906 19.3199 4.30906 19.3199 4.01906 19.0299C2.74906 17.7499 2.03906 16.0599 2.03906 14.2599C2.03906 12.4599 2.73906 10.7599 4.01906 9.48986L8.25906 5.24986C11.2791 2.22986 16.1991 2.22986 19.2191 5.24986C20.6791 6.70986 21.4891 8.65986 21.4891 10.7299C21.4891 12.7999 20.6791 14.7499 19.2191 16.2099L15.3291 20.0999C14.4991 20.9299 13.4191 21.3399 12.3291 21.3399Z"/></svg><span class="zammad-chat-attachment-filename">');
     
       __out.push(__sanitize(this.filename));
     
@@ -142,7 +142,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
       if (this.from === 'agent' && this.id) {
         __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
         __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></button>');
+        __out.push('"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.13 18.31h8c2.76 0 5-2.24 5-5s-2.24-5-5-5h-11"/><path d="M6.43 10.81L3.87 8.25l2.56-2.56"/></svg></button>');
       }
     
       __out.push('</span><span class="zammad-chat-message-time">');
@@ -154,7 +154,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
+        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
         if (this.isRead) {
           __out.push('<polyline points="7 7 11 11 19 2"/>');
         }
@@ -236,11 +236,11 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push(this.T('Info'));
     
-      __out.push('">\n        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><circle cx="12" cy="7.7" r="0.9" fill="currentColor" stroke="none"/></svg>\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
+      __out.push('">\n        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10ZM12 8v5"/><path d="M11.995 16h.009"/></svg>\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
     
       __out.push(this.T('Close'));
     
-      __out.push('">\n        <svg class="zammad-chat-header-icon-close" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      <svg class="zammad-scroll-hint-icon" width="20" height="18" viewBox="0 0 20 18"><path d="M0,2.00585866 C0,0.898053512 0.898212381,0 1.99079514,0 L18.0092049,0 C19.1086907,0 20,0.897060126 20,2.00585866 L20,11.9941413 C20,13.1019465 19.1017876,14 18.0092049,14 L1.99079514,14 C0.891309342,14 0,13.1029399 0,11.9941413 L0,2.00585866 Z M10,14 L16,18 L16,14 L10,14 Z" fill-rule="evenodd"/></svg>\n      ');
+      __out.push('">\n        <svg class="zammad-chat-header-icon-close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9.17 14.83l5.66-5.66M14.83 14.83 9.17 9.17"/></svg>\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      <svg class="zammad-scroll-hint-icon" width="20" height="18" viewBox="0 0 20 18"><path d="M0,2.00585866 C0,0.898053512 0.898212381,0 1.99079514,0 L18.0092049,0 C19.1086907,0 20,0.897060126 20,2.00585866 L20,11.9941413 C20,13.1019465 19.1017876,14 18.0092049,14 L1.99079514,14 C0.891309342,14 0,13.1029399 0,11.9941413 L0,2.00585866 Z M10,14 L16,18 L16,14 L10,14 Z" fill-rule="evenodd"/></svg>\n      ');
     
       __out.push(this.T(this.scrollHint));
     
@@ -248,7 +248,7 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
     
-      __out.push('" contenteditable="true"></div>\n      <div class="zammad-chat-controls-icons">\n        <div class="zammad-chat-emoji-toggle js-emoji-toggle">\n          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.9" fill="currentColor" stroke="none"/></svg>\n        </div>\n        <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">\n          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6"/></svg>\n        </div>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
+      __out.push('" contenteditable="true"></div>\n      <div class="zammad-chat-controls-icons">\n        <div class="zammad-chat-emoji-toggle js-emoji-toggle">\n          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 22h6c5 0 7-2 7-7V9c0-5-2-7-7-7H9C4 2 2 4 2 9v6c0 5 2 7 7 7Z"/><path d="M15.5 9.75a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM8.5 9.75a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM8.4 13.3h7.2c.5 0 .9.4.9.9 0 2.49-2.01 4.5-4.5 4.5s-4.5-2.01-4.5-4.5c0-.5.4-.9.9-.9Z"/></svg>\n        </div>\n        <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">\n          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>\n        </div>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
     
       __out.push(this.T('Send'));
     
@@ -258,7 +258,7 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         __out.push(__sanitize(" style='background: " + this.background + "'"));
       }
     
-      __out.push('>\n          <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n</div>');
+      __out.push('>\n          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.51 4.23 8.56 4.28c3.84 1.92 3.84 5.06 0 6.98l-8.56 4.28c-5.76 2.88-8.11.52-5.23-5.23l.87-1.73c.22-.44.22-1.17 0-1.61l-.87-1.74C1.4 3.71 3.76 1.35 9.51 4.23ZM5.44 12h5.4"/></svg>\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n</div>');
     
     }).call(this);
     
@@ -437,7 +437,7 @@ window.zammadChatTemplates["ending_chat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc zammad-chat-waiting-spinner-arc--danger"></span>\n    <span class="zammad-chat-waiting-spinner-icon zammad-chat-waiting-spinner-icon--danger">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc zammad-chat-waiting-spinner-arc--danger"></span>\n    <span class="zammad-chat-waiting-spinner-icon zammad-chat-waiting-spinner-icon--danger">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.4409 15.3699C17.2509 15.3699 17.0609 15.2999 16.9109 15.1499C16.6209 14.8599 16.6209 14.3799 16.9109 14.0899L18.9409 12.0599L16.9109 10.0299C16.6209 9.73994 16.6209 9.25994 16.9109 8.96994C17.2009 8.67994 17.6809 8.67994 17.9709 8.96994L20.5309 11.5299C20.8209 11.8199 20.8209 12.2999 20.5309 12.5899L17.9709 15.1499C17.8209 15.2999 17.6309 15.3699 17.4409 15.3699Z"/><path d="M19.9298 12.8101H9.75977C9.34977 12.8101 9.00977 12.4701 9.00977 12.0601C9.00977 11.6501 9.34977 11.3101 9.75977 11.3101H19.9298C20.3398 11.3101 20.6798 11.6501 20.6798 12.0601C20.6798 12.4701 20.3398 12.8101 19.9298 12.8101Z"/><path d="M11.7598 20.75C6.60977 20.75 3.00977 17.15 3.00977 12C3.00977 6.85 6.60977 3.25 11.7598 3.25C12.1698 3.25 12.5098 3.59 12.5098 4C12.5098 4.41 12.1698 4.75 11.7598 4.75C7.48977 4.75 4.50977 7.73 4.50977 12C4.50977 16.27 7.48977 19.25 11.7598 19.25C12.1698 19.25 12.5098 19.59 12.5098 20C12.5098 20.41 12.1698 20.75 11.7598 20.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_ending_title'] || 'Ending conversation…'));
     
@@ -496,7 +496,7 @@ window.zammadChatTemplates["feedback_thanks"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
+      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.49 2 2 6.49 2 12C2 17.51 6.49 22 12 22C17.51 22 22 17.51 22 12C22 6.49 17.51 2 12 2ZM16.78 9.7L11.11 15.37C10.97 15.51 10.78 15.59 10.58 15.59C10.38 15.59 10.19 15.51 10.05 15.37L7.22 12.54C6.93 12.25 6.93 11.77 7.22 11.48C7.51 11.19 7.99 11.19 8.28 11.48L10.58 13.78L15.72 8.64C16.01 8.35 16.49 8.35 16.78 8.64C17.07 8.93 17.07 9.4 16.78 9.7Z"/></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_thanks_title'] || 'Thank you for your feedback!'));
     
@@ -563,7 +563,7 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_subtitle'] || 'Your feedback helps us improve.'));
     
-      __out.push('</div>\n\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
+      __out.push('</div>\n\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13.73 3.51 1.76 3.52c.24.49.88.96 1.42 1.05l3.19.53c2.04.34 2.52 1.82 1.05 3.28l-2.48 2.48c-.42.42-.65 1.23-.52 1.81l.71 3.07c.56 2.43-.73 3.37-2.88 2.1l-2.99-1.77c-.54-.32-1.43-.32-1.98 0l-2.99 1.77c-2.14 1.27-3.44.32-2.88-2.1l.71-3.07c.13-.58-.1-1.39-.52-1.81l-2.48-2.48c-1.46-1.46-.99-2.94 1.05-3.28l3.19-.53c.53-.09 1.17-.56 1.41-1.05l1.76-3.52c.96-1.91 2.52-1.91 3.47 0Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13.73 3.51 1.76 3.52c.24.49.88.96 1.42 1.05l3.19.53c2.04.34 2.52 1.82 1.05 3.28l-2.48 2.48c-.42.42-.65 1.23-.52 1.81l.71 3.07c.56 2.43-.73 3.37-2.88 2.1l-2.99-1.77c-.54-.32-1.43-.32-1.98 0l-2.99 1.77c-2.14 1.27-3.44.32-2.88-2.1l.71-3.07c.13-.58-.1-1.39-.52-1.81l-2.48-2.48c-1.46-1.46-.99-2.94 1.05-3.28l3.19-.53c.53-.09 1.17-.56 1.41-1.05l1.76-3.52c.96-1.91 2.52-1.91 3.47 0Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13.73 3.51 1.76 3.52c.24.49.88.96 1.42 1.05l3.19.53c2.04.34 2.52 1.82 1.05 3.28l-2.48 2.48c-.42.42-.65 1.23-.52 1.81l.71 3.07c.56 2.43-.73 3.37-2.88 2.1l-2.99-1.77c-.54-.32-1.43-.32-1.98 0l-2.99 1.77c-2.14 1.27-3.44.32-2.88-2.1l.71-3.07c.13-.58-.1-1.39-.52-1.81l-2.48-2.48c-1.46-1.46-.99-2.94 1.05-3.28l3.19-.53c.53-.09 1.17-.56 1.41-1.05l1.76-3.52c.96-1.91 2.52-1.91 3.47 0Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13.73 3.51 1.76 3.52c.24.49.88.96 1.42 1.05l3.19.53c2.04.34 2.52 1.82 1.05 3.28l-2.48 2.48c-.42.42-.65 1.23-.52 1.81l.71 3.07c.56 2.43-.73 3.37-2.88 2.1l-2.99-1.77c-.54-.32-1.43-.32-1.98 0l-2.99 1.77c-2.14 1.27-3.44.32-2.88-2.1l.71-3.07c.13-.58-.1-1.39-.52-1.81l-2.48-2.48c-1.46-1.46-.99-2.94 1.05-3.28l3.19-.53c.53-.09 1.17-.56 1.41-1.05l1.76-3.52c.96-1.91 2.52-1.91 3.47 0Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13.73 3.51 1.76 3.52c.24.49.88.96 1.42 1.05l3.19.53c2.04.34 2.52 1.82 1.05 3.28l-2.48 2.48c-.42.42-.65 1.23-.52 1.81l.71 3.07c.56 2.43-.73 3.37-2.88 2.1l-2.99-1.77c-.54-.32-1.43-.32-1.98 0l-2.99 1.77c-2.14 1.27-3.44.32-2.88-2.1l.71-3.07c.13-.58-.1-1.39-.52-1.81l-2.48-2.48c-1.46-1.46-.99-2.94 1.05-3.28l3.19-.53c.53-.09 1.17-.56 1.41-1.05l1.76-3.52c.96-1.91 2.52-1.91 3.47 0Z"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_comment_placeholder'] || 'Add a comment (optional)'));
     
@@ -626,7 +626,7 @@ window.zammadChatTemplates["help"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
+      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 21.75C5.85 21.75 1.25 17.15 1.25 11.5C1.25 5.85 5.85 1.25 11.5 1.25C17.15 1.25 21.75 5.85 21.75 11.5C21.75 17.15 17.15 21.75 11.5 21.75ZM11.5 2.75C6.67 2.75 2.75 6.68 2.75 11.5C2.75 16.32 6.67 20.25 11.5 20.25C16.33 20.25 20.25 16.32 20.25 11.5C20.25 6.68 16.33 2.75 11.5 2.75Z"/><path d="M22.0004 22.7499C21.8104 22.7499 21.6204 22.6799 21.4704 22.5299L19.4704 20.5299C19.1804 20.2399 19.1804 19.7599 19.4704 19.4699C19.7604 19.1799 20.2404 19.1799 20.5304 19.4699L22.5304 21.4699C22.8204 21.7599 22.8204 22.2399 22.5304 22.5299C22.3804 22.6799 22.1904 22.7499 22.0004 22.7499Z"/></svg>\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
@@ -685,7 +685,7 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/></svg>\n    <span>');
+      __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="m19.51 5.85-5.94-3.43c-.97-.56-2.17-.56-3.15 0L4.49 5.85a3.15 3.15 0 0 0-1.57 2.73v6.84c0 1.12.6 2.16 1.57 2.73l5.94 3.43c.97.56 2.17.56 3.15 0l5.94-3.43a3.15 3.15 0 0 0 1.57-2.73V8.58a3.192 3.192 0 0 0-1.58-2.73Zm-8.26 1.9c0-.41.34-.75.75-.75s.75.34.75.75V13c0 .41-.34.75-.75.75s-.75-.34-.75-.75V7.75Zm1.67 8.88c-.05.12-.12.23-.21.33a.99.99 0 0 1-1.09.21c-.13-.05-.23-.12-.33-.21-.09-.1-.16-.21-.22-.33a.986.986 0 0 1-.07-.38c0-.26.1-.52.29-.71.1-.09.2-.16.33-.21.37-.16.81-.07 1.09.21.09.1.16.2.21.33.05.12.08.25.08.38s-.03.26-.08.38Z" fill="currentColor"/></svg>\n    <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
     
@@ -693,7 +693,7 @@ window.zammadChatTemplates["home"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_home_start_button'] || 'Send us a message'));
     
-      __out.push('</span>\n      <svg class="zammad-chat-home-action-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n      <svg class="zammad-chat-home-action-icon-offline zammad-chat-is-hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
+      __out.push('</span>\n      <svg class="zammad-chat-home-action-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9.51 4.23 8.56 4.28c3.84 1.92 3.84 5.06 0 6.98l-8.56 4.28c-5.76 2.88-8.11.52-5.23-5.23l.87-1.73c.22-.44.22-1.17 0-1.61l-.87-1.74C1.4 3.71 3.76 1.35 9.51 4.23ZM5.44 12h5.4"/></svg>\n      <svg class="zammad-chat-home-action-icon-offline zammad-chat-is-hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20.5H7c-3 0-5-1.5-5-5v-7c0-3.5 2-5 5-5h10c3 0 5 1.5 5 5v7c0 3.5-2 5-5 5Z"/><path d="m17 9-3.13 2.5c-1.03.82-2.72.82-3.75 0L7 9"/></svg>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
@@ -752,7 +752,7 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(__sanitize(this.url));
     
-      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/></svg>\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
+      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v10c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V7c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5Z"/><path d="M14.5 4.5v2c0 1.1.9 2 2 2h2M8 13h4M8 17h8"/></svg>\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
     
       __out.push(this.title);
     
@@ -760,7 +760,7 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(this.body);
     
-      __out.push('</span>\n    </span>\n    <svg class="zammad-chat-kb-result-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>\n  </a>\n</li>\n');
+      __out.push('</span>\n    </span>\n    <svg class="zammad-chat-kb-result-chevron" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 9.33v5.34c0 3.32 2.35 4.67 5.22 3.02l1.28-.74c.31-.18.5-.51.5-.87V7.92c0-.36-.19-.69-.5-.87l-1.28-.74C8.35 4.66 6 6.01 6 9.33z"/><path d="M14 8.79v6.43c0 .39.42.63.75.43l1.1-.64c2.87-1.65 2.87-4.37 0-6.02l-1.1-.64a.503.503 0 00-.75.44z" opacity=".4"/></svg>\n  </a>\n</li>\n');
     
     }).call(this);
     
@@ -811,7 +811,7 @@ window.zammadChatTemplates["launcher"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-launcher">\n  <svg class="zammad-chat-launcher-icon-open" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n  <svg class="zammad-chat-launcher-icon-close" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>\n</div>\n');
+      __out.push('<div class="zammad-chat-launcher">\n  <svg class="zammad-chat-launcher-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n  <svg class="zammad-chat-launcher-icon-close" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.919 8.18H6.079c-.96 0-1.44 1.16-.76 1.84l5.18 5.18c.83.83 2.18.83 3.01 0l1.97-1.97 3.21-3.21c.67-.68.19-1.84-.77-1.84z"/></svg>\n</div>\n');
     
     }).call(this);
     
@@ -862,7 +862,7 @@ window.zammadChatTemplates["loader"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -960,7 +960,7 @@ window.zammadChatTemplates["message"] = function(__obj) {
       if (this.from === 'agent' && this.id) {
         __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
         __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></button>');
+        __out.push('"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.13 18.31h8c2.76 0 5-2.24 5-5s-2.24-5-5-5h-11"/><path d="M6.43 10.81L3.87 8.25l2.56-2.56"/></svg></button>');
       }
     
       __out.push('</span><span class="zammad-chat-message-time">');
@@ -972,7 +972,7 @@ window.zammadChatTemplates["message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
+        __out.push('"><svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/>');
         if (this.isRead) {
           __out.push('<polyline points="7 7 11 11 19 2"/>');
         }
@@ -1030,7 +1030,7 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n    <span><strong>');
+      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.75 12 2.83 2.83 5.67-5.66"/></svg>\n    <span><strong>');
     
       __out.push(__sanitize(this.email));
     
@@ -1046,7 +1046,11 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…'));
     
-      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit">');
+      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).\n  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong\n  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di\n  manapun di codebase ini, konsisten dgn attachment chat biasa yang\n  juga fire-and-forget/tidak bisa dibatalkan). -->\n  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">\n    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>\n    <span>');
+    
+      __out.push(this.T(this.phrases['chat_phrase_offline_compose_attach_button'] || 'Add attachment'));
+    
+      __out.push('</span>\n  </button>\n  <input type="file" class="js-offline-compose-attachment-input zammad-chat-is-hidden">\n\n  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_send_button'] || 'Send Message'));
     
@@ -1101,7 +1105,7 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
+      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20.5H7c-3 0-5-1.5-5-5v-7c0-3.5 2-5 5-5h10c3 0 5 1.5 5 5v7c0 3.5-2 5-5 5Z"/><path d="m17 9-3.13 2.5c-1.03.82-2.72.82-3.75 0L7 9"/></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_title'] || 'Enter verification code'));
     
@@ -1113,7 +1117,7 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
     
       __out.push(__sanitize(this.email));
     
-      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
+      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">\n    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.75V13M21.08 8.58v6.84c0 1.12-.6 2.16-1.57 2.73l-5.94 3.43c-.97.56-2.17.56-3.15 0l-5.94-3.43a3.15 3.15 0 0 1-1.57-2.73V8.58c0-1.12.6-2.16 1.57-2.73l5.94-3.43c.97-.56 2.17-.56 3.15 0l5.94 3.43c.97.57 1.57 1.6 1.57 2.73Z"/><path d="M12 16.2v.1"/></svg>\n    <span class="js-otp-error-text"></span>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_verify_button'] || 'Verify'));
     
@@ -1180,7 +1184,7 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
+      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.49 2 2 6.49 2 12C2 17.51 6.49 22 12 22C17.51 22 22 17.51 22 12C22 6.49 17.51 2 12 2ZM16.78 9.7L11.11 15.37C10.97 15.51 10.78 15.59 10.58 15.59C10.38 15.59 10.19 15.51 10.05 15.37L7.22 12.54C6.93 12.25 6.93 11.77 7.22 11.48C7.51 11.19 7.99 11.19 8.28 11.48L10.58 13.78L15.72 8.64C16.01 8.35 16.49 8.35 16.78 8.64C17.07 8.93 17.07 9.4 16.78 9.7Z"/></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_sent_title'] || 'Your message has been sent!'));
     
@@ -1251,7 +1255,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n  </div>\n  <div class="zammad-chat-prechat-title">');
+      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n  </div>\n  <div class="zammad-chat-prechat-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_title'] || 'Let\'s get started'));
     
@@ -1265,6 +1269,14 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
         __out.push('\n      <div class="zammad-chat-prechat-error">');
         __out.push(this.error);
         __out.push('</div>\n    ');
+      }
+    
+      __out.push('\n    <!-- Atas permintaan user: notice BUKAN error (kabar baik, mis.\n    "agent sekarang tersedia") pakai gaya notice SUKSES Able Pro\n    (outline hijau), TERPISAH dari `.zammad-chat-prechat-error` (tetap\n    merah, dipakai pesan gagal validasi sungguhan). -->\n    ');
+    
+      if (this.notice) {
+        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.75 12 2.83 2.83 5.67-5.66"/></svg>\n        <span>');
+        __out.push(this.notice);
+        __out.push('</span>\n      </div>\n    ');
       }
     
       __out.push('\n    <div class="zammad-chat-prechat-field">\n      <label>');
@@ -1287,7 +1299,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat'));
     
-      __out.push('</span>\n      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n    </button>\n  </form>\n</div>\n');
+      __out.push('</span>\n      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m9.51 4.23 8.56 4.28c3.84 1.92 3.84 5.06 0 6.98l-8.56 4.28c-5.76 2.88-8.11.52-5.23-5.23l.87-1.73c.22-.44.22-1.17 0-1.61l-.87-1.74C1.4 3.71 3.76 1.35 9.51 4.23ZM5.44 12h5.4"/></svg>\n    </button>\n  </form>\n</div>\n');
     
     }).call(this);
     
@@ -1452,15 +1464,15 @@ window.zammadChatTemplates["tabbar"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>\n  <span>');
+      __out.push('<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20.5H7c-3 0-5-1.5-5-5v-7c0-3.5 2-5 5-5h10c3 0 5 1.5 5 5v7c0 3.5-2 5-5 5Z"/><path d="m17 9-3.13 2.5c-1.03.82-2.72.82-3.75 0L7 9"/></svg>\n  <span>');
     
       __out.push(this.T('Home'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n  <span>');
     
       __out.push(this.T('Messages'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.7.4-1.2.9-1.2 1.8"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/></svg>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path opacity=".4" d="M18 18.862h-.76c-.8 0-1.56.31-2.12.87l-1.71 1.69c-.78.77-2.05.77-2.83 0l-1.71-1.69c-.56-.56-1.33-.87-2.12-.87H6c-1.66 0-3-1.33-3-2.97V4.982c0-1.64 1.34-2.97 3-2.97h12c1.66 0 3 1.33 3 2.97v10.91c0 1.63-1.34 2.97-3 2.97Z"/><path d="M10.38 14.51H7.7c-.44 0-.85-.21-1.11-.57-.25-.34-.31-.76-.19-1.16.35-1.07 1.21-1.65 1.97-2.17.8-.54 1.25-.88 1.25-1.46a.939.939 0 1 0-1.88 0c0 .41-.34.75-.75.75s-.75-.34-.75-.75c0-1.34 1.09-2.44 2.44-2.44 1.35 0 2.44 1.09 2.44 2.44 0 1.41-1.06 2.13-1.91 2.71-.53.36-1.03.7-1.28 1.15h2.44c.41 0 .75.34.75.75s-.33.75-.74.75ZM16.04 14.509c-.41 0-.75-.34-.75-.75v-.69h-1.97c-.49 0-.94-.26-1.19-.68-.25-.43-.25-.96 0-1.38.68-1.17 1.47-2.5 2.19-3.66.32-.51.93-.74 1.5-.58.57.17.97.69.96 1.29v3.52H17c.41 0 .75.34.75.75s-.34.75-.75.75h-.21v.69c0 .41-.33.74-.75.74Zm-.75-5.87c-.59.96-1.2 1.99-1.75 2.93h1.75v-2.93Z"/></svg>\n  <span>');
     
       __out.push(this.T('Help'));
     
@@ -1690,7 +1702,7 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -2621,6 +2633,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.finishOfflineFlow = bind(this.finishOfflineFlow, this);
       this.showOfflineSent = bind(this.showOfflineSent, this);
       this.onOfflineMessageSendResult = bind(this.onOfflineMessageSendResult, this);
+      this.uploadOfflineAttachment = bind(this.uploadOfflineAttachment, this);
+      this.triggerOfflineAttachmentInput = bind(this.triggerOfflineAttachmentInput, this);
       this.submitOfflineMessage = bind(this.submitOfflineMessage, this);
       this.showOfflineCompose = bind(this.showOfflineCompose, this);
       this.onOfflineOtpResendResult = bind(this.onOfflineOtpResendResult, this);
@@ -2633,6 +2647,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.onOtpDigitInput = bind(this.onOtpDigitInput, this);
       this.showOfflineOtp = bind(this.showOfflineOtp, this);
       this.onOfflineSessionInitResult = bind(this.onOfflineSessionInitResult, this);
+      this.applyOfflineHomeState = bind(this.applyOfflineHomeState, this);
       this.enterOfflineMode = bind(this.enterOfflineMode, this);
       this.submitPrechatForm = bind(this.submitPrechatForm, this);
       this.showPrechatForm = bind(this.showPrechatForm, this);
@@ -2771,6 +2786,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.el.find('.zammad-chat-modal').on('paste', '.js-otp-digit', this.onOtpDigitPaste);
       this.el.find('.zammad-chat-modal').on('click', '.js-offline-compose-submit', this.submitOfflineMessage);
       this.el.find('.zammad-chat-modal').on('click', '.js-offline-sent-done', this.finishOfflineFlow);
+      this.el.find('.zammad-chat-modal').on('click', '.js-offline-compose-attach', this.triggerOfflineAttachmentInput);
+      this.el.find('.zammad-chat-modal').on('change', '.js-offline-compose-attachment-input', this.uploadOfflineAttachment);
       this.el.find('.zammad-chat-modal').on('click', '.js-feedback-star', this.selectFeedbackScore);
       this.el.find('.zammad-chat-modal').on('click', '.js-feedback-submit', this.submitFeedback);
       this.el.find('.zammad-chat-modal').on('click', '.js-feedback-skip', this.skipFeedback);
@@ -3124,7 +3141,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onWebSocketMessage = function(pipes) {
-      var from, j, len, pipe;
+      var from, j, len, pipe, ref;
       for (j = 0, len = pipes.length; j < len; j++) {
         pipe = pipes[j];
         this.log.debug('ws:onmessage', pipe);
@@ -3200,12 +3217,16 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
             if (pipe.data.logo_url) {
               this.updateHomeLogo(pipe.data.logo_url);
             }
+            this.offlineMode = pipe.data.state === 'offline';
+            if ((ref = this.launcherEl) != null) {
+              ref.toggleClass('zammad-chat-launcher--offline', this.offlineMode);
+            }
             if (pipe.data.phrases) {
               this.updatePhrases(pipe.data.phrases);
             }
             switch (pipe.data.state) {
               case 'online':
-                this.sessionId = void 0;
+                this.setSessionId(void 0);
                 if (!this.options.cssAutoload || this.cssLoaded) {
                   this.onReady();
                 } else {
@@ -3213,6 +3234,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
                 }
                 break;
               case 'offline':
+                this.setSessionId(void 0);
                 this.enterOfflineMode();
                 break;
               case 'chat_disabled':
@@ -3534,6 +3556,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       }
       this.el.find('.zammad-chat-modal').html(this.view('prechat')({
         error: params.error,
+        notice: params.notice,
         name: params.name,
         email: params.email
       }));
@@ -3574,25 +3597,37 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.enterOfflineMode = function() {
+      this.applyOfflineHomeState();
+      return this.show();
+    };
+
+    ZammadChat.prototype.applyOfflineHomeState = function() {
       var startAction;
-      if (this.offlineMode) {
+      if (!this.offlineMode) {
         return;
       }
-      this.offlineMode = true;
-      this.el.find('.zammad-chat-welcome-subtext').replaceWith($('<span>').addClass('zammad-chat-welcome-offline-status').append($('<span>').addClass('zammad-chat-welcome-offline-dot')).append(document.createTextNode(this.T(this.phrases['chat_phrase_offline_status'] || "We're offline right now"))));
+      if (!this.el) {
+        return;
+      }
+      this.el.find('.zammad-chat-welcome-subtext').html($('<span>').addClass('zammad-chat-welcome-offline-status').append($('<span>').addClass('zammad-chat-welcome-offline-dot')).append(document.createTextNode(this.T(this.phrases['chat_phrase_offline_status'] || "We're offline right now"))));
       this.el.find('.zammad-chat-home-offline-notice').removeClass('zammad-chat-is-hidden');
       startAction = this.el.find('.js-home-start-action');
       startAction.find('.js-home-start-label').text(this.T(this.phrases['chat_phrase_offline_start_button'] || 'Leave us a message'));
       startAction.find('.zammad-chat-home-action-icon-default').addClass('zammad-chat-is-hidden');
-      startAction.find('.zammad-chat-home-action-icon-offline').removeClass('zammad-chat-is-hidden');
-      return this.show();
+      return startAction.find('.zammad-chat-home-action-icon-offline').removeClass('zammad-chat-is-hidden');
     };
 
     ZammadChat.prototype.onOfflineSessionInitResult = function(data) {
       if (data.state !== 'ok') {
-        this.showPrechatForm({
-          error: data.message
-        });
+        if (data.reason === 'agent_available') {
+          this.showPrechatForm({
+            notice: data.message
+          });
+        } else {
+          this.showPrechatForm({
+            error: data.message
+          });
+        }
         return;
       }
       this.setSessionId(data.session_id);
@@ -3674,7 +3709,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showOtpError = function(message) {
-      return this.el.find('.js-otp-error').text(message).removeClass('zammad-chat-is-hidden');
+      this.el.find('.js-otp-error').removeClass('zammad-chat-is-hidden');
+      return this.el.find('.js-otp-error-text').text(message);
     };
 
     ZammadChat.prototype.onOfflineOtpVerifyResult = function(data) {
@@ -3728,6 +3764,55 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         session_id: this.sessionId,
         content: content
       });
+    };
+
+    ZammadChat.prototype.triggerOfflineAttachmentInput = function(event) {
+      if (event != null) {
+        event.preventDefault();
+      }
+      return this.el.find('.js-offline-compose-attachment-input').trigger('click');
+    };
+
+    ZammadChat.prototype.uploadOfflineAttachment = function(event) {
+      var attachBtn, file, formData, ref;
+      file = (ref = event.currentTarget.files) != null ? ref[0] : void 0;
+      if (!file) {
+        return;
+      }
+      formData = new FormData();
+      formData.append('File', file);
+      attachBtn = this.el.find('.js-offline-compose-attach');
+      attachBtn.prop('disabled', true);
+      $.ajax({
+        type: 'POST',
+        url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments",
+        data: formData,
+        processData: false,
+        contentType: false,
+        cache: false,
+        success: (function(_this) {
+          return function(data) {
+            var chip;
+            chip = $('<div>').addClass('zammad-chat-offline-compose-attachment-chip');
+            chip.append($('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>'));
+            chip.append($('<span>').text(data.filename));
+            return _this.el.find('.js-offline-compose-attachments').append(chip);
+          };
+        })(this),
+        error: (function(_this) {
+          return function(xhr) {
+            var message, ref1;
+            message = ((ref1 = xhr.responseJSON) != null ? ref1.error : void 0) || _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
+            return _this.el.find('.js-offline-compose-error').text(message).removeClass('zammad-chat-is-hidden');
+          };
+        })(this),
+        complete: (function(_this) {
+          return function() {
+            return attachBtn.prop('disabled', false);
+          };
+        })(this)
+      });
+      return this.el.find('.js-offline-compose-attachment-input').val('');
     };
 
     ZammadChat.prototype.onOfflineMessageSendResult = function(data) {
@@ -4141,7 +4226,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (!statusEls.length) {
         return;
       }
-      return statusEls.removeClass('zammad-chat-message-status--sent').addClass('zammad-chat-message-status--read').attr('aria-label', this.T('Read')).html('<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>');
+      return statusEls.removeClass('zammad-chat-message-status--sent').addClass('zammad-chat-message-status--read').attr('aria-label', this.T('Read')).html('<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>');
     };
 
     ZammadChat.prototype.setSessionId = function(id) {
@@ -4245,7 +4330,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.el.find('.zammad-chat-tab-body--help').html(this.view('help')());
       this.el.find('.zammad-chat-welcome-title').html(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋');
       this.el.find('.zammad-chat-welcome-subtext').text(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?'));
-      return this.el.find('.zammad-chat-input').attr('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
+      this.el.find('.zammad-chat-input').attr('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
+      return this.applyOfflineHomeState();
     };
 
     ZammadChat.prototype.formatTime = function(isoString) {

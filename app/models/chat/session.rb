@@ -41,6 +41,14 @@ class Chat::Session < ApplicationModel
   # bisa dicek sama sekali di titik ini.
   def attachment_enabled?
     return false if !Setting.get('chat_attachment_enabled')
+
+    # Enhancement 4 (item lampiran OfflineCompose) -- sesi offline
+    # TIDAK PERNAH punya agent (`user_id` selamanya kosong, beda dari
+    # sesi "waiting" yang cuma SEMENTARA kosong sebelum agent
+    # menerima) -- cek preferensi PER-AGENT di bawah tidak relevan
+    # sama sekali di sini, cukup saklar global saja.
+    return true if state == 'offline_pending'
+
     return false if user_id.blank?
 
     agent = User.lookup(id: user_id)
@@ -141,8 +149,72 @@ class Chat::Session < ApplicationModel
     )
 
     update!(ticket_id: ticket.id)
+
+    # Enhancement 4 (item lampiran OfflineCompose) -- lihat catatan
+    # panjang di `sync_pending_attachments_to_ticket!` di bawah.
+    sync_pending_attachments_to_ticket!
   rescue => e
     Rails.logger.error "Live Chat auto-ticket gagal dibuat untuk sesi #{session_id}: #{e.message}"
+  end
+
+  # Enhancement 4 (item lampiran OfflineCompose) -- diekstrak dari
+  # `ChatAttachmentsController#sync_attachment_to_ticket` (Fase 5),
+  # BADAN LOGIKA IDENTIK, cuma dipindah ke sini supaya bisa dipanggil
+  # dari 2 tempat: (1) controller, SEGERA setelah upload, utk chat
+  # BIASA (tiket SUDAH ada saat itu); (2) `sync_pending_attachments_to_
+  # ticket!` di bawah, utk pesan OFFLINE (tiket BELUM ada saat upload
+  # -- visitor bisa lampirkan file SAAT MENGETIK, sebelum klik "Kirim
+  # Pesan" -- baru disinkronkan RETROAKTIF begitu tiketnya lahir).
+  def sync_attachment_to_ticket!(chat_message)
+    return if ticket_id.blank?
+
+    store = Store.list(object: 'Chat::Message', o_id: chat_message.id).first
+    return if !store
+
+    is_from_agent = chat_message.created_by_id.present? && chat_message.created_by_id == user_id
+    sender_name   = is_from_agent ? 'Agent' : 'Customer'
+    actor_id      = is_from_agent ? user_id : ticket.customer_id
+    from          = is_from_agent ? agent_user&.dig(:name) : (name.presence || email)
+
+    article = Ticket::Article.create!(
+      ticket_id:     ticket_id,
+      type:          Ticket::Article::Type.find_by(name: 'chat'),
+      sender:        Ticket::Article::Sender.find_by(name: sender_name),
+      from:          from,
+      body:          __('Attachment: %s') % store.filename,
+      internal:      false,
+      created_by_id: actor_id,
+      updated_by_id: actor_id,
+    )
+
+    Store.create!(
+      object:        'Ticket::Article',
+      o_id:          article.id,
+      data:          store.content,
+      filename:      store.filename,
+      preferences:   store.preferences,
+      created_by_id: actor_id,
+    )
+  rescue => e
+    Rails.logger.error "Live Chat gagal sinkron attachment ke tiket #{ticket_id}: #{e.message}"
+  end
+
+  # Enhancement 4 (item lampiran OfflineCompose) -- untuk chat BIASA,
+  # `create_ticket_for_chat!` (dipanggil saat agent menerima) SELALU
+  # lebih dulu ada daripada attachment manapun (`attachment_enabled?`
+  # mewajibkan agent SUDAH ada), jadi loop ini SELALU no-op utk jalur
+  # itu (aman dipanggil generik di sini, bukan cuma jalur offline).
+  # Untuk pesan OFFLINE, tiket baru lahir saat "Kirim Pesan" diklik --
+  # attachment yg diunggah SAAT MENGETIK (sebelum itu) tersimpan
+  # sebagai `Chat::Message` tanpa tiket tujuan (`sync_attachment_to_
+  # ticket!` dari controller sudah dipanggil saat itu tapi langsung
+  # `return` krn `ticket_id` masih kosong) -- di sinilah baru benar2
+  # disinkronkan, PERSIS SEKALI (method ini cuma dipanggil dari dalam
+  # `create_ticket_for_chat!`, yang SENDIRI dijaga idempoten lewat
+  # `return if ticket_id.present?` di baris paling atas -- tidak
+  # mungkin dobel-sinkron).
+  def sync_pending_attachments_to_ticket!
+    messages.where(content: '[attachment]').find_each { |m| sync_attachment_to_ticket!(m) }
   end
 
   # Enhancement 1 -- Tahap 3 (Offline Message + Verifikasi OTP). Dipakai

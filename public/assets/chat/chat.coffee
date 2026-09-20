@@ -850,6 +850,11 @@ do($ = window.jQuery, window) ->
       @el.find('.zammad-chat-modal').on 'click', '.js-offline-compose-submit', @submitOfflineMessage
       @el.find('.zammad-chat-modal').on 'click', '.js-offline-sent-done', @finishOfflineFlow
 
+      # Item lampiran OfflineCompose (follow-up terpisah dari
+      # Enhancement 4 awal) -- delegasi sama persis alasannya.
+      @el.find('.zammad-chat-modal').on 'click', '.js-offline-compose-attach', @triggerOfflineAttachmentInput
+      @el.find('.zammad-chat-modal').on 'change', '.js-offline-compose-attachment-input', @uploadOfflineAttachment
+
       # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi sama
       # persis alasannya dgn blok Enhancement 1 di atas.
       @el.find('.zammad-chat-modal').on 'click', '.js-feedback-star', @selectFeedbackScore
@@ -1284,14 +1289,39 @@ do($ = window.jQuery, window) ->
             # respons ini (bukan cuma 'online'), backend sudah
             # menggabungkannya (`chat_status_customer.rb`).
             @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
-            # Enhancement 4 -- lihat catatan di `updatePhrases`. HARUS
-            # sebelum switch state di bawah, supaya `enterOfflineMode()`
-            # (kalau state 'offline') menata visibility di atas DOM
-            # Home yang SUDAH memuat teks ter-update, bukan sebaliknya.
+            # Bug ditemukan user ("notice muncul padahal ada agent
+            # online") -- SEBELUMNYA `@offlineMode` cuma di-set `true`
+            # di dalam `enterOfflineMode()` (case 'offline' di bawah),
+            # TIDAK PERNAH di-set balik `false` di case 'online' manapun
+            # -- jadi begitu widget PERNAH offline sekali, `@offlineMode`
+            # nyangkut `true` SELAMANYA, dan `applyOfflineHomeState()`
+            # (dipanggil dari `updatePhrases` TIAP status response, lihat
+            # entri 160) akan TERUS memaksa tampilan offline pada
+            # RECONNECT manapun berikutnya, WALAU agent SUDAH online lagi
+            # sungguhan. Diperbaiki: `@offlineMode` SEKARANG ditentukan
+            # ULANG di sini, LANGSUNG dari state respons yg BARU datang
+            # -- SEBELUM `updatePhrases` (yg memakai nilai ini) dipanggil,
+            # supaya kedua ARAH transisi (offline->online MAUPUN
+            # online->offline) sama2 benar, bukan cuma satu arah.
+            @offlineMode = pipe.data.state is 'offline'
+            # Atas permintaan user: tombol launcher (ikon mengambang,
+            # SELALU terpisah dari `@el`, lihat `renderBase`) jadi
+            # abu-abu saat offline. `@launcherEl` TIDAK PERNAH digambar
+            # ulang (beda dari tab Home di dalam `@el`), jadi toggle
+            # EKSPLISIT di SINI langsung dari `@offlineMode` -- bukan
+            # dari `applyOfflineHomeState` (yg cuma jalan pas offline,
+            # early-return kalau tidak, tidak bisa dipakai utk
+            # membersihkan arah balik ke online).
+            @launcherEl?.toggleClass('zammad-chat-launcher--offline', @offlineMode)
             @updatePhrases(pipe.data.phrases) if pipe.data.phrases
             switch pipe.data.state
               when 'online'
-                @sessionId = undefined
+                # `setSessionId undefined` (BUKAN cuma `@sessionId =
+                # undefined` spt sebelumnya) -- lihat catatan panjang
+                # di case 'offline' di bawah, alasan yg SAMA berlaku
+                # di sini juga (bersihkan `sessionStorage`, bukan cuma
+                # variabel in-memory).
+                @setSessionId undefined
 
                 if !@options.cssAutoload || @cssLoaded
                   @onReady()
@@ -1304,6 +1334,27 @@ do($ = window.jQuery, window) ->
                 # sekarang widget TETAP tampil, cuma alur Home-nya
                 # diganti ke "Leave us a message" (OTP+pesan offline)
                 # lewat `enterOfflineMode()`, bukan mati total.
+                #
+                # Bug ditemukan user (simulasi manual: masuk ke OTP,
+                # HARD REFRESH) -- `@sessionId` sisa dari sesi offline
+                # LAMA (state `offline_pending`, `session_id` sudah
+                # disimpan `sessionStorage` sejak `chat_offline_
+                # session_init`, lihat `onOfflineSessionInitResult`)
+                # TIDAK PERNAH dibersihkan di sini, beda dari case
+                # 'online' di atas yg SUDAH lebih dulu membersihkannya.
+                # Backend (`Chat.customer_state`) SENGAJA cuma
+                # menganggap `state: %w[waiting running]` sbg
+                # reconnect valid -- sesi `offline_pending` TIDAK
+                # PERNAH match, jatuh ke sini ('offline'), tapi
+                # frontend tetap menyimpan `@sessionId` basi itu.
+                # Akibatnya: `open()`'s `if @sessionId` (dipakai utk
+                # tahu "ada chat SEDANG BERJALAN, reconnect ke situ")
+                # salah kira sesi offline BELUM-terverifikasi ini
+                # sbg chat sungguhan, lempar visitor ke tab Messages
+                # KOSONG (kotak ketik chat biasa) alih-alih mulai
+                # ulang dari Home spt yang didesain ("reload di tengah
+                # OTP/compose cukup mulai ulang dari Home").
+                @setSessionId undefined
                 @enterOfflineMode()
               when 'chat_disabled'
                 @onError 'Zammad Chat: Chat is disabled'
@@ -1693,6 +1744,7 @@ do($ = window.jQuery, window) ->
     showPrechatForm: (params = {}) =>
       @el.find('.zammad-chat-modal').html @view('prechat')(
         error: params.error
+        notice: params.notice
         name: params.name
         email: params.email
       )
@@ -1766,14 +1818,38 @@ do($ = window.jQuery, window) ->
     # ============================================================
 
     # Dipicu `chat_status_customer` state 'offline' (SEMUA agent tidak
-    # tersedia, termasuk yg AUX -- entri 143). Idempoten (`return if
-    # @offlineMode`) -- payload ini bisa datang berulang tiap ada
-    # perubahan status agent, bukan cuma sekali per widget dimuat.
+    # tersedia, termasuk yg AUX -- entri 143). Payload ini bisa datang
+    # BERULANG (`Io`'s `onOpen: @render` -- WS reconnect kapan saja,
+    # bukan cuma sekali per widget dimuat, lihat catatan panjang di
+    # `updatePhrases`/`applyOfflineHomeState`).
     enterOfflineMode: =>
-      return if @offlineMode
-      @offlineMode = true
+      # `@offlineMode` SUDAH di-set (lihat handler `chat_status_customer`
+      # di atas, ditentukan LEBIH DULU dari state respons, sebelum
+      # `updatePhrases` dipanggil) -- di sini tinggal terapkan +
+      # tampilkan.
+      @applyOfflineHomeState()
+      @show()
 
-      @el.find('.zammad-chat-welcome-subtext').replaceWith(
+    # Diekstrak dari `enterOfflineMode` (bug ditemukan user, lihat
+    # catatan di `updatePhrases`) -- SEKARANG method TERPISAH yang
+    # AMAN dipanggil BERULANG KALI (dari sini MAUPUN dari
+    # `updatePhrases` tiap kali WS reconnect), beda dari versi lama yg
+    # cuma sanggup jalan SEKALI (`return if @offlineMode`). 2 perubahan
+    # kunci spy aman diulang: (1) `.zammad-chat-welcome-subtext` TIDAK
+    # LAGI diganti total (`replaceWith`, yg bikin elemen ASLINYA hilang
+    # SELAMANYA setelah panggilan pertama -- panggilan kedua dst jadi
+    # tidak ketemu apa2 lagi) -- SEKARANG cuma isinya yg diganti
+    # (`.html()`), elemen pembungkusnya tetap `.zammad-chat-welcome-
+    # subtext` yg SAMA, bisa ditimpa lagi kapan saja oleh `updatePhrases`
+    # (arah sebaliknya, balik ke teks online) MAUPUN dipanggil lagi
+    # method ini (balik ke offline lagi). (2) TIDAK ada guard idempoten
+    # apa pun -- semua operasi di sini (toggle class, ganti teks) SUDAH
+    # aman diulang berkali-kali tanpa efek samping.
+    applyOfflineHomeState: =>
+      return if !@offlineMode
+      return if !@el
+
+      @el.find('.zammad-chat-welcome-subtext').html(
         $('<span>')
           .addClass('zammad-chat-welcome-offline-status')
           .append($('<span>').addClass('zammad-chat-welcome-offline-dot'))
@@ -1787,16 +1863,22 @@ do($ = window.jQuery, window) ->
       startAction.find('.zammad-chat-home-action-icon-default').addClass('zammad-chat-is-hidden')
       startAction.find('.zammad-chat-home-action-icon-offline').removeClass('zammad-chat-is-hidden')
 
-      @show()
-
     onOfflineSessionInitResult: (data) =>
       if data.state isnt 'ok'
         # Skenario paling mungkin: race condition -- agent jadi online
         # PERSIS di antara widget menampilkan OfflineHome & visitor
         # submit form (server VALIDASI ULANG ini, lihat
         # `chat_offline_session_init.rb`). Kembalikan ke form pra-chat
-        # dgn pesan error, JANGAN diam-diam macet di loader.
-        @showPrechatForm(error: data.message)
+        # dgn pesan, JANGAN diam-diam macet di loader.
+        #
+        # Atas permintaan user: `reason: 'agent_available'` (kabar
+        # BAIK, BUKAN error sungguhan) ditampilkan pakai gaya notice
+        # sukses Able Pro -- BEDA dari kegagalan validasi nama/email
+        # (reason lain/tidak ada), yg TETAP gaya error merah.
+        if data.reason is 'agent_available'
+          @showPrechatForm(notice: data.message)
+        else
+          @showPrechatForm(error: data.message)
         return
 
       @setSessionId data.session_id
@@ -1860,8 +1942,18 @@ do($ = window.jQuery, window) ->
 
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
 
+    # Bug ditemukan lewat laporan user (perbandingan ke mockup
+    # `OfflineOtp.dc.html`): ikon peringatan di pesan error TIDAK
+    # PERNAH dibuat -- `.js-otp-error` cuma `<div>` kosong yg diisi
+    # `.text(message)`, MEMANG tidak ada markup ikon sama sekali, dan
+    # `.text()` akan MENGHAPUS ikon apa pun tiap kali dipanggil (isi
+    # elemen diganti total jadi teks polos). Diperbaiki: ikon
+    # dipindah ke markup statis `views/offline_otp.eco`, `.text()` di
+    # sini SEKARANG cuma menyasar `<span>` anak (`.js-otp-error-text`)
+    # -- ikon tidak pernah tersentuh/terhapus.
     showOtpError: (message) =>
-      @el.find('.js-otp-error').text(message).removeClass('zammad-chat-is-hidden')
+      @el.find('.js-otp-error').removeClass('zammad-chat-is-hidden')
+      @el.find('.js-otp-error-text').text(message)
 
     onOfflineOtpVerifyResult: (data) =>
       if data.state is 'ok'
@@ -1904,6 +1996,51 @@ do($ = window.jQuery, window) ->
       @el.find('.js-offline-compose-error').addClass('zammad-chat-is-hidden')
       @el.find('.js-offline-compose-submit').prop('disabled', true)
       @send('chat_offline_message_send', session_id: @sessionId, content: content)
+
+    # Item lampiran OfflineCompose (follow-up terpisah dari
+    # Enhancement 4 awal) -- reuse ENDPOINT REST yang sama dgn
+    # attachment chat biasa (`uploadAttachment` di atas), BUKAN event
+    # WS baru. `@sessionId` (BUKAN `@lastSessionId`) krn ini terjadi
+    # SEBELUM "Kirim Pesan" diklik -- sesi masih `offline_pending`
+    # (belum `closed`), `attachment_enabled?` (backend) sudah dibuat
+    # khusus mengizinkan sesi offline lewat saklar global saja (tidak
+    # ada agent utk dicek preferensinya). Tiket belum tentu ada di
+    # titik upload ini -- disinkronkan RETROAKTIF backend sendiri
+    # (`Chat::Session#sync_pending_attachments_to_ticket!`) begitu
+    # "Kirim Pesan" benar2 membuat tiketnya.
+    triggerOfflineAttachmentInput: (event) =>
+      event?.preventDefault()
+      @el.find('.js-offline-compose-attachment-input').trigger('click')
+
+    uploadOfflineAttachment: (event) =>
+      file = event.currentTarget.files?[0]
+      return if !file
+
+      formData = new FormData()
+      formData.append('File', file)
+
+      attachBtn = @el.find('.js-offline-compose-attach')
+      attachBtn.prop('disabled', true)
+
+      $.ajax
+        type: 'POST'
+        url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments"
+        data: formData
+        processData: false
+        contentType: false
+        cache: false
+        success: (data) =>
+          chip = $('<div>').addClass('zammad-chat-offline-compose-attachment-chip')
+          chip.append $('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>')
+          chip.append $('<span>').text(data.filename)
+          @el.find('.js-offline-compose-attachments').append(chip)
+        error: (xhr) =>
+          message = xhr.responseJSON?.error || @T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.')
+          @el.find('.js-offline-compose-error').text(message).removeClass('zammad-chat-is-hidden')
+        complete: =>
+          attachBtn.prop('disabled', false)
+
+      @el.find('.js-offline-compose-attachment-input').val('')
 
     onOfflineMessageSendResult: (data) =>
       @el.find('.js-offline-compose-submit').prop('disabled', false)
@@ -2395,7 +2532,7 @@ do($ = window.jQuery, window) ->
         .removeClass('zammad-chat-message-status--sent')
         .addClass('zammad-chat-message-status--read')
         .attr('aria-label', @T('Read'))
-        .html('<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>')
+        .html('<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>')
 
     setSessionId: (id) =>
       @sessionId = id
@@ -2506,10 +2643,25 @@ do($ = window.jQuery, window) ->
       # `views/chat.eco` (shell luar, BEDA dari 2 tab body di atas)
       # dirender SEKALI SAJA di awal `render()` dan tidak pernah
       # digambar ulang -- disentuh manual di sini, pola SAMA dgn
-      # `enterOfflineMode()`'s penggantian `.zammad-chat-welcome-subtext`.
+      # `applyOfflineHomeState()`'s penggantian `.zammad-chat-welcome-subtext`.
       @el.find('.zammad-chat-welcome-title').html @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋'
       @el.find('.zammad-chat-welcome-subtext').text @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?')
       @el.find('.zammad-chat-input').attr('placeholder', @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'))
+
+      # Bug ditemukan user (screenshot: header online tapi notice
+      # offline MASIH tampil) -- direproduksi Playwright & dikonfirmasi
+      # akar masalahnya: WS BISA reconnect kapan saja (`Io`'s `onOpen:
+      # @render`, bukan cuma sekali di awal), `chat_status_customer`
+      # terkirim ULANG tiap itu terjadi. Baris2 DI ATAS ini SELALU
+      # meng-reset ke tampilan ONLINE (fresh dari template), TAPI
+      # kalau agent MASIH offline saat reconnect itu terjadi,
+      # `@offlineMode` (di-set SEKALI di `enterOfflineMode()`) TETAP
+      # `true` -- jadi di sinilah reset ke online td HARUS ditimpa lagi
+      # ke tampilan offline, PERSIS spt saat pertama kali masuk mode
+      # ini. Dipanggil DI SINI (bukan cuma di `enterOfflineMode()`)
+      # supaya efeknya terulang tiap kali reset ini terjadi, tidak
+      # cuma sekali.
+      @applyOfflineHomeState()
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- jam kecil di bawah TIAP bubble pesan (dulu HANYA

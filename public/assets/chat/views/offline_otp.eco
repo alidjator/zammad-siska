@@ -1,6 +1,6 @@
 <div class="zammad-chat-offline-otp">
   <div class="zammad-chat-offline-otp-icon">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 20.5H7c-3 0-5-1.5-5-5v-7c0-3.5 2-5 5-5h10c3 0 5 1.5 5 5v7c0 3.5-2 5-5 5Z"/><path d="m17 9-3.13 2.5c-1.03.82-2.72.82-3.75 0L7 9"/></svg>
   </div>
   <div class="zammad-chat-offline-otp-title"><%- @T(@phrases['chat_phrase_otp_title'] || 'Enter verification code') %></div>
   <div class="zammad-chat-offline-otp-subtitle"><%- @T(@phrases['chat_phrase_otp_subtitle_prefix'] || 'We sent a 6-digit code to') %> <strong><%= @email %></strong>.</div>
@@ -14,7 +14,10 @@
     <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">
   </div>
 
-  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden"></div>
+  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.75V13M21.08 8.58v6.84c0 1.12-.6 2.16-1.57 2.73l-5.94 3.43c-.97.56-2.17.56-3.15 0l-5.94-3.43a3.15 3.15 0 0 1-1.57-2.73V8.58c0-1.12.6-2.16 1.57-2.73l5.94-3.43c.97-.56 2.17-.56 3.15 0l5.94 3.43c.97.57 1.57 1.6 1.57 2.73Z"/><path d="M12 16.2v.1"/></svg>
+    <span class="js-otp-error-text"></span>
+  </div>
 
   <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit"><%- @T(@phrases['chat_phrase_otp_verify_button'] || 'Verify') %></button>
 

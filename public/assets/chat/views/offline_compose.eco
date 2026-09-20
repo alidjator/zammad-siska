@@ -1,6 +1,6 @@
 <div class="zammad-chat-offline-compose">
   <div class="zammad-chat-offline-compose-verified">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.75 12 2.83 2.83 5.67-5.66"/></svg>
     <span><strong><%= @email %></strong> <%- @T(@phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified') %></span>
   </div>
 
@@ -8,6 +8,19 @@
   <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="<%- @T(@phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…') %>"></textarea>
 
   <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>
+
+  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).
+  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong
+  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di
+  manapun di codebase ini, konsisten dgn attachment chat biasa yang
+  juga fire-and-forget/tidak bisa dibatalkan). -->
+  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>
+
+  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>
+    <span><%- @T(@phrases['chat_phrase_offline_compose_attach_button'] || 'Add attachment') %></span>
+  </button>
+  <input type="file" class="js-offline-compose-attachment-input zammad-chat-is-hidden">
 
   <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit"><%- @T(@phrases['chat_phrase_offline_compose_send_button'] || 'Send Message') %></button>
 </div>

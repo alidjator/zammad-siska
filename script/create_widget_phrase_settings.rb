@@ -132,5 +132,8 @@ upsert_phrase('chat_phrase_feedback_thanks_subtitle', 'Feedback Thanks: Subjudul
 puts '== Help & Lampiran =='
 upsert_phrase('chat_phrase_help_no_results', 'Help: Pesan hasil pencarian kosong', 'No results found.')
 upsert_phrase('chat_phrase_attachment_upload_error', 'Lampiran: Pesan error upload gagal', 'The attachment could not be uploaded.')
+# Item lampiran OfflineCompose (follow-up terpisah dari Enhancement 4
+# awal, ditambahkan belakangan atas permintaan user).
+upsert_phrase('chat_phrase_offline_compose_attach_button', 'Offline Compose: Tombol tambah lampiran', 'Add attachment')
 
 puts 'Done.'

@@ -34,9 +34,16 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
     # ternyata ADA agent tersedia (mis. race condition/klien basi),
     # tolak di sini -- customer SEHARUSNYA pakai alur chat biasa.
     if !Chat.active_agent_count([@payload['data']['chat_id']]).zero?
+      # `reason: 'agent_available'` -- atas permintaan user, pesan ini
+      # BUKAN error sungguhan (kabar BAIK, agent sekarang tersedia),
+      # jadi ditampilkan pakai gaya notice SUKSES Able Pro di
+      # frontend, BEDA dari pesan gagal validasi nama/email di bawah
+      # (`Please provide a valid name and email address.`, TETAP
+      # error). `reason` yg membedakan, BUKAN cek isi teks `message`
+      # (rapuh kalau frasa-nya nanti diubah).
       return {
         event: 'chat_offline_session_init',
-        data:  { state: 'failed', message: __('An agent is available -- please use live chat instead.') },
+        data:  { state: 'failed', reason: 'agent_available', message: __('An agent is available -- please use live chat instead.') },
       }
     end
 

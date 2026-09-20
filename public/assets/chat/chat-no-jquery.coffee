@@ -880,6 +880,17 @@ do(window) ->
         return if !target
         @finishOfflineFlow(event)
 
+      # Item lampiran OfflineCompose (follow-up terpisah dari
+      # Enhancement 4 awal) -- delegasi sama persis alasannya.
+      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+        target = event.target.closest('.js-offline-compose-attach')
+        return if !target
+        @triggerOfflineAttachmentInput(event)
+      @el.querySelector('.zammad-chat-modal').addEventListener 'change', (event) =>
+        target = event.target.closest('.js-offline-compose-attachment-input')
+        return if !target
+        @uploadOfflineAttachment(event)
+
       # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi sama
       # persis alasannya dgn blok Enhancement 1 di atas.
       @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
@@ -1291,11 +1302,17 @@ do(window) ->
             # Atas permintaan user ("logo pada home mengambil dari
             # setting logo zammad") -- mirror persis dari chat.coffee.
             @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
-            # Enhancement 4 -- lihat catatan di chat.coffee.
+            # Bug ditemukan user -- mirror persis dari chat.coffee
+            # (lihat catatan panjang di sana).
+            @offlineMode = pipe.data.state is 'offline'
+            # Atas permintaan user: tombol launcher jadi abu-abu saat
+            # offline -- mirror persis dari chat.coffee (lihat catatan
+            # panjang di sana).
+            @launcherEl?.classList.toggle('zammad-chat-launcher--offline', @offlineMode)
             @updatePhrases(pipe.data.phrases) if pipe.data.phrases
             switch pipe.data.state
               when 'online'
-                @sessionId = undefined
+                @setSessionId undefined
 
                 if !@options.cssAutoload || @cssLoaded
                   @onReady()
@@ -1303,7 +1320,12 @@ do(window) ->
                   @socketReady = true
               when 'offline'
                 # Enhancement 1 -- Tahap 3 -- mirror persis dari
-                # chat.coffee (lihat komentar detail di sana).
+                # chat.coffee. Bug ditemukan user (hard refresh saat
+                # OTP) -- lihat catatan panjang di chat.coffee soal
+                # `@sessionId` sesi offline_pending yg tidak pernah
+                # dibersihkan di sini, bikin `open()` salah kira ada
+                # chat sungguhan yg sedang berjalan.
+                @setSessionId undefined
                 @enterOfflineMode()
               when 'chat_disabled'
                 @onError 'Zammad Chat: Chat is disabled'
@@ -1643,6 +1665,7 @@ do(window) ->
     showPrechatForm: (params = {}) =>
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('prechat')(
         error: params.error
+        notice: params.notice
         name: params.name
         email: params.email
       )
@@ -1695,9 +1718,28 @@ do(window) ->
     # disesuaikan ke DOM API polos yang dipakai file ini.
     # ============================================================
 
+    # Bug ditemukan user (mirror persis dari chat.coffee, lihat catatan
+    # panjang di sana): WS bisa reconnect kapan saja (`onOpen: @render`),
+    # `chat_status_customer` terkirim ulang, `updatePhrases` SELALU
+    # reset ke tampilan online -- versi LAMA method ini cuma sanggup
+    # jalan sekali (`return if @offlineMode`), jadi mixed-state kalau
+    # agent MASIH offline saat reconnect terjadi.
     enterOfflineMode: =>
-      return if @offlineMode
-      @offlineMode = true
+      # `@offlineMode` sudah di-set di handler `chat_status_customer`
+      # di atas -- lihat catatan sama di chat.coffee.
+      @applyOfflineHomeState()
+      @show()
+
+    # Diekstrak dari `enterOfflineMode` -- AMAN dipanggil berulang kali
+    # (dari sini MAUPUN dari `updatePhrases` tiap WS reconnect). Beda
+    # kunci dari versi lama: `.zammad-chat-welcome-subtext` TIDAK LAGI
+    # diganti total (`replaceWith`, elemen aslinya hilang selamanya
+    # setelah panggilan pertama) -- cuma ISINYA (`innerHTML`) yg
+    # diganti, elemen pembungkusnya (& selectornya) tetap ada,
+    # bisa ditimpa lagi arah manapun kapan saja.
+    applyOfflineHomeState: =>
+      return if !@offlineMode
+      return if !@el
 
       subtext = @el.querySelector('.zammad-chat-welcome-subtext')
       if subtext
@@ -1707,7 +1749,8 @@ do(window) ->
         dot.className = 'zammad-chat-welcome-offline-dot'
         status.appendChild(dot)
         status.appendChild(document.createTextNode(@T(@phrases['chat_phrase_offline_status'] || "We're offline right now")))
-        subtext.replaceWith(status)
+        subtext.innerHTML = ''
+        subtext.appendChild(status)
 
       notice = @el.querySelector('.zammad-chat-home-offline-notice')
       notice?.classList.remove('zammad-chat-is-hidden')
@@ -1718,11 +1761,14 @@ do(window) ->
         startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden')
         startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden')
 
-      @show()
-
     onOfflineSessionInitResult: (data) =>
       if data.state isnt 'ok'
-        @showPrechatForm(error: data.message)
+        # Atas permintaan user -- mirror persis dari chat.coffee
+        # (lihat catatan panjang di sana).
+        if data.reason is 'agent_available'
+          @showPrechatForm(notice: data.message)
+        else
+          @showPrechatForm(error: data.message)
         return
 
       @setSessionId data.session_id
@@ -1777,12 +1823,15 @@ do(window) ->
 
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
 
+    # Bug ditemukan -- lihat catatan sama di chat.coffee (ikon
+    # peringatan tidak pernah ada + `.textContent =` menghapusnya).
     showOtpError: (message) =>
       error = @el.querySelector('.js-otp-error')
       return if !error
 
-      error.textContent = message
       error.classList.remove('zammad-chat-is-hidden')
+      textEl = error.querySelector('.js-otp-error-text')
+      textEl.textContent = message if textEl
 
     onOfflineOtpVerifyResult: (data) =>
       if data.state is 'ok'
@@ -1824,6 +1873,50 @@ do(window) ->
       submitBtn = @el.querySelector('.js-offline-compose-submit')
       submitBtn?.setAttribute('disabled', 'disabled')
       @send('chat_offline_message_send', session_id: @sessionId, content: content)
+
+    # Item lampiran OfflineCompose (follow-up terpisah dari
+    # Enhancement 4 awal) -- mirror persis dari chat.coffee (lihat
+    # catatan panjang di sana).
+    triggerOfflineAttachmentInput: (event) =>
+      event?.preventDefault()
+      @el.querySelector('.js-offline-compose-attachment-input').click()
+
+    uploadOfflineAttachment: (event) =>
+      file = event.target.files?[0]
+      return if !file
+
+      formData = new FormData()
+      formData.append('File', file)
+
+      attachBtn = @el.querySelector('.js-offline-compose-attach')
+      attachBtn?.setAttribute('disabled', 'disabled')
+
+      xhr = new XMLHttpRequest()
+      xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
+      xhr.onload = =>
+        attachBtn?.removeAttribute('disabled')
+        if xhr.status >= 200 and xhr.status < 300
+          data = JSON.parse(xhr.responseText)
+          chip = document.createElement('div')
+          chip.className = 'zammad-chat-offline-compose-attachment-chip'
+          chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>'
+          filenameEl = document.createElement('span')
+          filenameEl.textContent = data.filename
+          chip.appendChild(filenameEl)
+          @el.querySelector('.js-offline-compose-attachments')?.appendChild(chip)
+          return
+
+        message = @T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.')
+        try
+          parsed = JSON.parse(xhr.responseText)
+          message = parsed.error if parsed.error
+        errorEl = @el.querySelector('.js-offline-compose-error')
+        if errorEl
+          errorEl.textContent = message
+          errorEl.classList.remove('zammad-chat-is-hidden')
+      xhr.send(formData)
+
+      event.target.value = ''
 
     onOfflineMessageSendResult: (data) =>
       @el.querySelector('.js-offline-compose-submit')?.removeAttribute('disabled')
@@ -2243,7 +2336,7 @@ do(window) ->
         statusEl.classList.remove('zammad-chat-message-status--sent')
         statusEl.classList.add('zammad-chat-message-status--read')
         statusEl.setAttribute('aria-label', @T('Read'))
-        statusEl.innerHTML = '<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>'
+        statusEl.innerHTML = '<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>'
 
     setSessionId: (id) =>
       @sessionId = id
@@ -2346,6 +2439,9 @@ do(window) ->
       welcomeSubtext.textContent = @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') if welcomeSubtext
       input = @el.querySelector('.zammad-chat-input')
       input.setAttribute('placeholder', @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…')) if input
+
+      # Bug ditemukan user -- lihat catatan panjang di chat.coffee.
+      @applyOfflineHomeState()
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- mirror persis dari chat.coffee.

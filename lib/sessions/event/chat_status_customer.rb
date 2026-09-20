@@ -122,6 +122,7 @@ return is sent as message back to peer
     chat_phrase_feedback_thanks_subtitle
     chat_phrase_help_no_results
     chat_phrase_attachment_upload_error
+    chat_phrase_offline_compose_attach_button
   ].freeze
 
   def widget_phrases
