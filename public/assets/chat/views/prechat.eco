@@ -2,23 +2,23 @@
   <div class="zammad-chat-prechat-icon">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
   </div>
-  <div class="zammad-chat-prechat-title"><%- @T('Let\'s get started') %></div>
-  <div class="zammad-chat-prechat-subtext"><%- @T('Please share a few details so our agent can help you faster.') %></div>
+  <div class="zammad-chat-prechat-title"><%- @T(@phrases['chat_phrase_prechat_title'] || 'Let\'s get started') %></div>
+  <div class="zammad-chat-prechat-subtext"><%- @T(@phrases['chat_phrase_prechat_subtitle'] || 'Please share a few details so our agent can help you faster.') %></div>
 
   <form class="zammad-chat-prechat-form">
     <% if @error: %>
       <div class="zammad-chat-prechat-error"><%- @error %></div>
     <% end %>
     <div class="zammad-chat-prechat-field">
-      <label><%- @T('Your name') %></label>
+      <label><%- @T(@phrases['chat_phrase_prechat_name_label'] || 'Your name') %></label>
       <input type="text" class="zammad-chat-prechat-name" value="<%- @name || '' %>" required>
     </div>
     <div class="zammad-chat-prechat-field">
-      <label><%- @T('Your email') %></label>
+      <label><%- @T(@phrases['chat_phrase_prechat_email_label'] || 'Your email') %></label>
       <input type="email" class="zammad-chat-prechat-email" value="<%- @email || '' %>" required>
     </div>
     <button type="submit" class="zammad-chat-prechat-submit">
-      <span><%- @T('Start chat') %></span>
+      <span><%- @T(@phrases['chat_phrase_prechat_submit_button'] || 'Start chat') %></span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
     </button>
   </form>

@@ -53,8 +53,79 @@ return is sent as message back to peer
 
     {
       event: 'chat_status_customer',
-      data:  current_chat.customer_state(session_id).merge(logo_url: product_logo_url),
+      data:  current_chat.customer_state(session_id).merge(logo_url: product_logo_url, phrases: widget_phrases),
     }
+  end
+
+  # Enhancement 4 -- "buatkan semua frase dalam widget configurable".
+  # Pola SAMA dgn `product_logo_url` di atas: widget statis lintas-
+  # domain tidak bisa baca `Setting.get` langsung, jadi disisipkan di
+  # payload event yg SUDAH SELALU dikirim ini. Daftar nama Setting
+  # PERSIS sama dgn `script/create_widget_phrase_settings.rb` (sumber
+  # kebenaran nilai default) -- kalau ada Setting yg belum dibuat,
+  # `Setting.get` mengembalikan `nil`, frontend fallback ke teks
+  # hardcode bawaan (lihat `@phrases['key'] || 'default'` di
+  # chat.coffee/chat-no-jquery.coffee).
+  PHRASE_SETTING_NAMES = %w[
+    chat_phrase_home_greeting
+    chat_phrase_home_subtitle
+    chat_phrase_home_start_button
+    chat_phrase_home_search_button
+    chat_phrase_offline_status
+    chat_phrase_offline_notice
+    chat_phrase_offline_start_button
+    chat_phrase_prechat_title
+    chat_phrase_prechat_subtitle
+    chat_phrase_prechat_name_label
+    chat_phrase_prechat_email_label
+    chat_phrase_prechat_submit_button
+    chat_phrase_prechat_validation_error
+    chat_phrase_waiting_title
+    chat_phrase_waiting_subtitle
+    chat_phrase_waiting_queue_position
+    chat_phrase_waiting_cancel_button
+    chat_phrase_waiting_timeout_message
+    chat_phrase_restart_button
+    chat_phrase_customer_timeout_with_agent
+    chat_phrase_customer_timeout
+    chat_phrase_messages_agent_status_active
+    chat_phrase_messages_compose_placeholder
+    chat_phrase_messages_reply_prefix
+    chat_phrase_otp_title
+    chat_phrase_otp_subtitle_prefix
+    chat_phrase_otp_incomplete_error
+    chat_phrase_otp_verify_button
+    chat_phrase_otp_resend_question
+    chat_phrase_otp_resend_button
+    chat_phrase_otp_resend_success
+    chat_phrase_otp_resend_error_fallback
+    chat_phrase_otp_change_email
+    chat_phrase_offline_compose_verified_suffix
+    chat_phrase_offline_compose_message_label
+    chat_phrase_offline_compose_placeholder
+    chat_phrase_offline_compose_send_button
+    chat_phrase_offline_compose_empty_error
+    chat_phrase_offline_sent_title
+    chat_phrase_offline_sent_subtitle_prefix
+    chat_phrase_offline_sent_subtitle_suffix
+    chat_phrase_offline_sent_button
+    chat_phrase_ending_title
+    chat_phrase_ending_subtitle
+    chat_phrase_feedback_title
+    chat_phrase_feedback_subtitle
+    chat_phrase_feedback_comment_placeholder
+    chat_phrase_feedback_skip_button
+    chat_phrase_feedback_submit_button
+    chat_phrase_feedback_score_error
+    chat_phrase_feedback_submit_error_fallback
+    chat_phrase_feedback_thanks_title
+    chat_phrase_feedback_thanks_subtitle
+    chat_phrase_help_no_results
+    chat_phrase_attachment_upload_error
+  ].freeze
+
+  def widget_phrases
+    PHRASE_SETTING_NAMES.index_with { |name| Setting.get(name) }
   end
 
   # Atas permintaan user ("logo pada home mengambil dari setting logo

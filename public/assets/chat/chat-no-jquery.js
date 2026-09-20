@@ -58,7 +58,7 @@ window.zammadChatTemplates["agent"] = function(__obj) {
     
       __out.push('</span>\n  <span class="zammad-chat-agent-subtext">');
     
-      __out.push(this.T('Active now'));
+      __out.push(this.T(this.phrases['chat_phrase_messages_agent_status_active'] || 'Active now'));
     
       __out.push('</span>\n</span>\n');
     
@@ -226,11 +226,11 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push('>\n  <div class="zammad-chat-header">\n    <div class="zammad-chat-agent zammad-chat-is-hidden">\n    </div>\n    <div class="zammad-chat-welcome">\n      <span class="zammad-chat-welcome-title">');
     
-      __out.push(this.T('Hi there'));
+      __out.push(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there'));
     
       __out.push(' 👋</span>\n      <span class="zammad-chat-welcome-subtext">');
     
-      __out.push(this.T('How can we help you today?'));
+      __out.push(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?'));
     
       __out.push('</span>\n    </div>\n    <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>\n    <div class="zammad-chat-header-controls">\n      <button type="button" class="zammad-chat-header-icon zammad-chat-is-hidden js-chat-info" aria-label="');
     
@@ -246,7 +246,7 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push('\n    </div>\n    <div class="zammad-chat-body"></div>\n    <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>\n    <form class="zammad-chat-controls">\n      <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>\n      <div class="zammad-chat-input" rows="1" placeholder="');
     
-      __out.push(this.T('Compose your message…'));
+      __out.push(this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
     
       __out.push('" contenteditable="true"></div>\n      <div class="zammad-chat-controls-icons">\n        <div class="zammad-chat-emoji-toggle js-emoji-toggle">\n          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.9" fill="currentColor" stroke="none"/></svg>\n        </div>\n        <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">\n          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6"/></svg>\n        </div>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
     
@@ -313,11 +313,11 @@ window.zammadChatTemplates["customer_timeout"] = function(__obj) {
     
       if (this.agent) {
         __out.push('\n    ');
-        __out.push(this.T('Since you didn\'t respond in the last %s minutes your conversation with <strong>%s</strong> was closed.', this.delay, this.agent));
+        __out.push(this.T(this.phrases['chat_phrase_customer_timeout_with_agent'] || 'Since you didn\'t respond in the last %s minutes your conversation with <strong>%s</strong> was closed.', this.delay, this.agent));
         __out.push('\n  ');
       } else {
         __out.push('\n    ');
-        __out.push(this.T('Since you didn\'t respond in the last %s minutes your conversation was closed.', this.delay));
+        __out.push(this.T(this.phrases['chat_phrase_customer_timeout'] || 'Since you didn\'t respond in the last %s minutes your conversation was closed.', this.delay));
         __out.push('\n  ');
       }
     
@@ -329,7 +329,7 @@ window.zammadChatTemplates["customer_timeout"] = function(__obj) {
     
       __out.push('>');
     
-      __out.push(this.T('Start new conversation'));
+      __out.push(this.T(this.phrases['chat_phrase_restart_button'] || 'Start new conversation'));
     
       __out.push('</button>\n</div>');
     
@@ -439,11 +439,11 @@ window.zammadChatTemplates["ending_chat"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc zammad-chat-waiting-spinner-arc--danger"></span>\n    <span class="zammad-chat-waiting-spinner-icon zammad-chat-waiting-spinner-icon--danger">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
-      __out.push(this.T('Ending conversation…'));
+      __out.push(this.T(this.phrases['chat_phrase_ending_title'] || 'Ending conversation…'));
     
       __out.push('</div>\n  <div class="zammad-chat-waiting-subtext">');
     
-      __out.push(this.T('Please wait a moment.'));
+      __out.push(this.T(this.phrases['chat_phrase_ending_subtitle'] || 'Please wait a moment.'));
     
       __out.push('</div>\n</div>\n');
     
@@ -498,11 +498,11 @@ window.zammadChatTemplates["feedback_thanks"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
     
-      __out.push(this.T('Thank you for your feedback!'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_thanks_title'] || 'Thank you for your feedback!'));
     
       __out.push('</div>\n  <div class="zammad-chat-feedback-thanks-subtitle">');
     
-      __out.push(this.T('We appreciate you taking the time.'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_thanks_subtitle'] || 'We appreciate you taking the time.'));
     
       __out.push('</div>\n</div>\n');
     
@@ -557,23 +557,23 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-feedback">\n  <div class="zammad-chat-feedback-title">');
     
-      __out.push(this.T('How was your experience?'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_title'] || 'How was your experience?'));
     
       __out.push('</div>\n  <div class="zammad-chat-feedback-subtitle">');
     
-      __out.push(this.T('Your feedback helps us improve.'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_subtitle'] || 'Your feedback helps us improve.'));
     
       __out.push('</div>\n\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
     
-      __out.push(this.T('Add a comment (optional)'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_comment_placeholder'] || 'Add a comment (optional)'));
     
       __out.push('"></textarea>\n\n  <div class="zammad-chat-feedback-error js-feedback-error zammad-chat-is-hidden"></div>\n\n  <div class="zammad-chat-feedback-actions">\n    <button type="button" class="zammad-chat-feedback-skip js-feedback-skip">');
     
-      __out.push(this.T('Maybe later'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_skip_button'] || 'Maybe later'));
     
       __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-submit js-feedback-submit">');
     
-      __out.push(this.T('Submit Feedback'));
+      __out.push(this.T(this.phrases['chat_phrase_feedback_submit_button'] || 'Submit Feedback'));
     
       __out.push('</button>\n  </div>\n</div>\n');
     
@@ -628,11 +628,11 @@ window.zammadChatTemplates["help"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
     
-      __out.push(this.T('Search for help…'));
+      __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
       __out.push('">\n  </div>\n  <ul class="zammad-chat-kb-results"></ul>\n  <p class="zammad-chat-kb-empty zammad-chat-is-hidden">');
     
-      __out.push(this.T('No results found.'));
+      __out.push(this.T(this.phrases['chat_phrase_help_no_results'] || 'No results found.'));
     
       __out.push('</p>\n</div>\n');
     
@@ -687,15 +687,15 @@ window.zammadChatTemplates["home"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12.5"/><circle cx="12" cy="16" r="0.9" fill="currentColor" stroke="none"/></svg>\n    <span>');
     
-      __out.push(this.T('All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
     
       __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
     
-      __out.push(this.T('Send us a message'));
+      __out.push(this.T(this.phrases['chat_phrase_home_start_button'] || 'Send us a message'));
     
       __out.push('</span>\n      <svg class="zammad-chat-home-action-icon-default" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n      <svg class="zammad-chat-home-action-icon-offline zammad-chat-is-hidden" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
     
-      __out.push(this.T('Search for help'));
+      __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
       __out.push('</span>\n    </button>\n  </div>\n</div>\n');
     
@@ -864,11 +864,11 @@ window.zammadChatTemplates["loader"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
-      __out.push(this.T('Connecting you to an agent…'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
       __out.push('</div>\n  <button type="button" class="zammad-chat-waiting-cancel js-waiting-cancel">');
     
-      __out.push(this.T('Cancel'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_cancel_button'] || 'Cancel'));
     
       __out.push('</button>\n</div>\n');
     
@@ -1036,19 +1036,19 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push('</strong> ');
     
-      __out.push(this.T('verified'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified'));
     
       __out.push('</span>\n  </div>\n\n  <label class="zammad-chat-offline-compose-label">');
     
-      __out.push(this.T('Your message'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_compose_message_label'] || 'Your message'));
     
       __out.push('</label>\n  <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="');
     
-      __out.push(this.T('Tell us how we can help…'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…'));
     
       __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit">');
     
-      __out.push(this.T('Send Message'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_compose_send_button'] || 'Send Message'));
     
       __out.push('</button>\n</div>\n');
     
@@ -1103,11 +1103,11 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
     
-      __out.push(this.T('Enter verification code'));
+      __out.push(this.T(this.phrases['chat_phrase_otp_title'] || 'Enter verification code'));
     
       __out.push('</div>\n  <div class="zammad-chat-offline-otp-subtitle">');
     
-      __out.push(this.T('We sent a 6-digit code to'));
+      __out.push(this.T(this.phrases['chat_phrase_otp_subtitle_prefix'] || 'We sent a 6-digit code to'));
     
       __out.push(' <strong>');
     
@@ -1115,19 +1115,19 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
     
       __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden"></div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
     
-      __out.push(this.T('Verify'));
+      __out.push(this.T(this.phrases['chat_phrase_otp_verify_button'] || 'Verify'));
     
       __out.push('</button>\n\n  <div class="zammad-chat-offline-otp-resend">\n    <span>');
     
-      __out.push(this.T("Didn't receive the code?"));
+      __out.push(this.T(this.phrases['chat_phrase_otp_resend_question'] || "Didn't receive the code?"));
     
       __out.push('</span>\n    <button type="button" class="zammad-chat-offline-otp-resend-btn js-otp-resend">');
     
-      __out.push(this.T('Resend code'));
+      __out.push(this.T(this.phrases['chat_phrase_otp_resend_button'] || 'Resend code'));
     
       __out.push('</button>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-change-email js-otp-change-email">');
     
-      __out.push(this.T('Change email address'));
+      __out.push(this.T(this.phrases['chat_phrase_otp_change_email'] || 'Change email address'));
     
       __out.push('</button>\n</div>\n');
     
@@ -1182,11 +1182,11 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
     
-      __out.push(this.T('Your message has been sent!'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_sent_title'] || 'Your message has been sent!'));
     
       __out.push('</div>\n  <div class="zammad-chat-offline-sent-subtitle">');
     
-      __out.push(this.T('Our team will reply to'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_sent_subtitle_prefix'] || 'Our team will reply to'));
     
       __out.push(' <strong>');
     
@@ -1194,11 +1194,11 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
     
       __out.push('</strong> ');
     
-      __out.push(this.T('as soon as an agent is available.'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_sent_subtitle_suffix'] || 'as soon as an agent is available.'));
     
       __out.push('</div>\n  <button type="button" class="zammad-chat-offline-sent-button js-offline-sent-done">');
     
-      __out.push(this.T('Continue'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_sent_button'] || 'Continue'));
     
       __out.push('</button>\n</div>\n');
     
@@ -1253,11 +1253,11 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n  </div>\n  <div class="zammad-chat-prechat-title">');
     
-      __out.push(this.T('Let\'s get started'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_title'] || 'Let\'s get started'));
     
       __out.push('</div>\n  <div class="zammad-chat-prechat-subtext">');
     
-      __out.push(this.T('Please share a few details so our agent can help you faster.'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_subtitle'] || 'Please share a few details so our agent can help you faster.'));
     
       __out.push('</div>\n\n  <form class="zammad-chat-prechat-form">\n    ');
     
@@ -1269,7 +1269,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
-      __out.push(this.T('Your name'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_name_label'] || 'Your name'));
     
       __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-name" value="');
     
@@ -1277,7 +1277,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('" required>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
-      __out.push(this.T('Your email'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_email_label'] || 'Your email'));
     
       __out.push('</label>\n      <input type="email" class="zammad-chat-prechat-email" value="');
     
@@ -1285,7 +1285,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('" required>\n    </div>\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <span>');
     
-      __out.push(this.T('Start chat'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat'));
     
       __out.push('</span>\n      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>\n    </button>\n  </form>\n</div>\n');
     
@@ -1340,7 +1340,7 @@ window.zammadChatTemplates["reply_indicator"] = function(__obj) {
     (function() {
       __out.push('<span class="zammad-chat-reply-indicator-text">');
     
-      __out.push(this.T('Replying to:'));
+      __out.push(this.T(this.phrases['chat_phrase_messages_reply_prefix'] || 'Replying to:'));
     
       __out.push(' ');
     
@@ -1627,7 +1627,7 @@ window.zammadChatTemplates["waiting_list_timeout"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-modal-text">\n  ');
     
-      __out.push(this.T('We are sorry, it is taking longer than expected to get a slot. Please try again later or send us an email. Thank you!'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_timeout_message'] || 'We are sorry, it is taking longer than expected to get a slot. Please try again later or send us an email. Thank you!'));
     
       __out.push('\n  <br>\n  <button type="button" class="zammad-chat-timeout-restart js-restart"');
     
@@ -1637,7 +1637,7 @@ window.zammadChatTemplates["waiting_list_timeout"] = function(__obj) {
     
       __out.push('>');
     
-      __out.push(this.T('Start new conversation'));
+      __out.push(this.T(this.phrases['chat_phrase_restart_button'] || 'Start new conversation'));
     
       __out.push('</button>\n</div>');
     
@@ -1692,23 +1692,23 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
-      __out.push(this.T('Connecting you to an agent…'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
       __out.push('</div>\n  <div class="zammad-chat-waiting-subtext">');
     
-      __out.push(this.T('All colleagues are busy.'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_subtitle'] || 'All colleagues are busy.'));
     
       __out.push('</div>\n  ');
     
       if (this.position) {
         __out.push('\n    <div class="zammad-chat-waiting-position">');
-        __out.push(this.T('You are on waiting list position <strong>%s</strong>.', this.position));
+        __out.push(this.T(this.phrases['chat_phrase_waiting_queue_position'] || 'You are on waiting list position <strong>%s</strong>.', this.position));
         __out.push('</div>\n  ');
       }
     
       __out.push('\n  <button type="button" class="zammad-chat-waiting-cancel js-waiting-cancel">');
     
-      __out.push(this.T('Cancel'));
+      __out.push(this.T(this.phrases['chat_phrase_waiting_cancel_button'] || 'Cancel'));
     
       __out.push('</button>\n</div>\n');
     
@@ -2550,6 +2550,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.feedbackScore = void 0;
 
+    ZammadChat.prototype.phrases = {};
+
     ZammadChat.prototype.scrolledToBottom = true;
 
     ZammadChat.prototype.scrollSnapTolerance = 10;
@@ -2594,6 +2596,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           options.background = _this.options.background;
           options.flat = _this.options.flat;
           options.fontSize = _this.options.fontSize;
+          options.phrases = _this.phrases;
           return window.zammadChatTemplates[name](options);
         };
       })(this);
@@ -2605,6 +2608,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onCssLoaded = bind(this.onCssLoaded, this);
       this.apiBaseUrl = bind(this.apiBaseUrl, this);
       this.setAgentOnlineState = bind(this.setAgentOnlineState, this);
+      this.updatePhrases = bind(this.updatePhrases, this);
       this.updateHomeLogo = bind(this.updateHomeLogo, this);
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
@@ -3358,6 +3362,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             if (pipe.data.logo_url) {
               this.updateHomeLogo(pipe.data.logo_url);
             }
+            if (pipe.data.phrases) {
+              this.updatePhrases(pipe.data.phrases);
+            }
             switch (pipe.data.state) {
               case 'online':
                 this.sessionId = void 0;
@@ -3643,7 +3650,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           if (xhr.status >= 200 && xhr.status < 300) {
             return;
           }
-          message = _this.T('The attachment could not be uploaded.');
+          message = _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
           try {
             parsed = JSON.parse(xhr.responseText);
             if (parsed.error) {
@@ -3717,7 +3724,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
       if (!name || !email || !emailFormat.test(email)) {
         this.showPrechatForm({
-          error: this.T('Please provide a valid name and email address.'),
+          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.'),
           name: name,
           email: email
         });
@@ -3755,7 +3762,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         dot = document.createElement('span');
         dot.className = 'zammad-chat-welcome-offline-dot';
         status.appendChild(dot);
-        status.appendChild(document.createTextNode(this.T("We're offline right now")));
+        status.appendChild(document.createTextNode(this.T(this.phrases['chat_phrase_offline_status'] || "We're offline right now")));
         subtext.replaceWith(status);
       }
       notice = this.el.querySelector('.zammad-chat-home-offline-notice');
@@ -3764,7 +3771,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
       startAction = this.el.querySelector('.js-home-start-action');
       if (startAction) {
-        startAction.querySelector('.js-home-start-label').textContent = this.T('Leave us a message');
+        startAction.querySelector('.js-home-start-label').textContent = this.T(this.phrases['chat_phrase_offline_start_button'] || 'Leave us a message');
         startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden');
         startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden');
       }
@@ -3847,7 +3854,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return code += el.value || '';
       });
       if (code.length !== 6) {
-        this.showOtpError(this.T('Please enter the full 6-digit code.'));
+        this.showOtpError(this.T(this.phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.'));
         return;
       }
       return this.send('chat_offline_otp_verify', {
@@ -3897,10 +3904,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         if ((ref = this.el.querySelector('.js-otp-digit')) != null) {
           ref.focus();
         }
-        this.showOtpError(this.T('A new code has been sent.'));
+        this.showOtpError(this.T(this.phrases['chat_phrase_otp_resend_success'] || 'A new code has been sent.'));
         return;
       }
-      return this.showOtpError(data.message || this.T('Could not resend code. Please try again.'));
+      return this.showOtpError(data.message || this.T(this.phrases['chat_phrase_otp_resend_error_fallback'] || 'Could not resend code. Please try again.'));
     };
 
     ZammadChat.prototype.showOfflineCompose = function() {
@@ -3918,7 +3925,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       errorEl = this.el.querySelector('.js-offline-compose-error');
       if (!content) {
         if (errorEl) {
-          errorEl.textContent = this.T('Please write a message.');
+          errorEl.textContent = this.T(this.phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.');
           errorEl.classList.remove('zammad-chat-is-hidden');
         }
         return;
@@ -3996,7 +4003,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       errorEl = this.el.querySelector('.js-feedback-error');
       if (!this.feedbackScore) {
         if (errorEl) {
-          errorEl.textContent = this.T('Please select a rating.');
+          errorEl.textContent = this.T(this.phrases['chat_phrase_feedback_score_error'] || 'Please select a rating.');
           errorEl.classList.remove('zammad-chat-is-hidden');
         }
         return;
@@ -4024,7 +4031,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (data.state !== 'ok') {
         errorEl = this.el.querySelector('.js-feedback-error');
         if (errorEl) {
-          errorEl.textContent = data.message || this.T('Could not save your feedback. Please try again.');
+          errorEl.textContent = data.message || this.T(this.phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.');
           errorEl.classList.remove('zammad-chat-is-hidden');
         }
         return;
@@ -4488,6 +4495,28 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       img.style.objectFit = 'contain';
       mark.innerHTML = '';
       return mark.appendChild(img);
+    };
+
+    ZammadChat.prototype.updatePhrases = function(phrases) {
+      var input, welcomeSubtext, welcomeTitle;
+      this.phrases = phrases;
+      if (!this.el) {
+        return;
+      }
+      this.el.querySelector('.zammad-chat-tab-body--home').innerHTML = this.view('home')();
+      this.el.querySelector('.zammad-chat-tab-body--help').innerHTML = this.view('help')();
+      welcomeTitle = this.el.querySelector('.zammad-chat-welcome-title');
+      if (welcomeTitle) {
+        welcomeTitle.innerHTML = this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋';
+      }
+      welcomeSubtext = this.el.querySelector('.zammad-chat-welcome-subtext');
+      if (welcomeSubtext) {
+        welcomeSubtext.textContent = this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?');
+      }
+      input = this.el.querySelector('.zammad-chat-input');
+      if (input) {
+        return input.setAttribute('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
+      }
     };
 
     ZammadChat.prototype.formatTime = function(isoString) {

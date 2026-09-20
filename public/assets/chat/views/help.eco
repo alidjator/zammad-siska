@@ -1,8 +1,8 @@
 <div class="zammad-chat-help">
   <div class="zammad-chat-help-search-wrap">
     <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="<%- @T('Search for help…') %>">
+    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="<%- @T(@phrases['chat_phrase_home_search_button'] || 'Search for help') %>">
   </div>
   <ul class="zammad-chat-kb-results"></ul>
-  <p class="zammad-chat-kb-empty zammad-chat-is-hidden"><%- @T('No results found.') %></p>
+  <p class="zammad-chat-kb-empty zammad-chat-is-hidden"><%- @T(@phrases['chat_phrase_help_no_results'] || 'No results found.') %></p>
 </div>

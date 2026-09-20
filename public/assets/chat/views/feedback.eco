@@ -1,6 +1,6 @@
 <div class="zammad-chat-feedback">
-  <div class="zammad-chat-feedback-title"><%- @T('How was your experience?') %></div>
-  <div class="zammad-chat-feedback-subtitle"><%- @T('Your feedback helps us improve.') %></div>
+  <div class="zammad-chat-feedback-title"><%- @T(@phrases['chat_phrase_feedback_title'] || 'How was your experience?') %></div>
+  <div class="zammad-chat-feedback-subtitle"><%- @T(@phrases['chat_phrase_feedback_subtitle'] || 'Your feedback helps us improve.') %></div>
 
   <div class="zammad-chat-feedback-stars">
     <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
@@ -10,12 +10,12 @@
     <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
   </div>
 
-  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="<%- @T('Add a comment (optional)') %>"></textarea>
+  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="<%- @T(@phrases['chat_phrase_feedback_comment_placeholder'] || 'Add a comment (optional)') %>"></textarea>
 
   <div class="zammad-chat-feedback-error js-feedback-error zammad-chat-is-hidden"></div>
 
   <div class="zammad-chat-feedback-actions">
-    <button type="button" class="zammad-chat-feedback-skip js-feedback-skip"><%- @T('Maybe later') %></button>
-    <button type="button" class="zammad-chat-feedback-submit js-feedback-submit"><%- @T('Submit Feedback') %></button>
+    <button type="button" class="zammad-chat-feedback-skip js-feedback-skip"><%- @T(@phrases['chat_phrase_feedback_skip_button'] || 'Maybe later') %></button>
+    <button type="button" class="zammad-chat-feedback-submit js-feedback-submit"><%- @T(@phrases['chat_phrase_feedback_submit_button'] || 'Submit Feedback') %></button>
   </div>
 </div>

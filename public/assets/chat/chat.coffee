@@ -658,6 +658,12 @@ do($ = window.jQuery, window) ->
     # Enhancement 2 -- lihat catatan di `showFeedback`.
     lastSessionId: undefined
     feedbackScore: undefined
+    # Enhancement 4 -- lihat catatan di `updatePhrases`. Object literal
+    # ini AMAN dipakai sbg default class-body (BUKAN prototype yang
+    # dimutasi) krn `updatePhrases` selalu REASSIGN `@phrases = ...`
+    # (bikin own-property baru per instance), tidak pernah memutasi
+    # object yang sama secara langsung.
+    phrases: {}
     scrolledToBottom: true
     scrollSnapTolerance: 10
     richTextFormatKey:
@@ -689,6 +695,8 @@ do($ = window.jQuery, window) ->
         options.background = @options.background
         options.flat = @options.flat
         options.fontSize = @options.fontSize
+        # Enhancement 4 -- lihat catatan di `updatePhrases`.
+        options.phrases = @phrases
         return window.zammadChatTemplates[name](options)
 
     constructor: (options) ->
@@ -1276,6 +1284,11 @@ do($ = window.jQuery, window) ->
             # respons ini (bukan cuma 'online'), backend sudah
             # menggabungkannya (`chat_status_customer.rb`).
             @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
+            # Enhancement 4 -- lihat catatan di `updatePhrases`. HARUS
+            # sebelum switch state di bawah, supaya `enterOfflineMode()`
+            # (kalau state 'offline') menata visibility di atas DOM
+            # Home yang SUDAH memuat teks ter-update, bukan sebaliknya.
+            @updatePhrases(pipe.data.phrases) if pipe.data.phrases
             switch pipe.data.state
               when 'online'
                 @sessionId = undefined
@@ -1597,7 +1610,7 @@ do($ = window.jQuery, window) ->
         contentType: false
         cache: false
         error: (xhr) =>
-          message = xhr.responseJSON?.error || @T('The attachment could not be uploaded.')
+          message = xhr.responseJSON?.error || @T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.')
           @addStatus(message)
 
       @el.find('.js-chat-attachment-input').val('')
@@ -1694,7 +1707,7 @@ do($ = window.jQuery, window) ->
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
       if !name || !email || !emailFormat.test(email)
         @showPrechatForm
-          error: @T('Please provide a valid name and email address.')
+          error: @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.')
           name:  name
           email: email
         return
@@ -1764,13 +1777,13 @@ do($ = window.jQuery, window) ->
         $('<span>')
           .addClass('zammad-chat-welcome-offline-status')
           .append($('<span>').addClass('zammad-chat-welcome-offline-dot'))
-          .append(document.createTextNode(@T("We're offline right now")))
+          .append(document.createTextNode(@T(@phrases['chat_phrase_offline_status'] || "We're offline right now")))
       )
 
       @el.find('.zammad-chat-home-offline-notice').removeClass('zammad-chat-is-hidden')
 
       startAction = @el.find('.js-home-start-action')
-      startAction.find('.js-home-start-label').text @T('Leave us a message')
+      startAction.find('.js-home-start-label').text @T(@phrases['chat_phrase_offline_start_button'] || 'Leave us a message')
       startAction.find('.zammad-chat-home-action-icon-default').addClass('zammad-chat-is-hidden')
       startAction.find('.zammad-chat-home-action-icon-offline').removeClass('zammad-chat-is-hidden')
 
@@ -1842,7 +1855,7 @@ do($ = window.jQuery, window) ->
         code += $(el).val() || ''
 
       if code.length isnt 6
-        @showOtpError @T('Please enter the full 6-digit code.')
+        @showOtpError @T(@phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.')
         return
 
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
@@ -1873,10 +1886,10 @@ do($ = window.jQuery, window) ->
       if data.state is 'ok'
         @el.find('.js-otp-digit').val('')
         @el.find('.js-otp-digit').first().trigger('focus')
-        @showOtpError @T('A new code has been sent.')
+        @showOtpError @T(@phrases['chat_phrase_otp_resend_success'] || 'A new code has been sent.')
         return
 
-      @showOtpError data.message || @T('Could not resend code. Please try again.')
+      @showOtpError data.message || @T(@phrases['chat_phrase_otp_resend_error_fallback'] || 'Could not resend code. Please try again.')
 
     showOfflineCompose: =>
       @el.find('.zammad-chat-modal').html @view('offline_compose')(email: @customerEmail)
@@ -1885,7 +1898,7 @@ do($ = window.jQuery, window) ->
       event?.preventDefault()
       content = @el.find('.js-offline-message').val()?.trim()
       if !content
-        @el.find('.js-offline-compose-error').text(@T('Please write a message.')).removeClass('zammad-chat-is-hidden')
+        @el.find('.js-offline-compose-error').text(@T(@phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.')).removeClass('zammad-chat-is-hidden')
         return
 
       @el.find('.js-offline-compose-error').addClass('zammad-chat-is-hidden')
@@ -1949,7 +1962,7 @@ do($ = window.jQuery, window) ->
       event?.preventDefault()
 
       if !@feedbackScore
-        @el.find('.js-feedback-error').text(@T('Please select a rating.')).removeClass('zammad-chat-is-hidden')
+        @el.find('.js-feedback-error').text(@T(@phrases['chat_phrase_feedback_score_error'] || 'Please select a rating.')).removeClass('zammad-chat-is-hidden')
         return
 
       @el.find('.js-feedback-error').addClass('zammad-chat-is-hidden')
@@ -1965,7 +1978,7 @@ do($ = window.jQuery, window) ->
       @el.find('.js-feedback-submit').prop('disabled', false)
 
       if data.state isnt 'ok'
-        @el.find('.js-feedback-error').text(data.message || @T('Could not save your feedback. Please try again.')).removeClass('zammad-chat-is-hidden')
+        @el.find('.js-feedback-error').text(data.message || @T(@phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.')).removeClass('zammad-chat-is-hidden')
         return
 
       @showFeedbackThanks()
@@ -2472,6 +2485,31 @@ do($ = window.jQuery, window) ->
       mark = @el.find('.zammad-chat-home-logo-mark')
       mark.css('background', 'none')
       mark.html $('<img>').attr(src: url, alt: '').css(width: '100%', height: '100%', 'object-fit': 'contain')
+
+    # Enhancement 4 -- "buatkan semua frase dalam widget configurable".
+    # Pola SAMA dgn `updateHomeLogo` di atas: `chat_status_customer`
+    # SELALU membawa `phrases` (lihat backend), tapi tab Home & Help
+    # SUDAH terlanjur dirender SEKALI di awal `render()` (baris
+    # `@el.find('.zammad-chat-tab-body--home').html @view('home')()`
+    # dkk) SEBELUM balasan WS pertama ini tiba -- jadi keduanya perlu
+    # digambar ULANG di sini supaya teksnya ikut ter-update dari
+    # hardcode default ke nilai Setting (kalau admin sudah mengubahnya).
+    # Screen LAIN (Prechat/Waiting/Otp/Compose/Sent/Feedback/dst) TIDAK
+    # perlu penanganan khusus -- semuanya baru dirender ON-DEMAND lewat
+    # `@view(...)` SETELAH titik ini, jadi otomatis kebagian `@phrases`
+    # yang sudah benar sejak render pertamanya.
+    updatePhrases: (phrases) =>
+      @phrases = phrases
+      return if !@el
+      @el.find('.zammad-chat-tab-body--home').html @view('home')()
+      @el.find('.zammad-chat-tab-body--help').html @view('help')()
+      # `views/chat.eco` (shell luar, BEDA dari 2 tab body di atas)
+      # dirender SEKALI SAJA di awal `render()` dan tidak pernah
+      # digambar ulang -- disentuh manual di sini, pola SAMA dgn
+      # `enterOfflineMode()`'s penggantian `.zammad-chat-welcome-subtext`.
+      @el.find('.zammad-chat-welcome-title').html @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋'
+      @el.find('.zammad-chat-welcome-subtext').text @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?')
+      @el.find('.zammad-chat-input').attr('placeholder', @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'))
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- jam kecil di bawah TIAP bubble pesan (dulu HANYA

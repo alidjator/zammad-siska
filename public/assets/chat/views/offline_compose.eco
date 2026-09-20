@@ -1,13 +1,13 @@
 <div class="zammad-chat-offline-compose">
   <div class="zammad-chat-offline-compose-verified">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-    <span><strong><%= @email %></strong> <%- @T('verified') %></span>
+    <span><strong><%= @email %></strong> <%- @T(@phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified') %></span>
   </div>
 
-  <label class="zammad-chat-offline-compose-label"><%- @T('Your message') %></label>
-  <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="<%- @T('Tell us how we can help…') %>"></textarea>
+  <label class="zammad-chat-offline-compose-label"><%- @T(@phrases['chat_phrase_offline_compose_message_label'] || 'Your message') %></label>
+  <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="<%- @T(@phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…') %>"></textarea>
 
   <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>
 
-  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit"><%- @T('Send Message') %></button>
+  <button type="button" class="zammad-chat-offline-compose-submit js-offline-compose-submit"><%- @T(@phrases['chat_phrase_offline_compose_send_button'] || 'Send Message') %></button>
 </div>

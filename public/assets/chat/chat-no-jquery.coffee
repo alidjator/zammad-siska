@@ -655,6 +655,8 @@ do(window) ->
     # Enhancement 2 -- lihat catatan di `showFeedback`.
     lastSessionId: undefined
     feedbackScore: undefined
+    # Enhancement 4 -- lihat catatan di `updatePhrases`.
+    phrases: {}
     scrolledToBottom: true
     scrollSnapTolerance: 10
     richTextFormatKey:
@@ -686,6 +688,8 @@ do(window) ->
         options.background = @options.background
         options.flat = @options.flat
         options.fontSize = @options.fontSize
+        # Enhancement 4 -- lihat catatan di `updatePhrases`.
+        options.phrases = @phrases
         return window.zammadChatTemplates[name](options)
 
     constructor: (options) ->
@@ -1287,6 +1291,8 @@ do(window) ->
             # Atas permintaan user ("logo pada home mengambil dari
             # setting logo zammad") -- mirror persis dari chat.coffee.
             @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
+            # Enhancement 4 -- lihat catatan di chat.coffee.
+            @updatePhrases(pipe.data.phrases) if pipe.data.phrases
             switch pipe.data.state
               when 'online'
                 @sessionId = undefined
@@ -1566,7 +1572,7 @@ do(window) ->
       xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
       xhr.onload = =>
         return if xhr.status >= 200 and xhr.status < 300
-        message = @T('The attachment could not be uploaded.')
+        message = @T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.')
         try
           parsed = JSON.parse(xhr.responseText)
           message = parsed.error if parsed.error
@@ -1651,7 +1657,7 @@ do(window) ->
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
       if !name || !email || !emailFormat.test(email)
         @showPrechatForm
-          error: @T('Please provide a valid name and email address.')
+          error: @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.')
           name:  name
           email: email
         return
@@ -1700,7 +1706,7 @@ do(window) ->
         dot = document.createElement('span')
         dot.className = 'zammad-chat-welcome-offline-dot'
         status.appendChild(dot)
-        status.appendChild(document.createTextNode(@T("We're offline right now")))
+        status.appendChild(document.createTextNode(@T(@phrases['chat_phrase_offline_status'] || "We're offline right now")))
         subtext.replaceWith(status)
 
       notice = @el.querySelector('.zammad-chat-home-offline-notice')
@@ -1708,7 +1714,7 @@ do(window) ->
 
       startAction = @el.querySelector('.js-home-start-action')
       if startAction
-        startAction.querySelector('.js-home-start-label').textContent = @T('Leave us a message')
+        startAction.querySelector('.js-home-start-label').textContent = @T(@phrases['chat_phrase_offline_start_button'] || 'Leave us a message')
         startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden')
         startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden')
 
@@ -1766,7 +1772,7 @@ do(window) ->
         code += el.value || ''
 
       if code.length isnt 6
-        @showOtpError @T('Please enter the full 6-digit code.')
+        @showOtpError @T(@phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.')
         return
 
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
@@ -1795,10 +1801,10 @@ do(window) ->
       if data.state is 'ok'
         @el.querySelectorAll('.js-otp-digit').forEach (el) -> el.value = ''
         @el.querySelector('.js-otp-digit')?.focus()
-        @showOtpError @T('A new code has been sent.')
+        @showOtpError @T(@phrases['chat_phrase_otp_resend_success'] || 'A new code has been sent.')
         return
 
-      @showOtpError data.message || @T('Could not resend code. Please try again.')
+      @showOtpError data.message || @T(@phrases['chat_phrase_otp_resend_error_fallback'] || 'Could not resend code. Please try again.')
 
     showOfflineCompose: =>
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_compose')(email: @customerEmail)
@@ -1810,7 +1816,7 @@ do(window) ->
 
       if !content
         if errorEl
-          errorEl.textContent = @T('Please write a message.')
+          errorEl.textContent = @T(@phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.')
           errorEl.classList.remove('zammad-chat-is-hidden')
         return
 
@@ -1865,7 +1871,7 @@ do(window) ->
       errorEl = @el.querySelector('.js-feedback-error')
       if !@feedbackScore
         if errorEl
-          errorEl.textContent = @T('Please select a rating.')
+          errorEl.textContent = @T(@phrases['chat_phrase_feedback_score_error'] || 'Please select a rating.')
           errorEl.classList.remove('zammad-chat-is-hidden')
         return
 
@@ -1885,7 +1891,7 @@ do(window) ->
       if data.state isnt 'ok'
         errorEl = @el.querySelector('.js-feedback-error')
         if errorEl
-          errorEl.textContent = data.message || @T('Could not save your feedback. Please try again.')
+          errorEl.textContent = data.message || @T(@phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.')
           errorEl.classList.remove('zammad-chat-is-hidden')
         return
 
@@ -2326,6 +2332,20 @@ do(window) ->
       img.style.objectFit = 'contain'
       mark.innerHTML = ''
       mark.appendChild(img)
+
+    # Enhancement 4 -- mirror persis dari chat.coffee (lihat catatan
+    # panjang di sana).
+    updatePhrases: (phrases) =>
+      @phrases = phrases
+      return if !@el
+      @el.querySelector('.zammad-chat-tab-body--home').innerHTML = @view('home')()
+      @el.querySelector('.zammad-chat-tab-body--help').innerHTML = @view('help')()
+      welcomeTitle = @el.querySelector('.zammad-chat-welcome-title')
+      welcomeTitle.innerHTML = @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋' if welcomeTitle
+      welcomeSubtext = @el.querySelector('.zammad-chat-welcome-subtext')
+      welcomeSubtext.textContent = @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') if welcomeSubtext
+      input = @el.querySelector('.zammad-chat-input')
+      input.setAttribute('placeholder', @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…')) if input
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- mirror persis dari chat.coffee.

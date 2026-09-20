@@ -3,8 +3,8 @@
     <div class="zammad-chat-agent zammad-chat-is-hidden">
     </div>
     <div class="zammad-chat-welcome">
-      <span class="zammad-chat-welcome-title"><%- @T('Hi there') %> 👋</span>
-      <span class="zammad-chat-welcome-subtext"><%- @T('How can we help you today?') %></span>
+      <span class="zammad-chat-welcome-title"><%- @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') %> 👋</span>
+      <span class="zammad-chat-welcome-subtext"><%- @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') %></span>
     </div>
     <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>
     <div class="zammad-chat-header-controls">
@@ -28,7 +28,7 @@
     <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>
     <form class="zammad-chat-controls">
       <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>
-      <div class="zammad-chat-input" rows="1" placeholder="<%- @T('Compose your message…') %>" contenteditable="true"></div>
+      <div class="zammad-chat-input" rows="1" placeholder="<%- @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…') %>" contenteditable="true"></div>
       <div class="zammad-chat-controls-icons">
         <div class="zammad-chat-emoji-toggle js-emoji-toggle">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.2 2 3.5 2 3.5-2 3.5-2"/><circle cx="9" cy="9.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.9" fill="currentColor" stroke="none"/></svg>

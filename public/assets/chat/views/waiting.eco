@@ -6,10 +6,10 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/></svg>
     </span>
   </div>
-  <div class="zammad-chat-waiting-title"><%- @T('Connecting you to an agent…') %></div>
-  <div class="zammad-chat-waiting-subtext"><%- @T('All colleagues are busy.') %></div>
+  <div class="zammad-chat-waiting-title"><%- @T(@phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…') %></div>
+  <div class="zammad-chat-waiting-subtext"><%- @T(@phrases['chat_phrase_waiting_subtitle'] || 'All colleagues are busy.') %></div>
   <% if @position: %>
-    <div class="zammad-chat-waiting-position"><%- @T('You are on waiting list position <strong>%s</strong>.', @position) %></div>
+    <div class="zammad-chat-waiting-position"><%- @T(@phrases['chat_phrase_waiting_queue_position'] || 'You are on waiting list position <strong>%s</strong>.', @position) %></div>
   <% end %>
-  <button type="button" class="zammad-chat-waiting-cancel js-waiting-cancel"><%- @T('Cancel') %></button>
+  <button type="button" class="zammad-chat-waiting-cancel js-waiting-cancel"><%- @T(@phrases['chat_phrase_waiting_cancel_button'] || 'Cancel') %></button>
 </div>

@@ -1,9 +1,9 @@
 <div class="zammad-chat-modal-text">
   <% if @agent: %>
-    <%- @T('Since you didn\'t respond in the last %s minutes your conversation with <strong>%s</strong> was closed.', @delay, @agent) %>
+    <%- @T(@phrases['chat_phrase_customer_timeout_with_agent'] || 'Since you didn\'t respond in the last %s minutes your conversation with <strong>%s</strong> was closed.', @delay, @agent) %>
   <% else: %>
-    <%- @T('Since you didn\'t respond in the last %s minutes your conversation was closed.', @delay) %>
+    <%- @T(@phrases['chat_phrase_customer_timeout'] || 'Since you didn\'t respond in the last %s minutes your conversation was closed.', @delay) %>
   <% end %>
   <br>
-  <button type="button" class="zammad-chat-timeout-restart js-restart"<%= " style='background: #{ @background }'" if @background %>><%- @T('Start new conversation') %></button>
+  <button type="button" class="zammad-chat-timeout-restart js-restart"<%= " style='background: #{ @background }'" if @background %>><%- @T(@phrases['chat_phrase_restart_button'] || 'Start new conversation') %></button>
 </div>

@@ -2,7 +2,7 @@
   <div class="zammad-chat-offline-sent-icon">
     <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
   </div>
-  <div class="zammad-chat-offline-sent-title"><%- @T('Your message has been sent!') %></div>
-  <div class="zammad-chat-offline-sent-subtitle"><%- @T('Our team will reply to') %> <strong><%= @email %></strong> <%- @T('as soon as an agent is available.') %></div>
-  <button type="button" class="zammad-chat-offline-sent-button js-offline-sent-done"><%- @T('Continue') %></button>
+  <div class="zammad-chat-offline-sent-title"><%- @T(@phrases['chat_phrase_offline_sent_title'] || 'Your message has been sent!') %></div>
+  <div class="zammad-chat-offline-sent-subtitle"><%- @T(@phrases['chat_phrase_offline_sent_subtitle_prefix'] || 'Our team will reply to') %> <strong><%= @email %></strong> <%- @T(@phrases['chat_phrase_offline_sent_subtitle_suffix'] || 'as soon as an agent is available.') %></div>
+  <button type="button" class="zammad-chat-offline-sent-button js-offline-sent-done"><%- @T(@phrases['chat_phrase_offline_sent_button'] || 'Continue') %></button>
 </div>

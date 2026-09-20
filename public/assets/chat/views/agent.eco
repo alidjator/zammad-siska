@@ -8,5 +8,5 @@
 </div>
 <span class="zammad-chat-agent-sentence">
   <span class="zammad-chat-agent-name"><%= @agent.name %></span>
-  <span class="zammad-chat-agent-subtext"><%- @T('Active now') %></span>
+  <span class="zammad-chat-agent-subtext"><%- @T(@phrases['chat_phrase_messages_agent_status_active'] || 'Active now') %></span>
 </span>

@@ -1,2 +1,2 @@
-<span class="zammad-chat-reply-indicator-text"><%- @T('Replying to:') %> <%= @snippet %></span>
+<span class="zammad-chat-reply-indicator-text"><%- @T(@phrases['chat_phrase_messages_reply_prefix'] || 'Replying to:') %> <%= @snippet %></span>
 <span class="zammad-chat-reply-indicator-cancel js-reply-cancel">&times;</span>

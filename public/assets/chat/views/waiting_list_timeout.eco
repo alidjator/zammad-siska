@@ -1,5 +1,5 @@
 <div class="zammad-chat-modal-text">
-  <%- @T('We are sorry, it is taking longer than expected to get a slot. Please try again later or send us an email. Thank you!') %>
+  <%- @T(@phrases['chat_phrase_waiting_timeout_message'] || 'We are sorry, it is taking longer than expected to get a slot. Please try again later or send us an email. Thank you!') %>
   <br>
-  <button type="button" class="zammad-chat-timeout-restart js-restart"<%= " style='background: #{ @background }'" if @background %>><%- @T('Start new conversation') %></button>
+  <button type="button" class="zammad-chat-timeout-restart js-restart"<%= " style='background: #{ @background }'" if @background %>><%- @T(@phrases['chat_phrase_restart_button'] || 'Start new conversation') %></button>
 </div>
