@@ -84,3 +84,8 @@ You MUST read the relevant file(s) below before responding when working on that 
 - `.dev/agent_docs/service_patterns.md` — Service object conventions and structure
 - `.dev/agent_docs/database_migrations.md` — How to write migrations and work
   with seeds
+- `.dev/agent_docs/siska_conventions.md` — **Read this before any SISKA
+  live-chat-widget work.** Standing rules and deploy/build discipline
+  specific to the SISKA customization (Playwright/logging/settings-docs
+  suspensions, jQuery-variant deprecation, dual-container WebSocket deploy,
+  data-isolation rules, etc.)
