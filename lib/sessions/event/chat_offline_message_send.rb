@@ -7,12 +7,21 @@
 # (Enhancement 1 -- Tahap 2), cuma beda artikel pertamanya (isi pesan
 # visitor sendiri, bukan catatan sistem generik).
 #
+# Atas permintaan user ("saya mau menambahkan subject, dan subject ini
+# mandatory harus diisi -- subject ini yang kemudian dijadikan judul
+# untuk ticket") -- `subject` (BARU) WAJIB diisi, dipakai LANGSUNG jadi
+# `title` tiket (lihat `create_ticket_for_chat!` di bawah), menggantikan
+# judul generik lama "Live Chat - [nama]" KHUSUS utk pesan offline
+# (chat BIASA, via `chat_session_start.rb`, TIDAK disentuh -- tetap
+# judul generik lama, tidak punya form utk mengisi subject di awal).
+#
 # payload
 #
 #   {
 #     event: 'chat_offline_message_send',
 #     data: {
 #       session_id: 'sesi offline yang sudah terverifikasi OTP-nya',
+#       subject: 'judul tiket, WAJIB diisi',
 #       content: 'isi pesan visitor',
 #     },
 #   }
@@ -43,6 +52,17 @@ class Sessions::Event::ChatOfflineMessageSend < Sessions::Event::ChatBase
       }
     end
 
+    # PENTING: validasi mandatory diulang DI SINI juga (bukan cuma
+    # dipercaya dari UI) -- pola SAMA dgn validasi OTP/pesan kosong di
+    # atas.
+    subject = @payload['data']['subject'].to_s.strip
+    if subject.blank?
+      return {
+        event: 'chat_offline_message_send',
+        data:  { state: 'failed', message: __('Please enter a subject.') },
+      }
+    end
+
     content = @payload['data']['content'].to_s.strip
     if content.blank?
       return {
@@ -52,6 +72,13 @@ class Sessions::Event::ChatOfflineMessageSend < Sessions::Event::ChatBase
     end
 
     chat_session.create_ticket_for_chat!(
+      # `Ticket#title` dibatasi 250 karakter DB (dicek langsung,
+      # `Ticket.columns_hash['title'].limit`) -- dipotong DI SINI
+      # (bukan diandalkan validasi model, yg akan GAGAL total & bikin
+      # `create_ticket_for_chat!` diam2 melewati pembuatan tiket lewat
+      # `rescue`-nya sendiri) supaya subject sepanjang apa pun TIDAK
+      # PERNAH menggagalkan pembuatan tiket.
+      title:   subject.truncate(250),
       article: {
         type_name:   'web',
         sender_name: 'Customer',

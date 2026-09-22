@@ -4,7 +4,15 @@
     <span><strong><%= @email %></strong> <%- @T(@phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified') %></span>
   </div>
 
-  <label class="zammad-chat-offline-compose-label"><%- @T(@phrases['chat_phrase_offline_compose_message_label'] || 'Your message') %></label>
+  <!-- Atas permintaan user ("saya mau menambahkan subject, dan subject
+  ini mandatory") -- subject WAJIB diisi (divalidasi frontend & backend,
+  lihat `submitOfflineMessage`/`chat_offline_message_send.rb`), dipakai
+  jadi JUDUL tiket yang dibuat otomatis (bukan lagi "Live Chat -
+  [nama]" generik, lihat `Chat::Session#create_ticket_for_chat!`). -->
+  <label class="zammad-chat-offline-compose-label"><%- @T(@phrases['chat_phrase_offline_compose_subject_label'] || 'Subject') %></label>
+  <input type="text" class="zammad-chat-offline-compose-subject-input js-offline-subject" placeholder="<%- @T(@phrases['chat_phrase_offline_compose_subject_placeholder'] || "What's this about?") %>">
+
+  <label class="zammad-chat-offline-compose-label zammad-chat-offline-compose-label--spaced"><%- @T(@phrases['chat_phrase_offline_compose_message_label'] || 'Your message') %></label>
   <textarea class="zammad-chat-offline-compose-textarea js-offline-message" placeholder="<%- @T(@phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…') %>"></textarea>
 
   <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>

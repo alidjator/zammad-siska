@@ -91,6 +91,7 @@ return is sent as message back to peer
     chat_phrase_messages_agent_status_active
     chat_phrase_messages_compose_placeholder
     chat_phrase_messages_reply_prefix
+    chat_phrase_messages_welcome_greeting
     chat_phrase_otp_title
     chat_phrase_otp_subtitle_prefix
     chat_phrase_otp_incomplete_error
@@ -101,6 +102,9 @@ return is sent as message back to peer
     chat_phrase_otp_resend_error_fallback
     chat_phrase_otp_change_email
     chat_phrase_offline_compose_verified_suffix
+    chat_phrase_offline_compose_subject_label
+    chat_phrase_offline_compose_subject_placeholder
+    chat_phrase_offline_compose_subject_empty_error
     chat_phrase_offline_compose_message_label
     chat_phrase_offline_compose_placeholder
     chat_phrase_offline_compose_send_button

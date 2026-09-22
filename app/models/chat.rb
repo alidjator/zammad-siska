@@ -82,9 +82,19 @@ reconnect - chat session already exists, serve agent and session chat messages (
             session = Chat::Session.messages_by_session_id(session_id)
             if session
               return {
-                state:   'reconnect',
-                session: session,
-                agent:   user,
+                state:              'reconnect',
+                session:            session,
+                agent:              user,
+                # BUG NYATA (laporan user): icon attachment muncul saat
+                # agent pertama terhubung, tapi hilang setelah hard
+                # refresh/reload (customer reconnect). Root cause: cabang
+                # 'running' di sini TIDAK PERNAH mengirim `attachment_
+                # enabled`, beda dari `chat_session_start.rb` yang selalu
+                # mengirimnya -- di frontend `!data.attachment_enabled`
+                # (chat.coffee/chat-no-jquery.coffee, onConnectionEstablished)
+                # jadi `!undefined = true` = tombol SELALU disembunyikan
+                # saat reconnect, apa pun setting server sebenarnya.
+                attachment_enabled: chat_session.attachment_enabled?,
               }
             end
           end
@@ -608,11 +618,23 @@ optional you can put the max oldest chat sessions as argument
         chat_session.state = 'closed'
         chat_session.save
 
+        # Atas permintaan user ("feedback rating BUKAN karena status
+        # socket, close, reload, disconnect dll") -- `closed_by_agent`
+        # SENGAJA di-set `false` eksplisit di sini (bukan cuma
+        # dibiarkan absen) -- penutupan OLEH SCHEDULER INI PASIF
+        # (participant dianggap offline, BISA krn socket putus/reload/
+        # tab ditutup TANPA klik tombol apa pun), harus TEGAS dibedakan
+        # dari klik tombol "Disconnect" deliberate di sisi agent
+        # (`lib/sessions/event/chat_session_close.rb`, satu2nya tempat
+        # LAIN yg mengirim event `chat_session_closed` yg sama) --
+        # widget customer (`onSessionClosed`) pakai field ini utk
+        # memutuskan tampil/tidaknya layar feedback.
         message = {
           event: 'chat_session_closed',
           data:  {
-            session_id: chat_session.session_id,
-            realname:   'System',
+            session_id:      chat_session.session_id,
+            realname:        'System',
+            closed_by_agent: false,
           },
         }
         chat_session.send_to_recipients(message)

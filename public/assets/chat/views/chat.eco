@@ -8,11 +8,11 @@
     </div>
     <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>
     <div class="zammad-chat-header-controls">
-      <button type="button" class="zammad-chat-header-icon zammad-chat-is-hidden js-chat-info" aria-label="<%- @T('Info') %>">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.5 0 10-4.5 10-10S17.5 2 12 2 2 6.5 2 12s4.5 10 10 10ZM12 8v5"/><path d="M11.995 16h.009"/></svg>
+      <button type="button" class="zammad-chat-header-icon zammad-chat-header-icon-minimize js-chat-minimize" aria-label="<%- @T('Minimize') %>">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.919 8.18H6.079c-.96 0-1.44 1.16-.76 1.84l5.18 5.18c.83.83 2.18.83 3.01 0l1.97-1.97 3.21-3.21c.67-.68.19-1.84-.77-1.84z"/></svg>
       </button>
-      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="<%- @T('Close') %>">
-        <svg class="zammad-chat-header-icon-close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9.17 14.83l5.66-5.66M14.83 14.83 9.17 9.17"/></svg>
+      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="<%- @T('End chat') %>">
+        <svg class="zammad-chat-header-icon-close" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(45deg)"><path d="M6 12h12M12 18V6"/></svg>
       </button>
     </div>
   </div>
@@ -47,4 +47,19 @@
   <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>
 
   <div class="zammad-chat-tabbar"></div>
+
+  <!-- Atas permintaan user (mockup "SISKA Widget Mockup" -- board
+  IndicatorReconnecting/Restored/Lost): indikator fullpage
+  semi-transparan status koneksi WebSocket widget sendiri, menutupi
+  seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,
+  lihat `connection_overlay.eco`). -->
+  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden"></div>
+
+  <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit
+  feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,
+  lihat `showFeedback`) tetap fullpage -- container TERPISAH dari
+  overlay koneksi di atas (semantik beda, sengaja tidak dicampur),
+  gaya visual scrim sama (lihat `chat.scss`). Isi disuntik dinamis
+  oleh `showFeedbackThanks()`. -->
+  <div class="zammad-chat-feedback-thanks-overlay js-feedback-thanks-overlay zammad-chat-is-hidden"></div>
 </div>

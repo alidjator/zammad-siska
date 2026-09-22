@@ -18,16 +18,33 @@
 # (dikonfirmasi lewat `lib/search_knowledge_base_backend.rb`, BUKAN
 # diasumsikan).
 #
+# Atas permintaan user (follow-up): tab Help SEKARANG menampilkan
+# daftar artikel bahkan TANPA mengetik apa pun (5 artikel TERBARU,
+# bukan kosong menunggu pencarian) + dukungan "load more" lewat
+# scroll (bukan tombol/nomor halaman) -- `query` kosong berarti
+# "jelajahi", `query` terisi berarti "filter/cari". `offset` dipakai
+# KEDUA mode utk pagination scroll yang sama.
+#
 # payload
 #
 #   {
 #     event: 'chat_knowledge_base_search',
 #     data: {
-#       query: 'kata kunci pencarian',
+#       query: 'kata kunci pencarian, boleh kosong utk jelajahi',
+#       offset: 0, # kelipatan PAGE_SIZE, dari state widget
 #     },
 #   }
 #
 # return dikirim balik sebagai pesan ke peer
+#
+#   {
+#     event: 'chat_knowledge_base_search',
+#     data: {
+#       result: [ { id:, title:, body:, url: }, ... ], # <= PAGE_SIZE item
+#       has_more: true/false, # true -> widget boleh minta offset berikutnya
+#       offset: 0, # digemakan balik, dipakai widget cegah race condition
+#     },
+#   }
 
 class Sessions::Event::ChatKnowledgeBaseSearch < Sessions::Event::Base
 
@@ -40,34 +57,84 @@ class Sessions::Event::ChatKnowledgeBaseSearch < Sessions::Event::Base
   # (yang memang dirancang generik untuk 3 tipe sekaligus).
   ANSWER_TYPE = 'KnowledgeBase::Answer::Translation'.freeze
 
-  MAX_RESULTS = 10
+  PAGE_SIZE = 5
 
   def run
-    query = @payload['data']['query'].to_s.strip
-    return empty_result if query.blank?
+    query  = @payload['data']['query'].to_s.strip
+    offset = @payload['data']['offset'].to_i
+    offset = 0 if offset.negative?
 
     knowledge_base = KnowledgeBase.active.first
     return empty_result if !knowledge_base
 
-    search_backend = SearchKnowledgeBaseBackend.new(
-      knowledge_base: knowledge_base,
-      flavor:         :public,
-      index:          ANSWER_TYPE,
-      limit:          MAX_RESULTS,
-    )
-
-    result = search_backend.search(query, user: nil)
+    metas, has_more = if query.blank?
+                        recent_metas(knowledge_base, offset)
+                      else
+                        searched_metas(knowledge_base, query, offset)
+                      end
 
     {
       event: 'chat_knowledge_base_search',
-      data:  { result: result.filter_map { |meta| answer_details(meta) } },
+      data:  {
+        result:   metas.filter_map { |meta| answer_details(meta) },
+        has_more: has_more,
+        offset:   offset,
+        # Digemakan balik supaya widget bisa membuang respons BASI
+        # (mis. hasil query lama yang baru sampai SETELAH user sudah
+        # ganti ketikan) -- dibandingkan ke query TERKINI di sisi
+        # widget sebelum dipakai render.
+        query:    query,
+      },
     }
   end
 
   private
 
   def empty_result
-    { event: 'chat_knowledge_base_search', data: { result: [] } }
+    { event: 'chat_knowledge_base_search', data: { result: [], has_more: false, offset: 0 } }
+  end
+
+  # Mode "jelajahi" (query kosong) -- 5 artikel PUBLISHED terbaru
+  # (`sorted_by_published`, scope resmi model `KnowledgeBase::Answer`,
+  # BUKAN query baru), lintas SEMUA kategori dalam KB aktif. Sengaja
+  # TIDAK memfilter permission per-kategori tambahan -- jalur
+  # pencarian (`searched_metas` di bawah, lewat
+  # `SearchKnowledgeBaseBackend`) juga TIDAK melakukan itu utk
+  # flavor `:public`/anonim (dicek ke `translation_ids_for_answers`),
+  # jadi mode jelajahi ini SENGAJA disamakan visibilitasnya persis
+  # dgn mode pencarian, bukan lebih longgar/ketat sepihak.
+  def recent_metas(knowledge_base, offset)
+    answers = KnowledgeBase::Answer
+      .joins(:category)
+      .where(knowledge_base_categories: { knowledge_base_id: knowledge_base.id })
+      .sorted_by_published
+      .offset(offset)
+      .limit(PAGE_SIZE + 1)
+      .to_a
+
+    has_more = answers.size > PAGE_SIZE
+    metas    = answers.first(PAGE_SIZE).filter_map { |answer| answer.translations.first }.map { |translation| { id: translation.id } }
+
+    [metas, has_more]
+  end
+
+  # Mode "cari" (query terisi) -- proxy ke `SearchKnowledgeBaseBackend`
+  # spt sebelumnya, SEKARANG dgn pagination (`offset`/`limit`) supaya
+  # bisa "load more" lewat scroll, bukan cuma 1 halaman tetap.
+  def searched_metas(knowledge_base, query, offset)
+    search_backend = SearchKnowledgeBaseBackend.new(
+      knowledge_base: knowledge_base,
+      flavor:         :public,
+      index:          ANSWER_TYPE,
+      limit:          PAGE_SIZE + 1,
+    )
+
+    pagination = Struct.new(:offset, :limit).new(offset, PAGE_SIZE + 1)
+    metas      = search_backend.search(query, user: nil, pagination: pagination)
+
+    has_more = metas.size > PAGE_SIZE
+
+    [metas.first(PAGE_SIZE), has_more]
   end
 
   def answer_details(meta)

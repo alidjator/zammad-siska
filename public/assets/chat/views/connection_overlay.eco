@@ -1,0 +1,24 @@
+<% if @state is 'reconnecting': %>
+  <div class="zammad-chat-connection-overlay-spinner">
+    <svg viewBox="0 0 44 44" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+      <circle class="zammad-chat-pc-track" cx="22" cy="22" r="20" fill="none" stroke-width="4"></circle>
+      <circle class="zammad-chat-pc-arc" cx="22" cy="22" r="20" fill="none" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="0"></circle>
+    </svg>
+  </div>
+<% else if @state is 'restored': %>
+  <div class="zammad-chat-connection-overlay-icon">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.49 2 2 6.49 2 12C2 17.51 6.49 22 12 22C17.51 22 22 17.51 22 12C22 6.49 17.51 2 12 2ZM16.78 9.7L11.11 15.37C10.97 15.51 10.78 15.59 10.58 15.59C10.38 15.59 10.19 15.51 10.05 15.37L7.22 12.54C6.93 12.25 6.93 11.77 7.22 11.48C7.51 11.19 7.99 11.19 8.28 11.48L10.58 13.78L15.72 8.64C16.01 8.35 16.49 8.35 16.78 8.64C17.07 8.93 17.07 9.4 16.78 9.7Z"></path></svg>
+  </div>
+<% else: %>
+  <div class="zammad-chat-connection-overlay-icon">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2Zm3.36 12.3c.29.29.29.77 0 1.06-.15.15-.34.22-.53.22s-.38-.07-.53-.22l-2.3-2.3-2.3 2.3c-.15.15-.34.22-.53.22s-.38-.07-.53-.22a.754.754 0 0 1 0-1.06l2.3-2.3-2.3-2.3a.754.754 0 0 1 0-1.06c.29-.29.77-.29 1.06 0l2.3 2.3 2.3-2.3c.29-.29.77-.29 1.06 0 .29.29.29.77 0 1.06l-2.3 2.3 2.3 2.3Z"></path></svg>
+  </div>
+<% end %>
+
+<div class="zammad-chat-connection-overlay-title"><%- @title %></div>
+<% if @subtitle: %>
+  <div class="zammad-chat-connection-overlay-subtitle"><%- @subtitle %></div>
+<% end %>
+<% if @state is 'lost': %>
+  <button type="button" class="zammad-chat-connection-overlay-reload js-connection-reload"><%- @T('Reload page') %></button>
+<% end %>

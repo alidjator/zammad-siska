@@ -67,11 +67,25 @@ class ChatAttachmentsController < ApplicationController
     store = Store.list(object: 'Chat::Message', o_id: chat_message.id).first
     return head(:not_found) if !store
 
+    # Atas permintaan user (widget customer: "jangan tampilkan link
+    # aslinya, tombol download saja") -- default TETAP 'inline' (perilaku
+    # LAMA, dipakai jg oleh panel agent lewat endpoint yg SAMA, lihat
+    # komentar kelas di atas -- TIDAK disentuh). Param baru `disposition`
+    # (whitelist EKSPLISIT, cuma 'attachment' yg diterima, apa pun nilai
+    # lain jatuh ke default) -- tombol download widget MEMINTA
+    # `?disposition=attachment` secara eksplisit supaya browser BENAR-
+    # BENAR mengunduh (bukan cuma buka tab baru) WALAU widget di-embed
+    # lintas-domain -- atribut HTML `download` SENDIRIAN tidak cukup utk
+    # ini (browser mengabaikannya utk link lintas-origin, beda dari
+    # header `Content-Disposition` yg dikirim server di sini, yg
+    # dihormati browser TERLEPAS dari origin).
+    disposition = params[:disposition] == 'attachment' ? 'attachment' : 'inline'
+
     send_data(
       store.content,
       filename:    store.filename,
       type:        store.preferences['Content-Type'] || 'application/octet-stream',
-      disposition: 'inline',
+      disposition: disposition,
     )
   end
 

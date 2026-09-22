@@ -16,7 +16,13 @@ $siska-primary: #4680ff;
 $siska-primary-tint: rgba(70, 128, 255, 0.08);
 $siska-primary-tint-strong: rgba(70, 128, 255, 0.12);
 $siska-border: #e8ebee;
-$siska-text: #141413;
+// Atas permintaan user (audit Kategori 5 -- Color): NILAI LAMA
+// (#141413) TERNYATA tidak cocok TOKEN Able Pro manapun -- itu warna
+// brand Anthropic ("Slate"), bukan dari `vuetify.ts`. Diganti
+// `darkText` (#1D2630), dicek LANGSUNG jadi token warna teks gelap
+// UTAMA Able Pro, dipakai 60+ kali di seluruh codebase starter kit
+// (breadcrumb, data table, dark-mode override, dst).
+$siska-text: #1d2630;
 $siska-text-muted: #5b6b79;
 $siska-success: #2ca87f;
 $siska-warning: #e58a00;
@@ -40,15 +46,64 @@ $siska-warning-tint: #f7dcb3;
 // diganti `inputBorder` (dicek LANGSUNG ke `vuetify.ts`), token abu
 // netral ASLI Able Pro yang belum pernah dipakai di file ini.
 $siska-input-border: #bec8d0;
+// Atas permintaan user (screenshot Able Pro Admin, alert "Info Text"
+// ditandai lingkaran merah): "warna background alert info" dipakai utk
+// bubble chat VISITOR (lebih soft, bukan biru solid lagi). Dicek
+// LANGSUNG ke `vuetify.ts`: `info: '#3ec9d6'`. Latar pucatnya BUKAN
+// literal `lightinfo` (`#c5eff3`, token TERPISAH, dipakai komponen
+// lain) -- alert "Basic" di screenshot pakai `variant="tonal"`
+// (mekanisme Vuetify sendiri: warna dasar @ `--v-activated-opacity`,
+// default 0.12, TIDAK di-override `vuetify.ts` Able Pro) -- dikonfirmasi
+// GANDA: (1) hitung manual rgba(62,201,214,0.12) di atas putih =
+// rgb(232,248,250); (2) sampling piksel LANGSUNG dari screenshot user
+// (`PIL.Image.getpixel`) pada area latar alert = (232,248,250) PERSIS
+// sama. Dipakai sbg `rgba(...)` (BUKAN hex pucat statis) supaya teknik
+// SAMA PERSIS dgn cara Vuetify sendiri menghitungnya (komposit thd
+// LATAR di belakang bubble, bukan angka tetap). (`$siska-info` warna
+// DASAR-nya sendiri, `#3ec9d6`, SEMPAT jadi warna teks bubble jg --
+// atas permintaan user susulan, teks disamakan ke `$siska-text` spt
+// bubble agent, token warna dasar ini jadi tidak terpakai lagi & sudah
+// dihapus, HANYA tint pucatnya yg masih relevan.)
+$siska-info-tint: rgba(62, 201, 214, 0.12);
 $siska-radius-sm: 8px;
 $siska-radius-lg: 12px;
+// Atas permintaan user ("saya mau menambahkan font ini pada widget")
+// -- font "Inter var" Able Pro ASLI, di-SELF-HOST (BUKAN Google Fonts
+// -- pola SAMA persis dgn cara Able Pro sendiri menyediakannya,
+// `src/assets/fonts/inter.css`, lisensi SIL Open Font License, bebas
+// disematkan ulang). File disalin APA ADANYA dari starter kit (cuma
+// varian "roman"/normal, BUKAN italic -- chat widget nyaris tidak
+// pernah butuh teks miring, hemat ~245KB; gampang ditambah nanti kalau
+// ternyata diperlukan). MEMBALIK keputusan LAMA (Fase 8) "sengaja
+// TIDAK memuat font eksternal krn widget di-embed lintas-domain" --
+// keputusan itu TETAP relevan cuma utk alasan *biaya request*, BUKAN
+// halangan teknis mutlak; halangan teknis NYATA yg ditemukan (font
+// via `@font-face` WAJIB header CORS beda dari CSS/JS biasa) sudah
+// diperbaiki terpisah di `config/environments/production.rb`
+// (`config.public_file_server.headers`). URL relatif (`fonts/...`) --
+// diresolusi relatif ke `chat.css` SENDIRI (BUKAN ke halaman
+// pengimpor), aman lintas-domain sama spt `chat.css` itu sendiri.
+@font-face {
+  font-family: 'Inter var';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  src:
+    url('fonts/Inter-roman.var.woff2') format('woff2'),
+    url('fonts/Inter-roman.var.woff') format('woff');
+}
+
 // Font emoji dicantumkan eksplisit (bukan mengandalkan fallback
 // otomatis browser) -- ditemukan lewat Playwright screenshot: emoji
 // tampil sebagai kotak "tofu" di server pengujian ini (TIDAK ADA font
 // emoji terpasang sama sekali di sistemnya, dicek lewat `fc-list`) --
 // browser visitor SUNGGUHAN (desktop/mobile normal) hampir selalu
 // punya salah satu dari font emoji sistem di bawah ini terpasang.
-$siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+// "Inter var" SEKARANG dimuat SENDIRI (di atas) -- didahulukan, `Inter`
+// polos (font SISTEM, kalau visitor kebetulan sudah punya) jadi
+// fallback KEDUA utk jendela singkat sebelum @font-face selesai
+// dimuat, BUKAN dihapus.
+$siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
 
 // Struktur "tombol bulat mengambang + panel terpisah" (atas permintaan
@@ -111,9 +166,17 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   // tanpa ini, border 1px bikin box aktual 382x642 (dikit tapi tetap
   // beda dari mockup, dan user minta 100% identik).
   box-sizing: border-box;
-  box-shadow: 0 12px 32px rgba(20, 20, 20, 0.12);
+  // Atas permintaan user (audit Kategori 5 -- Color): RGB dasar
+  // shadow SEBELUMNYA `20,20,20` (kebetulan sumbernya SAMA dgn
+  // `$siska-text` lama yg keliru) -- diganti `19,25,32`, dicek
+  // LANGSUNG ke token shadow resmi Able Pro (`$box-shadow: 0px 8px
+  // 24px rgba(19,25,32,0.08)`, `_variables.scss`). Opacity/blur/
+  // spread TETAP nilai SISKA sendiri (0.12, lbh menonjol drpd 0.08
+  // default Able Pro -- wajar utk panel widget mengambang, bukan
+  // kartu dashboard statis), cuma warna dasarnya yg disamakan.
+  box-shadow: 0 12px 32px rgba(19, 25, 32, 0.12);
   border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border-radius: $siska-radius-sm;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -166,7 +229,14 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   // `applyOfflineHomeState()` (SELALU sinkron dgn `@offlineMode`,
   // KEDUA ARAH -- lihat catatan panjang di sana). `$siska-text-muted`
   // dipakai, SAMA dgn warna teks status "We're offline right now".
-  &.zammad-chat-launcher--offline {
+  // `--connection-issue` (mockup fullpage indikator koneksi) TERPISAH
+  // sengaja dari `--offline` di atas -- itu utk status AGENT offline
+  // (`@offlineMode`), ini utk WEBSOCKET WIDGET SENDIRI bermasalah
+  // (`updateLauncherConnectionState`) -- 2 mekanisme independen,
+  // class beda supaya `classList.toggle` masing2 tidak saling menimpa.
+  // Warna SAMA (reuse token yg sama), bukan warna baru.
+  &.zammad-chat-launcher--offline,
+  &.zammad-chat-launcher--connection-issue {
     background: $siska-text-muted;
     box-shadow: 0 8px 20px rgba(91, 107, 121, 0.35);
   }
@@ -186,6 +256,25 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   @media only screen and (max-width: 768px) {
     right: 20px;
     bottom: 20px;
+
+    // Atas permintaan user (screenshot HP: tombol launcher menimpa
+    // navigasi tab "Help", LALU dicoba geser ke atas 76px -- TERNYATA
+    // di tab Messages malah menimpa tombol Send, beda tab beda elemen
+    // yg ketiban) -- panel FULLSCREEN di mobile isinya beda2 per tab,
+    // TIDAK ADA satu angka posisi tetap yg aman utk SEMUA tab
+    // sekaligus (launcher & panel SAMA2 `position:fixed`, independen,
+    // tidak otomatis saling menghindar). Dikonfirmasi ke user
+    // (AskUserQuestion) -- dipilih: launcher DISEMBUNYIKAN TOTAL
+    // selama panel terbuka di mobile (pola SAMA dipakai widget chat
+    // lain, mis. Intercom/Zendesk), diganti tombol "Minimize" BARU di
+    // header (`.js-chat-minimize`, lihat `views/chat.eco` & CSS-nya
+    // sendiri di bawah) yg TIDAK ikut bergerak/tertimpa krn di DALAM
+    // alur normal panel (bukan `position:fixed` mengambang bebas).
+    // Desktop TIDAK berubah sama sekali (rule ini di DALAM media query
+    // mobile, launcher tetap seperti semula di luar itu).
+    &.zammad-chat-is-open {
+      display: none;
+    }
   }
 }
 
@@ -265,9 +354,22 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   gap: 4px;
 }
 
+// Atas permintaan user (audit Kategori 6 -- Font/Typography): SEMUA
+// judul besar widget (8 elemen, class ini + `header-title`/`prechat-
+// title`/`waiting-title`/`offline-otp-title`/`offline-sent-title`/
+// `feedback-title`/`feedback-thanks-title`) SEBELUMNYA `700` (bold
+// penuh) -- SESUAI mockup asli (dicek, mockup memang eksplisit minta
+// 700), TAPI TIDAK COCOK skala tipografi Able Pro/Vuetify SUNGGUHAN:
+// dicek SEMUA class `text-h1`..`text-h6` bawaan Vuetify (Able Pro
+// TIDAK override satu pun) -- weight PALING TEBAL yg benar2 dipakai
+// cuma `500` (`text-h6`/`text-subtitle-2`), `700` HANYA muncul SEKALI
+// di SELURUH SCSS Able Pro (header tabel data, bukan judul umum).
+// Diprioritaskan Able Pro (konsisten dgn prinsip "Able Pro menang"
+// entri 156, DIKONFIRMASI ke user dulu krn ini beda dari mockup asli
+// -- bukan cuma bug drift spt 4 temuan ukuran font di audit yg sama).
 .zammad-chat-welcome-title {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -279,7 +381,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .zammad-chat-header-title {
   flex: 1;
   text-align: center;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 16px;
 }
 
@@ -312,6 +414,28 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
   &:hover {
     background: $siska-container-bg;
+  }
+}
+
+// Atas permintaan user (follow-up hasil AskUserQuestion, "sembunyikan
+// launcher seperti direkomendasikan, tambahkan minimize di header"):
+// tombol BARU ini gantikan peran launcher (tombol bulat mengambang)
+// KHUSUS di mobile begitu panel terbuka -- launcher disembunyikan
+// total di sana (lihat rule `.zammad-chat-launcher.zammad-chat-is-open`
+// di media query mobile), krn tidak ada satu posisi mengambang bebas
+// yg aman dari SEMUA elemen di SEMUA tab. Tombol ini beda: hidup DI
+// DALAM alur normal header (bukan `position:fixed`), jadi tidak
+// pernah menimpa/tertimpa apa pun. Desktop TIDAK butuh ini (launcher
+// di sana SUDAH cukup jadi tombol minimize) -- disembunyikan default,
+// baru tampil KHUSUS mobile (`@media` sama persis dgn yg dipakai
+// panel/launcher). `close()` (dipanggil dari sini) HANYA
+// menyembunyikan panel, TIDAK mengakhiri sesi -- beda dari `js-chat-
+// close`/`exitChat()` di sebelahnya.
+.zammad-chat-header-icon-minimize {
+  display: none;
+
+  @media only screen and (max-width: 768px) {
+    display: flex;
   }
 }
 
@@ -475,7 +599,15 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // (kompensasi kontras palsu krn latarnya salah).
 .zammad-chat-body {
   padding: 20px;
-  overflow: auto;
+  // Bug ditemukan user (scrollbar horizontal muncul di bawah daftar
+  // pesan, ketahuan lewat kartu feedback inline yg baru) -- `overflow:
+  // auto` (shorthand) SEBELUMNYA meng-aktifkan auto utk KEDUA sumbu
+  // sekaligus, jadi elemen apa pun yg sedikit saja melebihi lebar
+  // (mis. lewat padding/box-sizing anak yg tidak konsisten) memicu
+  // scrollbar horizontal. Daftar pesan SEHARUSNYA cuma scroll
+  // vertikal -- dipisah eksplisit, sumbu X dikunci `hidden`.
+  overflow-y: auto;
+  overflow-x: hidden;
   background: $siska-container-bg;
   flex: 1;
   display: none;
@@ -513,55 +645,31 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // `max-width: 82%`, avatar 26px, `gap: 8px`, dibalik arahnya
 // (`row-reverse`) + didorong ke kanan (`margin-left: auto`) khusus
 // pesan customer.
+// Atas permintaan user (screenshot beranotasi tangan: avatar kecil di
+// tiap bubble ditandai X): avatar per-pesan (`.zammad-chat-message-
+// avatar`, agent MAUPUN customer) DIHAPUS TOTAL -- avatar HEADER
+// (lencana agent di baris atas jendela chat) TIDAK disentuh, beda
+// elemen. Wrapper `.zammad-chat-message-content` (dulu perlu utk
+// menumpuk row+jam krn jam ada DI LUAR bubble) JUGA dihapus -- jam
+// SEKARANG di DALAM `.zammad-chat-message-body` sendiri (lihat rule
+// `.zammad-chat-message-time` di bawah), jadi tidak ada lagi 2 baris
+// yang perlu ditumpuk di sini. `.zammad-chat-message` SEKARANG cuma
+// py SATU flex-item (`.zammad-chat-message-row`) -- `justify-content:
+// flex-end` (bukan lagi `flex-direction:row-reverse`, itu trik LAMA
+// khusus utk membalik urutan avatar+bubble) dipakai LANGSUNG utk
+// mendorong row ke tepi kanan box (box sendiri tetap melebar sampai
+// `max-width`, TIDAK menyusut ke lebar konten -- `display:flex` +
+// `width:auto` pada elemen block-level TETAP mengisi lebar container,
+// bukan shrink-to-fit).
 .zammad-chat-message {
   display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: 82%;
+  max-width: 78%;
   margin: 4px 0;
 }
 
 .zammad-chat-message--customer {
-  flex-direction: row-reverse;
   margin-left: auto;
-}
-
-.zammad-chat-message-avatar {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-  background: $siska-primary-tint;
-  color: $siska-primary;
-}
-
-.zammad-chat-message--customer .zammad-chat-message-avatar {
-  background: $siska-border;
-  color: $siska-text-muted;
-}
-
-// Bug ditemukan lewat laporan user ("tidak ada time per chat sesuai
-// mockup") -- SEBELUMNYA cuma ada SATU pembagi tanggal/jam di atas
-// (`.zammad-chat-timestamp`, sekali per hari/jeda lama), TIDAK PERNAH
-// ada jam kecil di bawah TIAP bubble spt preseden `Messages.dc.html`.
-// Wrapper baru (`.zammad-chat-message-content`) membungkus bubble +
-// jamnya supaya keduanya bertumpuk & rata kiri/kanan BERSAMAAN
-// mengikuti sisi pengirim (agent=kiri, customer=kanan) -- flex-item
-// KEDUA dari `.zammad-chat-message` (avatar = pertama).
-.zammad-chat-message-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.zammad-chat-message--customer .zammad-chat-message-content {
-  align-items: flex-end;
+  justify-content: flex-end;
 }
 
 // Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
@@ -588,36 +696,46 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   max-width: 100%;
 }
 
+// Atas permintaan user (screenshot beranotasi tangan, panah menunjuk
+// pojok kanan-bawah bubble): jam+centang SEKARANG di DALAM
+// `.zammad-chat-message-body` (child TERAKHIR, lihat `message.eco`/
+// `attachment_message.eco`), BUKAN lagi baris terpisah DI LUAR/DI
+// BAWAH bubble -- `display:flex;justify-content:flex-end` membuatnya
+// jadi baris block SENDIRI (blok flex SELALU baris baru) rata-kanan
+// di pojok bubble, gaya WhatsApp/Telegram. SELALU rata-kanan apa pun
+// pengirimnya (dulu beda margin kiri/kanan tergantung sisi -- sudah
+// tidak relevan, sekarang SELALU di kanan-bawah bubble yg sama).
 .zammad-chat-message-time {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 3px;
-  font-size: 10.5px;
+  font-size: 10px;
   color: $siska-text-muted;
-  margin-top: 4px;
-  margin-left: 2px;
-}
-
-.zammad-chat-message--customer .zammad-chat-message-time {
-  margin-left: 0;
-  margin-right: 2px;
+  margin-top: 3px;
 }
 
 // Atas permintaan user (mockup `Messages.dc.html`): penanda
 // "terkirim"/"sudah dibaca" ala WhatsApp -- HANYA pesan customer yang
 // dapat penanda ini (agent tidak melihat status baca miliknya sendiri
-// di widget ini, di luar scope permintaan). `--sent` (1 centang, abu2)
-// = default begitu pesan dirender (optimis, TIDAK menunggu balasan
-// server -- lihat `sendMessage()`); `--read` (2 centang, biru) =
-// setelah event `chat_session_message_read` diterima dari agent.
+// di widget ini, di luar scope permintaan). `--sent` (1 centang) =
+// default begitu pesan dirender (optimis, TIDAK menunggu balasan
+// server -- lihat `sendMessage()`); `--read` (2 centang) = setelah
+// event `chat_session_message_read` diterima dari agent.
+// SEBELUMNYA sempat py override opasitas-putih KHUSUS bubble customer
+// (perlu krn latar dulu solid biru) -- DIHAPUS lagi (atas permintaan
+// user: bubble customer diganti latar pucat gaya alert info, TIDAK
+// solid lagi) -- skema abu2/primer DEFAULT di sini SEKARANG berlaku
+// UNIVERSAL ke SEMUA latar (agent putih, kartu lampiran putih, bubble
+// customer pucat #E8F8FA) krn kontras cukup di ke-3 nya.
 .zammad-chat-message-status {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    fill: currentColor;
+    stroke: none;
   }
 }
 
@@ -669,9 +787,19 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 12px;
 }
 
+// Atas permintaan user (screenshot Able Pro Admin, alert "Info Text"):
+// bubble customer diganti dari biru SOLID jadi latar pucat gaya alert
+// "info" Able Pro (`$siska-info-tint`).
+// Warna TEKS sempat ikut disamakan ke `$siska-info` (meniru alert asli
+// yg teksnya jg warna info) -- atas permintaan user SUSULAN ("rubah
+// font color pada bubble visitor, sesuai dengan font color bubble
+// agent"), diganti lagi ke `$siska-text` (sama persis dgn bubble
+// agent, yg TIDAK override warna teks sendiri -- mewarisi `color:
+// $siska-text` dari root `.zammad-chat`). Latar tetap pucat info,
+// CUMA warna teksnya yg disamakan.
 .zammad-chat-message--customer .zammad-chat-message-body {
-  background: $siska-primary;
-  color: white;
+  background: $siska-info-tint;
+  color: $siska-text;
 }
 
 // Bug ditemukan lewat laporan user ("bubble yang hurufnya tiba-tiba
@@ -694,8 +822,18 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   white-space: normal;
 }
 
+// Atas permintaan user (mockup "SISKA Widget Mockup" board
+// AgentTyping) -- gap 4px EKSPLISIT antar 3 titik, gantikan andalan
+// lama pada spasi/whitespace HTML antar `<span>` (fragile, 3 span di
+// `typingIndicator.eco`/`help.eco` sengaja ditulis TANPA spasi di
+// antaranya -- titik jadi saling menempel tanpa gap sama sekali).
+// Dipakai bersama di 2 tempat (indikator "agent mengetik" & "load
+// more" pencarian KB), keduanya diverifikasi tetap tampil benar
+// (wrapper masing2 SUDAH mem-flex/center-kan elemen ini dari luar).
 .zammad-chat-loading-animation {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .zammad-chat-loading-circle {
@@ -759,8 +897,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin: 0;
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
   padding: 10px 14px;
   max-height: 96px;
   min-height: 20px;
@@ -810,8 +948,19 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   align-items: center;
 }
 
+// `.zammad-chat-attach:not(.zammad-chat-is-hidden)` -- pola bug
+// SPESIFISITAS yg SAMA sudah terjadi berkali-kali di file ini
+// (ditemukan lagi via audit proaktif setelah bug `.zammad-chat-kb-
+// loading`): `display: flex` di sini menang atas `display: none`
+// milik `.zammad-chat-is-hidden` (baris ~799, LEBIH AWAL) krn urutan
+// baris -- tombol attach jadi TETAP TAMPIL walau `attachment_enabled`
+// backend `false` (`toggleClass('zammad-chat-is-hidden', ...)` di
+// `chat.coffee`). `.zammad-chat-emoji-toggle` TIDAK PERNAH ditoggle
+// class ini, aman tanpa guard. Ikon svg 17px->16px sekalian
+// disamakan ke markup (audit ikon entri 170 sudah ganti markup ke
+// 16px, CSS ini KETINGGALAN & diam-diam menimpanya balik).
 .zammad-chat-emoji-toggle,
-.zammad-chat-attach {
+.zammad-chat-attach:not(.zammad-chat-is-hidden) {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -829,8 +978,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-family: inherit;
 
   svg {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
   }
 
   &:hover {
@@ -929,8 +1078,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   width: 220px;
   background: white;
   border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
-  box-shadow: 0 10px 28px rgba(20, 20, 20, 0.16);
+  border-radius: $siska-radius-sm;
+  box-shadow: 0 10px 28px rgba(19, 25, 32, 0.16);
   padding: 10px;
   z-index: 5;
 }
@@ -985,26 +1134,132 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // filename` (poin fix SEBENARNYA) dipotong pakai `text-overflow:
 // ellipsis` -- proporsional mengikuti sisa ruang, bukan angka piksel
 // tetap.
-.zammad-chat-attachment {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+// Atas permintaan user ("jangan tampilkan link aslinya, tombol
+// download saja di sebelah kanan"), LALU direvisi total jadi KARTU
+// gaya WhatsApp ("format bubble attachment seperti ini" + screenshot
+// referensi -- lencana ikon + nama/tipe-ukuran + tombol download di
+// DALAM kartu, permintaan follow-up "icon download nya berada didalam
+// bubble"). `.zammad-chat-attachment` SEKARANG elemen VISUAL kartu itu
+// SENDIRI (digabung ke `.zammad-chat-message-body` di markup, BUKAN
+// lagi dibungkus di dalamnya) -- lebar TETAP 230px (bukan lagi
+// max-width:100% mengikuti bubble teks biasa), supaya lencana ikon +
+// blok nama/tipe-ukuran + tombol download muat rapi berdampingan.
+// Filename tetap TIDAK bisa diklik (`<span>` polos) -- satu-satunya
+// cara mengunduh adalah `.zammad-chat-attachment-download` di dalam
+// kartu ini.
+// Atas permintaan user (screenshot beranotasi tangan): jam SEKARANG
+// jadi baris KEDUA di dalam kartu (di bawah baris ikon/nama/download),
+// bukan lagi di luar kartu -- kartu jadi flex COLUMN (2 baris: row
+// ikon/info/download BARU `.zammad-chat-attachment-row`, lalu
+// `.zammad-chat-message-time`), beda dari sebelumnya yg cuma 1 baris
+// flex. TANPA centang baca (pesan agent tidak pernah punya status
+// baca) -- kartu customer YANG py centang tetap dapat lewat markup
+// `message-time` yg sama, warnanya skema DEFAULT abu2/primer (SAMA
+// dgn bubble teks customer sejak latarnya diganti pucat -- tidak perlu
+// override terpisah lagi, lihat rule status di atas).
+.zammad-chat-message-body.zammad-chat-attachment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 230px;
   max-width: 100%;
-  color: inherit;
-  text-decoration: none;
 }
 
-.zammad-chat-attachment svg {
-  fill: currentColor;
+.zammad-chat-attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Kartu SELALU putih/netral, TERLEPAS dari siapa pengirimnya -- BEDA
+// dari bubble teks biasa (`.zammad-chat-message--customer .zammad-
+// chat-message-body` di atas, solid biru): lencana ikon tint primary &
+// subjudul abu-abu TIDAK akan terbaca kalau latar kartu ikut jadi
+// biru solid. Selector 3-tingkat SENGAJA (bukan mengandalkan urutan
+// baris di file) supaya menang PASTI dari rule biru di atas, bukan
+// kebetulan menang krn ditulis lebih belakangan.
+.zammad-chat-message--customer .zammad-chat-message-body.zammad-chat-attachment {
+  background: white;
+  color: $siska-text;
+  border: 1px solid $siska-border;
+}
+
+.zammad-chat-attachment-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary-tint-strong;
+  color: $siska-primary;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    fill: currentColor;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Pelajaran bug lama (nama file panjang bikin bubble melebar tanpa
+// batas): elemen FLEX-ITEM perlu `min-width: 0` EKSPLISIT (default
+// `auto` menolak menyusut di bawah lebar konten aslinya) supaya
+// `.zammad-chat-attachment-filename` genuinely mau dipotong ellipsis
+// mengikuti sisa ruang kartu, bukan memaksa kartu melebar.
+.zammad-chat-attachment-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .zammad-chat-attachment-filename {
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-decoration: underline;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.zammad-chat-attachment-meta {
+  font-size: 11.5px;
+  color: $siska-text-muted;
+  margin-top: 2px;
+}
+
+// Tombol download -- pola SAMA PERSIS dgn `.zammad-chat-message-
+// reply` di bawah (ukuran, opacity, hover-thd-hover-pesan), TAPI
+// SEKARANG di DALAM kartu (bukan lagi sibling di luar bubble) --
+// ikon reply (khusus pesan agent) TETAP di luar, TIDAK ikut dipindah.
+.zammad-chat-attachment-download {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 150ms;
+  color: $siska-text-muted;
+  text-decoration: none;
+
+  svg {
+    display: block;
+    fill: currentColor;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.zammad-chat-message:hover .zammad-chat-attachment-download {
+  opacity: 1;
 }
 
 // Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
@@ -1054,6 +1309,12 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // `.zammad-chat-attachment-filename` (1 baris + ellipsis, TIDAK
 // dibiarkan wrap ke banyak baris via `overflow-wrap` yang diwarisi
 // dari `.zammad-chat-message-body`).
+// Warna kutipan SENGAJA `$siska-primary` UNIVERSAL (agent MAUPUN
+// customer) -- niat desain ASLI (lihat komentar lama di atas garis ini
+// sebelum direvisi): satu warna aksen konsisten di kedua sisi. Dulu
+// SEMPAT ada override putih KHUSUS bubble customer (perlu selama latar
+// bubble itu solid biru) -- DIHAPUS lagi (atas permintaan user: bubble
+// customer sekarang latar pucat, bukan solid), kembali ke niat semula.
 .zammad-chat-message-quote {
   display: block;
   overflow: hidden;
@@ -1066,11 +1327,12 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   opacity: 0.75;
 }
 
-.zammad-chat-message--customer .zammad-chat-message-quote {
-  border-left-color: rgba(255, 255, 255, 0.6);
-}
-
-.zammad-chat-reply-indicator {
+// `:not(.zammad-chat-is-hidden)` -- bug SPESIFISITAS yg SAMA
+// (ditemukan lewat audit proaktif): tanpa ini, strip balasan bakal
+// TETAP TAMPIL (kosong) walau `renderReplyIndicator()`
+// (`chat.coffee`) sudah `addClass('zammad-chat-is-hidden')` saat
+// TIDAK sedang membalas pesan apa pun.
+.zammad-chat-reply-indicator:not(.zammad-chat-is-hidden) {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1123,11 +1385,23 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   align-items: center;
   justify-content: center;
   margin: 0 auto 8px;
+  // Atas permintaan user ("tambahkan juga logo pada halaman ini
+  // seperti home dan offline home") -- `overflow: hidden` supaya
+  // logo custom (`<img>` 100%x100% object-fit:contain, dipasang
+  // `updateHomeLogo`) genuinely terpotong bulat, bukan persegi
+  // menyembul dari lencana lingkaran ini (radius 50%, lebih kentara
+  // dari `.zammad-chat-home-logo-mark` yg cuma radius kecil).
+  overflow: hidden;
 }
 
+// Atas permintaan user (audit Kategori 6 -- Font/Typography): 20px
+// TERNYATA menyimpang dari mockup `Prechat.dc.html` sendiri (SELALU
+// 16px, "Halo! Yuk mulai percakapannya") -- 20px SEHARUSNYA cuma
+// dipakai `.zammad-chat-welcome-title` (Home, "Hi there", satu2nya
+// judul hero 20px, dikonfirmasi ULANG ke mockup-nya sendiri jg).
 .zammad-chat-prechat-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   margin-bottom: 4px;
 }
 
@@ -1170,8 +1444,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-family: inherit;
   font-size: 14px;
   padding: 0 16px;
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
   outline: none;
   transition: border-color 100ms ease;
 
@@ -1346,13 +1620,21 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .zammad-chat-home-logo-mark {
   width: 52px;
   height: 52px;
-  border-radius: 12px;
+  border-radius: $siska-radius-lg;
   background: $siska-primary;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  // Atas permintaan user (logo custom Prechat) -- `overflow: hidden`
+  // ditambah PROAKTIF di sini juga (bukan cuma Prechat) supaya logo
+  // custom (`updateHomeLogo`, `<img>` 100%x100% object-fit:contain)
+  // genuinely terpotong ikut bentuk lencana ini kalau rasio logo
+  // aslinya tidak persis persegi -- sebelumnya tidak kentara krn ikon
+  // default SELALU persegi kecil (24x24) di tengah, tidak pernah
+  // menyentuh tepi.
+  overflow: hidden;
 
   svg {
     fill: currentColor;
@@ -1440,6 +1722,107 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   border: 1px solid $siska-primary;
 }
 
+// Atas permintaan user ("Start Chat/Verify/Send Message/Continue/
+// Submit/Maybe Later -- loading pada button, gunakan loading button
+// ablepro") -- tombol ini dapat "loading state" saat diklik, meniru
+// PERSIS pola `<v-btn :loading="...">` Able Pro (dicek LANGSUNG ke
+// `VButtons.vue` section "Loading Button" -- BUKAN ditebak): label
+// disembunyikan (`opacity:0`, BUKAN dihapus dari DOM, supaya ukuran
+// tombol TIDAK berubah -- persis `.v-btn--loading .v-btn__content {
+// opacity: 0 }` yg dicek ke CSS Vuetify sungguhan, `VBtn.css`),
+// spinner lingkaran menumpuk di tengah (`position:absolute; inset:0`,
+// persis `.v-btn__loader`). Animasi (`@keyframes`) DISALIN VERBATIM
+// dari `VProgressCircular.css` (diunduh via `npm pack` ke scratchpad
+// sendiri, BUKAN dikarang) -- rotate 1.4s linear pada SVG + dash+
+// rotate 1.4s ease-in-out pada lingkaran itu sendiri (Able Pro genuinely
+// menumpuk KEDUA animasi di 2 elemen berbeda, bukan cuma 1).
+// `.zammad-chat-home-action` DITAMBAHKAN belakangan (follow-up user
+// "tambahkan hal serupa ... untuk tombol pada halaman home dan
+// offlineHome") -- mencakup KEDUA tombol Home (primer "Send/Leave us
+// a message" MAUPUN sekunder "Search for help", satu class dasar yg
+// sama) -- BUKAN tombol tab bar bawah (Home/Messages/Help, elemen
+// `[data-tab]` LAIN, class BEDA `.zammad-chat-tabbar-item`, sengaja
+// TIDAK ikut, di luar permintaan user).
+.zammad-chat-prechat-submit,
+.zammad-chat-offline-otp-submit,
+.zammad-chat-offline-compose-submit,
+.zammad-chat-offline-sent-button,
+.zammad-chat-feedback-submit,
+.zammad-chat-feedback-skip,
+.zammad-chat-home-action {
+  position: relative;
+
+  &.is-loading {
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+.zammad-chat-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.15s;
+}
+
+.is-loading .zammad-chat-btn-label {
+  opacity: 0;
+}
+
+.zammad-chat-btn-loader {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+
+  svg {
+    width: 1.5em;
+    height: 1.5em;
+    animation: zammad-chat-progress-circular-rotate 1.4s linear infinite;
+    transform-origin: center center;
+  }
+
+  circle {
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 4;
+    animation: zammad-chat-progress-circular-dash 1.4s ease-in-out infinite, zammad-chat-progress-circular-rotate 1.4s linear infinite;
+    stroke-dasharray: 25, 200;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    transform-origin: center center;
+    transform: rotate(-90deg);
+  }
+}
+
+.is-loading .zammad-chat-btn-loader {
+  display: flex;
+}
+
+@keyframes zammad-chat-progress-circular-rotate {
+  100% {
+    transform: rotate(270deg);
+  }
+}
+
+@keyframes zammad-chat-progress-circular-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0px;
+  }
+
+  50% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -15px;
+  }
+
+  100% {
+    stroke-dasharray: 100, 200;
+    stroke-dashoffset: -124px;
+  }
+}
+
 .zammad-chat-help {
   display: flex;
   flex-direction: column;
@@ -1468,8 +1851,8 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-family: inherit;
   font-size: 14px;
   padding: 0 16px 0 40px;
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
   background: white;
   outline: none;
   transition: border-color 100ms ease;
@@ -1586,6 +1969,26 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   text-align: center;
 }
 
+// Indikator "load more" scroll utk daftar KB -- dipakai ulang
+// animasi 3-titik yg SUDAH ada (`.zammad-chat-loading-circle`, lihat
+// `views/typingIndicator.eco`), cuma dibungkus + diposisikan di
+// tengah dasar daftar.
+// `:not(.zammad-chat-is-hidden)` -- pola bug SPESIFISITAS yang SAMA
+// PERSIS sudah terjadi 2x sebelumnya di file ini (ikon error OTP,
+// notice offline Home): `display: flex` di sini menang atas
+// `display: none` milik `.zammad-chat-is-hidden` (baris ~791, LEBIH
+// AWAL di file) krn urutan baris, TERLEPAS dari class mana yg
+// sungguhan aktif di elemennya -- ditemukan user (ikon loading
+// tampil TERUS walau state `kbLoading` sudah `false`, dicek LANGSUNG
+// via console `window.chat.kbLoading`).
+.zammad-chat-kb-loading:not(.zammad-chat-is-hidden) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 4px;
+  flex-shrink: 0;
+}
+
 /*
   # Revisi desain (gaya Able Pro) -- layar "menunggu agent" (`waiting.eco`).
   # Spinner cincin + ikon di tengah, MENGGANTIKAN 3-titik loading lama
@@ -1663,9 +2066,12 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   color: $siska-error;
 }
 
+// Atas permintaan user (audit Kategori 6): 18px menyimpang dari
+// mockup `Waiting.dc.html` sendiri (SELALU 16px, "Menghubungkan Anda
+// ke agent…").
 .zammad-chat-waiting-title {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .zammad-chat-waiting-subtext {
@@ -1673,6 +2079,118 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   font-size: 13px;
   max-width: 220px;
   line-height: 1.5;
+}
+
+// Atas permintaan user (mockup "SISKA Widget Mockup" -- board
+// IndicatorReconnecting/Restored/Lost): indikator fullpage
+// SEMI-TRANSPARAN status koneksi WebSocket widget sendiri -- jendela
+// chat asli (header/riwayat/compose/tab-bar) TETAP dirender di
+// belakang, kelihatan samar lewat scrim putih tembus pandang + blur
+// tipis (bukan disembunyikan/diganti total spt versi awal mockup).
+.zammad-chat-connection-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  gap: 6px;
+  z-index: 10;
+
+  &.zammad-chat-is-hidden {
+    display: none;
+  }
+}
+
+.zammad-chat-connection-overlay-icon,
+.zammad-chat-connection-overlay-spinner {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+}
+
+// Ikon `custom-check-circle-fill` (sprite Able Pro), warna $siska-success --
+// SAMA persis dgn dot presensi hijau di header saat agent online.
+.zammad-chat-connection-overlay--restored .zammad-chat-connection-overlay-icon {
+  color: $siska-success;
+  animation: zammad-chat-connection-pop 260ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+// Ikon `custom-close-circle-fill` (sprite Able Pro), warna $siska-error.
+.zammad-chat-connection-overlay--lost .zammad-chat-connection-overlay-icon {
+  color: $siska-error;
+}
+
+@keyframes zammad-chat-connection-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.zammad-chat-connection-overlay-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: $siska-text;
+}
+
+.zammad-chat-connection-overlay-subtitle {
+  font-size: 13px;
+  color: $siska-text-muted;
+  max-width: 260px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.zammad-chat-connection-overlay-reload {
+  margin-top: 20px;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: $siska-radius-sm;
+  border: none;
+  background: $siska-primary;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+// Circular Indeterminate -- direplikasi PERSIS dari Vuetify 3.10.12
+// (versi sama yg dipin `package.json` starter kit Able Pro,
+// `views/ui-elements/advance/UiProgress.vue` "Circular Indeterminate")
+// -- keyframe `progress-circular-dash`/`progress-circular-rotate` dari
+// `VProgressCircular.css` terkompilasi, BUKAN quarter-ring spinner yg
+// dipakai `.zammad-chat-waiting-spinner` di atas (sengaja beda, ini
+// rujukan "Circular Indeterminate" asli, bukan preseden lama).
+.zammad-chat-connection-overlay-spinner svg {
+  animation: zammad-chat-pc-rotate 1.4s linear infinite;
+  transform-origin: center center;
+}
+
+.zammad-chat-connection-overlay-spinner .zammad-chat-pc-track {
+  stroke: $siska-border;
+}
+
+.zammad-chat-connection-overlay-spinner .zammad-chat-pc-arc {
+  stroke: $siska-warning;
+  stroke-linecap: round;
+  animation: zammad-chat-pc-dash 1.4s ease-in-out infinite, zammad-chat-pc-rotate 1.4s linear infinite;
+  transform-origin: center center;
+  transform: rotate(-90deg);
+}
+
+@keyframes zammad-chat-pc-rotate {
+  100% { transform: rotate(270deg); }
+}
+
+@keyframes zammad-chat-pc-dash {
+  0%   { stroke-dasharray: 1, 200; stroke-dashoffset: 0px; }
+  50%  { stroke-dasharray: 100, 200; stroke-dashoffset: -15px; }
+  100% { stroke-dasharray: 100, 200; stroke-dashoffset: -124px; }
 }
 
 .zammad-chat-waiting-position {
@@ -1777,19 +2295,36 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 // mengikuti `.v-alert--density-default.v-alert--border-top` biar
 // teks tidak mepet ke aksen tebal itu.
 .zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden) {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 16px;
   padding-top: 24px;
   border-radius: $siska-radius-sm;
   background: transparent;
   border: 1px solid currentColor;
-  border-top: 8px solid rgba(229, 138, 0, 0.38);
   color: $siska-warning;
   font-size: 12.5px;
   line-height: 1.5;
   margin-bottom: 4px;
+
+  // Aksen border-top TEBAL sebagai lapisan TERPISAH (bukan digabung ke
+  // border 1px di atas) -- meniru persis struktur asli Vuetify
+  // (`.v-alert__border`, `VAlert.css`): elemen absolute TERSENDIRI yang
+  // menutupi penuh box, `border-radius: inherit` independen, HANYA diberi
+  // `border-top`. Alasan: border 1px (4 sisi) + border-top 8px pada SATU
+  // box yang sama membuat browser menghitung lengkung sudut scr elips
+  // menyesuaikan ketebalan sisi yang beda jauh (1px vs 8px) -- tidak
+  // sehalus 2 box terpisah yang radiusnya independen spt Vuetify asli.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border-top: 8px solid rgba(229, 138, 0, 0.38);
+    pointer-events: none;
+  }
 
   svg {
     flex-shrink: 0;
@@ -1824,7 +2359,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
 .zammad-chat-offline-otp-title {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 500;
   color: $siska-text;
 }
 
@@ -1852,7 +2387,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 .zammad-chat-offline-otp-digit {
   width: 42px;
   height: 46px;
-  border: 1px solid $siska-border;
+  border: 1px solid $siska-input-border;
   border-radius: $siska-radius-sm;
   background: white;
   font-family: inherit;
@@ -2013,12 +2548,47 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-bottom: 8px;
 }
 
+// Atas permintaan user (field Subject BARU, wajib diisi) -- label
+// KEDUA (utk textarea pesan) butuh jarak dari input Subject di
+// ATASnya, `.zammad-chat-offline-compose-label` sendiri TIDAK py
+// margin-top (SEMULA cuma dipakai SEKALI, langsung di awal form,
+// tidak butuh jarak atas). Modifier terpisah (bukan ubah rule dasar)
+// supaya label subject dgn label pesan berbeda jaraknya.
+.zammad-chat-offline-compose-label--spaced {
+  margin-top: 16px;
+}
+
+// Gaya field text SATU BARIS -- turunan PERSIS dari
+// `.zammad-chat-offline-compose-textarea` di bawah (border/radius/
+// padding/font/focus SAMA), cuma tanpa `resize`/`min-height`/`flex`
+// (elemen `<textarea>` vs `<input>` beda kebutuhan layout: textarea
+// mengisi sisa ruang vertikal form, input satu baris TIDAK).
+.zammad-chat-offline-compose-subject-input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: $siska-text;
+  background: white;
+  transition: border-color 100ms ease;
+
+  &:focus {
+    outline: none;
+    border: 2px solid $siska-primary;
+    padding: 11px 13px;
+  }
+}
+
 .zammad-chat-offline-compose-textarea {
+  box-sizing: border-box;
   flex: 1;
   min-height: 160px;
   resize: none;
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
   padding: 12px 14px;
   font-family: inherit;
   font-size: 13.5px;
@@ -2076,7 +2646,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   gap: 8px;
   padding: 10px 12px;
   border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border-radius: 999px;
   background: $siska-container-bg;
   color: $siska-text-muted;
   // 14px (bukan 12.5px) -- persis token typography "button" Able Pro
@@ -2154,7 +2724,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
 .zammad-chat-offline-sent-title {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 500;
   color: $siska-text;
 }
 
@@ -2173,6 +2743,60 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 22px;
 }
 
+// Atas permintaan user (mockup "SISKA Widget Mockup" board
+// FeedbackInline) -- wadah kartu utk feedback INLINE di dalam
+// `.zammad-chat-body` (`showFeedback(true)`, dipakai KHUSUS saat agent
+// menutup sesi -- `onSessionClosed`), pengganti `.zammad-chat-modal`
+// (fullscreen) utk jalur itu. Gaya kartu SAMA dgn bubble/status lain
+// di alur percakapan yg sama (putih, radius, TANPA border -- preseden
+// `ChatDetail.vue`).
+// Bug ditemukan user (ujung kartu vs ujung bubble pesan tidak sejajar,
+// 2 screenshot beranotasi garis merah, kanan lalu kiri) -- awalnya
+// dibatasi `max-width: 92%` (rasio lebih lebar drpd bubble pesan 78%
+// krn butuh ruang baris 5 bintang + textarea) TAPI tetap tidak
+// menyentuh KEDUA tepi sekaligus: `align-self:center` tidak pernah
+// aktif (`.zammad-chat-body` bukan flex/grid container), lalu
+// `margin-left:auto` cuma menyejajarkan tepi KANAN dgn bubble customer
+// (`.zammad-chat-message--customer`), meninggalkan celah di tepi KIRI
+// vs bubble agent yg flush kiri tanpa margin. Diganti `width: 100%`
+// TANPA `max-width` cap -- kartu sekarang mengisi persis lebar konten
+// `.zammad-chat-body` (dibatasi `padding:20px` induknya, baris ~601),
+// KEDUA tepinya sejajar dgn tepi bubble agent (kiri) MAUPUN customer
+// (kanan) sekaligus, krn keduanya sama-sama dibatasi padding induk yg
+// sama.
+.zammad-chat-feedback-inline {
+  box-sizing: border-box;
+  width: 100%;
+  background: white;
+  border-radius: $siska-radius-sm;
+  padding: 20px 18px;
+}
+
+// Atas permintaan user: layar "Terima kasih" SETELAH submit tetap
+// fullpage (BUKAN inline spt kartu rating-nya) -- gaya scrim SAMA
+// persis dgn `.zammad-chat-connection-overlay` (semi-transparan +
+// blur, jendela chat kelihatan samar di belakang), tapi container
+// TERPISAH (semantik beda: status koneksi vs konfirmasi feedback,
+// sengaja tidak dicampur jadi 1 elemen/state machine yg sama).
+.zammad-chat-feedback-thanks-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  z-index: 10;
+
+  &.zammad-chat-is-hidden {
+    display: none;
+  }
+}
+
 // -- Enhancement 2 -- Rating Kepuasan (Feedback) (views/feedback.eco) --
 .zammad-chat-feedback {
   display: flex;
@@ -2183,15 +2807,24 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   height: 100%;
 }
 
+// Atas permintaan user (audit Kategori 6): 17px menyimpang dari
+// mockup `Feedback.dc.html` sendiri (SELALU 16px, "How was your
+// conversation..."). BEDA dari `.zammad-chat-feedback-thanks-title`
+// (17px, TERKONFIRMASI cocok mockup `FeedbackThanks.dc.html`
+// sendiri, TIDAK diubah) -- 2 layar berbeda, kebetulan mirip nama,
+// TERNYATA memang dirancang beda tingkat 1px, bukan salah satunya.
 .zammad-chat-feedback-title {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   color: $siska-text;
   margin-top: 8px;
 }
 
+// Atas permintaan user (audit Kategori 6): 13px menyimpang dari
+// mockup `Feedback.dc.html` sendiri (SELALU 12.5px, "Your feedback
+// helps us improve our support.").
 .zammad-chat-feedback-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   color: $siska-text-muted;
   margin-top: 6px;
 }
@@ -2202,37 +2835,62 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
   margin-top: 22px;
 }
 
-// Ikon outline (bukan `svg { fill: currentColor }` generik yang ada
-// jauh di bawah file ini) -- lihat catatan panjang di dekat baris 852
-// soal kenapa aturan itu HARUS dikalahkan secara eksplisit per ikon
-// baru, bukan cuma diandalkan/dihapus.
+// Bug drift ditemukan (audit "apakah icon bintang sudah pakai rating
+// Able Pro?"): SEBELUMNYA pakai 1 path dari sprite kustom Able Pro
+// (`custom-star-outline`, bentuk bulat/scalloped) yg di-toggle fill
+// polos -- TERNYATA komponen `<v-rating>` Able Pro SENDIRI (dicek
+// LANGSUNG ke `UiRatings.vue`, TIDAK ADA override `full-icon`/`empty-
+// icon`) genuinely merender ikon BAWAAN Vuetify `mdi-star-outline`/
+// `mdi-star` (bintang 5-titik klasik, path BEDA TOTAL, BUKAN cuma
+// versi outline dari path yg sama). Dikonfirmasi ke user (perbedaan
+// bentuk visual signifikan) sebelum diganti. Warna bintang KOSONG
+// jg drift: SEBELUMNYA `$siska-border` (#e8ebee, token divider umum)
+// -- Able Pro pakai token `inputBorder` scr eksplisit utk ini, diganti
+// `$siska-input-border` (#bec8d0). Warna AKTIF (`$siska-warning`)
+// SUDAH benar sejak awal, cocok persis `active-color="warning"`.
+// Teknik render: KEDUA path mdi (outline MAUPUN filled) SAMA2 fill-
+// based (BUKAN stroke, beda dari ikon custom kustom lain di widget ini
+// yg kebanyakan stroke) -- dipelajari dari insiden ikon centang-ganda
+// (entri 191): path BEDA (bukan cuma fill/stroke dari path yg SAMA)
+// WAJIB direnderkan sbg 2 elemen SVG terpisah yg di-toggle
+// tampil/sembunyi (bukan di-paksa-fill dari 1 path yg sama -- itu yg
+// bikin ikon centang-ganda dulu terdistorsi).
 .zammad-chat-feedback-star {
   padding: 2px;
   border: none;
   background: none;
   cursor: pointer;
-  color: $siska-border;
+  color: $siska-input-border;
 
   svg {
-    fill: none;
-    stroke: currentColor;
+    display: block;
+    fill: currentColor;
+  }
+
+  .zammad-chat-feedback-star-filled {
+    display: none;
   }
 
   &.is-active {
     color: $siska-warning;
 
-    svg {
-      fill: currentColor;
+    .zammad-chat-feedback-star-empty {
+      display: none;
+    }
+
+    .zammad-chat-feedback-star-filled {
+      display: block;
     }
   }
 }
 
 .zammad-chat-feedback-textarea {
+  box-sizing: border-box;
   width: 100%;
   min-height: 80px;
   resize: none;
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-lg;
+  border: 1px solid $siska-input-border;
+  border-radius: $siska-radius-sm;
   padding: 12px 14px;
   font-family: inherit;
   font-size: 13.5px;
@@ -2348,7 +3006,7 @@ $siska-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 
 .zammad-chat-feedback-thanks-title {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 500;
   color: $siska-text;
 }
 

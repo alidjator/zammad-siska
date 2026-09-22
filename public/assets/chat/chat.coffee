@@ -9,6 +9,34 @@ do($ = window.jQuery, window) ->
     scriptHost = myScript.src.match('.*://([^:/]*).*')[1]
     scriptProtocol = myScript.src.match('(.*)://[^:/]*.*')[1]
 
+  # Atas permintaan user (screenshot HP: widget tampil kecil/ter-zoom,
+  # BUKAN fullscreen mobile spt seharusnya) -- root cause SEBENARNYA
+  # BUKAN CSS widget (media query `max-width:768px` SUDAH benar) --
+  # halaman HOST (situs customer PIHAK LAIN, widget di-embed lintas-
+  # domain) yang TIDAK PUNYA `<meta name="viewport">` SAMA SEKALI.
+  # TANPA itu, browser mobile merender halaman di lebar virtual ~980px
+  # (emulasi desktop) lalu zoom-out biar muat ke layar fisik -- BUKAN
+  # cuma CSS widget yang tidak aktif, `@isFullscreen` (JS, constructor
+  # `ZammadChat` di bawah, pakai `matchMedia`) JUGA ikut salah baca
+  # krn dasar masalahnya sama: viewport halaman ITU SENDIRI.
+  # Disisipkan SEKALI, PALING AWAL (module-level, sebelum class apa pun
+  # didefinisikan) -- jalan begitu file skrip ini dieksekusi browser,
+  # SEBELUM `new ZammadChat(...)` sungguhan dipanggil, supaya
+  # `@isFullscreen` (dihitung di constructor) SUDAH benar sejak awal.
+  # HANYA kalau BELUM ADA sama sekali (`document.querySelector`, dicek
+  # dulu) -- JANGAN timpa/duplikasi kalau halaman host SUDAH py
+  # viewport meta sendiri, itu genuinely lebih tahu kebutuhan mereka
+  # drpd widget ini.
+  ensureViewportMeta = ->
+    return if document.querySelector('meta[name="viewport"]')
+    return if !document.head
+    meta = document.createElement('meta')
+    meta.setAttribute('name', 'viewport')
+    meta.setAttribute('content', 'width=device-width, initial-scale=1')
+    document.head.appendChild(meta)
+
+  ensureViewportMeta()
+
   # Define the plugin class
   class Base
     defaults:
@@ -83,6 +111,22 @@ do($ = window.jQuery, window) ->
 
   class Io extends Base
     logPrefix: 'io'
+    reconnectAttempts: 0
+    # Atas permintaan user ("mau" -- auto-reconnect websocket kalau
+    # websocket close): SEBELUM ini, koneksi putus TIDAK TERDUGA
+    # (jaringan drop, server restart, dll -- BEDA dari `close()`
+    # deliberate spt minimize) LANGSUNG memanggil `onError` pada
+    # kegagalan PERTAMA, yg ujungnya `@destroy()` widget TOTAL (lihat
+    # `ZammadChat#onError`) -- visitor WAJIB reload halaman. Backoff
+    # eksponensial di bawah (1s,2s,4s,8s,16s,30s -- dibulatkan maks
+    # 30 detik/percobaan, TOTAL ~61 detik) dicoba DULU sebelum akhirnya
+    # menyerah ke perilaku lama itu -- angka dipilih supaya visitor
+    # TIDAK menunggu tanpa batas, tapi jg tidak membombardir server
+    # tiap detik kalau server genuinely down (mis. restart deploy).
+    maxReconnectAttempts: 6
+    reconnectBaseDelay: 1000
+    reconnectMaxDelay: 30000
+
     constructor: (options) ->
       super(options)
 
@@ -95,6 +139,15 @@ do($ = window.jQuery, window) ->
       @ws = new window.WebSocket("#{@options.host}")
       @ws.onopen = (e) =>
         @log.debug 'onOpen', e
+        # Begitu koneksi BENAR2 berhasil lagi, reset penghitung &
+        # kabari lapisan atas (`ZammadChat`) supaya UI bisa munculkan
+        # "Connection re-established" -- HANYA kalau sebelumnya memang
+        # sedang retry (bukan koneksi pertama kali/manual reconnect
+        # biasa).
+        if @reconnectAttempts > 0
+          @log.debug "reconnected after #{@reconnectAttempts} attempt(s)"
+          @reconnectAttempts = 0
+          @options.onReconnected?()
         @options.onOpen(e)
         @ping()
 
@@ -117,19 +170,64 @@ do($ = window.jQuery, window) ->
           if @options.onClose
             @options.onClose(e)
         else
-          @log.debug 'error close, onError callback'
-          if @options.onError
-            @options.onError('Connection lost...')
+          @attemptReconnect()
 
       @ws.onerror = (e) =>
+        # TIDAK langsung panggil `onError` di sini lagi (dulu bikin
+        # `onError` terpanggil 2x utk 1 kegagalan -- `close` SELALU
+        # menyusul `error` pada WebSocket native, per spec) -- retry
+        # SEPENUHNYA ditangani terpusat di `onclose`
+        # (`attemptReconnect`), di sini cukup dicatat log.
         @log.debug 'onError', e
-        if @options.onError
-          @options.onError(e)
+
+    # Dicoba SEBELUM menyerah ke `onError` (perilaku lama -- widget
+    # dihancurkan total). Kalau berhasil, `onopen` di atas otomatis
+    # membereskan sisanya lewat `ZammadChat#render()` -- method itu
+    # SUDAH PUNYA logic ambil-ulang `sessionId` dari `sessionStorage` +
+    # minta status terbaru ke server via `chat_status_customer`,
+    # mekanisme YANG SAMA PERSIS dipakai jalur minimize->buka-lagi &
+    # hard-refresh -- TIDAK PERLU logic pemulihan sesi baru di sini.
+    attemptReconnect: =>
+      if @reconnectAttempts >= @maxReconnectAttempts
+        @log.debug "gave up after #{@reconnectAttempts} reconnect attempts"
+        @reconnectAttempts = 0
+        @options.onReconnectFailed?()
+        return
+
+      @reconnectAttempts += 1
+      delay = Math.min(@reconnectBaseDelay * Math.pow(2, @reconnectAttempts - 1), @reconnectMaxDelay)
+      @log.debug "reconnect attempt #{@reconnectAttempts}/#{@maxReconnectAttempts} in #{delay}ms"
+      @options.onReconnecting?(@reconnectAttempts, @maxReconnectAttempts)
+      @reconnectTimeoutId = setTimeout(@connect, delay)
 
     close: =>
       @log.debug 'close websocket manually'
       @manualClose = true
-      @ws.close()
+      # Jaga-jaga penutupan manual (mis. visitor minimize widget)
+      # terjadi PERSIS di tengah jeda backoff yg sedang menunggu --
+      # percobaan yg TERTUNDA itu WAJIB dibatalkan, kalau tidak
+      # `connect()` akan tetap terpanggil belakangan (koneksi BARU
+      # nyelonong padahal visitor sudah minta tutup).
+      if @reconnectTimeoutId
+        clearTimeout(@reconnectTimeoutId)
+        @reconnectTimeoutId = undefined
+      @reconnectAttempts = 0
+      # Bug TEPI ditemukan lewat uji unit sendiri (bukan laporan user)
+      # -- kalau `close()` manual dipanggil PERSIS di jendela ini
+      # (socket LAMA sudah genuinely closed duluan, itu SEBABNYA sedang
+      # menunggu retry), `WebSocket#close()` NATIVE adalah no-op utk
+      # socket yg statusnya SUDAH `CLOSED`/`CLOSING` (tidak memicu
+      # event `close` lagi, per spesifikasi) -- `onClose` TIDAK PERNAH
+      # terpanggil tanpa cabang ini, padahal pemanggil (mis.
+      # `onCloseAnimationEnd`) mengandalkannya utk membereskan UI
+      # launcher. Kalau memang tidak ada socket HIDUP utk ditutup,
+      # panggil `onClose` LANGSUNG di sini -- efeknya SAMA PERSIS spt
+      # kalau event `close` sungguhan sempat terpicu.
+      if @ws and @ws.readyState isnt window.WebSocket.CLOSED and @ws.readyState isnt window.WebSocket.CLOSING
+        @ws.close()
+      else
+        @manualClose = false
+        @options.onClose?()
 
     reconnect: =>
       @log.debug 'reconnect'
@@ -138,6 +236,12 @@ do($ = window.jQuery, window) ->
 
     send: (event, data = {}) =>
       @log.debug 'send', event, data
+      # Jaga2 (auto-reconnect): kalau method ini sempat terpanggil
+      # SELAGI koneksi belum/tidak lagi terbuka (mis. race condition
+      # tipis di tengah jeda retry) -- `WebSocket#send` NATIVE akan
+      # throw exception kalau dipaksa dipanggil di state ini, no-op
+      # diam2 di sini jauh lebih aman drpd JS error tak tertangani.
+      return if !@ws or @ws.readyState isnt window.WebSocket.OPEN
       msg = JSON.stringify
         event: event
         data: data
@@ -741,6 +845,18 @@ do($ = window.jQuery, window) ->
         onClose: @onWebSocketClose
         onMessage: @onWebSocketMessage
         onError: @onError
+        # Atas permintaan user ("mau" -- auto-reconnect websocket) --
+        # lihat `Io#attemptReconnect()` utk mekanisme retry-nya sendiri;
+        # 2 callback BARU ini KHUSUS urusan UI (pesan status di
+        # transkrip chat + toggle kotak ketik), lihat definisinya
+        # masing-masing di bawah.
+        onReconnecting: @onIoReconnecting
+        onReconnected: @onIoReconnected
+        # Atas permintaan user (mockup fullpage "Connection lost") --
+        # callback KHUSUS utk kegagalan reconnect (bukan `onError`
+        # generik, msh dipakai skenario lain spt chat disabled/antrian
+        # penuh dan TIDAK relevan dgn overlay koneksi ini).
+        onReconnectFailed: @onReconnectFailed
       )
 
       @io.connect()
@@ -786,11 +902,60 @@ do($ = window.jQuery, window) ->
         session_id: @sessionId
         url: window.location.href
 
+    # Atas permintaan user ("dari mulai websocket terhubung sampai page
+    # diload sempurna, diberi loading full page, gunakan loading nya
+    # ablepro") -- `views/preload.eco` SENGAJA "berdiri sendiri", BUKAN
+    # `@view('waiting')()`/spinner yg SUDAH ADA (`.zammad-chat-waiting-
+    # spinner`, dipakai `loader.eco`) -- itu bergantung PENUH ke class
+    # `chat.scss`, TIDAK AKAN tampil benar sebelum CSS itu SENDIRI
+    # selesai dimuat (justru KETIADAAN CSS itu masalah yg mau
+    # diselesaikan). `preload.eco` REUSE visual yg SAMA (lingkaran
+    # track abu + arc biru berputar + ikon logo di tengah, ukuran &
+    # warna identik) tapi SEMUANYA inline (`style="..."` + 1 tag
+    # `<style>` mandiri utk `@keyframes`, BUKAN dari `chat.scss`) --
+    # aman tampil kapan pun, tidak peduli CSS eksternal sudah ada atau
+    # belum.
+    showPreload: ->
+      return if @preloadEl
+      @preloadEl = $(@view('preload')())
+      @options.target.append @preloadEl
+
+    hidePreload: =>
+      return if !@preloadEl
+      @preloadEl.remove()
+      @preloadEl = undefined
+
     renderBase: ->
+      # Atas permintaan user ("dari mulai websocket terhubung sampai
+      # page diload sempurna, diberi loading full page, gunakan
+      # loading nya ablepro") -- ditampilkan di SINI (titik paling
+      # awal `renderBase`, dipanggil dari `render()` = callback WS
+      # `onOpen`, PERSIS titik "websocket terhubung" yg dimaksud user)
+      # -- SEBELUM `@el` dibuat/disembunyikan di bawah, mengisi jendela
+      # waktu yg SAMA yg sebelumnya cuma kosong polos. Dihilangkan lagi
+      # di `onReady()` ("page diload sempurna" = KEDUA syarat terpenuhi,
+      # status WS SUNGGUHAN diterima DAN CSS selesai, bukan cuma WS
+      # terbuka).
+      @showPreload()
+
       @el = $(@view('chat')(
         title: @options.title,
         scrollHint: @options.scrollHint
       ))
+      # Bug ditemukan user (screen recording: HTML mentah tanpa style
+      # SEMPAT tampil sekilas tiap widget dimuat) -- root cause: elemen
+      # ini di-insert SEGERA begitu WebSocket terhubung (`render()`,
+      # dipanggil dari `@io`'s `onOpen`), TIDAK PERNAH menunggu
+      # `chat.css` (dimuat TERPISAH & ASINKRON lewat `loadCss()`,
+      # SATU request ekstra lebih lambat drpd CSS biasa krn dibungkus
+      # `@import` di dalam `data:` URL) selesai dimuat -- race condition
+      # NYATA, WS SERING terhubung lebih dulu, jadi visitor sempat
+      # lihat SEMUA `<div>`/`<button>` polos bertumpuk vertikal (gaya
+      # default browser tanpa CSS sama sekali). Disembunyikan lewat
+      # atribut `style` INLINE (BUKAN class -- justru stylesheet-nya
+      # yang belum tentu ada) supaya berlaku SEKETIKA tanpa bergantung
+      # ke CSS apa pun -- `onCssLoaded` di bawah yang membuka lagi.
+      @el.css('display', 'none') if !@cssLoaded
       @options.target.append @el
 
       # Struktur baru (atas permintaan user): tombol bulat mengambang
@@ -801,6 +966,10 @@ do($ = window.jQuery, window) ->
       # dulu, supaya SEMUA `@el.find(...)` yang sudah ada di file ini
       # tidak perlu disentuh.
       @launcherEl = $(@view('launcher')())
+      # Sama persis alasannya dgn `@el` di atas -- tombol bulat
+      # mengambang ini JUSTRU elemen yg PALING kentara kalau tampil
+      # tanpa style (default browser: kotak polos di sudut layar).
+      @launcherEl.css('display', 'none') if !@cssLoaded
       @options.target.append @launcherEl
       @launcherEl.on 'click', @toggle
 
@@ -812,6 +981,13 @@ do($ = window.jQuery, window) ->
       # panel spt sebelumnya (itu sekarang KHUSUS tugas tombol
       # mengambang/`toggle()`, lihat `close()`).
       @el.find('.js-chat-close').on 'click', @exitChat
+      # Atas permintaan user: tombol minimize BARU di header (KHUSUS
+      # tampil di mobile, lihat CSS `.zammad-chat-header-icon-minimize`)
+      # -- gantikan peran launcher yg disembunyikan saat panel terbuka
+      # di mobile. `close()` (BUKAN `exitChat`) -- cuma menyembunyikan
+      # panel, sesi TETAP jalan, persis perilaku launcher yg
+      # digantikannya.
+      @el.find('.js-chat-minimize').on 'click', @close
       # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
       # (dot online di avatar) -- dirender ULANG setiap
       # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal.
@@ -857,9 +1033,14 @@ do($ = window.jQuery, window) ->
 
       # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi sama
       # persis alasannya dgn blok Enhancement 1 di atas.
-      @el.find('.zammad-chat-modal').on 'click', '.js-feedback-star', @selectFeedbackScore
-      @el.find('.zammad-chat-modal').on 'click', '.js-feedback-submit', @submitFeedback
-      @el.find('.zammad-chat-modal').on 'click', '.js-feedback-skip', @skipFeedback
+      # Delegasi ke `@el` (BUKAN `.zammad-chat-modal` lagi) -- semenjak
+      # feedback bisa dirender INLINE di `.zammad-chat-body`
+      # (`showFeedback(true)`, atas permintaan user "sematkan di
+      # jendela chat"), delegasi ke `.zammad-chat-modal` tidak lagi
+      # menangkap klik di kartu inline. `@el` aman utk kedua mode.
+      @el.on 'click', '.js-feedback-star', @selectFeedbackScore
+      @el.on 'click', '.js-feedback-submit', @submitFeedback
+      @el.on 'click', '.js-feedback-skip', @skipFeedback
 
       # Fase 5 -- Item No. 6 (Attachment). Section 5.2.3.
       @el.find('.js-chat-attach').on 'click', @triggerAttachmentInput
@@ -881,8 +1062,31 @@ do($ = window.jQuery, window) ->
       # (statis) & tombol pintasan tab Home (statis) SAMA-SAMA cukup
       # dikenali lewat atribut `data-tab` (Section 4.1: "reuse switch
       # tab, bukan event baru").
+      #
+      # Atas permintaan user ("loading pada button ... untuk tombol
+      # pada halaman home dan offlineHome") -- KHUSUS tombol Home
+      # (`.zammad-chat-home-actions button`, BUKAN tombol tab bar bawah
+      # yg SAMA-SAMA cocok `[data-tab]`) dapat loading state. `switchTab`
+      # SEPENUHNYA sinkron & TIDAK PERNAH menghancurkan/merender ulang
+      # markup tab Home (cuma toggle class `is-active`, elemen tombol
+      # ini TETAP ADA di DOM meski tersembunyi) -- BEDA dari tombol lain
+      # (entri sebelumnya) yg re-render TOTAL saat pindah layar --
+      # WAJIB dimatikan manual di sini (bukan diandalkan re-render),
+      # kalau tidak status loading akan NYANGKUT begitu user kembali
+      # ke tab Home.
       @el.on 'click', '[data-tab]', (event) =>
-        @switchTab $(event.currentTarget).data('tab')
+        target = $(event.currentTarget)
+        isHomeAction = target.closest('.zammad-chat-home-actions').length > 0
+        @setButtonLoading(target, true) if isHomeAction
+        @switchTab target.data('tab')
+        @setButtonLoading(target, false) if isHomeAction
+
+      # Atas permintaan user (mockup fullpage "Connection lost") --
+      # delegasi krn tombol ini cuma ada di DOM SETELAH
+      # `showConnectionOverlay('lost')` menyuntik markup-nya, bukan
+      # elemen statis sejak render awal.
+      @el.on 'click', '.js-connection-reload', (event) =>
+        window.location.reload()
 
       # Revisi desain (gaya Able Pro) -- ikon smile membuka/menutup
       # panel emoji; klik satu emoji menyisipkannya ke posisi kursor
@@ -893,7 +1097,25 @@ do($ = window.jQuery, window) ->
       @el.find('.js-emoji-picker').on 'click', '.js-emoji-item', (event) =>
         @insertEmoji $(event.currentTarget).data('emoji')
 
-      @el.find('.js-kb-search').on 'input', @onKbSearchInput
+      # Bug ditemukan user (pencarian Help tidak pernah mengirim apa
+      # pun walau sudah menunggu, dikonfirmasi via WebSocket mentah
+      # bahwa backend genuinely benar) -- `updatePhrases()` (dipanggil
+      # SETIAP `chat_status_customer`, TERMASUK yang PERTAMA kali
+      # widget terhubung) mengganti TOTAL innerHTML
+      # `.zammad-chat-tab-body--help` (`@view('help')()`), menghancurkan
+      # elemen `.js-kb-search` ASLI yang listener ini terpasang -- input
+      # BARU hasil render ulang itu TIDAK PERNAH punya listener sama
+      # sekali, jadi mengetik apa pun tidak pernah mengirim WS event.
+      # Diperbaiki jadi DELEGASI ke `@el` (pola yang SAMA dipakai
+      # `[data-tab]` di atas) -- listener nempel ke elemen INDUK yang
+      # stabil, bukan ke elemen input yang bisa hilang-timbul lewat
+      # render ulang manapun.
+      @el.on 'input', '.js-kb-search', @onKbSearchInput
+
+      # `scroll` TIDAK bubbling -- didengarkan lewat FASE CAPTURE di
+      # `@el` (elemen stabil), bukan didelegasikan biasa, supaya tetap
+      # jalan walau `.zammad-chat-kb-results` dibongkar-pasang ulang.
+      @el[0].addEventListener('scroll', @onKbResultsScroll, true)
 
       @input.on(
         keydown: @checkForEnter
@@ -1136,6 +1358,14 @@ do($ = window.jQuery, window) ->
 
       @updateHeader(tabName)
 
+      # Atas permintaan user: tab Help langsung menampilkan artikel
+      # (5 terbaru) begitu dibuka, TANPA perlu mengetik dulu -- cukup
+      # sekali per sesi widget (`@kbLoaded` guard), bukan tiap kali
+      # tab ini dibuka lagi.
+      if tabName is 'help' and !@kbLoaded
+        @kbLoaded = true
+        @loadKnowledgeBase(true)
+
     # Revisi desain (identik referensi Intercom/Claude) -- isi header
     # BERBEDA per tab: Home gelap dengan sapaan besar, Messages/Help
     # putih dengan judul polos di tengah -- KECUALI tab Messages saat
@@ -1156,7 +1386,6 @@ do($ = window.jQuery, window) ->
       # avatar) -- toggle induknya saja sudah cukup, tidak perlu
       # ditoggle terpisah lagi.
       @el.find('.zammad-chat-agent').toggleClass('zammad-chat-is-hidden', !showAgent)
-      @el.find('.js-chat-info').toggleClass('zammad-chat-is-hidden', !showAgent)
       @el.find('.zammad-chat-header-title').toggleClass('zammad-chat-is-hidden', !showTitle)
 
       if showTitle
@@ -1182,28 +1411,74 @@ do($ = window.jQuery, window) ->
     # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
     # pola timer yang sama dipakai `onAgentTypingStart` (@stopTypingId)
     # -- supaya tidak kirim event WebSocket di SETIAP keystroke.
+    #
+    # Follow-up atas permintaan user: tab Help SEKARANG menampilkan
+    # artikel (5 terbaru) BAHKAN TANPA mengetik apa pun (`@kbQuery`
+    # kosong = mode "jelajahi"), mengetik di kolom cuma MEMFILTER
+    # daftar yang sama (`@kbQuery` terisi = mode "cari"), dan halaman
+    # berikutnya dimuat lewat SCROLL ke dasar daftar (bukan tombol/
+    # nomor halaman) -- lihat `loadKnowledgeBase`/`onKbResultsScroll`.
     onKbSearchInput: (event) =>
-      query = $(event.currentTarget).val()?.trim() || ''
+      @kbQuery = $(event.currentTarget).val()?.trim() || ''
 
       if @kbSearchDelayId
         clearTimeout(@kbSearchDelayId)
 
       @kbSearchDelayId = setTimeout((=>
-        @send 'chat_knowledge_base_search',
-          query: query
+        @loadKnowledgeBase(true)
       ), 400)
 
-    onKnowledgeBaseSearchResult: (data) =>
-      results = @el.find('.zammad-chat-kb-results')
-      results.empty()
+    # `reset=true` -- mulai dari awal (ketikan baru/pembukaan tab Help
+    # pertama kali), mengganti TOTAL daftar. `reset=false` -- "load
+    # more" dipicu scroll, MENAMBAHKAN ke daftar yang sudah ada.
+    loadKnowledgeBase: (reset) =>
+      return if @kbLoading
+      return if !reset and !@kbHasMore
 
-      if !data.result || data.result.length is 0
+      @kbOffset = 0 if reset
+      @kbLoading = true
+      @el.find('.zammad-chat-kb-loading').removeClass('zammad-chat-is-hidden')
+
+      @send 'chat_knowledge_base_search',
+        query: @kbQuery || ''
+        offset: @kbOffset || 0
+
+    onKnowledgeBaseSearchResult: (data) =>
+      @kbLoading = false
+      @el.find('.zammad-chat-kb-loading').addClass('zammad-chat-is-hidden')
+
+      # Buang respons BASI -- bisa terjadi kalau user mengetik cepat
+      # lalu balasan query SEBELUMNYA baru sampai belakangan, setelah
+      # `@kbQuery` sendiri sudah berubah lagi.
+      return if (data.query || '') isnt (@kbQuery || '')
+
+      results     = @el.find('.zammad-chat-kb-results')
+      isFirstPage = (data.offset || 0) is 0
+
+      results.empty() if isFirstPage
+
+      @kbHasMore = !!data.has_more
+      @kbOffset  = (data.offset || 0) + (data.result?.length || 0)
+
+      if isFirstPage and (!data.result || data.result.length is 0)
         @el.find('.zammad-chat-kb-empty').removeClass('zammad-chat-is-hidden')
         return
 
       @el.find('.zammad-chat-kb-empty').addClass('zammad-chat-is-hidden')
-      for item in data.result
+      for item in (data.result || [])
         results.append @view('kb_result')(item)
+
+    # Dipicu scroll di dalam `.zammad-chat-kb-results` -- listener
+    # dipasang di FASE CAPTURE pada `@el` (bukan didelegasikan biasa,
+    # krn event `scroll` TIDAK bubbling) supaya TETAP jalan walau
+    # elemen `.zammad-chat-kb-results` sendiri dibongkar-pasang ulang
+    # lewat `updatePhrases()` (pola bug yang SAMA dgn `.js-kb-search`,
+    # dihindari dgn cara yang sama: menempel ke elemen INDUK stabil).
+    onKbResultsScroll: (event) =>
+      return if !event.target.classList?.contains('zammad-chat-kb-results')
+      el = event.target
+      return if el.scrollTop + el.clientHeight < el.scrollHeight - 200
+      @loadKnowledgeBase(false)
 
     stopPropagation: (event) ->
       event.stopPropagation()
@@ -1288,7 +1563,22 @@ do($ = window.jQuery, window) ->
             # setting logo zammad") -- disertakan di SEMUA state
             # respons ini (bukan cuma 'online'), backend sudah
             # menggabungkannya (`chat_status_customer.rb`).
-            @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
+            #
+            # Bug ditemukan user ("logo home dan offlineHome satu
+            # sumber dgn logo aplikasi") -- logo custom di sini TIDAK
+            # PERNAH benar2 tampil krn `updatePhrases()` (dipanggil
+            # SETELAH baris ini, tiap `chat_status_customer` termasuk
+            # reconnect) menggambar ULANG TOTAL tab Home dari template
+            # mentah (`@view('home')()`, ikon default hardcode) --
+            # menghapus `<img>` yg baru saja disisipkan. Pola SAMA
+            # persis dgn bug KB search entri 176 & notice offline
+            # entri 161 (render ulang menghapus perubahan yg baru
+            # ditempel). Diperbaiki: URL disimpan persisten (`@logoUrl`,
+            # pola sama dgn `@phrases`), dipasang ULANG di akhir
+            # `updatePhrases()` (SETELAH render ulang tab Home terjadi
+            # di sana) -- bukan cuma di sini.
+            @logoUrl = pipe.data.logo_url if pipe.data.logo_url
+            @updateHomeLogo(@logoUrl) if @logoUrl
             # Bug ditemukan user ("notice muncul padahal ada agent
             # online") -- SEBELUMNYA `@offlineMode` cuma di-set `true`
             # di dalam `enterOfflineMode()` (case 'offline' di bawah),
@@ -1314,6 +1604,26 @@ do($ = window.jQuery, window) ->
             # membersihkan arah balik ke online).
             @launcherEl?.toggleClass('zammad-chat-launcher--offline', @offlineMode)
             @updatePhrases(pipe.data.phrases) if pipe.data.phrases
+            # Bug ditemukan user (screenshot: loading full-page entri
+            # 193 NYANGKUT SELAMANYA) -- root cause: `hidePreload()`
+            # sebelumnya cuma dipasang di `onReady()`, TAPI `onReady()`
+            # (lihat blok `switch` di bawah) HANYA PERNAH dipanggil utk
+            # state 'online' -- state 'offline' (SEMUA agent tidak
+            # tersedia, kemungkinan besar kondisi lingkungan pengujian
+            # user) TIDAK PERNAH memanggil `onReady()` sama sekali, gap
+            # LAMA yg sudah ada SEBELUM fitur loading ini (sebelumnya
+            # tidak kentara krn `onReady()` cuma mengurus tombol
+            # EKSTERNAL, `@launcherEl` sendiri sudah bisa diklik
+            # independen sejak `renderBase()`). `@statusReceived`
+            # (BARU, SENGAJA terpisah dari `@socketReady` yg tetap
+            # exclusive utk 'online' -- TIDAK diubah, hindari resiko
+            # regresi ke perilaku tombol eksternal yg sudah ada) SEKARANG
+            # ditandai di SINI, SEBELUM `switch`, jadi berlaku utk STATUS
+            # APA PUN (online/offline/dst) -- "page diload sempurna"
+            # SEHARUSNYA berarti "status APA PUN sudah diterima", bukan
+            # sempit "ada agent online".
+            @statusReceived = true
+            @hidePreload() if @cssLoaded
             switch pipe.data.state
               when 'online'
                 # `setSessionId undefined` (BUKAN cuma `@sessionId =
@@ -1365,6 +1675,11 @@ do($ = window.jQuery, window) ->
 
     onReady: ->
       @log.debug 'widget ready for use'
+      # Atas permintaan user (loading full page) -- `onReady` HANYA
+      # jalan setelah KEDUA syarat terpenuhi (status WS diterima DAN
+      # CSS selesai dimuat, lihat pemanggil method ini), titik PALING
+      # tepat utk anggap "page diload sempurna".
+      @hidePreload()
       $(".#{ @options.buttonClass }").on('click', @open).removeClass(@options.inactiveClass)
 
       @options.onReady?()
@@ -1374,6 +1689,10 @@ do($ = window.jQuery, window) ->
 
     onError: (message) =>
       @log.debug message
+      # Jaga-jaga (bukan jalur utama) -- kalau widget GAGAL total
+      # sebelum sempat "ready" (mis. chat dinonaktifkan), placeholder
+      # loading jangan sampai nyangkut selamanya di layar.
+      @hidePreload()
       @addStatus(message)
       $(".#{ @options.buttonClass }").hide()
       if @isOpen
@@ -1385,6 +1704,11 @@ do($ = window.jQuery, window) ->
       @options.onError?(message)
 
     onReopenSession: (data) =>
+      # Bug ditemukan user (loading full page tidak pernah hilang) --
+      # state 'reconnect' (sesi lama ditemukan lagi) jatuh ke sini,
+      # sama seperti 'offline' di `enterOfflineMode()`, TIDAK PERNAH
+      # memanggil `hidePreload()` sebelumnya.
+      @hidePreload()
       @log.debug 'old messages', data.session
       @inactiveTimeout.start()
 
@@ -1392,17 +1716,20 @@ do($ = window.jQuery, window) ->
 
       # rerender chat history
       if data.agent
-        @onConnectionEstablished(data)
+        # `showGreeting: false` -- sesi LAMA digambar ulang (reload
+        # halaman), bukan sesi baru, sapaan otomatis TIDAK diulang.
+        @onConnectionEstablished(data, false)
 
         # Bug ditemukan lewat laporan user (hard refresh Ctrl+Shift+R
-        # -> avatar & jam pesan hilang dari SEMUA riwayat percakapan) --
-        # dua field ini (`avatarInitials`, `time`) ditambahkan ke
-        # `sendMessage`/`receiveMessage` (entri 124-125) TAPI TERLEWAT
-        # di jalur riwayat/reconnect ini -- titik ke-3 yang merender
-        # `message.eco`, tidak ikut ke-update sebelumnya.
+        # -> jam pesan hilang dari SEMUA riwayat percakapan) -- field
+        # `time` ditambahkan ke `sendMessage`/`receiveMessage` (entri
+        # 124-125) TAPI TERLEWAT di jalur riwayat/reconnect ini -- titik
+        # ke-3 yang merender `message.eco`, tidak ikut ke-update
+        # sebelumnya. (`avatarInitials` yg DULU ikut dihitung di sini
+        # SUDAH DIHAPUS -- avatar per-pesan tidak lagi ada di markup,
+        # lihat perbaikan avatar-dihapus/jam-di-dalam-bubble.)
         for message in data.session
           isAgentMessage = !!message.created_by_id
-          avatarInitials = @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
           time = @formatTime(message.created_at)
 
           # Bug KEDUA ditemukan lewat pengujian LANGSUNG (bukan laporan
@@ -1430,9 +1757,9 @@ do($ = window.jQuery, window) ->
               from: if isAgentMessage then 'agent' else 'customer'
               id: message.id
               filename: message.filename
+              metaLabel: @attachmentMeta(message.filename, message.size)
               url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{message.id}"
               unreadClass: ''
-              avatarInitials: avatarInitials
               time: time
               isRead: isRead
             )
@@ -1441,7 +1768,6 @@ do($ = window.jQuery, window) ->
               message: message.content
               id: message.id
               from: if isAgentMessage then 'agent' else 'customer'
-              avatarInitials: avatarInitials
               time: time
               isRead: isRead
               # Bug ke-3 ditemukan lewat laporan user (screenshot:
@@ -1552,7 +1878,6 @@ do($ = window.jQuery, window) ->
         id: @_messageCount++
         unreadClass: ''
         replyTo: replyToSnippet
-        avatarInitials: @initialsOf(@customerName)
         time: @formatTime()
 
       @maybeAddTimestamp()
@@ -1596,10 +1921,33 @@ do($ = window.jQuery, window) ->
         id: data.message.id
         from: 'agent'
         replyTo: data.message.reply_to?.content
-        avatarInitials: @initialsOf(@agent?.name)
         time: @formatTime(data.message.created_at)
 
       @scrollToBottom showHint: true
+
+      # Atas permintaan user ("mau ada sound juga seperti di agent") --
+      # mirror `App.ChatWindow#receiveMessage` (`app/assets/javascripts/
+      # app/controllers/chat.coffee`, sisi agent) yg memutar
+      # `chat_message.mp3` saat pesan customer masuk DAN jendela chat
+      # sedang tidak difokuskan. Kondisi sepadan di sini: tab browser
+      # tidak aktif (`document.hidden`, SAMA persis dgn penanda
+      # "unread" di `renderMessage`) ATAU panel widget sedang minimize
+      # (`!@isOpen`) -- kalau customer genuinely sedang melihat
+      # percakapan, tidak perlu bunyi.
+      @playMessageSound()
+
+    # File suara SAMA PERSIS dgn sisi agent (`public/assets/sounds/
+    # chat_message.mp3`, sudah ada di server, bukan aset baru). URL
+    # dibangun ABSOLUT via `apiBaseUrl()` (BUKAN path relatif) karena
+    # widget di-embed lintas-domain di website customer -- path
+    # relatif akan salah resolve ke domain website customer, bukan
+    # domain Zammad.
+    playMessageSound: =>
+      return if !document.hidden and @isOpen
+      @messageSound ?= new Audio("#{@apiBaseUrl()}/assets/sounds/chat_message.mp3")
+      playPromise = @messageSound.play()
+      playPromise?.catch (e) =>
+        @log.debug 'playMessageSound: diblokir kebijakan autoplay browser', e
 
     renderMessage: (data) =>
       @lastAddedType = "message--#{ data.from }"
@@ -1668,13 +2016,12 @@ do($ = window.jQuery, window) ->
 
     # Bug ditemukan lewat laporan user ("kenapa pada attachment tidak
     # terdapat reply?") -- `attachment_message.eco` TIDAK PERNAH ikut
-    # diberi avatar/ikon-reply/jam saat ketiganya ditambahkan ke
-    # `message.eco` (entri 124-125) -- pesan attachment jadi tampil
-    # "yatim" (mengambang tanpa avatar, tanpa jam, TIDAK BISA dibalas)
-    # dibanding pesan teks biasa. Disamakan strukturnya: `id`
-    # (dibutuhkan `startReply` & `data-message-id`), `avatarInitials`,
-    # `time` (dari `created_at` ASLI server, `data` di sini adalah
-    # `chat_message.attributes` lengkap -- lihat
+    # diberi ikon-reply/jam saat keduanya ditambahkan ke `message.eco`
+    # (entri 124-125) -- pesan attachment jadi tampil "yatim"
+    # (mengambang tanpa jam, TIDAK BISA dibalas) dibanding pesan teks
+    # biasa. Disamakan strukturnya: `id` (dibutuhkan `startReply` &
+    # `data-message-id`), `time` (dari `created_at` ASLI server, `data`
+    # di sini adalah `chat_message.attributes` lengkap -- lihat
     # `chat_attachments_controller.rb`).
     addAttachmentMessage: (data, from) =>
       @maybeAddTimestamp()
@@ -1683,9 +2030,9 @@ do($ = window.jQuery, window) ->
         from: from
         id: data.id
         filename: data.filename
+        metaLabel: @attachmentMeta(data.filename, data.size)
         url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
         unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
-        avatarInitials: @initialsOf(if from is 'agent' then @agent?.name else @customerName)
         time: @formatTime(data.created_at)
       )
       # Reply ke pesan attachment mereferensikan `content` (server
@@ -1749,6 +2096,32 @@ do($ = window.jQuery, window) ->
         email: params.email
       )
       @el.find('.zammad-chat-prechat-form').on 'submit', @submitPrechatForm
+      # Logo custom (lihat catatan panjang di `updateHomeLogo` &
+      # handler `chat_status_customer`) -- `.zammad-chat-prechat-icon`
+      # BARU SAJA digambar ulang dari template mentah di atas, pasang
+      # ULANG di sini, pola SAMA dgn `updatePhrases()`.
+      @updateHomeLogo(@logoUrl) if @logoUrl
+
+    # Atas permintaan user ("Start Chat/Verify/Send Message/Continue/
+    # Submit/Maybe Later -- loading pada button, gunakan loading button
+    # ablepro") -- helper BERSAMA dipakai ke-6 tombol (bukan diulang
+    # per-tombol). Bungkus label ASLI (apa pun isinya, termasuk ikon
+    # svg di dalamnya spt "Start Chat") ke `<span>` SEKALI SAJA
+    # (`wrapInner`, dicek dulu belum pernah dibungkus -- aman dipanggil
+    # berkali-kali), lalu toggle class `is-loading` (CSS yg
+    # menyembunyikan/menampilkan via `opacity`, lihat chat.scss) --
+    # markup ASLI tombol TIDAK PERNAH dihapus/diganti, cuma
+    # disembunyikan, jadi mematikan loading TIDAK PERNAH kehilangan
+    # teks/ikon aslinya.
+    setButtonLoading: (button, loading) =>
+      return if !button? or !button.length
+      if loading
+        if !button.find('.zammad-chat-btn-label').length
+          button.wrapInner('<span class="zammad-chat-btn-label"></span>')
+          button.append('<span class="zammad-chat-btn-loader" aria-hidden="true"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"/></svg></span>')
+        button.addClass('is-loading').prop('disabled', true)
+      else
+        button.removeClass('is-loading').prop('disabled', false)
 
     submitPrechatForm: (event) =>
       event.preventDefault()
@@ -1763,6 +2136,14 @@ do($ = window.jQuery, window) ->
           name:  name
           email: email
         return
+
+      # Tidak perlu dimatikan manual (`setButtonLoading(..., false)`)
+      # di outcome APA PUN -- SEMUA jalur setelah ini (`@showLoader()`
+      # utk online, ATAU respons offline sukses/gagal via
+      # `onOfflineSessionInitResult`) me-render ULANG TOTAL
+      # `.zammad-chat-modal` dgn markup BARU, otomatis membuang tombol
+      # lama beserta status loading-nya.
+      @setButtonLoading(@el.find('.zammad-chat-prechat-submit'), true)
 
       # Dipakai lagi nanti utk avatar inisial di bubble pesan sendiri
       # (views/message.eco) -- tidak pernah disimpan sebelumnya, cuma
@@ -1827,6 +2208,16 @@ do($ = window.jQuery, window) ->
       # di atas, ditentukan LEBIH DULU dari state respons, sebelum
       # `updatePhrases` dipanggil) -- di sini tinggal terapkan +
       # tampilkan.
+      #
+      # Bug ditemukan user (loading full page tidak pernah hilang) --
+      # `hidePreload()` SEBELUMNYA cuma dipanggil dari `onReady()`
+      # (jalur state 'online') dan `onError()`. State 'offline' (agent
+      # tidak ada yang tersedia -- skenario yang SANGAT umum saat
+      # testing) jatuh ke method ini, TIDAK PERNAH memanggil
+      # `hidePreload()`, jadi overlay loading nyangkut selamanya
+      # menutupi widget walau kontennya (Home offline/OTP) sudah siap
+      # di baliknya.
+      @hidePreload()
       @applyOfflineHomeState()
       @show()
 
@@ -1858,10 +2249,13 @@ do($ = window.jQuery, window) ->
 
       @el.find('.zammad-chat-home-offline-notice').removeClass('zammad-chat-is-hidden')
 
+      # Atas permintaan user ("hilangkan icon pada button"): ikon
+      # online/offline DIHAPUS dari markup (`views/home.eco`) --
+      # toggle visibilitasnya di sini (`.zammad-chat-home-action-icon-
+      # default`/`-offline`) DIHAPUS jg, sudah tidak ada elemen yg
+      # dituju. Pergantian LABEL teks TETAP jalan.
       startAction = @el.find('.js-home-start-action')
       startAction.find('.js-home-start-label').text @T(@phrases['chat_phrase_offline_start_button'] || 'Leave us a message')
-      startAction.find('.zammad-chat-home-action-icon-default').addClass('zammad-chat-is-hidden')
-      startAction.find('.zammad-chat-home-action-icon-offline').removeClass('zammad-chat-is-hidden')
 
     onOfflineSessionInitResult: (data) =>
       if data.state isnt 'ok'
@@ -1940,6 +2334,7 @@ do($ = window.jQuery, window) ->
         @showOtpError @T(@phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.')
         return
 
+      @setButtonLoading(@el.find('.js-otp-submit'), true)
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
 
     # Bug ditemukan lewat laporan user (perbandingan ke mockup
@@ -1960,6 +2355,9 @@ do($ = window.jQuery, window) ->
         @showOfflineCompose()
         return
 
+      # Kegagalan di sini TIDAK me-render ulang modal (beda dari
+      # sukses) -- tombol lama TETAP ada, WAJIB dimatikan manual.
+      @setButtonLoading(@el.find('.js-otp-submit'), false)
       @showOtpError data.message
       # Kosongkan & fokus ulang ke kotak pertama supaya gampang coba
       # lagi -- BERLAKU juga utk state 'too_many_attempts' (kotak
@@ -1986,16 +2384,27 @@ do($ = window.jQuery, window) ->
     showOfflineCompose: =>
       @el.find('.zammad-chat-modal').html @view('offline_compose')(email: @customerEmail)
 
+    # Atas permintaan user ("subject ini mandatory harus diisi") --
+    # divalidasi DULUAN (sebelum isi pesan, mengikuti urutan field
+    # atas-ke-bawah di form) -- backend (`chat_offline_message_send.rb`)
+    # mengulang validasi yg SAMA, tidak cukup dipercaya dari sini saja
+    # (WS bisa dipanggil langsung lewat console, lihat pola yg sama
+    # dipakai validasi OTP).
     submitOfflineMessage: (event) =>
       event?.preventDefault()
+      subject = @el.find('.js-offline-subject').val()?.trim()
+      if !subject
+        @el.find('.js-offline-compose-error').text(@T(@phrases['chat_phrase_offline_compose_subject_empty_error'] || 'Please enter a subject.')).removeClass('zammad-chat-is-hidden')
+        return
+
       content = @el.find('.js-offline-message').val()?.trim()
       if !content
         @el.find('.js-offline-compose-error').text(@T(@phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.')).removeClass('zammad-chat-is-hidden')
         return
 
       @el.find('.js-offline-compose-error').addClass('zammad-chat-is-hidden')
-      @el.find('.js-offline-compose-submit').prop('disabled', true)
-      @send('chat_offline_message_send', session_id: @sessionId, content: content)
+      @setButtonLoading(@el.find('.js-offline-compose-submit'), true)
+      @send('chat_offline_message_send', session_id: @sessionId, subject: subject, content: content)
 
     # Item lampiran OfflineCompose (follow-up terpisah dari
     # Enhancement 4 awal) -- reuse ENDPOINT REST yang sama dgn
@@ -2043,7 +2452,7 @@ do($ = window.jQuery, window) ->
       @el.find('.js-offline-compose-attachment-input').val('')
 
     onOfflineMessageSendResult: (data) =>
-      @el.find('.js-offline-compose-submit').prop('disabled', false)
+      @setButtonLoading(@el.find('.js-offline-compose-submit'), false)
 
       if data.state isnt 'ok'
         @el.find('.js-offline-compose-error').text(data.message).removeClass('zammad-chat-is-hidden')
@@ -2067,6 +2476,7 @@ do($ = window.jQuery, window) ->
     # skip) utk benar-benar kembali ke Home.
     finishOfflineFlow: (event) =>
       event?.preventDefault()
+      @setButtonLoading(@el.find('.js-offline-sent-done'), true)
       @showFeedback()
 
     # Enhancement 2 -- Rating Kepuasan (Feedback), direlasikan dgn
@@ -2077,9 +2487,28 @@ do($ = window.jQuery, window) ->
     # `onOfflineMessageSendResult()` SEBELUM `@sessionId` di-undefined-
     # kan) yang jadi acuan sesi/tiket mana yg dikasih rating -- BUKAN
     # `@sessionId` yg sudah kosong di titik ini.
-    showFeedback: =>
+    # Atas permintaan user (mockup "SISKA Widget Mockup" board
+    # FeedbackInline): saat AGENT yg menutup sesi (`onSessionClosed`),
+    # feedback SEKARANG jadi kartu DI DALAM `.zammad-chat-body`
+    # (`inline = true`) -- riwayat percakapan TETAP terlihat penuh di
+    # atasnya, bukan lagi menutupi seluruh jendela lewat
+    # `.zammad-chat-modal`. `exitChat` (customer sendiri klik X) &
+    # `finishOfflineFlow` (alur pesan offline) SENGAJA TIDAK diubah
+    # (`inline` default `false`, tetap modal spt sebelumnya) -- di luar
+    # scope permintaan ini, dan utk alur offline `.zammad-chat-body`
+    # genuinely kosong (tidak ada histori realtime utk ditampilkan di
+    # belakangnya).
+    showFeedback: (inline = false) =>
       @feedbackScore = undefined
-      @el.find('.zammad-chat-modal').html @view('feedback')()
+      @feedbackInline = inline
+      markup = @view('feedback')()
+      if inline
+        @hideModal()
+        @maybeAddTimestamp()
+        @el.find('.zammad-chat-body').append "<div class=\"zammad-chat-feedback-inline js-feedback-inline\">#{markup}</div>"
+        @scrollToBottom()
+      else
+        @el.find('.zammad-chat-modal').html markup
       # Konsisten dgn Enhancement 1 (header generik "Messages" selama
       # Otp/Compose/Sent) -- tanpa ini, header akan nyangkut nama agent
       # LAMA (chat sudah berakhir) selama layar Feedback tampil, krn
@@ -2103,7 +2532,7 @@ do($ = window.jQuery, window) ->
         return
 
       @el.find('.js-feedback-error').addClass('zammad-chat-is-hidden')
-      @el.find('.js-feedback-submit').prop('disabled', true)
+      @setButtonLoading(@el.find('.js-feedback-submit'), true)
 
       comment = @el.find('.js-feedback-comment').val()?.trim()
       @send 'chat_session_feedback_submit',
@@ -2112,7 +2541,7 @@ do($ = window.jQuery, window) ->
         comment: comment
 
     onFeedbackSubmitResult: (data) =>
-      @el.find('.js-feedback-submit').prop('disabled', false)
+      @setButtonLoading(@el.find('.js-feedback-submit'), false)
 
       if data.state isnt 'ok'
         @el.find('.js-feedback-error').text(data.message || @T(@phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.')).removeClass('zammad-chat-is-hidden')
@@ -2122,11 +2551,29 @@ do($ = window.jQuery, window) ->
 
     skipFeedback: (event) =>
       event?.preventDefault()
+      @setButtonLoading(@el.find('.js-feedback-skip'), true)
       @goToStartChat()
 
+    # Atas permintaan user: rating-nya sendiri inline (`showFeedback`
+    # di atas), TAPI layar "Terima kasih" SETELAH submit tetap fullpage
+    # -- overlay TERPISAH (`.js-feedback-thanks-overlay`, lihat
+    # `chat.eco`/`chat.scss`) dari overlay status koneksi, gaya scrim
+    # sama (semi-transparan, jendela chat kelihatan samar di belakang).
     showFeedbackThanks: =>
-      @el.find('.zammad-chat-modal').html @view('feedback_thanks')()
-      setTimeout @goToStartChat, 2000
+      markup = @view('feedback_thanks')()
+      if @feedbackInline
+        overlay = @el.find('.js-feedback-thanks-overlay')
+        if overlay.length
+          overlay.html(markup).removeClass('zammad-chat-is-hidden')
+      else
+        @el.find('.zammad-chat-modal').html markup
+      setTimeout (=> @hideFeedbackThanksOverlay(); @goToStartChat()), 2000
+
+    hideFeedbackThanksOverlay: =>
+      overlay = @el.find('.js-feedback-thanks-overlay')
+      return if !overlay.length
+      overlay.addClass('zammad-chat-is-hidden')
+      overlay.html ''
 
     onOpenAnimationEnd: =>
       @idleTimeout.stop()
@@ -2275,8 +2722,24 @@ do($ = window.jQuery, window) ->
     # balik. Jadi transisi loading -> kembali ke halaman mulai chat ini
     # MURNI ditangani lokal/optimis di sini (timer tetap, TIDAK
     # menunggu balasan server sama sekali).
+    # Atas permintaan user ("tombol close/disconnect chat hanya untuk
+    # online chat, tidak berlaku untuk offline message, pada offline
+    # message terapkan seperti tombol close pada halaman lainnya") --
+    # `@activeTab` SAJA TIDAK CUKUP utk membedakannya: SELURUH alur
+    # offline (OfflineOtp/OfflineCompose/OfflineSent) dirender di
+    # DALAM `.zammad-chat-modal` yang sama, yang notabene anak dari
+    # tab Messages (`@activeTab` TETAP `'messages'` sepanjang alur
+    # ini) -- tanpa perbaikan ini, klik X saat OfflineOtp/Compose akan
+    # SALAH masuk ke cabang "akhiri sesi chat" (`sessionClose()` +
+    # layar EndingChat + Feedback) padahal TIDAK ADA chat/agent sama
+    # sekali di sana, cuma sesi `offline_pending` yang belum berujung
+    # tiket. `@offlineMode` (SUDAH ADA, ditandai SEJAK `chat_status_
+    # customer` state 'offline' -- SATU-SATUNYA alasan alur offline
+    # ini bisa dimulai) dipakai sbg penanda tambahan -- perilaku
+    # persis SAMA dgn tombol X di tab LAIN (`close()`, cuma
+    # menyembunyikan panel, TIDAK menyentuh sesi apa pun).
     exitChat: (event) =>
-      if @activeTab isnt 'messages'
+      if @activeTab isnt 'messages' or @offlineMode
         @close(event)
         return
 
@@ -2347,6 +2810,21 @@ do($ = window.jQuery, window) ->
       @input.prop('contenteditable', false)
       @el.find('.zammad-chat-send').prop('disabled', true)
       @io.close()
+
+    # Bug ditemukan user (submit feedback tidak berfungsi setelah agent
+    # menutup sesi) -- root cause: `onSessionClosed` sebelumnya
+    # memanggil `disableInput()` PENUH, efek samping `@io.close()` ikut
+    # menutup WebSocket -- koneksi ini SEHARUSNYA tetap hidup lintas
+    # sesi (dipakai jg utk Home/Help/mulai chat baru), BUKAN scoped ke
+    # 1 sesi chat. Akibatnya `chat_session_feedback_submit` via
+    # `@send()` selalu no-op diam-diam (`Io#send` cuma kirim kalau
+    # `readyState` masih `OPEN`). Method ini cuma menonaktifkan kotak
+    # ketik SECARA VISUAL (memang harus mati -- sesi sudah berakhir,
+    # tidak ada lagi yg menerima pesan baru), TANPA menyentuh `@io`.
+    disableComposeInput: ->
+      @inputDisabled = true
+      @input?.prop('contenteditable', false)
+      @el.find('.zammad-chat-send').prop('disabled', true)
 
     enableInput: ->
       @inputDisabled = false
@@ -2443,6 +2921,73 @@ do($ = window.jQuery, window) ->
 
       @scrollToBottom()
 
+    # Atas permintaan user (mockup "SISKA Widget Mockup" -- board
+    # IndicatorReconnecting/Restored/Lost) -- indikator fullpage
+    # SEMI-TRANSPARAN utk status koneksi WebSocket widget sendiri
+    # (beda dari status online/offline AGENT). `state` salah satu dari
+    # 'reconnecting'/'restored'/'lost'. Judul 'reconnecting'/'restored'
+    # SENGAJA reuse 2 key terjemahan yg SUDAH ADA (25 bahasa, dulu
+    # dipakai `addStatus`) supaya tidak kehilangan cakupan bahasa yg
+    # sudah dibangun -- subtitle & tombol Reload BELUM configurable/
+    # diterjemahkan (follow-up terpisah, pola sama dgn pesan error OTP
+    # backend yg jg msh hardcode). Mirror persis dari
+    # chat-no-jquery.coffee, disesuaikan ke API jQuery.
+    connectionOverlayCopy: (state) =>
+      switch state
+        when 'reconnecting'
+          title: @T('Connection lost')
+          subtitle: "Trying to reconnect — please don't close this window."
+        when 'restored'
+          title: @T('Connection re-established')
+          subtitle: "You're back online."
+        when 'lost'
+          # String literal ini SAMA PERSIS dgn pesan lama yg dikirim
+          # `Io#attemptReconnect()` sebelum refactor ini (jg tidak
+          # pernah diterjemahkan) -- bukan regresi baru.
+          title: 'Connection lost'
+          subtitle: "We couldn't reconnect after several attempts. Please reload the page to continue this conversation."
+
+    showConnectionOverlay: (state) =>
+      return if !@el
+      overlay = @el.find('.js-connection-overlay')
+      return if !overlay.length
+
+      if @connectionOverlayHideTimeoutId
+        clearTimeout(@connectionOverlayHideTimeoutId)
+        @connectionOverlayHideTimeoutId = undefined
+
+      copy = @connectionOverlayCopy(state)
+      overlay.html @view('connection_overlay')
+        state: state
+        title: copy.title
+        subtitle: copy.subtitle
+
+      for otherState in ['reconnecting', 'restored', 'lost']
+        overlay.removeClass("zammad-chat-connection-overlay--#{otherState}")
+      overlay.addClass("zammad-chat-connection-overlay--#{state}")
+      overlay.removeClass('zammad-chat-is-hidden')
+
+      # 'restored' cuma konfirmasi sesaat -- hilang otomatis, jendela
+      # chat (yg sudah genuinely aktif kembali di belakangnya) lalu
+      # kelihatan penuh tanpa scrim.
+      if state is 'restored'
+        @connectionOverlayHideTimeoutId = setTimeout(@hideConnectionOverlay, 1800)
+
+    hideConnectionOverlay: =>
+      return if !@el
+      overlay = @el.find('.js-connection-overlay')
+      return if !overlay.length
+      overlay.addClass('zammad-chat-is-hidden')
+      overlay.html ''
+
+    # Toggle warna tombol launcher (abu-abu netral) selama koneksi
+    # WEBSOCKET WIDGET SENDIRI bermasalah -- class TERPISAH dari
+    # `zammad-chat-launcher--offline` (dipakai utk status AGENT
+    # offline, `@offlineMode`) supaya kedua mekanisme independen tidak
+    # saling menimpa lewat toggle class yg sama.
+    updateLauncherConnectionState: (hasIssue) =>
+      @launcherEl?.toggleClass('zammad-chat-launcher--connection-issue', hasIssue)
+
     detectScrolledtoBottom: =>
       scrollBottom = @el.find('.zammad-chat-body').scrollTop() + @el.find('.zammad-chat-body').outerHeight()
       @scrolledToBottom = Math.abs(scrollBottom - @el.find('.zammad-chat-body').prop('scrollHeight')) <= @scrollSnapTolerance
@@ -2486,24 +3031,75 @@ do($ = window.jQuery, window) ->
       # stop ws connection
       @io.close()
 
-    reconnect: =>
-      # set status to connecting
-      @log.notice 'reconnecting'
-      @disableInput()
-      @lastAddedType = 'status'
+    # Atas permintaan user ("mau" -- auto-reconnect websocket) --
+    # method INI (dan `onIoReconnected` di bawah) MENGGANTIKAN versi
+    # lama (`reconnect()`/`onConnectionReestablished()`) yg TERNYATA
+    # TIDAK PERNAH dipanggil dari mana pun (dicek `grep`, nol call site
+    # -- sisa kode widget Zammad native asli yg tidak pernah tersambung
+    # ke logic sungguhan). SEKARANG disambungkan LANGSUNG ke
+    # `Io#attemptReconnect()` (BARU) via `@io.set(...)` di constructor
+    # -- `attempt`/`maxAttempts` dikirim tiap percobaan, TAPI pesan
+    # status HANYA ditampilkan SEKALI (attempt pertama) -- retry ke-2
+    # dst TIDAK perlu spam transkrip chat dgn pesan yg sama berulang.
+    #
+    # SENGAJA TIDAK pakai `disableInput()` yg SUDAH ADA (method itu
+    # JUGA memanggil `@io.close()` sbg efek samping -- akan meracuni
+    # flag `manualClose` milik `Io` di TENGAH siklus retry yg sedang
+    # berjalan, bikin percobaan berikutnya salah dikira "penutupan
+    # manual" & retry loop berhenti prematur). Toggle DOM langsung di
+    # sini, HANYA kalau input BELUM disabled krn alasan lain (mis. sesi
+    # sudah diakhiri agent via `onSessionClosed`) -- ditandai
+    # `@reconnectDisabledInput` supaya `onIoReconnected` tahu PERSIS
+    # elemen mana yg boleh diaktifkan lagi (jangan sampai tanpa sengaja
+    # mengaktifkan lagi kotak ketik yg MEMANG sudah harus tetap
+    # nonaktif krn alasan lain).
+    onIoReconnecting: (attempt, maxAttempts) =>
+      @log.debug "reconnecting attempt #{attempt}/#{maxAttempts}"
+      return if attempt isnt 1
+      return if !@isOpen
       @setAgentOnlineState 'connecting'
-      @addStatus @T('Connection lost')
+      # Atas permintaan user (mockup "fullpage semi-transparan") --
+      # pengganti pill status inline (`addStatus`) lama -- jendela chat
+      # TETAP dirender di belakang (header/riwayat/compose/tab-bar),
+      # cuma ditutupi scrim tembus pandang + spinner Circular
+      # Indeterminate, bukan diganti/disembunyikan total.
+      @showConnectionOverlay('reconnecting')
+      @updateLauncherConnectionState(true)
+      if !@inputDisabled
+        @reconnectDisabledInput = true
+        @input?.prop('contenteditable', false)
+        @el.find('.zammad-chat-send').prop('disabled', true)
 
-    onConnectionReestablished: =>
-      # set status back to online
-      @lastAddedType = 'status'
+    onIoReconnected: =>
+      @log.debug 'reconnected'
+      return if !@isOpen
       @setAgentOnlineState 'online'
-      @addStatus @T('Connection re-established')
+      @showConnectionOverlay('restored')
+      @updateLauncherConnectionState(false)
       @options.onConnectionReestablished?()
+      if @reconnectDisabledInput
+        @reconnectDisabledInput = false
+        @input?.prop('contenteditable', true)
+        @el.find('.zammad-chat-send').prop('disabled', false)
+
+    # Atas permintaan user (mockup fullpage "Connection lost") --
+    # pengganti alur lama `onError('Connection lost...')` yg diam-diam
+    # menghancurkan widget tanpa pesan apa pun ke user. Panel MINIMIZED
+    # (tidak ada yg bisa dilihat) tetap pakai perilaku lama (bersihkan
+    # total) -- overlay ini cuma relevan kalau panel TERBUKA.
+    onReconnectFailed: =>
+      @log.debug 'gave up reconnecting'
+      if !@isOpen
+        @destroy(remove: true)
+        return
+      @setAgentOnlineState 'offline'
+      @showConnectionOverlay('lost')
+      @updateLauncherConnectionState(true)
+      @disableInput()
 
     onSessionClosed: (data) =>
       @addStatus @T('Chat closed by %s', data.realname)
-      @disableInput()
+      @disableComposeInput()
       @setAgentOnlineState 'offline'
       @inactiveTimeout.stop()
 
@@ -2516,6 +3112,26 @@ do($ = window.jQuery, window) ->
 
       @options.onSessionClosed?(data)
 
+      # Atas permintaan user: layar feedback rating SEKARANG JUGA
+      # muncul kalau AGENT SENDIRI yang menutup sesi (klik tombol
+      # "Disconnect" di sisi agent) -- SEBELUMNYA cuma muncul kalau
+      # customer sendiri yang menutup (`exitChat`). `data.
+      # closed_by_agent` (backend, `chat_session_close.rb`) SENGAJA
+      # HANYA `true` utk klik tombol DELIBERATE tsb -- TIDAK PERNAH utk
+      # penutupan pasif (`Chat.cleanup_close`, scheduler, socket
+      # putus/reload/tab ditutup TANPA klik apa pun) sesuai
+      # permintaan eksplisit user ("bukan karena status socket").
+      # `@sessionId` dicek dulu (jaga-jaga event ini nyasar terpanggil
+      # 2x/sesi sudah bersih) -- pola `@lastSessionId`/`setSessionId
+      # undefined` SAMA PERSIS dgn `sessionClose()` (dipakai jalur
+      # customer-initiated), TANPA `@send 'chat_session_close'` lagi
+      # (agent SUDAH mengirim itu, customer di sini murni PENERIMA).
+      if data.closed_by_agent and @sessionId
+        sessionStorage.removeItem 'unfinished_message'
+        @lastSessionId = @sessionId
+        @setSessionId undefined
+        setTimeout (=> @showFeedback(true)), 2000
+
     # Atas permintaan user (mockup `Messages.dc.html`): penanda
     # "sudah dibaca" ala WhatsApp. Server menandai "read up to now"
     # secara BULK (semua pesan customer yang belum terbaca sekaligus,
@@ -2524,6 +3140,26 @@ do($ = window.jQuery, window) ->
     # SEMUA bubble customer yang MASIH berstatus "sent" (centang 1) di
     # DOM saat ini dan naikkan ke "read" (centang 2, biru) -- tidak
     # perlu mencocokkan id pesan satu-satu.
+    #
+    # Bug ditemukan user (screenshot: ikon centang berubah jadi bentuk
+    # rusak SETELAH pesan ditandai dibaca, TAPI benar lagi begitu
+    # halaman dimuat ulang) -- root cause: method ini py SVG hardcode
+    # SENDIRI (`.html(...)` di bawah), TERLEWAT saat ikon status
+    # diganti dari polyline stroke-based ke path `mdiCheckAll` fill-
+    # based (lihat `views/message.eco`/`attachment_message.eco`). SVG
+    # polyline LAMA yg disuntik di sini (dirancang utk `fill:none;
+    # stroke:currentColor`) ke-timpa CSS BARU (`.zammad-chat-message-
+    # status svg { fill:currentColor; stroke:none }`, atribut presentasi
+    # SVG SELALU kalah dari rule stylesheet) -- 2 polyline TERBUKA
+    # (bukan shape tertutup) yg di-FILL PAKSA otomatis "ditutup" garis
+    # lurus balik ke titik awal, membentuk 2 baji/panah solid yg
+    # terdistorsi, PERSIS gambar yg dilaporkan user.
+    # Diperbaiki: `.html(...)` DIHAPUS TOTAL, bukan disinkronkan ulang
+    # -- bentuk ikon SEKARANG SELALU SAMA (`mdiCheckAll`) utk kedua
+    # status, HANYA warnanya yg beda (lewat class, CSS `.zammad-chat-
+    # message-status--sent`/`--read`) -- tidak ada lagi alasan utk
+    # mengganti isi SVG sama sekali, menghapus SELURUH kelas bug ini
+    # (tidak ada lagi 2 sumber ikon yg bisa tidak sinkron).
     markMessagesRead: =>
       statusEls = @el.find('.zammad-chat-message--customer .zammad-chat-message-status--sent')
       return if !statusEls.length
@@ -2532,7 +3168,6 @@ do($ = window.jQuery, window) ->
         .removeClass('zammad-chat-message-status--sent')
         .addClass('zammad-chat-message-status--read')
         .attr('aria-label', @T('Read'))
-        .html('<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>')
 
     setSessionId: (id) =>
       @sessionId = id
@@ -2541,7 +3176,10 @@ do($ = window.jQuery, window) ->
       else
         sessionStorage.setItem 'sessionId', id
 
-    onConnectionEstablished: (data) =>
+    # Atas permintaan user ("mau ada welcome greeting dari agent saat
+    # terkoneksi") -- param baru `showGreeting` (default true), mirror
+    # persis dari chat-no-jquery.coffee (lihat catatan panjang di sana).
+    onConnectionEstablished: (data, showGreeting = true) =>
       # stop delay of initial queue position
       if @onInitialQueueDelayId
         clearTimeout @onInitialQueueDelayId
@@ -2558,6 +3196,8 @@ do($ = window.jQuery, window) ->
       @el.find('.zammad-chat-agent').html @view('agent')
         agent: @agent
         initials: @initialsOf(@agent?.name)
+
+      @showWelcomeGreeting() if showGreeting
 
       # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
       # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
@@ -2580,6 +3220,17 @@ do($ = window.jQuery, window) ->
       @idleTimeout.stop()
       @inactiveTimeout.start()
       @options.onConnectionEstablished?(data)
+
+    # Mirror persis dari chat-no-jquery.coffee (lihat catatan panjang di
+    # sana) -- sapaan otomatis dari agent, disuntik widget.
+    showWelcomeGreeting: =>
+      greeting = @phrases['chat_phrase_messages_welcome_greeting']
+      return if !greeting
+      @maybeAddTimestamp()
+      @renderMessage
+        message: greeting
+        from: 'agent'
+        time: @formatTime()
 
     showCustomerTimeout: ->
       @el.find('.zammad-chat-modal').html @view('customer_timeout')
@@ -2618,10 +3269,15 @@ do($ = window.jQuery, window) ->
     # dimuat) datang membawa `logo_url`. `background:none` eksplisit --
     # logo asli TIDAK dipaksa masuk kotak lencana biru spt ikon generik
     # bawaan (banyak logo punya latar transparan/warna sendiri).
+    # Atas permintaan user ("tambahkan juga logo pada halaman ini
+    # [Prechat] seperti home dan offline home") -- selector diperluas
+    # ke `.zammad-chat-prechat-icon` (jQuery `.html()`/`.css()` pada
+    # koleksi >1 elemen otomatis meng-clone node yg disisipkan utk tiap
+    # elemen, aman dipakai bersama).
     updateHomeLogo: (url) =>
-      mark = @el.find('.zammad-chat-home-logo-mark')
-      mark.css('background', 'none')
-      mark.html $('<img>').attr(src: url, alt: '').css(width: '100%', height: '100%', 'object-fit': 'contain')
+      marks = @el.find('.zammad-chat-home-logo-mark, .zammad-chat-prechat-icon')
+      marks.css('background', 'none')
+      marks.html $('<img>').attr(src: url, alt: '').css(width: '100%', height: '100%', 'object-fit': 'contain')
 
     # Enhancement 4 -- "buatkan semua frase dalam widget configurable".
     # Pola SAMA dgn `updateHomeLogo` di atas: `chat_status_customer`
@@ -2640,6 +3296,18 @@ do($ = window.jQuery, window) ->
       return if !@el
       @el.find('.zammad-chat-tab-body--home').html @view('home')()
       @el.find('.zammad-chat-tab-body--help').html @view('help')()
+      # `.zammad-chat-tab-body--help` di atas baru diganti TOTAL --
+      # daftar KB yg mungkin sudah tampil (kalau visitor sempat buka
+      # tab Help sebelum reconnect ini terjadi) ikut hilang. Ditandai
+      # BELUM dimuat lagi (`@kbLoaded = false`) supaya `switchTab`
+      # memuat ulang begitu tab ini dibuka lagi -- kalau tab Help
+      # KEBETULAN sedang aktif SAAT INI JUGA, muat ulang LANGSUNG
+      # (tidak nunggu switch tab yg tidak akan pernah terjadi krn
+      # tabnya memang sudah aktif).
+      if @activeTab is 'help'
+        @loadKnowledgeBase(true)
+      else
+        @kbLoaded = false
       # `views/chat.eco` (shell luar, BEDA dari 2 tab body di atas)
       # dirender SEKALI SAJA di awal `render()` dan tidak pernah
       # digambar ulang -- disentuh manual di sini, pola SAMA dgn
@@ -2662,6 +3330,11 @@ do($ = window.jQuery, window) ->
       # supaya efeknya terulang tiap kali reset ini terjadi, tidak
       # cuma sekali.
       @applyOfflineHomeState()
+      # Logo custom (lihat catatan panjang di `chat_status_customer`
+      # handler) HARUS dipasang ULANG di sini, SETELAH `.zammad-chat-
+      # tab-body--home` digambar ulang di atas -- pola SAMA persis
+      # dgn `@applyOfflineHomeState()` di baris sebelum ini.
+      @updateHomeLogo(@logoUrl) if @logoUrl
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- jam kecil di bawah TIAP bubble pesan (dulu HANYA
@@ -2678,6 +3351,31 @@ do($ = window.jQuery, window) ->
     formatTime: (isoString) ->
       date = if isoString then new Date(isoString) else new Date()
       date.toTimeString().substr(0, 5)
+
+    # Atas permintaan user (mockup kartu lampiran gaya WhatsApp:
+    # subjudul "TIPE · UKURAN") -- format byte -> label ringkas.
+    # Ambang 1024 (biner, KB/MB asli) -- pola SAMA yg dipakai OS &
+    # aplikasi file manager pada umumnya, BUKAN 1000 (SI/desimal).
+    formatFileSize: (bytes) ->
+      return '' if !bytes
+      return "#{bytes} B" if bytes < 1024
+      return "#{Math.round(bytes / 1024)} KB" if bytes < 1024 * 1024
+      "#{(bytes / (1024 * 1024)).toFixed(1)} MB"
+
+    # Label tipe file dari EKSTENSI nama file (bukan `Content-Type`
+    # MIME) -- lebih dekat ke apa yg visitor lihat sendiri di nama
+    # filenya (preseden `custom-file-text-fill`, mockup Messages.dc.html).
+    fileExtensionLabel: (filename) ->
+      return '' if !filename
+      parts = filename.split('.')
+      return '' if parts.length < 2
+      parts[parts.length - 1].toUpperCase()
+
+    # Gabungan "TIPE · UKURAN" utk subjudul kartu lampiran -- salah
+    # satu kosong (mis. riwayat lama sebelum `size` ikut disalurkan)
+    # tidak menyisakan separator menggantung.
+    attachmentMeta: (filename, size) ->
+      [@fileExtensionLabel(filename), @formatFileSize(size)].filter((part) -> part).join(' · ')
 
     setAgentOnlineState: (state) =>
       @state = state
@@ -2725,6 +3423,19 @@ do($ = window.jQuery, window) ->
 
     onCssLoaded: =>
       @cssLoaded = true
+      # Buka lagi elemen yg disembunyikan `renderBase` (lihat catatan
+      # panjang di sana) -- KEDUANYA opsional (`?.`) krn urutan
+      # ketibaan bisa terbalik: CSS BISA SAJA selesai duluan SEBELUM
+      # WebSocket terhubung (`renderBase` belum pernah jalan sama
+      # sekali di titik ini) -- `.css('display', '')` melepas override
+      # inline, KEMBALI ke aturan `chat.css` yg SEKARANG sudah aktif
+      # (bukan dipaksa ke `block` sembarangan).
+      @el?.css('display', '')
+      @launcherEl?.css('display', '')
+      # Lihat catatan panjang di `@statusReceived` (handler
+      # `chat_status_customer`) -- kebalikan urutan dari situ: status
+      # BISA SAJA sudah diterima SEBELUM CSS ini selesai dimuat.
+      @hidePreload() if @statusReceived
       if @socketReady
         @onReady()
       @options.onCssLoaded?()

@@ -95,7 +95,15 @@ class Chat::Session < ApplicationModel
   # dimulai.". Default param (`nil`) mereproduksi PERSIS perilaku
   # lama -- pemanggil chat biasa (`chat_session_start.rb`) TIDAK
   # PERLU diubah sama sekali.
-  def create_ticket_for_chat!(article: nil)
+  #
+  # Parameter `title:` DITAMBAHKAN atas permintaan user ("saya mau
+  # menambahkan subject ... yang kemudian dijadikan judul untuk
+  # ticket") -- KHUSUS pesan offline (`chat_offline_message_send.rb`,
+  # satu2nya pemanggil yg mengisi param ini) yg SEKARANG py form
+  # Subject wajib. Default `nil` -> fallback ke judul generik lama
+  # (`"Live Chat - #{name}"`) -- chat BIASA (tanpa form Subject sama
+  # sekali) TIDAK terpengaruh SAMA SEKALI.
+  def create_ticket_for_chat!(article: nil, title: nil)
     return if ticket_id.present?
 
     group_id = chat.preferences[:ticket_group_id] || Setting.get('chat_auto_ticket_group_id')
@@ -123,7 +131,7 @@ class Chat::Session < ApplicationModel
     actor_id = user_id.presence || 1
 
     ticket = Ticket.create!(
-      title:         "Live Chat - #{name.presence || email}",
+      title:         title.presence || "Live Chat - #{name.presence || email}",
       group_id:      group_id,
       customer_id:   customer.id,
       created_by_id: actor_id,
@@ -406,6 +414,16 @@ class Chat::Session < ApplicationModel
     store = Store.list(object: 'Chat::Message', o_id: message.id).first
     if store
       attrs['filename'] = store.filename
+      # Atas permintaan user (mockup kartu lampiran gaya WhatsApp:
+      # nama file + "TIPE · UKURAN") -- `size` SUDAH SELALU tersimpan
+      # di kolom `stores.size` sejak upload PERTAMA kali dibuat (lihat
+      # `chat_attachments_controller.rb#create`, sudah disertakan di
+      # broadcast real-time `chat_session_attachment` SEJAK AWAL) --
+      # cuma belum pernah ikut disalurkan lewat jalur RIWAYAT/bulk ini,
+      # pola gap yg SAMA persis dgn `filename` sebelumnya (lihat
+      # komentar di atas). Tidak perlu backfill data apa pun, murni
+      # menyalurkan kolom yg sudah ada.
+      attrs['size'] = store.size
     end
     attrs
   end

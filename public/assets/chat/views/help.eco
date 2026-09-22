@@ -5,4 +5,12 @@
   </div>
   <ul class="zammad-chat-kb-results"></ul>
   <p class="zammad-chat-kb-empty zammad-chat-is-hidden"><%- @T(@phrases['chat_phrase_help_no_results'] || 'No results found.') %></p>
+  <!-- Atas permintaan user: daftar artikel dimuat lewat scroll
+  (bukan tombol/nomor halaman) -- indikator ini muncul di dasar
+  daftar SELAMA halaman berikutnya sedang diambil. Pola animasi
+  SAMA persis dgn indikator "agent sedang mengetik"
+  (`views/typingIndicator.eco`), dipakai ulang bukan dibuat baru. -->
+  <div class="zammad-chat-kb-loading zammad-chat-is-hidden">
+    <span class="zammad-chat-loading-animation"><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span></span>
+  </div>
 </div>

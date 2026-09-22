@@ -9,6 +9,22 @@ do(window) ->
     scriptHost = myScript.src.match('.*://([^:/]*).*')[1]
     scriptProtocol = myScript.src.match('(.*)://[^:/]*.*')[1]
 
+  # Atas permintaan user -- mirror persis dari chat.coffee: halaman
+  # HOST lintas-domain sering TIDAK PUNYA `<meta name="viewport">`,
+  # bikin browser mobile merender di lebar virtual ~980px lalu
+  # zoom-out (widget tampil kecil, media query & `matchMedia` JS
+  # sama-sama tidak aktif). Disisipkan SEKALI, PALING AWAL, HANYA
+  # kalau belum ada.
+  ensureViewportMeta = ->
+    return if document.querySelector('meta[name="viewport"]')
+    return if !document.head
+    meta = document.createElement('meta')
+    meta.setAttribute('name', 'viewport')
+    meta.setAttribute('content', 'width=device-width, initial-scale=1')
+    document.head.appendChild(meta)
+
+  ensureViewportMeta()
+
   # Define the plugin class
   class Core
     defaults:
@@ -87,6 +103,12 @@ do(window) ->
 
   class Io extends Base
     logPrefix: 'io'
+    reconnectAttempts: 0
+    # Atas permintaan user ("mau" -- auto-reconnect websocket) --
+    # mirror persis dari chat.coffee (lihat komentar detail di sana).
+    maxReconnectAttempts: 6
+    reconnectBaseDelay: 1000
+    reconnectMaxDelay: 30000
 
     set: (params) =>
       for key, value of params
@@ -97,6 +119,10 @@ do(window) ->
       @ws = new window.WebSocket("#{@options.host}")
       @ws.onopen = (e) =>
         @log.debug 'onOpen', e
+        if @reconnectAttempts > 0
+          @log.debug "reconnected after #{@reconnectAttempts} attempt(s)"
+          @reconnectAttempts = 0
+          @options.onReconnected?()
         @options.onOpen(e)
         @ping()
 
@@ -119,19 +145,41 @@ do(window) ->
           if @options.onClose
             @options.onClose(e)
         else
-          @log.debug 'error close, onError callback'
-          if @options.onError
-            @options.onError('Connection lost...')
+          @attemptReconnect()
 
       @ws.onerror = (e) =>
+        # TIDAK langsung panggil `onError` di sini lagi -- lihat
+        # catatan sama di chat.coffee.
         @log.debug 'onError', e
-        if @options.onError
-          @options.onError(e)
+
+    attemptReconnect: =>
+      if @reconnectAttempts >= @maxReconnectAttempts
+        @log.debug "gave up after #{@reconnectAttempts} reconnect attempts"
+        @reconnectAttempts = 0
+        @options.onReconnectFailed?()
+        return
+
+      @reconnectAttempts += 1
+      delay = Math.min(@reconnectBaseDelay * Math.pow(2, @reconnectAttempts - 1), @reconnectMaxDelay)
+      @log.debug "reconnect attempt #{@reconnectAttempts}/#{@maxReconnectAttempts} in #{delay}ms"
+      @options.onReconnecting?(@reconnectAttempts, @maxReconnectAttempts)
+      @reconnectTimeoutId = setTimeout(@connect, delay)
 
     close: =>
       @log.debug 'close websocket manually'
       @manualClose = true
-      @ws.close()
+      if @reconnectTimeoutId
+        clearTimeout(@reconnectTimeoutId)
+        @reconnectTimeoutId = undefined
+      @reconnectAttempts = 0
+      # Bug tepi -- lihat catatan sama di chat.coffee: `WebSocket#close()`
+      # no-op utk socket yg SUDAH `CLOSED`/`CLOSING`, `onClose` tidak
+      # akan pernah terpanggil tanpa cabang ini.
+      if @ws and @ws.readyState isnt window.WebSocket.CLOSED and @ws.readyState isnt window.WebSocket.CLOSING
+        @ws.close()
+      else
+        @manualClose = false
+        @options.onClose?()
 
     reconnect: =>
       @log.debug 'reconnect'
@@ -140,6 +188,7 @@ do(window) ->
 
     send: (event, data = {}) =>
       @log.debug 'send', event, data
+      return if !@ws or @ws.readyState isnt window.WebSocket.OPEN
       msg = JSON.stringify
         event: event
         data: data
@@ -734,6 +783,15 @@ do(window) ->
         onClose: @onWebSocketClose
         onMessage: @onWebSocketMessage
         onError: @onError
+        # Atas permintaan user ("mau" -- auto-reconnect websocket) --
+        # mirror persis dari chat.coffee.
+        onReconnecting: @onIoReconnecting
+        onReconnected: @onIoReconnected
+        # Atas permintaan user (mockup fullpage "Connection lost") --
+        # callback KHUSUS utk kegagalan reconnect (bukan `onError`
+        # generik, yg msh dipakai skenario lain spt chat disabled/
+        # antrian penuh dan TIDAK relevan dgn overlay koneksi ini).
+        onReconnectFailed: @onReconnectFailed
       )
 
       @io.connect()
@@ -780,7 +838,20 @@ do(window) ->
         session_id: @sessionId
         url: window.location.href
 
+    # Atas permintaan user (loading full page) -- mirror persis dari
+    # chat.coffee (lihat komentar detail di sana).
+    showPreload: ->
+      return if @preloadEl
+      @options.target.insertAdjacentHTML('beforeend', @view('preload')())
+      @preloadEl = @options.target.querySelector('.zammad-chat-preload')
+
+    hidePreload: =>
+      return if !@preloadEl
+      @preloadEl.remove()
+      @preloadEl = undefined
+
     renderBase: ->
+      @showPreload()
       @el.remove() if @el
       @launcherEl.remove() if @launcherEl
       @options.target.insertAdjacentHTML('beforeend', @view('chat')(
@@ -788,6 +859,11 @@ do(window) ->
         scrollHint: @options.scrollHint
       ))
       @el = @options.target.querySelector('.zammad-chat')
+      # Bug ditemukan user -- mirror persis dari chat.coffee (lihat
+      # catatan panjang di sana): sembunyikan SEKETIKA lewat `style`
+      # inline sampai `chat.css` selesai dimuat, supaya HTML mentah
+      # tanpa style tidak sempat tampil (race condition WS vs CSS).
+      @el.style.display = 'none' if !@cssLoaded
 
       # Struktur baru (atas permintaan user): tombol bulat mengambang
       # TERPISAH dari panel -- SATU-SATUNYA elemen yang tampil saat
@@ -796,6 +872,7 @@ do(window) ->
       # dulu.
       @options.target.insertAdjacentHTML('beforeend', @view('launcher')())
       @launcherEl = @options.target.querySelector('.zammad-chat-launcher')
+      @launcherEl.style.display = 'none' if !@cssLoaded
       @launcherEl.addEventListener('click', @toggle)
 
       @input = @el.querySelector('.zammad-chat-input')
@@ -806,6 +883,10 @@ do(window) ->
       # header sekarang mengakhiri chat (`exitChat`), bukan lagi
       # menyembunyikan panel.
       @el.querySelector('.js-chat-close').addEventListener('click', @exitChat)
+      # Atas permintaan user -- mirror persis dari chat.coffee: tombol
+      # minimize BARU di header (khusus mobile), gantikan launcher yg
+      # disembunyikan saat panel terbuka di mobile.
+      @el.querySelector('.js-chat-minimize').addEventListener('click', @close)
       # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
       # (dot online di avatar) -- dirender ULANG setiap
       # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal
@@ -891,17 +972,22 @@ do(window) ->
         return if !target
         @uploadOfflineAttachment(event)
 
-      # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi sama
-      # persis alasannya dgn blok Enhancement 1 di atas.
-      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+      # Enhancement 2 -- Rating Kepuasan (Feedback). Delegasi ke `@el`
+      # (BUKAN `.zammad-chat-modal` lagi) -- semenjak feedback bisa
+      # dirender INLINE di `.zammad-chat-body` (`showFeedback(true)`,
+      # atas permintaan user "sematkan di jendela chat"), delegasi ke
+      # `.zammad-chat-modal` tidak lagi menangkap klik di kartu inline.
+      # `@el` aman utk kedua mode (modal maupun inline), pola sama
+      # dgn `[data-tab]`/`.js-connection-reload` di atas.
+      @el.addEventListener 'click', (event) =>
         target = event.target.closest('.js-feedback-star')
         return if !target
         @selectFeedbackScore(event, target.dataset.score)
-      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+      @el.addEventListener 'click', (event) =>
         target = event.target.closest('.js-feedback-submit')
         return if !target
         @submitFeedback(event)
-      @el.querySelector('.zammad-chat-modal').addEventListener 'click', (event) =>
+      @el.addEventListener 'click', (event) =>
         target = event.target.closest('.js-feedback-skip')
         return if !target
         @skipFeedback(event)
@@ -924,10 +1010,26 @@ do(window) ->
       # jQuery) -- tombol tab bar & tombol pintasan tab Home SAMA-SAMA
       # dikenali lewat atribut `data-tab` (Section 4.1: "reuse switch
       # tab, bukan event baru").
+      #
+      # Atas permintaan user -- mirror persis dari chat.coffee: KHUSUS
+      # tombol Home dapat loading state, dimatikan manual segera setelah
+      # `switchTab` (sinkron, TIDAK PERNAH merender ulang markup Home).
       @el.addEventListener 'click', (event) =>
         target = event.target.closest('[data-tab]')
         return if !target
+        isHomeAction = !!target.closest('.zammad-chat-home-actions')
+        @setButtonLoading(target, true) if isHomeAction
         @switchTab target.dataset.tab
+        @setButtonLoading(target, false) if isHomeAction
+
+      # Atas permintaan user (mockup fullpage "Connection lost") --
+      # delegasi (pola sama dgn `[data-tab]` di atas) krn tombol ini
+      # cuma ada di DOM SETELAH `showConnectionOverlay('lost')`
+      # menyuntik markup-nya, bukan elemen statis sejak render awal.
+      @el.addEventListener 'click', (event) =>
+        target = event.target.closest('.js-connection-reload')
+        return if !target
+        window.location.reload()
 
       # Revisi desain (gaya Able Pro) -- ikon smile membuka/menutup
       # panel emoji; klik satu emoji menyisipkannya ke posisi kursor
@@ -938,7 +1040,25 @@ do(window) ->
         return if !item
         @insertEmoji item.dataset.emoji
 
-      @el.querySelector('.js-kb-search').addEventListener('input', @onKbSearchInput)
+      # Bug ditemukan user (pencarian Help tidak pernah mengirim apa
+      # pun) -- `updatePhrases()` mengganti TOTAL innerHTML
+      # `.zammad-chat-tab-body--help` SETIAP `chat_status_customer`
+      # (TERMASUK yang PERTAMA kali widget terhubung), menghancurkan
+      # elemen `.js-kb-search` ASLI yang listener ini terpasang.
+      # Diperbaiki jadi DELEGASI ke `@el` (pola yang SAMA dipakai
+      # `[data-tab]`/`.js-emoji-item` di atas) -- lihat juga
+      # `onKbSearchInput` yang diubah pakai `event.target` bukan
+      # `event.currentTarget` supaya tetap benar saat didelegasikan.
+      @el.addEventListener 'input', (event) =>
+        target = event.target.closest('.js-kb-search')
+        return if !target
+        @onKbSearchInput(event)
+
+      # `scroll` TIDAK bubbling -- didengarkan lewat FASE CAPTURE
+      # (argumen ke-3 `true`) di `@el`, bukan didelegasikan biasa,
+      # supaya tetap jalan walau `.zammad-chat-kb-results` dibongkar-
+      # pasang ulang lewat `updatePhrases()`.
+      @el.addEventListener('scroll', @onKbResultsScroll, true)
 
       window.addEventListener('beforeunload', @onLeaveTemporary)
       window.addEventListener('hashchange', =>
@@ -970,6 +1090,13 @@ do(window) ->
 
       @updateHeader(tabName)
 
+      # Atas permintaan user: tab Help langsung menampilkan artikel
+      # (5 terbaru) begitu dibuka, TANPA perlu mengetik dulu -- cukup
+      # sekali per sesi widget (`@kbLoaded` guard).
+      if tabName is 'help' and !@kbLoaded
+        @kbLoaded = true
+        @loadKnowledgeBase(true)
+
     # Revisi desain (identik referensi Intercom/Claude) -- isi header
     # BERBEDA per tab. Mirror persis dari chat.coffee.
     updateHeader: (tabName) =>
@@ -989,7 +1116,6 @@ do(window) ->
       # terpisah di sini akan balik `null` & CRASH kalau tetap dipanggil
       # (beda dari jQuery yang no-op diam-diam pada seleksi kosong).
       @el.querySelector('.zammad-chat-agent').classList.toggle('zammad-chat-is-hidden', !showAgent)
-      @el.querySelector('.js-chat-info').classList.toggle('zammad-chat-is-hidden', !showAgent)
       @el.querySelector('.zammad-chat-header-title').classList.toggle('zammad-chat-is-hidden', !showTitle)
 
       if showTitle
@@ -1011,30 +1137,78 @@ do(window) ->
 
     # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
     # pola timer yang sama dipakai `onAgentTypingStart` (@stopTypingId).
+    #
+    # Follow-up atas permintaan user: tab Help SEKARANG menampilkan
+    # artikel (5 terbaru) BAHKAN TANPA mengetik apa pun (`@kbQuery`
+    # kosong = mode "jelajahi"), mengetik di kolom cuma MEMFILTER
+    # daftar yang sama (`@kbQuery` terisi = mode "cari"), dan halaman
+    # berikutnya dimuat lewat SCROLL ke dasar daftar (bukan tombol/
+    # nomor halaman) -- lihat `loadKnowledgeBase`/`onKbResultsScroll`.
+    # Mirror persis dari chat.coffee (versi jQuery).
     onKbSearchInput: (event) =>
-      query = event.currentTarget.value?.trim() || ''
+      # `event.target` (BUKAN `event.currentTarget`) -- listener ini
+      # didelegasikan ke `@el`, `currentTarget` akan selalu `@el`
+      # sendiri, bukan input yang sungguhan diketik.
+      @kbQuery = event.target.value?.trim() || ''
 
       if @kbSearchDelayId
         clearTimeout(@kbSearchDelayId)
 
       @kbSearchDelayId = setTimeout((=>
-        @send 'chat_knowledge_base_search',
-          query: query
+        @loadKnowledgeBase(true)
       ), 400)
 
+    # `reset=true` -- mulai dari awal (ketikan baru/pembukaan tab Help
+    # pertama kali), mengganti TOTAL daftar. `reset=false` -- "load
+    # more" dipicu scroll, MENAMBAHKAN ke daftar yang sudah ada.
+    loadKnowledgeBase: (reset) =>
+      return if @kbLoading
+      return if !reset and !@kbHasMore
+
+      @kbOffset = 0 if reset
+      @kbLoading = true
+      @el.querySelector('.zammad-chat-kb-loading')?.classList.remove('zammad-chat-is-hidden')
+
+      @send 'chat_knowledge_base_search',
+        query: @kbQuery || ''
+        offset: @kbOffset || 0
+
     onKnowledgeBaseSearchResult: (data) =>
-      results = @el.querySelector('.zammad-chat-kb-results')
-      results.innerHTML = ''
+      @kbLoading = false
+      @el.querySelector('.zammad-chat-kb-loading')?.classList.add('zammad-chat-is-hidden')
 
+      # Buang respons BASI -- bisa terjadi kalau user mengetik cepat
+      # lalu balasan query SEBELUMNYA baru sampai belakangan, setelah
+      # `@kbQuery` sendiri sudah berubah lagi.
+      return if (data.query || '') isnt (@kbQuery || '')
+
+      results     = @el.querySelector('.zammad-chat-kb-results')
       emptyMessage = @el.querySelector('.zammad-chat-kb-empty')
+      isFirstPage = (data.offset || 0) is 0
 
-      if !data.result || data.result.length is 0
+      results.innerHTML = '' if isFirstPage
+
+      @kbHasMore = !!data.has_more
+      @kbOffset  = (data.offset || 0) + (data.result?.length || 0)
+
+      if isFirstPage and (!data.result || data.result.length is 0)
         emptyMessage?.classList.remove('zammad-chat-is-hidden')
         return
 
       emptyMessage?.classList.add('zammad-chat-is-hidden')
-      for item in data.result
+      for item in (data.result || [])
         results.insertAdjacentHTML('beforeend', @view('kb_result')(item))
+
+    # Dipicu scroll di dalam `.zammad-chat-kb-results` -- listener
+    # dipasang di FASE CAPTURE pada `@el` (bukan didelegasikan biasa,
+    # krn event `scroll` TIDAK bubbling) supaya TETAP jalan walau
+    # elemen `.zammad-chat-kb-results` sendiri dibongkar-pasang ulang
+    # lewat `updatePhrases()`.
+    onKbResultsScroll: (event) =>
+      return if !event.target.classList?.contains('zammad-chat-kb-results')
+      el = event.target
+      return if el.scrollTop + el.clientHeight < el.scrollHeight - 200
+      @loadKnowledgeBase(false)
 
     stopPropagation: (event) ->
       event.stopPropagation()
@@ -1301,7 +1475,14 @@ do(window) ->
           when 'chat_status_customer'
             # Atas permintaan user ("logo pada home mengambil dari
             # setting logo zammad") -- mirror persis dari chat.coffee.
-            @updateHomeLogo(pipe.data.logo_url) if pipe.data.logo_url
+            #
+            # Bug ditemukan user ("logo home dan offlineHome satu
+            # sumber dgn logo aplikasi") -- mirror persis dari
+            # chat.coffee (lihat catatan panjang di sana): `@logoUrl`
+            # disimpan persisten, dipasang ULANG di akhir
+            # `updatePhrases()`.
+            @logoUrl = pipe.data.logo_url if pipe.data.logo_url
+            @updateHomeLogo(@logoUrl) if @logoUrl
             # Bug ditemukan user -- mirror persis dari chat.coffee
             # (lihat catatan panjang di sana).
             @offlineMode = pipe.data.state is 'offline'
@@ -1310,6 +1491,11 @@ do(window) ->
             # panjang di sana).
             @launcherEl?.classList.toggle('zammad-chat-launcher--offline', @offlineMode)
             @updatePhrases(pipe.data.phrases) if pipe.data.phrases
+            # Bug ditemukan user -- mirror persis dari chat.coffee
+            # (lihat catatan panjang di sana): `hidePreload()` HARUS
+            # jalan utk STATUS APA PUN, bukan cuma 'online'.
+            @statusReceived = true
+            @hidePreload() if @cssLoaded
             switch pipe.data.state
               when 'online'
                 @setSessionId undefined
@@ -1336,6 +1522,8 @@ do(window) ->
 
     onReady: ->
       @log.debug 'widget ready for use'
+      # Mirror persis dari chat.coffee.
+      @hidePreload()
       btn = document.querySelector(".#{ @options.buttonClass }")
       if btn
         btn.addEventListener('click', @open)
@@ -1348,6 +1536,8 @@ do(window) ->
 
     onError: (message) =>
       @log.debug message
+      # Mirror persis dari chat.coffee.
+      @hidePreload()
       @addStatus(message)
       btn = document.querySelector(".#{ @options.buttonClass }")
       if btn
@@ -1362,6 +1552,10 @@ do(window) ->
       @options.onError?(message)
 
     onReopenSession: (data) =>
+      # Bug ditemukan user (loading full page tidak pernah hilang) --
+      # mirror persis dari chat.coffee (lihat catatan panjang di
+      # sana).
+      @hidePreload()
       @log.debug 'old messages', data.session
       @inactiveTimeout.start()
 
@@ -1369,14 +1563,17 @@ do(window) ->
 
       # rerender chat history
       if data.agent
-        @onConnectionEstablished(data)
+        # `showGreeting: false` -- ini sesi LAMA digambar ulang (reload
+        # halaman), bukan sesi baru, jadi sapaan otomatis TIDAK diulang
+        # (lihat catatan panjang di `onConnectionEstablished`).
+        @onConnectionEstablished(data, false)
 
-        # Bug ditemukan lewat laporan user (hard refresh -> avatar &
-        # jam pesan hilang dari riwayat) -- mirror persis dari
-        # chat.coffee.
+        # Bug ditemukan lewat laporan user (hard refresh -> jam pesan
+        # hilang dari riwayat) -- mirror persis dari chat.coffee.
+        # (`avatarInitials` DIHAPUS -- avatar per-pesan tidak lagi ada
+        # di markup.)
         for message in data.session
           isAgentMessage = !!message.created_by_id
-          avatarInitials = @initialsOf(if isAgentMessage then data.agent?.name else @customerName)
           time = @formatTime(message.created_at)
 
           # Bug KEDUA ditemukan lewat pengujian langsung -- mirror
@@ -1395,9 +1592,9 @@ do(window) ->
               from: if isAgentMessage then 'agent' else 'customer'
               id: message.id
               filename: message.filename
+              metaLabel: @attachmentMeta(message.filename, message.size)
               url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{message.id}"
               unreadClass: ''
-              avatarInitials: avatarInitials
               time: time
               isRead: isRead
             )
@@ -1406,7 +1603,6 @@ do(window) ->
               message: message.content
               id: message.id
               from: if isAgentMessage then 'agent' else 'customer'
-              avatarInitials: avatarInitials
               time: time
               isRead: isRead
               # Bug ke-3 ditemukan lewat laporan user (kutipan
@@ -1484,7 +1680,6 @@ do(window) ->
         id: @_messageCount++
         unreadClass: ''
         replyTo: replyToSnippet
-        avatarInitials: @initialsOf(@customerName)
         time: @formatTime()
 
       @maybeAddTimestamp()
@@ -1528,10 +1723,33 @@ do(window) ->
         id: data.message.id
         from: 'agent'
         replyTo: data.message.reply_to?.content
-        avatarInitials: @initialsOf(@agent?.name)
         time: @formatTime(data.message.created_at)
 
       @scrollToBottom showHint: true
+
+      # Atas permintaan user ("mau ada sound juga seperti di agent") --
+      # mirror `App.ChatWindow#receiveMessage` (`app/assets/javascripts/
+      # app/controllers/chat.coffee`, sisi agent) yg memutar
+      # `chat_message.mp3` saat pesan customer masuk DAN jendela chat
+      # sedang tidak difokuskan. Kondisi sepadan di sini: tab browser
+      # tidak aktif (`document.hidden`, SAMA persis dgn penanda
+      # "unread" di `renderMessage`) ATAU panel widget sedang minimize
+      # (`!@isOpen`) -- kalau customer genuinely sedang melihat
+      # percakapan, tidak perlu bunyi.
+      @playMessageSound()
+
+    # File suara SAMA PERSIS dgn sisi agent (`public/assets/sounds/
+    # chat_message.mp3`, sudah ada di server, bukan aset baru). URL
+    # dibangun ABSOLUT via `apiBaseUrl()` (BUKAN path relatif) karena
+    # widget di-embed lintas-domain di website customer -- path
+    # relatif akan salah resolve ke domain website customer, bukan
+    # domain Zammad.
+    playMessageSound: =>
+      return if !document.hidden and @isOpen
+      @messageSound ?= new Audio("#{@apiBaseUrl()}/assets/sounds/chat_message.mp3")
+      playPromise = @messageSound.play()
+      playPromise?.catch (e) =>
+        @log.debug 'playMessageSound: diblokir kebijakan autoplay browser', e
 
     renderMessage: (data) =>
       @lastAddedType = "message--#{ data.from }"
@@ -1612,9 +1830,9 @@ do(window) ->
         from: from
         id: data.id
         filename: data.filename
+        metaLabel: @attachmentMeta(data.filename, data.size)
         url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
         unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
-        avatarInitials: @initialsOf(if from is 'agent' then @agent?.name else @customerName)
         time: @formatTime(data.created_at)
       )
       @agentMessagesById[data.id] = data if from is 'agent' and data.id
@@ -1670,6 +1888,31 @@ do(window) ->
         email: params.email
       )
       @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
+      # Logo custom -- mirror persis dari chat.coffee (lihat catatan
+      # panjang di sana).
+      @updateHomeLogo(@logoUrl) if @logoUrl
+
+    # Atas permintaan user -- mirror persis dari chat.coffee (lihat
+    # komentar detail di sana), disesuaikan ke DOM API polos.
+    setButtonLoading: (button, loading) =>
+      return if !button
+      if loading
+        if !button.querySelector('.zammad-chat-btn-label')
+          label = document.createElement('span')
+          label.className = 'zammad-chat-btn-label'
+          while button.firstChild
+            label.appendChild(button.firstChild)
+          button.appendChild(label)
+          loader = document.createElement('span')
+          loader.className = 'zammad-chat-btn-loader'
+          loader.setAttribute('aria-hidden', 'true')
+          loader.innerHTML = '<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"></circle></svg>'
+          button.appendChild(loader)
+        button.classList.add('is-loading')
+        button.disabled = true
+      else
+        button.classList.remove('is-loading')
+        button.disabled = false
 
     submitPrechatForm: (event) =>
       event.preventDefault()
@@ -1697,6 +1940,8 @@ do(window) ->
       # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee
       # (lihat komentar detail di sana).
       @customerEmail = email
+
+      @setButtonLoading(@el.querySelector('.zammad-chat-prechat-submit'), true)
 
       if @offlineMode
         @send('chat_offline_session_init'
@@ -1727,6 +1972,11 @@ do(window) ->
     enterOfflineMode: =>
       # `@offlineMode` sudah di-set di handler `chat_status_customer`
       # di atas -- lihat catatan sama di chat.coffee.
+      #
+      # Bug ditemukan user (loading full page tidak pernah hilang) --
+      # mirror persis dari chat.coffee (lihat catatan panjang di
+      # sana).
+      @hidePreload()
       @applyOfflineHomeState()
       @show()
 
@@ -1755,11 +2005,12 @@ do(window) ->
       notice = @el.querySelector('.zammad-chat-home-offline-notice')
       notice?.classList.remove('zammad-chat-is-hidden')
 
+      # Atas permintaan user ("hilangkan icon pada button") -- mirror
+      # persis dari chat.coffee: ikon dihapus dari markup, toggle
+      # visibilitasnya di sini ikut dihapus.
       startAction = @el.querySelector('.js-home-start-action')
       if startAction
         startAction.querySelector('.js-home-start-label').textContent = @T(@phrases['chat_phrase_offline_start_button'] || 'Leave us a message')
-        startAction.querySelector('.zammad-chat-home-action-icon-default').classList.add('zammad-chat-is-hidden')
-        startAction.querySelector('.zammad-chat-home-action-icon-offline').classList.remove('zammad-chat-is-hidden')
 
     onOfflineSessionInitResult: (data) =>
       if data.state isnt 'ok'
@@ -1821,6 +2072,7 @@ do(window) ->
         @showOtpError @T(@phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.')
         return
 
+      @setButtonLoading(@el.querySelector('.js-otp-submit'), true)
       @send('chat_offline_otp_verify', session_id: @sessionId, code: code)
 
     # Bug ditemukan -- lihat catatan sama di chat.coffee (ikon
@@ -1838,6 +2090,7 @@ do(window) ->
         @showOfflineCompose()
         return
 
+      @setButtonLoading(@el.querySelector('.js-otp-submit'), false)
       @showOtpError data.message
       @el.querySelectorAll('.js-otp-digit').forEach (el) -> el.value = ''
       @el.querySelector('.js-otp-digit')?.focus()
@@ -1858,10 +2111,21 @@ do(window) ->
     showOfflineCompose: =>
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_compose')(email: @customerEmail)
 
+    # Atas permintaan user ("subject ini mandatory harus diisi") --
+    # mirror persis dari chat.coffee: divalidasi DULUAN (sebelum isi
+    # pesan, urutan field atas-ke-bawah), backend mengulang validasi
+    # yg sama.
     submitOfflineMessage: (event) =>
       event?.preventDefault()
+      subject = @el.querySelector('.js-offline-subject')?.value?.trim()
       content = @el.querySelector('.js-offline-message')?.value?.trim()
       errorEl = @el.querySelector('.js-offline-compose-error')
+
+      if !subject
+        if errorEl
+          errorEl.textContent = @T(@phrases['chat_phrase_offline_compose_subject_empty_error'] || 'Please enter a subject.')
+          errorEl.classList.remove('zammad-chat-is-hidden')
+        return
 
       if !content
         if errorEl
@@ -1870,9 +2134,8 @@ do(window) ->
         return
 
       errorEl?.classList.add('zammad-chat-is-hidden')
-      submitBtn = @el.querySelector('.js-offline-compose-submit')
-      submitBtn?.setAttribute('disabled', 'disabled')
-      @send('chat_offline_message_send', session_id: @sessionId, content: content)
+      @setButtonLoading(@el.querySelector('.js-offline-compose-submit'), true)
+      @send('chat_offline_message_send', session_id: @sessionId, subject: subject, content: content)
 
     # Item lampiran OfflineCompose (follow-up terpisah dari
     # Enhancement 4 awal) -- mirror persis dari chat.coffee (lihat
@@ -1919,7 +2182,7 @@ do(window) ->
       event.target.value = ''
 
     onOfflineMessageSendResult: (data) =>
-      @el.querySelector('.js-offline-compose-submit')?.removeAttribute('disabled')
+      @setButtonLoading(@el.querySelector('.js-offline-compose-submit'), false)
 
       if data.state isnt 'ok'
         errorEl = @el.querySelector('.js-offline-compose-error')
@@ -1940,13 +2203,34 @@ do(window) ->
     # sekarang lanjut ke layar Feedback dulu, bukan langsung Home.
     finishOfflineFlow: (event) =>
       event?.preventDefault()
+      @setButtonLoading(@el.querySelector('.js-offline-sent-done'), true)
       @showFeedback()
 
     # Enhancement 2 -- Rating Kepuasan (Feedback) -- mirror persis dari
     # chat.coffee (lihat catatan panjang di sana).
-    showFeedback: =>
+    #
+    # Atas permintaan user (mockup "SISKA Widget Mockup" board
+    # FeedbackInline): saat AGENT yg menutup sesi (`onSessionClosed`),
+    # feedback SEKARANG jadi kartu DI DALAM `.zammad-chat-body`
+    # (`inline = true`) -- riwayat percakapan TETAP terlihat penuh di
+    # atasnya, bukan lagi menutupi seluruh jendela lewat
+    # `.zammad-chat-modal`. Jalur LAIN yg jg memanggil method ini
+    # (`exitChat` -- customer sendiri klik X, `finishOfflineFlow` --
+    # alur pesan offline) SENGAJA TIDAK diubah (`inline` default
+    # `false`, tetap modal spt sebelumnya) -- di luar scope permintaan
+    # ini, dan utk alur offline `.zammad-chat-body` genuinely kosong
+    # (tidak ada histori realtime utk ditampilkan di belakangnya).
+    showFeedback: (inline = false) =>
       @feedbackScore = undefined
-      @el.querySelector('.zammad-chat-modal').innerHTML = @view('feedback')()
+      @feedbackInline = inline
+      markup = @view('feedback')()
+      if inline
+        @hideModal()
+        @maybeAddTimestamp()
+        @body.insertAdjacentHTML 'beforeend', "<div class=\"zammad-chat-feedback-inline js-feedback-inline\">#{markup}</div>"
+        @scrollToBottom()
+      else
+        @el.querySelector('.zammad-chat-modal').innerHTML = markup
       # Lihat catatan sama di chat.coffee.
       @agent = undefined
       @updateHeader()
@@ -1969,8 +2253,7 @@ do(window) ->
         return
 
       errorEl?.classList.add('zammad-chat-is-hidden')
-      submitBtn = @el.querySelector('.js-feedback-submit')
-      submitBtn?.setAttribute('disabled', 'disabled')
+      @setButtonLoading(@el.querySelector('.js-feedback-submit'), true)
 
       comment = @el.querySelector('.js-feedback-comment')?.value?.trim()
       @send 'chat_session_feedback_submit',
@@ -1979,7 +2262,7 @@ do(window) ->
         comment: comment
 
     onFeedbackSubmitResult: (data) =>
-      @el.querySelector('.js-feedback-submit')?.removeAttribute('disabled')
+      @setButtonLoading(@el.querySelector('.js-feedback-submit'), false)
 
       if data.state isnt 'ok'
         errorEl = @el.querySelector('.js-feedback-error')
@@ -1992,11 +2275,30 @@ do(window) ->
 
     skipFeedback: (event) =>
       event?.preventDefault()
+      @setButtonLoading(@el.querySelector('.js-feedback-skip'), true)
       @goToStartChat()
 
+    # Atas permintaan user: rating-nya sendiri inline (`showFeedback`
+    # di atas), TAPI layar "Terima kasih" SETELAH submit tetap fullpage
+    # -- overlay TERPISAH (`.js-feedback-thanks-overlay`, lihat
+    # `chat.eco`/`chat.scss`) dari overlay status koneksi, gaya scrim
+    # sama (semi-transparan, jendela chat kelihatan samar di belakang).
     showFeedbackThanks: =>
-      @el.querySelector('.zammad-chat-modal').innerHTML = @view('feedback_thanks')()
-      setTimeout @goToStartChat, 2000
+      markup = @view('feedback_thanks')()
+      if @feedbackInline
+        overlay = @el.querySelector('.js-feedback-thanks-overlay')
+        if overlay
+          overlay.innerHTML = markup
+          overlay.classList.remove('zammad-chat-is-hidden')
+      else
+        @el.querySelector('.zammad-chat-modal').innerHTML = markup
+      setTimeout (=> @hideFeedbackThanksOverlay(); @goToStartChat()), 2000
+
+    hideFeedbackThanksOverlay: =>
+      overlay = @el.querySelector('.js-feedback-thanks-overlay')
+      return if !overlay
+      overlay.classList.add('zammad-chat-is-hidden')
+      overlay.innerHTML = ''
 
     onOpenAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onOpenAnimationEnd
@@ -2097,8 +2399,15 @@ do(window) ->
     # dgn form pra-chat SUDAH disiapkan di modal Messages (pola SAMA
     # dgn `cancelQueue()` yg sudah ada), bukan lagi cuma `hideModal()`
     # diam di tab Messages.
+    # Atas permintaan user -- mirror persis dari chat.coffee:
+    # `@offlineMode` ditambahkan sbg penanda tambahan (selain
+    # `@activeTab`) supaya klik X saat alur offline (OfflineOtp/
+    # Compose/Sent, SEMUA dirender di dalam `.zammad-chat-modal` yg
+    # tetap anak tab Messages) TIDAK salah masuk ke cabang "akhiri
+    # sesi chat" -- diperlakukan sama seperti tombol X di tab lain
+    # (`close()`).
     exitChat: (event) =>
-      if @activeTab isnt 'messages'
+      if @activeTab isnt 'messages' or @offlineMode
         @close(event)
         return
 
@@ -2155,6 +2464,22 @@ do(window) ->
       @input.setAttribute('contenteditable', false)
       @el.querySelector('.zammad-chat-send').disabled = true
       @io.close()
+
+    # Bug ditemukan user (submit feedback tidak berfungsi setelah agent
+    # menutup sesi) -- root cause: `onSessionClosed` sebelumnya
+    # memanggil `disableInput()` PENUH, efek samping `@io.close()` ikut
+    # menutup WebSocket -- koneksi ini SEHARUSNYA tetap hidup lintas
+    # sesi (dipakai jg utk Home/Help/mulai chat baru), BUKAN scoped ke
+    # 1 sesi chat. Akibatnya `chat_session_feedback_submit` via
+    # `@send()` selalu no-op diam-diam (`Io#send` cuma kirim kalau
+    # `readyState` masih `OPEN`). Method ini cuma menonaktifkan kotak
+    # ketik SECARA VISUAL (memang harus mati -- sesi sudah berakhir,
+    # tidak ada lagi yg menerima pesan baru), TANPA menyentuh `@io`.
+    disableComposeInput: ->
+      @inputDisabled = true
+      @input?.setAttribute('contenteditable', false)
+      sendBtn = @el.querySelector('.zammad-chat-send')
+      sendBtn.disabled = true if sendBtn
 
     enableInput: ->
       @inputDisabled = false
@@ -2250,6 +2575,72 @@ do(window) ->
 
       @scrollToBottom()
 
+    # Atas permintaan user (mockup "SISKA Widget Mockup" -- board
+    # IndicatorReconnecting/Restored/Lost) -- indikator fullpage
+    # SEMI-TRANSPARAN utk status koneksi WebSocket widget sendiri
+    # (beda dari status online/offline AGENT). `state` salah satu dari
+    # 'reconnecting'/'restored'/'lost'. Judul 'reconnecting'/'restored'
+    # SENGAJA reuse 2 key terjemahan yg SUDAH ADA (25 bahasa, dulu
+    # dipakai `addStatus`) supaya tidak kehilangan cakupan bahasa yg
+    # sudah dibangun -- subtitle & tombol Reload BELUM configurable/
+    # diterjemahkan (follow-up terpisah, pola sama dgn pesan error OTP
+    # backend yg jg msh hardcode).
+    connectionOverlayCopy: (state) =>
+      switch state
+        when 'reconnecting'
+          title: @T('Connection lost')
+          subtitle: "Trying to reconnect — please don't close this window."
+        when 'restored'
+          title: @T('Connection re-established')
+          subtitle: "You're back online."
+        when 'lost'
+          # String literal ini SAMA PERSIS dgn pesan lama yg dikirim
+          # `Io#attemptReconnect()` sebelum refactor ini (jg tidak
+          # pernah diterjemahkan) -- bukan regresi baru.
+          title: 'Connection lost'
+          subtitle: "We couldn't reconnect after several attempts. Please reload the page to continue this conversation."
+
+    showConnectionOverlay: (state) =>
+      return if !@el
+      overlay = @el.querySelector('.js-connection-overlay')
+      return if !overlay
+
+      if @connectionOverlayHideTimeoutId
+        clearTimeout(@connectionOverlayHideTimeoutId)
+        @connectionOverlayHideTimeoutId = undefined
+
+      copy = @connectionOverlayCopy(state)
+      overlay.innerHTML = @view('connection_overlay')
+        state: state
+        title: copy.title
+        subtitle: copy.subtitle
+
+      for otherState in ['reconnecting', 'restored', 'lost']
+        overlay.classList.remove("zammad-chat-connection-overlay--#{otherState}")
+      overlay.classList.add("zammad-chat-connection-overlay--#{state}")
+      overlay.classList.remove('zammad-chat-is-hidden')
+
+      # 'restored' cuma konfirmasi sesaat -- hilang otomatis, jendela
+      # chat (yg sudah genuinely aktif kembali di belakangnya) lalu
+      # kelihatan penuh tanpa scrim.
+      if state is 'restored'
+        @connectionOverlayHideTimeoutId = setTimeout(@hideConnectionOverlay, 1800)
+
+    hideConnectionOverlay: =>
+      return if !@el
+      overlay = @el.querySelector('.js-connection-overlay')
+      return if !overlay
+      overlay.classList.add('zammad-chat-is-hidden')
+      overlay.innerHTML = ''
+
+    # Toggle warna tombol launcher (abu-abu netral) selama koneksi
+    # WEBSOCKET WIDGET SENDIRI bermasalah -- class TERPISAH dari
+    # `zammad-chat-launcher--offline` (dipakai utk status AGENT
+    # offline, `@offlineMode`) supaya kedua mekanisme independen tidak
+    # saling menimpa lewat `classList.toggle` yg sama.
+    updateLauncherConnectionState: (hasIssue) =>
+      @launcherEl?.classList.toggle('zammad-chat-launcher--connection-issue', hasIssue)
+
     detectScrolledtoBottom: =>
       scrollBottom = @body.scrollTop + @body.offsetHeight
       @scrolledToBottom = Math.abs(scrollBottom - @body.scrollHeight) <= @scrollSnapTolerance
@@ -2298,24 +2689,62 @@ do(window) ->
       # stop ws connection
       @io.close()
 
-    reconnect: =>
-      # set status to connecting
-      @log.notice 'reconnecting'
-      @disableInput()
-      @lastAddedType = 'status'
+    # Atas permintaan user ("mau" -- auto-reconnect websocket) -- mirror
+    # persis dari chat.coffee (lihat komentar detail di sana): method
+    # LAMA (`reconnect()`/`onConnectionReestablished()`) tidak pernah
+    # dipanggil dari mana pun, diganti di sini, disambungkan ke
+    # `Io#attemptReconnect()` (BARU) via `@io.set(...)` di constructor.
+    # SENGAJA TIDAK pakai `disableInput()` (efek samping `@io.close()`
+    # akan meracuni flag `manualClose` milik `Io` di tengah retry).
+    onIoReconnecting: (attempt, maxAttempts) =>
+      @log.debug "reconnecting attempt #{attempt}/#{maxAttempts}"
+      return if attempt isnt 1
+      return if !@isOpen
       @setAgentOnlineState 'connecting'
-      @addStatus @T('Connection lost')
+      # Atas permintaan user (mockup "fullpage semi-transparan") --
+      # pengganti pill status inline (`addStatus`) lama -- jendela chat
+      # TETAP dirender di belakang (header/riwayat/compose/tab-bar),
+      # cuma ditutupi scrim tembus pandang + spinner Circular
+      # Indeterminate, bukan diganti/disembunyikan total.
+      @showConnectionOverlay('reconnecting')
+      @updateLauncherConnectionState(true)
+      if !@inputDisabled
+        @reconnectDisabledInput = true
+        @input?.setAttribute('contenteditable', false)
+        sendBtn = @el.querySelector('.zammad-chat-send')
+        sendBtn.disabled = true if sendBtn
 
-    onConnectionReestablished: =>
-      # set status back to online
-      @lastAddedType = 'status'
+    onIoReconnected: =>
+      @log.debug 'reconnected'
+      return if !@isOpen
       @setAgentOnlineState 'online'
-      @addStatus @T('Connection re-established')
+      @showConnectionOverlay('restored')
+      @updateLauncherConnectionState(false)
       @options.onConnectionReestablished?()
+      if @reconnectDisabledInput
+        @reconnectDisabledInput = false
+        @input?.setAttribute('contenteditable', true)
+        sendBtn = @el.querySelector('.zammad-chat-send')
+        sendBtn.disabled = false if sendBtn
+
+    # Atas permintaan user (mockup fullpage "Connection lost") --
+    # pengganti alur lama `onError('Connection lost...')` yg diam-diam
+    # menghancurkan widget tanpa pesan apa pun ke user. Panel MINIMIZED
+    # (tidak ada yg bisa dilihat) tetap pakai perilaku lama (bersihkan
+    # total) -- overlay ini cuma relevan kalau panel TERBUKA.
+    onReconnectFailed: =>
+      @log.debug 'gave up reconnecting'
+      if !@isOpen
+        @destroy(remove: true)
+        return
+      @setAgentOnlineState 'offline'
+      @showConnectionOverlay('lost')
+      @updateLauncherConnectionState(true)
+      @disableInput()
 
     onSessionClosed: (data) =>
       @addStatus @T('Chat closed by %s', data.realname)
-      @disableInput()
+      @disableComposeInput()
       @setAgentOnlineState 'offline'
       @inactiveTimeout.stop()
 
@@ -2325,9 +2754,22 @@ do(window) ->
 
       @options.onSessionClosed?(data)
 
+      # Atas permintaan user -- mirror persis dari chat.coffee: layar
+      # feedback rating muncul kalau AGENT SENDIRI yang menutup sesi
+      # (`data.closed_by_agent`, backend `chat_session_close.rb`),
+      # TIDAK PERNAH utk penutupan pasif (cleanup scheduler/socket
+      # putus/reload).
+      if data.closed_by_agent and @sessionId
+        sessionStorage.removeItem 'unfinished_message'
+        @lastSessionId = @sessionId
+        @setSessionId undefined
+        setTimeout (=> @showFeedback(true)), 2000
+
     # Atas permintaan user (mockup `Messages.dc.html`): penanda
     # "sudah dibaca" ala WhatsApp -- mirror persis dari chat.coffee
-    # (lihat komentar detail di sana).
+    # (lihat komentar detail di sana, termasuk bug `innerHTML` hardcode
+    # yg SUDAH DIHAPUS TOTAL -- ikon SEKARANG selalu sama, cuma warna
+    # yg beda lewat class).
     markMessagesRead: =>
       statusEls = @el.querySelectorAll('.zammad-chat-message--customer .zammad-chat-message-status--sent')
       return if !statusEls.length
@@ -2336,7 +2778,6 @@ do(window) ->
         statusEl.classList.remove('zammad-chat-message-status--sent')
         statusEl.classList.add('zammad-chat-message-status--read')
         statusEl.setAttribute('aria-label', @T('Read'))
-        statusEl.innerHTML = '<svg width="16" height="10" viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 7 5 11 13 2"/><polyline points="7 7 11 11 19 2"/></svg>'
 
     setSessionId: (id) =>
       @sessionId = id
@@ -2345,7 +2786,13 @@ do(window) ->
       else
         sessionStorage.setItem 'sessionId', id
 
-    onConnectionEstablished: (data) =>
+    # Atas permintaan user ("mau ada welcome greeting dari agent saat
+    # terkoneksi") -- param baru `showGreeting` (default true) supaya
+    # sapaan HANYA muncul saat sesi BENAR-BENAR baru (`chat_session_start`,
+    # lihat pemanggilan di `ws.onmessage`), BUKAN saat `onReopenSession`
+    # menggambar ulang riwayat sesi yg SAMA sesudah reload halaman --
+    # caller itu eksplisit kirim `false` di bawah.
+    onConnectionEstablished: (data, showGreeting = true) =>
       # stop delay of initial queue position
       if @onInitialQueueDelayId
         clearTimeout @onInitialQueueDelayId
@@ -2362,6 +2809,8 @@ do(window) ->
       @el.querySelector('.zammad-chat-agent').innerHTML = @view('agent')
         agent: @agent
         initials: @initialsOf(@agent?.name)
+
+      @showWelcomeGreeting() if showGreeting
 
       # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
       # global+per-agent. Section 5.2.6. Tombol attach disembunyikan
@@ -2386,6 +2835,23 @@ do(window) ->
       @idleTimeout.stop()
       @inactiveTimeout.start()
       @options.onConnectionEstablished?(data)
+
+    # Sapaan otomatis dari agent, disuntik widget (BUKAN pesan sungguhan
+    # dari server -- tidak ada `id`, jadi tombol reply otomatis tidak
+    # muncul, lihat `views/message.eco`: `if @from is 'agent' and @id`).
+    # `@renderMessage` dipakai (bukan tulis markup manual) supaya
+    # bubble-nya IDENTIK dgn pesan agent asli (avatar, waktu, style).
+    # Kosong/tidak dikonfigurasi -> tidak render apa pun (bukan bubble
+    # kosong) -- lihat `chat_phrase_messages_welcome_greeting` di
+    # `script/create_widget_phrase_settings.rb`.
+    showWelcomeGreeting: =>
+      greeting = @phrases['chat_phrase_messages_welcome_greeting']
+      return if !greeting
+      @maybeAddTimestamp()
+      @renderMessage
+        message: greeting
+        from: 'agent'
+        time: @formatTime()
 
     showCustomerTimeout: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('customer_timeout')
@@ -2412,19 +2878,25 @@ do(window) ->
       ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
 
     # Atas permintaan user ("logo pada home mengambil dari setting
-    # logo zammad") -- mirror persis dari chat.coffee.
+    # logo zammad") -- mirror persis dari chat.coffee. Selector
+    # diperluas ke `.zammad-chat-prechat-icon` (permintaan lanjutan
+    # "tambahkan juga logo pada halaman ini seperti home dan offline
+    # home") -- BEDA dari jQuery, DOM native TIDAK meng-clone otomatis
+    # kalau 1 node yg sama di-`appendChild` ke >1 induk (node cuma
+    # PINDAH ke induk terakhir) -- jadi WAJIB bikin `<img>` BARU per
+    # elemen lewat `forEach`, bukan 1 elemen dipakai bersama.
     updateHomeLogo: (url) =>
-      mark = @el.querySelector('.zammad-chat-home-logo-mark')
-      return if !mark
-      mark.style.background = 'none'
-      img = document.createElement('img')
-      img.src = url
-      img.alt = ''
-      img.style.width = '100%'
-      img.style.height = '100%'
-      img.style.objectFit = 'contain'
-      mark.innerHTML = ''
-      mark.appendChild(img)
+      marks = @el.querySelectorAll('.zammad-chat-home-logo-mark, .zammad-chat-prechat-icon')
+      marks.forEach (mark) ->
+        mark.style.background = 'none'
+        img = document.createElement('img')
+        img.src = url
+        img.alt = ''
+        img.style.width = '100%'
+        img.style.height = '100%'
+        img.style.objectFit = 'contain'
+        mark.innerHTML = ''
+        mark.appendChild(img)
 
     # Enhancement 4 -- mirror persis dari chat.coffee (lihat catatan
     # panjang di sana).
@@ -2433,6 +2905,12 @@ do(window) ->
       return if !@el
       @el.querySelector('.zammad-chat-tab-body--home').innerHTML = @view('home')()
       @el.querySelector('.zammad-chat-tab-body--help').innerHTML = @view('help')()
+      # `.zammad-chat-tab-body--help` di atas baru diganti TOTAL --
+      # lihat catatan panjang di chat.coffee (mirror persis).
+      if @activeTab is 'help'
+        @loadKnowledgeBase(true)
+      else
+        @kbLoaded = false
       welcomeTitle = @el.querySelector('.zammad-chat-welcome-title')
       welcomeTitle.innerHTML = @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋' if welcomeTitle
       welcomeSubtext = @el.querySelector('.zammad-chat-welcome-subtext')
@@ -2442,12 +2920,33 @@ do(window) ->
 
       # Bug ditemukan user -- lihat catatan panjang di chat.coffee.
       @applyOfflineHomeState()
+      # Logo custom -- mirror persis dari chat.coffee (lihat catatan
+      # panjang di sana).
+      @updateHomeLogo(@logoUrl) if @logoUrl
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- mirror persis dari chat.coffee.
     formatTime: (isoString) ->
       date = if isoString then new Date(isoString) else new Date()
       date.toTimeString().substr(0, 5)
+
+    # Atas permintaan user (mockup kartu lampiran gaya WhatsApp) --
+    # mirror persis dari chat.coffee.
+    formatFileSize: (bytes) ->
+      return '' if !bytes
+      return "#{bytes} B" if bytes < 1024
+      return "#{Math.round(bytes / 1024)} KB" if bytes < 1024 * 1024
+      "#{(bytes / (1024 * 1024)).toFixed(1)} MB"
+
+    fileExtensionLabel: (filename) ->
+      return '' if !filename
+      parts = filename.split('.')
+      return '' if parts.length < 2
+      parts[parts.length - 1].toUpperCase()
+
+    # Mirror persis dari chat.coffee.
+    attachmentMeta: (filename, size) ->
+      [@fileExtensionLabel(filename), @formatFileSize(size)].filter((part) -> part).join(' · ')
 
     setAgentOnlineState: (state) =>
       @state = state
@@ -2498,6 +2997,10 @@ do(window) ->
 
     onCssLoaded: =>
       @cssLoaded = true
+      # Mirror persis dari chat.coffee.
+      @el?.style.display = ''
+      @launcherEl?.style.display = ''
+      @hidePreload() if @statusReceived
       if @socketReady
         @onReady()
       @options.onCssLoaded?()

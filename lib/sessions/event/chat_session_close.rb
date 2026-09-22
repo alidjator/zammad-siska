@@ -26,7 +26,23 @@ return is sent as message back to peer
 
     # if it is a agent session, use the realname if the agent for close message
     chat_session = current_chat_session
-    if @session && @session['id'] && chat_session.user_id
+
+    # Atas permintaan user ("feedback rating berlaku kalau agent
+    # menutup sesi dengan mengklik tombol close di sisi agent, bukan
+    # karena status socket") -- `@session` HANYA terisi kalau pemanggil
+    # event INI (`chat_session_close`) adalah user Zammad TERAUTENTIKASI
+    # (sisi app agent, `.js-disconnect` -> `disconnect()` di
+    # `app/assets/javascripts/app/controllers/chat.coffee`) -- widget
+    # customer anonim TIDAK PERNAH punya `@session` sama sekali. Jadi
+    # nilai ini SUDAH SECARA ALAMI hanya `true` utk klik tombol
+    # deliberate di sisi agent, TIDAK PERNAH utk `Chat.cleanup_close`
+    # (scheduler pasif, lihat `app/models/chat.rb`, path KODE TERPISAH
+    # yang TIDAK PERNAH lewat event handler ini sama sekali) MAUPUN
+    # socket agent yang putus/reload TANPA klik (kasus itu TIDAK
+    # PERNAH memicu event `chat_session_close` ini sama sekali -- sesi
+    # baru benar2 ditutup belakangan oleh scheduler di atas).
+    closed_by_agent = !!(@session && @session['id'])
+    if closed_by_agent && chat_session.user_id
       agent_user = chat_session.agent_user
       if agent_user[:name]
         realname = agent_user[:name]
@@ -44,8 +60,9 @@ return is sent as message back to peer
       message = {
         event: 'chat_session_closed',
         data:  {
-          session_id: chat_session.session_id,
-          realname:   realname,
+          session_id:      chat_session.session_id,
+          realname:        realname,
+          closed_by_agent: closed_by_agent,
         },
       }
 

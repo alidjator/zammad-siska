@@ -26,6 +26,26 @@ Rails.application.configure do
   # Apache or NGINX already handles this.
   config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
 
+  # Atas permintaan user ("saya mau menambahkan font Inter Able Pro
+  # pada widget") -- font `@font-face` (BEDA dari CSS/JS biasa) WAJIB
+  # header CORS utk bisa dimuat browser saat widget di-embed lintas-
+  # domain, dikonfirmasi lewat `curl` LANGSUNG (server ini SEBELUMNYA
+  # TIDAK mengirim header `Access-Control-Allow-Origin` sama sekali
+  # utk file statis). Dicek dulu (BUKAN diasumsikan): di lingkungan ini
+  # nginx host HANYA proxy polos (`proxy_pass`, tanpa `location
+  # /assets/` terpisah) -- SEMUA file statis (termasuk `chat.css`/font
+  # widget) genuinely dilayani LANGSUNG oleh Rails sendiri (`RAILS_
+  # SERVE_STATIC_FILES=true`), jadi config di sini PASTI berlaku,
+  # bukan diam2 diabaikan krn dilewati web server lain. Wildcard `*`
+  # (bukan origin spesifik) SENGAJA -- seluruh `public/assets/` Zammad
+  # SUDAH publik/tanpa otentikasi apa pun (siapa saja yg akses
+  # LANGSUNG sudah bisa unduh isinya), CORS cuma menentukan apakah
+  # JS situs LAIN boleh MEMBACA responsnya lewat browser -- tidak ada
+  # data baru yg jadi lebih terekspos drpd sebelumnya.
+  config.public_file_server.headers = {
+    'Access-Control-Allow-Origin' => '*',
+  }
+
   # Compress JavaScripts and CSS.
   config.assets.js_compressor = :terser
   # config.assets.css_compressor = :sass

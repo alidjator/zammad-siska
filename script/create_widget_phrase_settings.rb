@@ -89,6 +89,14 @@ puts '== Messages (chat berjalan) =='
 upsert_phrase('chat_phrase_messages_agent_status_active', 'Messages: Status agent di header', 'Active now')
 upsert_phrase('chat_phrase_messages_compose_placeholder', 'Messages: Placeholder kotak ketik', 'Compose your message…')
 upsert_phrase('chat_phrase_messages_reply_prefix', 'Messages: Prefix indikator balas', 'Replying to:')
+# Atas permintaan user ("mau ada welcome greeting dari agent saat
+# terkoneksi") -- bubble pesan agent OTOMATIS (bukan dikirim beneran
+# oleh agent manusia, murni disuntik widget) yg muncul SEKALI setiap
+# `chat_session_start` (agent baru terhubung ke sesi BARU) -- BUKAN
+# diulang tiap `chat_session_init` (reload/reopen sesi yg SAMA, lihat
+# `onReopenSession` di chat.coffee/chat-no-jquery.coffee), supaya tidak
+# menyapa ulang di tengah percakapan yg sudah berjalan.
+upsert_phrase('chat_phrase_messages_welcome_greeting', 'Messages: Sapaan otomatis dari agent saat baru tersambung', 'Hi! How can I help you today?')
 
 puts '== Verifikasi OTP =='
 upsert_phrase('chat_phrase_otp_title', 'OTP: Judul', 'Enter verification code')
@@ -103,6 +111,9 @@ upsert_phrase('chat_phrase_otp_change_email', 'OTP: Tombol ganti email', 'Change
 
 puts '== Tulis Pesan Offline =='
 upsert_phrase('chat_phrase_offline_compose_verified_suffix', 'Offline Compose: Akhiran badge terverifikasi (setelah alamat email)', 'verified')
+upsert_phrase('chat_phrase_offline_compose_subject_label', 'Offline Compose: Label subject (WAJIB diisi, jadi judul tiket)', 'Subject')
+upsert_phrase('chat_phrase_offline_compose_subject_placeholder', 'Offline Compose: Placeholder subject', "What's this about?")
+upsert_phrase('chat_phrase_offline_compose_subject_empty_error', 'Offline Compose: Error subject kosong', 'Please enter a subject.')
 upsert_phrase('chat_phrase_offline_compose_message_label', 'Offline Compose: Label pesan', 'Your message')
 upsert_phrase('chat_phrase_offline_compose_placeholder', 'Offline Compose: Placeholder textarea', 'Tell us how we can help…')
 upsert_phrase('chat_phrase_offline_compose_send_button', 'Offline Compose: Tombol kirim', 'Send Message')
@@ -123,7 +134,7 @@ upsert_phrase('chat_phrase_feedback_title', 'Feedback: Judul', 'How was your exp
 upsert_phrase('chat_phrase_feedback_subtitle', 'Feedback: Subjudul', 'Your feedback helps us improve.')
 upsert_phrase('chat_phrase_feedback_comment_placeholder', 'Feedback: Placeholder komentar', 'Add a comment (optional)')
 upsert_phrase('chat_phrase_feedback_skip_button', 'Feedback: Tombol lewati', 'Maybe later')
-upsert_phrase('chat_phrase_feedback_submit_button', 'Feedback: Tombol submit', 'Submit Feedback')
+upsert_phrase('chat_phrase_feedback_submit_button', 'Feedback: Tombol submit', 'Submit')
 upsert_phrase('chat_phrase_feedback_score_error', 'Feedback: Error belum pilih rating', 'Please select a rating.')
 upsert_phrase('chat_phrase_feedback_submit_error_fallback', 'Feedback: Error submit gagal (fallback)', 'Could not save your feedback. Please try again.')
 upsert_phrase('chat_phrase_feedback_thanks_title', 'Feedback Thanks: Judul', 'Thank you for your feedback!')
