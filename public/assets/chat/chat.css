@@ -732,10 +732,6 @@
 .zammad-chat-emoji-toggle {
   color: #5b6b79;
 }
-.zammad-chat-emoji-toggle svg {
-  fill: none;
-  stroke: currentColor;
-}
 .zammad-chat-emoji-toggle.is-active {
   background: #f8f9fa;
   color: #4680ff;
@@ -743,10 +739,6 @@
 
 .zammad-chat-attach {
   color: #5b6b79;
-}
-.zammad-chat-attach svg {
-  fill: none;
-  stroke: currentColor;
 }
 
 .zammad-chat-send {
@@ -781,8 +773,6 @@
 .zammad-chat-send svg {
   width: 16px;
   height: 16px;
-  fill: none;
-  stroke: currentColor;
 }
 .zammad-chat-send:hover {
   background: rgba(70, 128, 255, 0.12);
@@ -1765,10 +1755,6 @@
   -ms-flex-negative: 0;
   flex-shrink: 0;
 }
-.zammad-chat-kb-result-icon svg {
-  fill: none;
-  stroke: currentColor;
-}
 
 .zammad-chat-kb-result-text {
   -webkit-box-flex: 1;
@@ -2186,10 +2172,6 @@
   justify-content: center;
   margin-bottom: 16px;
 }
-.zammad-chat-offline-otp-icon svg {
-  fill: none;
-  stroke: currentColor;
-}
 
 .zammad-chat-offline-otp-title {
   font-size: 16px;
@@ -2334,8 +2316,6 @@
 .zammad-chat-offline-compose-verified svg {
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
 }
 
 .zammad-chat-offline-compose-label {
@@ -2470,10 +2450,6 @@
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-}
-.zammad-chat-offline-compose-attach svg {
-  fill: none;
-  stroke: currentColor;
 }
 .zammad-chat-offline-compose-attach:disabled {
   opacity: 0.26;

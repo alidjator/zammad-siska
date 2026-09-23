@@ -1019,13 +1019,15 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
+// Audit migrasi ikon Tabler (2026-09-23): ikon lama stroke-based BUTUH
+// `svg{fill:none;stroke:currentColor}` di sini -- ikon Tabler BARU
+// (glyph font, `fill="currentColor"` sudah inline di markup) JUSTRU
+// rusak/nyaris tak terlihat kalau dipaksa `fill:none` (path glyph
+// adalah siluet padat, bukan garis tunggal cocok utk stroke). Override
+// svg DIHAPUS -- warna cukup lewat `color` di sini, `currentColor`
+// bawaan SVG yang menangani sisanya.
 .zammad-chat-emoji-toggle {
   color: $siska-text-muted;
-
-  svg {
-    fill: none;
-    stroke: currentColor;
-  }
 
   // Disamakan ke mockup -- tombol emoji tampil "aktif" (latar tint)
   // selama panelnya terbuka, bukan cuma saat hover.
@@ -1035,23 +1037,16 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
-// Bug ditemukan lewat laporan user ("ikon attachment terlalu
-// kontras, tidak terlihat sbg paperclip") -- root cause bukan warna,
-// tapi FILL: ada blok DUPLIKAT `.zammad-chat-attach` LAIN LAGI lebih
-// jauh di bawah file ini (`svg { fill: currentColor }`, sisa dari
-// SEBELUM path ikon diganti ke bentuk paperclip stroke-based mockup
-// di entri 125) yang -- krn urutan CSS -- MENIMPA `fill:none` di sini
-// jadi solid, path stroke-only (bukan shape tertutup) jadi
-// terisi/blok gepeng, BUKAN garis paperclip lagi. Blok duplikat itu
-// SUDAH DIHAPUS -- dicatat di sini supaya JANGAN ditambahkan LAGI ikon
-// attach lain di bawah (ini SATU-SATUNYA definisi warna/fill-nya).
+// Riwayat: bug lama soal fill/stroke bentrok pernah terjadi persis di
+// sini (blok duplikat `svg{fill:currentColor}` yg menimpa `fill:none`).
+// Audit migrasi ikon Tabler (2026-09-23) -- kasus SAMA muncul lagi dari
+// arah SEBALIKNYA: ikon paperclip lama stroke-based diganti glyph font
+// Tabler (siluet padat, `fill="currentColor"` inline) -- `fill:none`
+// yg dulu WAJIB di sini justru bikin ikon baru nyaris tak terlihat.
+// Override svg DIHAPUS -- ini TETAP satu-satunya definisi warna
+// `.zammad-chat-attach` (`color` di sini + `currentColor` bawaan SVG).
 .zammad-chat-attach {
   color: $siska-text-muted;
-
-  svg {
-    fill: none;
-    stroke: currentColor;
-  }
 }
 
 // Riwayat: tombol send sempat ikon transparan polos (preseden
@@ -1081,11 +1076,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   box-shadow: none;
   font-family: inherit;
 
+  // Audit migrasi ikon Tabler (2026-09-23): ikon send lama stroke-based
+  // butuh fill:none/stroke di sini -- glyph Tabler baru (siluet padat,
+  // fill inline) rusak kalau dipaksa fill:none, jadi dihapus.
   svg {
     width: 16px;
     height: 16px;
-    fill: none;
-    stroke: currentColor;
   }
 
   &:hover {
@@ -2145,11 +2141,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-
-  svg {
-    fill: none;
-    stroke: currentColor;
-  }
+  // Audit migrasi ikon Tabler (2026-09-23): svg{fill:none;stroke}
+  // dihapus -- glyph Tabler baru (book) siluet padat, rusak kalau
+  // dipaksa fill:none.
 }
 
 .zammad-chat-kb-result-text {
@@ -2559,11 +2553,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-
-  svg {
-    fill: none;
-    stroke: currentColor;
-  }
+  // Audit migrasi ikon Tabler (2026-09-23): svg{fill:none;stroke}
+  // dihapus -- glyph Tabler baru (clock) siluet padat, rusak kalau
+  // dipaksa fill:none.
 }
 
 .zammad-chat-offline-otp-title {
@@ -2739,10 +2731,10 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   font-size: 12.5px;
   color: $siska-success;
 
+  // Audit migrasi ikon Tabler (2026-09-23): fill:none/stroke dihapus --
+  // glyph Tabler baru (check) siluet padat, rusak kalau dipaksa fill:none.
   svg {
     flex-shrink: 0;
-    fill: none;
-    stroke: currentColor;
   }
 }
 
@@ -2890,11 +2882,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-
-  svg {
-    fill: none;
-    stroke: currentColor;
-  }
+  // Audit migrasi ikon Tabler (2026-09-23): svg{fill:none;stroke}
+  // dihapus -- glyph Tabler baru (paperclip) siluet padat, rusak kalau
+  // dipaksa fill:none.
 
   &:disabled {
     opacity: 0.26;
