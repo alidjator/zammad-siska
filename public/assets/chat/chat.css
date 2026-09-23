@@ -2419,8 +2419,6 @@
 .zammad-chat-offline-compose-attachment-chip svg {
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
 }
 .zammad-chat-offline-compose-attachment-chip span {
   color: #5b6b79;
