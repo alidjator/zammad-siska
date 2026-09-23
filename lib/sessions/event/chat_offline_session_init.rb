@@ -16,6 +16,7 @@
 #       url: 'the browser url',
 #       name: 'the customer name',
 #       email: 'the customer email',
+#       category: 'kategori tiket, wajib, salah satu value Chat::Session.category_options',
 #     },
 #   }
 #
@@ -47,13 +48,19 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
       }
     end
 
-    name  = @payload['data']['name'].to_s.strip
-    email = @payload['data']['email'].to_s.strip.downcase
+    name     = @payload['data']['name'].to_s.strip
+    email    = @payload['data']['email'].to_s.strip.downcase
+    category = @payload['data']['category'].to_s.strip
 
-    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT)
+    # Atas permintaan user (field Category, wajib sama spt di jalur
+    # chat biasa `chat_session_init.rb`) -- sumber kebenaran opsi yang
+    # SAMA (`Chat::Session.category_options`), form Prechat/OfflineHome
+    # di widget ADALAH satu form yang SAMA (lihat catatan atas file
+    # ini), jadi validasinya WAJIB konsisten dgn jalur online.
+    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
       return {
         event: 'chat_offline_session_init',
-        data:  { state: 'failed', message: __('Please provide a valid name and email address.') },
+        data:  { state: 'failed', message: __('Please provide a valid name, email, and category.') },
       }
     end
 
@@ -61,6 +68,7 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
       chat_id:     @payload['data']['chat_id'],
       name:        name,
       email:       email,
+      category:    category,
       state:       'offline_pending',
       preferences: {
         url:          @payload['data']['url'],

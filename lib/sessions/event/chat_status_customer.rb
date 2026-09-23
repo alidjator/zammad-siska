@@ -53,7 +53,7 @@ return is sent as message back to peer
 
     {
       event: 'chat_status_customer',
-      data:  current_chat.customer_state(session_id).merge(logo_url: product_logo_url, phrases: widget_phrases),
+      data:  current_chat.customer_state(session_id).merge(logo_url: product_logo_url, phrases: widget_phrases, category_options: Chat::Session.category_options),
     }
   end
 
@@ -71,13 +71,17 @@ return is sent as message back to peer
     chat_phrase_home_subtitle
     chat_phrase_home_start_button
     chat_phrase_home_search_button
+    chat_phrase_home_online_notice
     chat_phrase_offline_status
+    chat_phrase_offline_notice_title
     chat_phrase_offline_notice
     chat_phrase_offline_start_button
     chat_phrase_prechat_title
     chat_phrase_prechat_subtitle
     chat_phrase_prechat_name_label
     chat_phrase_prechat_email_label
+    chat_phrase_prechat_category_label
+    chat_phrase_prechat_category_placeholder
     chat_phrase_prechat_submit_button
     chat_phrase_prechat_validation_error
     chat_phrase_waiting_title

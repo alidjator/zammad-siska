@@ -46,25 +46,17 @@ $siska-warning-tint: #f7dcb3;
 // diganti `inputBorder` (dicek LANGSUNG ke `vuetify.ts`), token abu
 // netral ASLI Able Pro yang belum pernah dipakai di file ini.
 $siska-input-border: #bec8d0;
-// Atas permintaan user (screenshot Able Pro Admin, alert "Info Text"
-// ditandai lingkaran merah): "warna background alert info" dipakai utk
-// bubble chat VISITOR (lebih soft, bukan biru solid lagi). Dicek
-// LANGSUNG ke `vuetify.ts`: `info: '#3ec9d6'`. Latar pucatnya BUKAN
-// literal `lightinfo` (`#c5eff3`, token TERPISAH, dipakai komponen
-// lain) -- alert "Basic" di screenshot pakai `variant="tonal"`
-// (mekanisme Vuetify sendiri: warna dasar @ `--v-activated-opacity`,
-// default 0.12, TIDAK di-override `vuetify.ts` Able Pro) -- dikonfirmasi
-// GANDA: (1) hitung manual rgba(62,201,214,0.12) di atas putih =
-// rgb(232,248,250); (2) sampling piksel LANGSUNG dari screenshot user
-// (`PIL.Image.getpixel`) pada area latar alert = (232,248,250) PERSIS
-// sama. Dipakai sbg `rgba(...)` (BUKAN hex pucat statis) supaya teknik
-// SAMA PERSIS dgn cara Vuetify sendiri menghitungnya (komposit thd
-// LATAR di belakang bubble, bukan angka tetap). (`$siska-info` warna
-// DASAR-nya sendiri, `#3ec9d6`, SEMPAT jadi warna teks bubble jg --
-// atas permintaan user susulan, teks disamakan ke `$siska-text` spt
-// bubble agent, token warna dasar ini jadi tidak terpakai lagi & sudah
-// dihapus, HANYA tint pucatnya yg masih relevan.)
-$siska-info-tint: rgba(62, 201, 214, 0.12);
+// Riwayat panjang (bubble customer pucat gaya alert "info" Able Pro,
+// dicek ganda ke vuetify.ts + sampling piksel screenshot user) DIHAPUS
+// di sini -- `$siska-info-tint` sudah TIDAK PUNYA pemakai lagi setelah
+// audit kepatuhan kit Tailwind baru mengembalikan bubble customer ke
+// solid biru (lihat rule `.zammad-chat-message--customer
+// .zammad-chat-message-body`), token dead code dibuang drpd dibiarkan
+// nyasar.
+// Atas permintaan user ("alert Home saat online, color info") --
+// token warna DASAR info dipakai utk teks/ikon alert Basic online.
+// Nilai dicek ke `vuetify.ts`: `info: '#3ec9d6'`.
+$siska-info: #3ec9d6;
 $siska-radius-sm: 8px;
 $siska-radius-lg: 12px;
 // Atas permintaan user ("saya mau menambahkan font ini pada widget")
@@ -367,15 +359,26 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // Diprioritaskan Able Pro (konsisten dgn prinsip "Able Pro menang"
 // entri 156, DIKONFIRMASI ke user dulu krn ini beda dari mockup asli
 // -- bukan cuma bug drift spt 4 temuan ukuran font di audit yg sama).
+// Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA
+// Home/OfflineHome -- token `$siska-*` bersama SENGAJA tidak
+// disentuh, elemen lain yg jg pakai skala judul 500 dibiarkan apa
+// adanya, di luar scope). Dicek LANGSUNG ke `partial/typography.css`
+// kit baru: skala h1-h6 SEMUA weight 600 (h4 20px/600 -- BUKAN 500,
+// beda dari kesimpulan audit kit Vuetify LAMA yg bilang maks 500).
 .zammad-chat-welcome-title {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.3;
 }
 
 .zammad-chat-welcome-subtext {
   font-size: 13px;
-  color: $siska-text-muted;
+  // Dicek LANGSUNG ke `tailwind.css` kit baru: `--color-theme-
+  // secondarytextcolor: rgba(33, 37, 41, 0.75)` -- BUKAN
+  // `$siska-text-muted` (#5b6b79, token lama condong kebiruan, token
+  // baru netral/hangat). Literal rgba (bukan token bersama) krn
+  // scope dibatasi HANYA elemen Home.
+  color: rgba(33, 37, 41, 0.75);
 }
 
 .zammad-chat-header-title {
@@ -723,11 +726,11 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // server -- lihat `sendMessage()`); `--read` (2 centang) = setelah
 // event `chat_session_message_read` diterima dari agent.
 // SEBELUMNYA sempat py override opasitas-putih KHUSUS bubble customer
-// (perlu krn latar dulu solid biru) -- DIHAPUS lagi (atas permintaan
-// user: bubble customer diganti latar pucat gaya alert info, TIDAK
-// solid lagi) -- skema abu2/primer DEFAULT di sini SEKARANG berlaku
-// UNIVERSAL ke SEMUA latar (agent putih, kartu lampiran putih, bubble
-// customer pucat #E8F8FA) krn kontras cukup di ke-3 nya.
+// (perlu krn latar dulu solid biru) -- DIHAPUS (atas permintaan user:
+// bubble customer diganti latar pucat gaya alert info) -- lalu
+// DIPASANG LAGI di bawah (audit kepatuhan kit Tailwind baru: bubble
+// customer kembali solid biru, lihat rule di bawah) krn skema abu2/
+// primer DEFAULT di sini jadi nyaris tak terlihat di latar solid biru.
 .zammad-chat-message-status {
   display: flex;
   align-items: center;
@@ -747,10 +750,29 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   color: $siska-primary;
 }
 
+// Override KHUSUS bubble TEKS customer (`:not(.zammad-chat-attachment)`
+// -- kartu lampiran DIKECUALIKAN, tetap putih/netral, lihat rule
+// attachment di bawah, jadi skema abu2/primer default di atas TETAP
+// dipakai di situ) -- gaya WhatsApp: `--sent` putih 60% opacity
+// (belum terkonfirmasi), `--read` putih penuh (terkonfirmasi).
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--sent {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--read {
+  color: #ffffff;
+}
+
+// Audit kepatuhan kit Tailwind baru: preseden nyata `application/
+// chat.html` bubble pakai `rounded` polos Tailwind = 4px, BUKAN
+// `$siska-radius-sm` (8px) -- di-hardcode LOKAL di sini (BUKAN ubah
+// token globalnya) krn token itu dipakai di 25+ tempat lain (emoji
+// picker, ikon lampiran, dropdown Category, dll) yg TIDAK diaudit
+// terhadap kit & TIDAK boleh ikut berubah diam-diam.
 .zammad-chat-message-body {
   white-space: pre-line;
   overflow-wrap: break-word;
-  border-radius: $siska-radius-sm;
+  border-radius: 4px;
   min-width: 0;
 }
 
@@ -787,19 +809,27 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   margin-top: 12px;
 }
 
-// Atas permintaan user (screenshot Able Pro Admin, alert "Info Text"):
-// bubble customer diganti dari biru SOLID jadi latar pucat gaya alert
-// "info" Able Pro (`$siska-info-tint`).
-// Warna TEKS sempat ikut disamakan ke `$siska-info` (meniru alert asli
-// yg teksnya jg warna info) -- atas permintaan user SUSULAN ("rubah
-// font color pada bubble visitor, sesuai dengan font color bubble
-// agent"), diganti lagi ke `$siska-text` (sama persis dgn bubble
-// agent, yg TIDAK override warna teks sendiri -- mewarisi `color:
-// $siska-text` dari root `.zammad-chat`). Latar tetap pucat info,
-// CUMA warna teksnya yg disamakan.
+// Riwayat: bubble customer sempat diganti dari biru SOLID jadi latar
+// pucat gaya alert "info" Able Pro (`$siska-info-tint`, atas
+// permintaan user, screenshot Able Pro Admin) -- lalu warna teksnya
+// jg sempat disamakan ke `$siska-info` lalu ke `$siska-text`.
+// DIKEMBALIKAN ke solid biru di sini (audit kepatuhan kit Tailwind
+// baru: preseden NYATA `application/chat.html` -- `bg-primary-500
+// text-white`, bubble sendiri SELALU solid biru+putih, TANPA varian
+// pucat). Efek ikutan: skema warna centang baca butuh override putih
+// lagi (lihat rule `.zammad-chat-message-status` di atas).
 .zammad-chat-message--customer .zammad-chat-message-body {
-  background: $siska-info-tint;
-  color: $siska-text;
+  background: $siska-primary;
+  color: white;
+}
+
+// Audit kepatuhan kit Tailwind baru: preseden nyata `.card` (putih +
+// border abu 1px), BUKAN putih polos tanpa garis tepi lagi. Berlaku jg
+// ke kartu lampiran agent (elemen sama, `.zammad-chat-message-body`)
+// -- kartu lampiran CUSTOMER sudah py border sendiri (lihat rule
+// attachment di bawah), jadi tidak dobel.
+.zammad-chat-message--agent .zammad-chat-message-body {
+  border: 1px solid $siska-border;
 }
 
 // Bug ditemukan lewat laporan user ("bubble yang hurufnya tiba-tiba
@@ -893,29 +923,27 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   display: flex;
 }
 
+// Audit kepatuhan kit Tailwind baru: preseden nyata `application/
+// chat.html` -- `form-control border-0 shadow-none`, kotak ketik
+// TANPA bingkai sama sekali, menyatu dgn footer (SEBELUMNYA berbingkai
+// sendiri, radius $siska-radius-sm, border 2px+padding bergeser saat
+// fokus -- semua itu DIHAPUS, bukan cuma diganti warna).
 .zammad-chat-input {
   margin: 0;
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid $siska-input-border;
-  border-radius: $siska-radius-sm;
-  padding: 10px 14px;
+  border: none;
+  padding: 10px 4px;
   max-height: 96px;
   min-height: 20px;
   font-family: inherit;
   line-height: 20px;
   font-size: 14px;
   appearance: none;
-  background: white;
+  background: transparent;
   box-shadow: none;
   outline: none;
   overflow: auto;
-  transition: border-color 100ms ease;
-
-  &:focus {
-    border: 2px solid $siska-primary;
-    padding: 9px 13px;
-  }
 }
 
 // Bug ditemukan lewat laporan user ("tidak ada placeholder pada area
@@ -959,17 +987,21 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // class ini, aman tanpa guard. Ikon svg 17px->16px sekalian
 // disamakan ke markup (audit ikon entri 170 sudah ganti markup ke
 // 16px, CSS ini KETINGGALAN & diam-diam menimpanya balik).
+// Audit kepatuhan kit Tailwind baru: preseden nyata `w-8 h-8
+// rounded-md` = 32px, radius 6px (BUKAN 30px/$siska-radius-sm=8px) --
+// radius di-hardcode LOKAL, token globalnya TIDAK disentuh (dipakai di
+// 25+ tempat lain, lihat catatan radius bubble di atas).
 .zammad-chat-emoji-toggle,
 .zammad-chat-attach:not(.zammad-chat-is-hidden) {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
-  border-radius: $siska-radius-sm;
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   appearance: none;
@@ -1022,24 +1054,27 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
-// Tombol send SEBELUMNYA ikon transparan polos (preseden
-// `ChatSendMsg.vue`) -- diganti LINGKARAN PENUH warna primer krn
+// Riwayat: tombol send sempat ikon transparan polos (preseden
+// `ChatSendMsg.vue`), lalu diganti LINGKARAN PENUH warna primer krn
 // preseden mockup HALAMAN INI (`Messages.dc.html`) spesifik
-// menunjukkan itu, bukan tombol teks-varian seperti komponen chat
-// generik Able Pro. Dipilih ikut mockup krn itu acuan yg berulang kali
-// dirujuk LANGSUNG oleh user utk halaman ini.
+// menunjukkan itu. DIKEMBALIKAN ke varian transparan di sini (audit
+// kepatuhan kit Tailwind baru: preseden NYATA `application/chat.html`
+// -- `btn-link-primary`, `w-10 h-10 rounded-xl` = 40px kotak membulat
+// 12px radius, transparan, tint HANYA muncul saat hover -- BUKAN
+// lingkaran solid lagi).
 .zammad-chat-send {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   margin-left: auto;
   padding: 0;
   border: none;
-  border-radius: 50%;
-  background: $siska-primary;
+  border-radius: 12px;
+  background: transparent;
+  color: $siska-primary;
   cursor: pointer;
   appearance: none;
   outline: none;
@@ -1047,14 +1082,14 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   font-family: inherit;
 
   svg {
-    width: 15px;
-    height: 15px;
+    width: 16px;
+    height: 16px;
     fill: none;
-    stroke: white;
+    stroke: currentColor;
   }
 
   &:hover {
-    filter: brightness(0.92);
+    background: $siska-primary-tint-strong;
   }
 }
 
@@ -1154,9 +1189,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // `.zammad-chat-message-time`), beda dari sebelumnya yg cuma 1 baris
 // flex. TANPA centang baca (pesan agent tidak pernah punya status
 // baca) -- kartu customer YANG py centang tetap dapat lewat markup
-// `message-time` yg sama, warnanya skema DEFAULT abu2/primer (SAMA
-// dgn bubble teks customer sejak latarnya diganti pucat -- tidak perlu
-// override terpisah lagi, lihat rule status di atas).
+// `message-time` yg sama, warnanya skema DEFAULT abu2/primer -- kartu
+// ini SENGAJA dikecualikan (`:not(.zammad-chat-attachment)`) dari
+// override putih bubble TEKS customer (lihat rule status di atas):
+// kartu SELALU putih/netral (lihat rule di bawah), jadi abu2/primer
+// TETAP kontras di situ, TIDAK BOLEH ikut jadi putih spt di bubble
+// teks solid biru.
 .zammad-chat-message-body.zammad-chat-attachment {
   display: flex;
   flex-direction: column;
@@ -1379,7 +1417,14 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: $siska-primary-tint;
+  // Atas permintaan user ("lanjut ke prechat" -> "lanjut perbaiki
+  // semuanya", audit kit Tailwind baru): bentuk LINGKARAN
+  // dipertahankan (tidak ada preseden lingkaran ditemukan di kit
+  // baru utk ikon-aksen, tapi ini identitas visual yg sudah berjalan
+  // -- sama spt logo mark Home, dianggap elemen branding, bukan ikon
+  // aksen kartu dashboard generik). Opacity latar disesuaikan 8%->10%
+  // (dicek ke preseden NYATA `w_chart.html`: `.bg-primary-500/10`).
+  background: rgba(70, 128, 255, 0.1);
   color: $siska-primary;
   display: flex;
   align-items: center;
@@ -1394,19 +1439,23 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   overflow: hidden;
 }
 
-// Atas permintaan user (audit Kategori 6 -- Font/Typography): 20px
-// TERNYATA menyimpang dari mockup `Prechat.dc.html` sendiri (SELALU
-// 16px, "Halo! Yuk mulai percakapannya") -- 20px SEHARUSNYA cuma
-// dipakai `.zammad-chat-welcome-title` (Home, "Hi there", satu2nya
-// judul hero 20px, dikonfirmasi ULANG ke mockup-nya sendiri jg).
+// Atas permintaan user (audit kit Able Pro TAILWIND baru): dicek
+// LANGSUNG ke `partial/typography.css` kit baru -- skala h1-h6 SEMUA
+// weight 600 (h5 16px/600), BUKAN 500 (kesimpulan audit kit VUE lama
+// sudah tidak berlaku, lihat catatan sama di `.zammad-chat-welcome-
+// title`).
 .zammad-chat-prechat-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
 .zammad-chat-prechat-subtext {
-  color: $siska-text-muted;
+  // Dicek LANGSUNG ke `tailwind.css` kit baru: `--color-theme-
+  // secondarytextcolor: rgba(33, 37, 41, 0.75)` -- BUKAN
+  // `$siska-text-muted` (lihat catatan sama di `.zammad-chat-welcome-
+  // subtext`).
+  color: rgba(33, 37, 41, 0.75);
   font-size: 13px;
   line-height: 1.5;
   margin-bottom: 20px;
@@ -1432,27 +1481,160 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   color: $siska-text;
 }
 
-// Preseden NYATA VTextField `variant="outlined" rounded="lg"` --
-// border 1px abu-abu default, menebal 2px primary saat fokus
-// (SEBELUMNYA tidak ada state fokus sama sekali, `outline:none` tanpa
-// pengganti). Tinggi disamakan ke skala 44px yg sama dgn tombol
-// besar & kotak cari KB (bukan skala default dashboard 56px --
-// disesuaikan sengaja utk panel sempit 380px).
-.zammad-chat-prechat-field input {
+// Atas permintaan user (audit kit Able Pro TAILWIND baru) -- dicek
+// LANGSUNG ke `partial/forms.css` kit baru: `.form-control { border
+// rounded-lg py-[.8rem] px-3 border-theme-inputborder focus:border-
+// primary-500 }` -- radius 8px & warna border SUDAH cocok (dipakai
+// ulang, tidak berubah), TAPI: (1) TIDAK ADA tinggi tetap (padding-
+// driven, `.8rem`=12.8px / `.75rem`=12px -- BUKAN skala 44px yg
+// ditebak dari `VTextField` Vuetify lama), (2) fokus HANYA ganti
+// WARNA border (`focus:border-primary-500`), lebar border TETAP 1px
+// -- BUKAN menebal jadi 2px spt preseden Vuetify lama.
+.zammad-chat-prechat-field input,
+.zammad-chat-prechat-category {
   box-sizing: border-box;
-  height: 44px;
   font-family: inherit;
   font-size: 14px;
-  padding: 0 16px;
+  padding: 12.8px 12px;
   border: 1px solid $siska-input-border;
   border-radius: $siska-radius-sm;
   outline: none;
   transition: border-color 100ms ease;
 
   &:focus {
-    border: 2px solid $siska-primary;
-    padding: 0 15px;
+    border-color: $siska-primary;
   }
+}
+
+// Bagian yang BEDA dari `<input>` polos -- tombol dropdown perlu
+// layout flex (label + chevron) & reset gaya `<button>` bawaan
+// browser, `<input>` tidak butuh ini.
+.zammad-chat-prechat-category {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: white;
+  color: $siska-text;
+  cursor: pointer;
+  text-align: left;
+
+  &.is-open {
+    border-color: $siska-primary;
+  }
+}
+
+// Audit kit Tailwind baru -- lihat catatan sama di
+// `.zammad-chat-welcome-subtext`.
+.zammad-chat-prechat-category-value.is-placeholder {
+  color: rgba(33, 37, 41, 0.75);
+}
+
+.zammad-chat-prechat-category-chevron {
+  flex-shrink: 0;
+  color: rgba(33, 37, 41, 0.75);
+  transition: transform 120ms ease;
+}
+
+.zammad-chat-prechat-category.is-open .zammad-chat-prechat-category-chevron {
+  transform: rotate(180deg);
+}
+
+// Bug ditemukan user (screenshot: buka dropdown mendorong tombol
+// "Start Chat" ke bawah, terpotong tabbar) -- menu SEBELUMNYA normal
+// flow (ikut mendorong elemen sibling di bawahnya, `.zammad-chat-
+// prechat-submit`). Diperbaiki jadi OVERLAY (`position: absolute`,
+// mengambang di atas konten -- pola dropdown/select pada umumnya,
+// TIDAK PERNAH mendorong layout lain) -- wrapper field-nya diberi
+// `position: relative` (`.zammad-chat-prechat-field--category`,
+// class khusus, TIDAK disentuh name/email) supaya jadi containing
+// block yang benar.
+.zammad-chat-prechat-field--category {
+  position: relative;
+}
+
+// Panel dropdown -- preseden style SAMA dgn kartu/menu lain widget
+// ini (radius $siska-radius-sm, border $siska-border, shadow panel).
+// `:not(.zammad-chat-is-hidden)` WAJIB (bukan cuma `display:flex`
+// polos) -- pola bug spesifisitas CSS yang SAMA sudah terjadi
+// berkali-kali di file ini (mis. entri 135, 172: rule display
+// SETELAH `.zammad-chat-is-hidden` tanpa `:not()` bisa ketimpa
+// tergantung urutan baris kalau file ini di-refactor lagi nanti).
+.zammad-chat-prechat-category-menu:not(.zammad-chat-is-hidden) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  // Sibling di bawahnya (`.zammad-chat-prechat-submit`) JUGA
+  // `position: relative` (utk overlay spinner loading-nya sendiri,
+  // lihat CTA bersama) -- tanpa z-index eksplisit di sini, urutan
+  // DOM (submit datang SETELAH menu) bikin submit menang menutupi
+  // menu meski menu absolute. z-index memaksa menu SELALU di atas.
+  z-index: 10;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-sm;
+  // Atas permintaan user (audit kit Tailwind baru) -- preseden NYATA
+  // komponen `.dropdown .dropdown-menu` kit ini (`partial/dropdown.css`,
+  // BUKAN dikarang lagi): shadow persis `0 4px 24px rgba(62,57,107,.18)`,
+  // padding `p-2` = 8px (bukan 6px). `bg-theme-cardbg` (#fff) &
+  // `rounded-lg` (8px) SUDAH cocok sejak awal, tidak berubah.
+  box-shadow: 0 4px 24px rgba(62, 57, 107, 0.18);
+  padding: 8px;
+}
+
+.zammad-chat-prechat-category-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: $siska-text;
+  cursor: pointer;
+
+  // Opacity tint 8%->10%, dicek ke preseden NYATA `w_chart.html`
+  // (`.bg-primary-500/10`) -- lihat catatan sama di
+  // `.zammad-chat-prechat-icon`.
+  &:hover {
+    background: rgba(70, 128, 255, 0.1);
+  }
+
+  &.is-selected {
+    background: rgba(70, 128, 255, 0.1);
+    color: $siska-primary;
+  }
+}
+
+// Ikon centang SELALU ada di markup (lihat catatan di
+// prechat_category_option.eco, pelajaran entri 191) -- tampil/sembunyi
+// MURNI lewat CSS, JS cuma menukar class `.is-selected` ke row yang
+// tepat.
+.zammad-chat-prechat-category-check {
+  display: none;
+  flex-shrink: 0;
+}
+
+.zammad-chat-prechat-category-option.is-selected .zammad-chat-prechat-category-check {
+  display: inline-flex;
+}
+
+// Field wajib yang kosong setelah percobaan submit gagal -- dipakai
+// bersama utk Name/Email/Category (lihat views/prechat.eco), border
+// merah $siska-error. Selector DIGABUNG ke masing-masing field yang
+// SAH (bukan class error generik sendirian) supaya specificity-nya
+// otomatis menang atas base rule di atas TANPA `!important` (pola yg
+// sudah ditegakkan proyek ini, lihat catatan disiplin CSS lain di
+// file ini).
+.zammad-chat-prechat-field input.zammad-chat-field-invalid,
+.zammad-chat-prechat-category.zammad-chat-field-invalid {
+  border-color: $siska-error;
 }
 
 .zammad-chat-prechat-error {
@@ -1460,31 +1642,31 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   font-size: 13px;
 }
 
-// Atas permintaan user: gaya notice SUKSES Able Pro (`v-alert`
-// tonal) -- background+border SENADA hijau (pola sama dgn badge
-// "verified" `OfflineCompose`), radius 8px (`rounded="md"`, konvensi
-// SEMUA v-alert Able Pro), BUKAN teks polos spt `.zammad-chat-
-// prechat-error` (dipakai kasus BEDA -- kabar baik, bukan gagal
-// validasi).
-// Style `outline` Able Pro (v-alert--variant-outlined): background
-// transparan, border solid `currentColor`, teks & ikon ikut warna
-// semantik yg sama -- diminta user utk SEMUA notice pada widget.
+// Atas permintaan user (audit kit Able Pro TAILWIND baru) -- diganti
+// dari style "outline" Able Pro VUE lama (transparan+border
+// currentColor) ke satu-satunya pola `.alert-success` yang GENUINELY
+// ada di kit Tailwind baru (`partial/alerts.css`), pola SAMA PERSIS
+// dgn notice Home (lihat chat.scss bagian Home): SELALU berborder
+// 20% opacity, background 20% opacity, teks/ikon shade GELAP `-800`
+// (bukan warna dasar `-500`/`$siska-success`). Padding px-5/py-3
+// (20px/12px, bukan 12px/16px).
 .zammad-chat-prechat-notice {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 12px 20px;
   border-radius: $siska-radius-sm;
-  background: transparent;
-  border: 1px solid currentColor;
-  color: $siska-success;
+  background: rgba(44, 168, 127, 0.2);
+  border: 1px solid rgba(44, 168, 127, 0.2);
+  // success-800 kit baru (OKLCH 0.57 0.1179 161.88 -> hex), literal
+  // krn scope dibatasi HANYA elemen Prechat (pola sama dgn notice
+  // Home -- token bersama tidak diubah).
+  color: #1a8c61;
   font-size: 13px;
   line-height: 1.4;
 
   svg {
     flex-shrink: 0;
-    fill: none;
-    stroke: currentColor;
   }
 }
 
@@ -1590,7 +1772,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 20px;
+  // Atas permintaan user ("rubah total Home dan OfflineHome") --
+  // 20px -> 25px, dicek LANGSUNG ke `partial/card.css` kit Tailwind
+  // baru: `.card .card-body { p-[25px] }` -- konten Home berperan
+  // sbg isi "kartu" panel widget, disamakan ke padding kartu standar
+  // kit ini (BUKAN skala 4px generik yg dipakai sebelumnya).
+  padding: 25px;
   gap: 12px;
   // Bug ditemukan lewat laporan user ("ukuran dan posisi button belum
   // proporsional", screenshot) -- konten hero (logo+CTA) dipaku ke
@@ -1720,6 +1907,49 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   background: white;
   color: $siska-primary;
   border: 1px solid $siska-primary;
+
+  // Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA
+  // Home/OfflineHome) -- dicek LANGSUNG ke `partial/buttons.css` kit
+  // baru: `.btn-outline-primary` (preseden tombol sekunder/border) py
+  // hover jadi SOLID (background warna + teks putih), BUKAN cuma
+  // warna tetap spt sebelumnya.
+  &:hover {
+    background: $siska-primary;
+    color: white;
+  }
+}
+
+// Atas permintaan user (audit kit Able Pro TAILWIND baru -- Home
+// SUDAH diperbaiki sebelumnya, Prechat DITAMBAHKAN di sini krn "lanjut
+// perbaiki semuanya" mencakup tombol submit-nya juga -- TIDAK
+// menyentuh base bersama di atas yg jg dipakai OTP/Feedback/dst, itu
+// TETAP di luar scope). Nilai berikut dicek LANGSUNG ke
+// `partial/buttons.css` kit baru (BEDA dari preset Vuetify `VBtn`
+// lama yg dipakai base di atas): `.btn { rounded-[20px] font-medium }`
+// (radius PIL, weight 500, BUKAN 8px/400), tanpa `text-transform`
+// sama sekali, TANPA tinggi tetap (padding-driven -- `py-3 px-5`
+// dipakai di sini, preseden ukuran "lg" krn ini CTA menonjol, BUKAN
+// 44px yg ditebak dari Vuetify `size="large"`).
+.zammad-chat-home-action,
+.zammad-chat-prechat-submit {
+  height: auto;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-weight: 500;
+  text-transform: none;
+
+  // `.btn-primary` kit baru: hover/active pakai SHADE token asli
+  // (`primary-600`/`primary-700`, dicek ke `tailwind.css` -> OKLCH
+  // dikonversi), BUKAN `filter: brightness()` generik spt base di
+  // atas.
+  &:hover {
+    filter: none;
+    background: #3f78ff; // primary-600
+  }
+
+  &:active {
+    background: #386eff; // primary-700
+  }
 }
 
 // Atas permintaan user ("Start Chat/Verify/Send Message/Continue/
@@ -2014,68 +2244,47 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   gap: 4px;
 }
 
+// Atas permintaan user (audit kit Able Pro TAILWIND baru -- mockup
+// disetujui dulu, "Waiting.dc.html" opsi 1 di canvas Artifact Design
+// yg sudah ada): spinner 2-lapis (track abu-abu statis + arc biru +
+// ikon di tengah) diganti SATU elemen, preseden NYATA `bc_spinner.html`
+// kit baru: `border-[3.5px] border-primary-500 rounded-full animate-
+// spin border-l-transparent` -- 3 sisi berwarna + 1 sisi (kiri)
+// transparan, TANPA ring track statis & TANPA ikon di tengah sama
+// sekali (preseden kit ini tidak punya elemen ikon di spinner).
+// Ukuran 56px->48px, tebal border 4px (rasio disesuaikan dari
+// preseden 3.5px/32px, dibulatkan).
 .zammad-chat-waiting-spinner {
-  position: relative;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   margin-bottom: 10px;
-}
-
-.zammad-chat-waiting-spinner-track {
-  position: absolute;
-  inset: 0;
   border-radius: 50%;
-  border: 4px solid $siska-border;
-}
-
-.zammad-chat-waiting-spinner-arc {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 4px solid transparent;
-  border-top-color: $siska-primary;
-  border-right-color: $siska-primary;
+  border: 4px solid $siska-primary;
+  border-left-color: transparent;
   animation: zammad-chat-spin 900ms linear infinite;
 }
 
-.zammad-chat-waiting-spinner-icon {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $siska-primary;
-
-  svg {
-    fill: currentColor;
-    stroke: none;
-  }
+// Modifier warna dipakai `ending_chat.eco` (spinner "Ending
+// conversation…") -- pola SAMA, cuma warna ditimpa.
+.zammad-chat-waiting-spinner--danger {
+  border-color: $siska-error;
+  border-left-color: transparent;
 }
 
-// Atas permintaan user ("mockup loading proses chat berakhir") --
-// modifier warna dipakai `ending_chat.eco` (spinner "Mengakhiri
-// percakapan…") supaya beda dari spinner biru "Menghubungkan ke
-// agent…" (`loader.eco`/`waiting.eco`) -- struktur/ukuran/animasi
-// TETAP reuse penuh 3 class di atas, cuma warnanya yang ditimpa.
-.zammad-chat-waiting-spinner-arc--danger {
-  border-top-color: $siska-error;
-  border-right-color: $siska-error;
-}
-
-.zammad-chat-waiting-spinner-icon--danger {
-  color: $siska-error;
-}
-
-// Atas permintaan user (audit Kategori 6): 18px menyimpang dari
-// mockup `Waiting.dc.html` sendiri (SELALU 16px, "Menghubungkan Anda
-// ke agent…").
+// Atas permintaan user (audit kit Tailwind baru): dicek LANGSUNG ke
+// `partial/typography.css` -- h5 16px harus weight 600 (BUKAN 500,
+// kesimpulan audit kit VUE lama sudah tidak berlaku, lihat catatan
+// sama di `.zammad-chat-welcome-title`).
 .zammad-chat-waiting-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .zammad-chat-waiting-subtext {
-  color: $siska-text-muted;
+  // Dicek LANGSUNG ke `tailwind.css`: `--color-theme-
+  // secondarytextcolor: rgba(33, 37, 41, 0.75)` -- lihat catatan
+  // sama di `.zammad-chat-welcome-subtext`.
+  color: rgba(33, 37, 41, 0.75);
   font-size: 13px;
   max-width: 220px;
   line-height: 1.5;
@@ -2205,8 +2414,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // `inline-block` (flow normal, spasi antar node aman).
   display: inline-block;
   padding: 6px 12px;
-  border-radius: 999px;
-  background: $siska-primary-tint;
+  // Atas permintaan user (audit kit Tailwind baru, mockup disetujui):
+  // dicek LANGSUNG ke preseden NYATA `.badge { rounded-md }` kit ini
+  // = 6px, BUKAN pill 999px. Opacity tint 8%->10% (preseden
+  // `bg-primary-500/10`, sama dgn perbaikan Home/Prechat).
+  border-radius: 6px;
+  background: rgba(70, 128, 255, 0.1);
   color: $siska-primary;
   font-size: 13px;
   font-weight: 600;
@@ -2218,16 +2431,25 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // `loader.eco` (baru submit, posisi belum diketahui) krn keduanya
 // sama-sama status "sudah masuk antrean" di backend sejak
 // `chat_session_init` terkirim.
+//
+// Atas permintaan user (audit kit Tailwind baru): dicek LANGSUNG ke
+// preseden `.btn-link { bg-transparent text-primary-500 hover:
+// underline }` -- warna PRIMARY (bukan muted) & underline HANYA saat
+// hover (bukan selalu tampil).
 .zammad-chat-waiting-cancel {
   margin-top: 22px;
   border: none;
   background: transparent;
-  color: $siska-text-muted;
+  color: $siska-primary;
   font-family: inherit;
   font-size: 13px;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
   padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // ============================================================
@@ -2243,7 +2465,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: $siska-text-muted;
+  // Audit kit Tailwind baru (HANYA Home/OfflineHome) -- lihat catatan
+  // sama di `.zammad-chat-welcome-subtext`.
+  color: rgba(33, 37, 41, 0.75);
 }
 
 .zammad-chat-welcome-offline-dot {
@@ -2254,81 +2478,66 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   flex-shrink: 0;
 }
 
-// Diperbaiki sesuai audit Able Pro (temuan: notice ini berbentuk kotak
-// mirip `v-alert`, tapi MELEPAS elemen paling khas dari alert Able Pro
-// -- warna tonal semantik & radius 8px seragam yg dipakai SEMUA
-// varian alert). Latar/border netral abu-abu -> tonal biru (senada
-// warna primary, pesan ini sifatnya informatif); radius 12px -> 8px
-// (`$siska-radius-sm`, PERSIS `rounded="md"` yg dipakai Able Pro utk
-// SEMUA v-alert tanpa kecuali); padding & gap dirapikan ke kelipatan
-// 4px (skala resmi `$spacer` Able Pro/Vuetify).
+// Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA
+// Home/OfflineHome) -- diganti dari pola "Basic" `UiAlert.vue` (kit
+// VUE lama, riwayat di atas: tonal 12% tanpa border) ke satu-satunya
+// pola `.alert`/`.alert-warning` yang GENUINELY ada di kit Tailwind
+// baru (`partial/alerts.css`): `.alert { px-5 py-3 rounded-lg border }`,
+// `.alert-warning { border-warning-500/20 bg-warning-500/20 text-
+// warning-800 }` -- SELALU berborder (beda dari "Basic" yg sengaja
+// tanpa border), opacity latar/border 20% (bukan 12%), DAN teks/ikon
+// pakai shade GELAP `-800` (bukan warna dasar `-500`) -- dicek
+// LANGSUNG ke `tailwind.css` (OKLCH warning-800 dikonversi ke hex).
+// Padding px-5/py-3 = 20px/12px (bukan 16px rata).
+// Token `$siska-warning` TETAP dipakai (referensi, bukan diubah) utk
+// bg/border 20% -- nilainya (#e58a00) sudah nyaris identik dgn
+// warning-500 kit baru (#e48900, beda pembulatan konversi warna).
 //
-// Bug ditemukan user ("notice muncul padahal ada agent online") --
-// pola CSS SAMA PERSIS dgn bug ikon error OTP (entri 151): `display:
-// flex` di sini & `display: none` milik `.zammad-chat-is-hidden`
-// (baris 791, LEBIH AWAL di file ini) SAMA-SAMA cuma 1 class --
-// spesifisitas SAMA, rule yg LEBIH BELAKANGAN di file (blok ini)
-// SELALU menang apa pun class yg sedang aktif di elemen. Bug LATEN
-// sejak notice ini pertama dibuat (Enhancement 1), TIDAK PERNAH
-// ketahuan krn dulu class `is-hidden` cuma pernah DILEPAS sekali
-// (tidak pernah ditempel BALIK) -- begitu perbaikan reconnect (entri
-// 160/161) mulai menggambar ulang & menempel BALIK class ini saat
-// state kembali online, baru nyata. Diperbaiki `:not(.zammad-chat-is-
-// hidden)` (pola yg sama dipakai berkali-kali di file ini).
-// Style `outline` Able Pro (v-alert--variant-outlined): background
-// transparan, border solid `currentColor`, teks & ikon ikut warna
-// semantik yg sama -- diminta user utk SEMUA notice pada widget
-// (menggantikan style `tonal` sebelumnya).
-//
-// Khusus notice INI: atas permintaan user (persis contoh
-// `UiAlert.vue` baris 278, `variant="outlined" prominent` + prop
-// `border="top"` + `type="warning"` -- teks lorem "Duis arcu
-// tortor...") -- warna semantik `warning` (oranye), BUKAN `primary`
-// (biru) spt notice-notice lain hasil audit entri 165, krn user
-// eksplisit minta pola persis contoh ini termasuk warnanya. Detail
-// dicek ke `VAlert.css`: (1) ikon BESAR & SOLID (lingkaran penuh
-// warna warning + simbol seru putih, bukan lagi ikon garis 20px),
-// rata TENGAH thd teks multi-baris; (2) prop `border="top"` nambah
-// AKSEN garis TEBAL (8px, opacity 0.38 -- `.v-alert__border`) HANYA
-// di sisi atas, TERPISAH & DI ATAS border tipis 1px milik variant
-// `outlined` yg sudah ada di 3 sisi lain. `padding-top` +8px (24px)
-// mengikuti `.v-alert--density-default.v-alert--border-top` biar
-// teks tidak mepet ke aksen tebal itu.
+// Riwayat spesifisitas (`:not(.zammad-chat-is-hidden)`): bug NYATA
+// pernah terjadi di elemen ini (entri 151) krn urutan baris display
+// rule vs `.zammad-chat-is-hidden` -- pola ini DIPERTAHANKAN di sini
+// walau class ini SEKARANG ditulis SETELAH definisi `.zammad-chat-is-
+// hidden` (baris 937), supaya aman kalau file ini di-refactor lagi.
 .zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden) {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px;
-  padding-top: 24px;
+  padding: 12px 20px;
   border-radius: $siska-radius-sm;
-  background: transparent;
-  border: 1px solid currentColor;
-  color: $siska-warning;
+  background: rgba(229, 138, 0, 0.2);
+  border: 1px solid rgba(229, 138, 0, 0.2);
+  // warning-800 kit baru (OKLCH 0.65 0.1647 53.24 -> hex), literal
+  // krn scope dibatasi HANYA elemen Home (bukan token bersama).
+  color: #da6d00;
   font-size: 12.5px;
   line-height: 1.5;
   margin-bottom: 4px;
+}
 
-  // Aksen border-top TEBAL sebagai lapisan TERPISAH (bukan digabung ke
-  // border 1px di atas) -- meniru persis struktur asli Vuetify
-  // (`.v-alert__border`, `VAlert.css`): elemen absolute TERSENDIRI yang
-  // menutupi penuh box, `border-radius: inherit` independen, HANYA diberi
-  // `border-top`. Alasan: border 1px (4 sisi) + border-top 8px pada SATU
-  // box yang sama membuat browser menghitung lengkung sudut scr elips
-  // menyesuaikan ketebalan sisi yang beda jauh (1px vs 8px) -- tidak
-  // sehalus 2 box terpisah yang radiusnya independen spt Vuetify asli.
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border-top: 8px solid rgba(229, 138, 0, 0.38);
-    pointer-events: none;
-  }
+.zammad-chat-home-offline-notice-icon {
+  flex-shrink: 0;
+}
 
-  svg {
-    flex-shrink: 0;
-  }
+// Notice BARU (agent online) -- pola SAMA PERSIS dgn notice offline
+// di atas (`.alert-info` kit baru), cuma warna info & isi beda.
+.zammad-chat-home-online-notice:not(.zammad-chat-is-hidden) {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-radius: $siska-radius-sm;
+  background: rgba(62, 201, 214, 0.2);
+  border: 1px solid rgba(62, 201, 214, 0.2);
+  // info-800 kit baru (OKLCH 0.71 0.1141 207.51 -> hex), literal krn
+  // scope dibatasi HANYA elemen Home.
+  color: #28b5c6;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.zammad-chat-home-online-notice-icon {
+  flex-shrink: 0;
 }
 
 // -- Verifikasi OTP (views/offline_otp.eco) --

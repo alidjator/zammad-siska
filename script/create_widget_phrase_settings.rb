@@ -61,19 +61,44 @@ upsert_phrase('chat_phrase_home_greeting', 'Home: Sapaan', 'Hi there')
 upsert_phrase('chat_phrase_home_subtitle', 'Home: Subjudul', 'How can we help you today?')
 upsert_phrase('chat_phrase_home_start_button', 'Home: Tombol mulai chat', 'Send us a message')
 upsert_phrase('chat_phrase_home_search_button', 'Home/Help: Tombol/placeholder cari bantuan', 'Search for help')
+# Atas permintaan user ("pada halaman home saat agent online,
+# ditambahkan juga alert seperti tadi, type alert yang sama, color
+# info") -- pasangan notice offline di atas, tipe alert "Basic" yang
+# SAMA, ditampilkan begitu agent tersedia.
+upsert_phrase('chat_phrase_home_online_notice', 'Home: Pesan notice saat agent online', "Agents are online now — start a conversation and we'll respond right away.")
 
 puts '== Home -- Semua Agent Offline =='
 upsert_phrase('chat_phrase_offline_status', 'Offline: Status', "We're offline right now")
-upsert_phrase('chat_phrase_offline_notice', 'Offline: Pesan notice di Home', 'All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.')
+# Atas permintaan user ("saya mau mengganti alert menjadi type
+# Description dengan color warning") -- notice Home diubah dari
+# style "prominent outlined + border-top" ke tipe "Description" Able
+# Pro (UiAlert.vue baris 158: judul tebal + baris deskripsi terpisah,
+# background tonal, border tipis 25% opacity -- BUKAN transparan +
+# aksen border-top tebal spt sebelumnya). Kalimat lama (1 baris)
+# dipecah 2: judul baru `chat_phrase_offline_notice_title` (kalimat
+# pertama) + `chat_phrase_offline_notice` (SEKARANG cuma kalimat
+# kedua, jadi baris deskripsi).
+upsert_phrase('chat_phrase_offline_notice_title', 'Offline: Judul notice di Home', 'All agents are currently unavailable')
+upsert_phrase('chat_phrase_offline_notice', 'Offline: Deskripsi notice di Home', 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.')
 upsert_phrase('chat_phrase_offline_start_button', 'Offline: Tombol mulai pesan offline', 'Leave us a message')
 
-puts '== Prechat (Isi Nama & Email) =='
+puts '== Prechat (Isi Nama, Email & Category) =='
 upsert_phrase('chat_phrase_prechat_title', 'Prechat: Judul', "Let's get started")
 upsert_phrase('chat_phrase_prechat_subtitle', 'Prechat: Subjudul', 'Please share a few details so our agent can help you faster.')
 upsert_phrase('chat_phrase_prechat_name_label', 'Prechat: Label nama', 'Your name')
 upsert_phrase('chat_phrase_prechat_email_label', 'Prechat: Label email', 'Your email')
+# Atas permintaan user ("saya mau menambahkan kategori ini pada
+# halaman messages, sejalan dengan inputan name, email") -- field
+# ke-3 Prechat, wajib diisi. Label/placeholder INI configurable
+# (widget-specific copy), TAPI isi pilihannya (Complaint/Information/
+# Request) SENGAJA TIDAK di sini -- itu dibaca live dari
+# `Chat::Session.category_options` (custom field Ticket yang sudah
+# ada), supaya 1 sumber kebenaran, bukan didup dua kali & berpotensi
+# basi kalau admin ubah opsi Ticket.category lewat Admin > Objects.
+upsert_phrase('chat_phrase_prechat_category_label', 'Prechat: Label category', 'Category')
+upsert_phrase('chat_phrase_prechat_category_placeholder', 'Prechat: Placeholder category (belum dipilih)', 'Select a category')
 upsert_phrase('chat_phrase_prechat_submit_button', 'Prechat: Tombol submit', 'Start chat')
-upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid name and email address.')
+upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid name, email, and category.')
 
 puts '== Menunggu Agent & Timeout =='
 upsert_phrase('chat_phrase_waiting_title', 'Waiting: Judul (dipakai jg di layar connecting)', 'Connecting you to an agent…')

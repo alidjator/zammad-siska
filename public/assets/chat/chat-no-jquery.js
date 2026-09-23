@@ -524,7 +524,7 @@ window.zammadChatTemplates["ending_chat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc zammad-chat-waiting-spinner-arc--danger"></span>\n    <span class="zammad-chat-waiting-spinner-icon zammad-chat-waiting-spinner-icon--danger">\n      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.4409 15.3699C17.2509 15.3699 17.0609 15.2999 16.9109 15.1499C16.6209 14.8599 16.6209 14.3799 16.9109 14.0899L18.9409 12.0599L16.9109 10.0299C16.6209 9.73994 16.6209 9.25994 16.9109 8.96994C17.2009 8.67994 17.6809 8.67994 17.9709 8.96994L20.5309 11.5299C20.8209 11.8199 20.8209 12.2999 20.5309 12.5899L17.9709 15.1499C17.8209 15.2999 17.6309 15.3699 17.4409 15.3699Z"/><path d="M19.9298 12.8101H9.75977C9.34977 12.8101 9.00977 12.4701 9.00977 12.0601C9.00977 11.6501 9.34977 11.3101 9.75977 11.3101H19.9298C20.3398 11.3101 20.6798 11.6501 20.6798 12.0601C20.6798 12.4701 20.3398 12.8101 19.9298 12.8101Z"/><path d="M11.7598 20.75C6.60977 20.75 3.00977 17.15 3.00977 12C3.00977 6.85 6.60977 3.25 11.7598 3.25C12.1698 3.25 12.5098 3.59 12.5098 4C12.5098 4.41 12.1698 4.75 11.7598 4.75C7.48977 4.75 4.50977 7.73 4.50977 12C4.50977 16.27 7.48977 19.25 11.7598 19.25C12.1698 19.25 12.5098 19.59 12.5098 20C12.5098 20.41 12.1698 20.75 11.7598 20.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco, modifier warna via `--danger` (chat.scss). -->\n  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger"></div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_ending_title'] || 'Ending conversation…'));
     
@@ -772,9 +772,17 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>\n    <span>');
+      __out.push('<div class="zammad-chat-home">\n  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --\n  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,\n  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri\n  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --\n  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1\n  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan\n  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit\n  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),\n  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius\n  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit\n  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,\n  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang\n  terverifikasi identik, ukuran 52px & background SOLID (bukan tint\n  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-\n  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu\n  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-offline-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 818C563.386 818 598.068 788.886 619 754C634.577 728.04 904.693 261.6120000000001 918 235C924.652 221.694 925 214.2000000000001 925 192C925 141.04 903.451 112.088 874 90C860.403 79.803 842.976 72.995 823 69C815 68 780 67 509 67C236 67 203 68 196 69C135.622 81.0750000000001 93 123.586 93 196C93 219.963 99.464 232.928 108 250C108.083 250.165 406.993 763.988 407 764C413.665 775.107 427.904 789.343 439 796C457.02 806.813 478.581 818 508 818zM515 734H504C496.24 734 484.625 726.625 480 722C472.12 714.12 184.16 212.24 180 206C177 201 177 199 177 190C177 168.735 191.042 157.3200000000001 207 152C212 151 245 150 509 150C705 150 807 150 810 151C825.843 158.92 848.593 171.63 842 198C839.872 210.7670000000001 544.6890000000001 716.311 539 722C534.01 726.99 523.65 734 515 734zM509 567C532.466 567 544.995 551.015 551 533C552 530 552 513 552 484C552 444.207 552.282 438.848 547 423C542.719 410.155 526.815 400 510 400C485.452 400 475.161 415.517 469 434C468 437 468 458 468 484C468 513 468 530 469 533C474.66 549.981 486.697 567 509 567zM509 317C485.564 317 463.687 294.564 469 268C473.813 248.751 485.473 234 510 234C534.6 234 546.07 248.28 551 268C556.251 294.257 537.382 309.54 518 316C515 317 511 317 509 317z"/></g></svg>\n    <span class="zammad-chat-home-offline-notice-text">');
     
-      __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'All our agents are currently unavailable. Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || 'All agents are currently unavailable'));
+    
+      __out.push(' ');
+    
+      __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+    
+      __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-online-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 322.915 909.682 261.192 881 211C877 204 872 192 868 186C852.258 162.387 836.235 137.235 816 117L793 94C772.79 73.79 747.842 57.895 724 42C718 38 706 33 699 29C656.655 4.803 606.866 -6.59 548 -15C541 -16 525 -16 510 -16C366.081 -16 276.3590000000001 44.64 204 117C190.573 130.427 177.435 148.348 167 164C124.516 227.727 93 304.861 93 412C93 442.781 96.97 460.87 103 488C125.691 590.112 175.576 662.208 243 720C265.945 739.667 288.82 755.91 317 770C357.559 790.28 404.55 806.364 458 814C465 815 476 816 483 816H518zM508 733C498 733 486 732 480 732C445.876 732 414.148 719.05 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.175 472.112 177 440.455 177 400C177 358.895 182.469 326.749 194 296C206.502 262.6620000000001 218.494 231.6320000000001 239 206C249.21 193.237 254.906 186.312 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C660.179 100.06 685.883 114.506 704 129C727.81 148.049 753.273 169.031 772 194C789.798 217.73 810.505 254.8450000000001 823 284C826 291 828 303 830 309C840.242 339.727 842 356.197 842 400C842 444.112 840.332 460.005 830 491C828 497 826 509 823 516C809.96 546.428 790.923 580.1030000000001 773 604C749.98 634.694 718.523 661.318 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM512 608C535.563 608 552 590.338 552 567C552 542.79 534.867 526 510 526C485.4 526 473.93 540.28 469 560C466.16 574.2 471.856 586.856 479 594C487.697 602.697 493.958 608 512 608zM488 442C451.182 442 443.8160000000001 437.724 430 417C427 412 428 411 428 400C428 383.526 429.629 380.371 438 372C446.073 363.927 454.126 360.312 468 358V294C468 225.2100000000001 466.814 234.558 474 213C476.994 204.018 490.36 196.584 498 192H562C577.974 201.1280000000001 592 208.35 592 234C592 248.135 590.523 252.477 584 259C577.47 265.53 567.875 275 555 275H552V339C552 383 552 404 551 408C541.555 436.336 528.73 442 488 442z"/></g></svg>\n    <span class="zammad-chat-home-online-notice-text">');
+    
+      __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online now — start a conversation and we'll respond right away."));
     
       __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <!-- Atas permintaan user ("hilangkan icon pada button Leave\n    us.../Send us..."): KEDUA ikon (online & offline) dihapus dari\n    markup -- toggle visibilitasnya di `applyOfflineHomeState`\n    (chat.coffee/chat-no-jquery.coffee) ikut dihapus, TIDAK cuma\n    disembunyikan CSS. Pergantian LABEL teks ("Send us a\n    message"/"Leave us a message") TETAP jalan, itu bukan ikon. -->\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
     
@@ -949,7 +957,7 @@ window.zammadChatTemplates["loader"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -1303,6 +1311,71 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
 if (!window.zammadChatTemplates) {
   window.zammadChatTemplates = {};
 }
+window.zammadChatTemplates["prechat_category_option"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Atas pelajaran entri 191 (ACTIVITY_LOG_SISKA.md -- ikon centang\nganda rusak krn 2 sumber render SVG tidak sinkron): ikon centang di\nsini SELALU dirender tanpa syarat, lalu tampil/sembunyi MURNI lewat\nCSS class is-selected (chat.scss) -- klik opsi lain (chat-no-jquery.coffee)\ncukup tukar class ke row yang tepat, TIDAK PERNAH perlu menyisipkan\natau menghapus markup SVG lagi. -->\n<div class="zammad-chat-prechat-category-option js-prechat-category-option');
+    
+      if (this.selected) {
+        __out.push(__sanitize(' is-selected'));
+      }
+    
+      __out.push('" data-value="');
+    
+      __out.push(this.value);
+    
+      __out.push('">\n  <span>');
+    
+      __out.push(this.label);
+    
+      __out.push('</span>\n  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
 window.zammadChatTemplates["prechat"] = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1358,19 +1431,49 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
         __out.push('</div>\n    ');
       }
     
-      __out.push('\n    <!-- Atas permintaan user: notice BUKAN error (kabar baik, mis.\n    "agent sekarang tersedia") pakai gaya notice SUKSES Able Pro\n    (outline hijau), TERPISAH dari `.zammad-chat-prechat-error` (tetap\n    merah, dipakai pesan gagal validasi sungguhan). -->\n    ');
+      __out.push('\n    <!-- Notice BUKAN error (kabar baik, mis. "agent sekarang\n    tersedia"), TERPISAH dari `.zammad-chat-prechat-error` (tetap\n    merah, dipakai pesan gagal validasi sungguhan). Atas permintaan\n    user (audit kit Able Pro TAILWIND baru): pola alert diganti ke\n    `.alert-success` GENUINE kit baru (lihat chat.scss, sama dgn\n    notice Home). Ikon centang stroke lama diganti Tabler\n    `circle-check` (diekstrak+diverifikasi dgn cara sama spt ikon\n    Home). -->\n    ');
     
       if (this.notice) {
-        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.75 12 2.83 2.83 5.67-5.66"/></svg>\n        <span>');
+        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n        <span>');
         __out.push(this.notice);
         __out.push('</span>\n      </div>\n    ');
       }
     
-      __out.push('\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('\n    <!-- Atas permintaan user ("saya mau menambahkan kategori ini pada\n    halaman messages, sejalan dengan inputan name, email"): field\n    wajib diisi, gaya & tinggi identik dgn Name/Email di bawah.\n    Ditaruh PALING ATAS (urutan Category -> Name -> Email, atas\n    permintaan user) -- BUKAN <select> native, widget ini konsisten\n    pakai kontrol custom (pola sama dgn emoji-picker) supaya gaya Able\n    Pro genuinely terpasang (select native tidak bisa di-skin lintas-\n    browser). Isi pilihan (.js-prechat-category-menu) SENGAJA kosong\n    di sini, dipopulasi via JS dari @categoryOptions\n    (chat-no-jquery.coffee, showPrechatForm) -- pola SAMA dgn\n    `.zammad-chat-kb-results` (views/help.eco) yg jg dipopulasi via\n    JS, bukan loop di eco. -->\n    <div class="zammad-chat-prechat-field zammad-chat-prechat-field--category">\n      <label>');
+    
+      __out.push(this.T(this.phrases['chat_phrase_prechat_category_label'] || 'Category'));
+    
+      __out.push('</label>\n      <button type="button" class="zammad-chat-prechat-category js-prechat-category-toggle');
+    
+      if (this.error && !this.category) {
+        __out.push(__sanitize(' zammad-chat-field-invalid'));
+      }
+    
+      __out.push('" aria-expanded="false">\n        <span class="zammad-chat-prechat-category-value js-prechat-category-value');
+    
+      if (!this.category) {
+        __out.push(__sanitize(' is-placeholder'));
+      }
+    
+      __out.push('">');
+    
+      __out.push(this.T(this.phrases['chat_phrase_prechat_category_placeholder'] || 'Select a category'));
+    
+      __out.push('</span>\n        <svg class="zammad-chat-prechat-category-chevron" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.919 8.18H6.079c-.96 0-1.44 1.16-.76 1.84l5.18 5.18c.83.83 2.18.83 3.01 0l1.97-1.97 3.21-3.21c.67-.68.19-1.84-.77-1.84z"/></svg>\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
+    
+      __out.push(this.category || '');
+    
+      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_name_label'] || 'Your name'));
     
-      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-name" value="');
+      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-name');
+    
+      if (this.error && !this.name) {
+        __out.push(__sanitize(' zammad-chat-field-invalid'));
+      }
+    
+      __out.push('" value="');
     
       __out.push(this.name || '');
     
@@ -1378,7 +1481,13 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_email_label'] || 'Your email'));
     
-      __out.push('</label>\n      <input type="email" class="zammad-chat-prechat-email" value="');
+      __out.push('</label>\n      <input type="email" class="zammad-chat-prechat-email');
+    
+      if (this.error && !this.email) {
+        __out.push(__sanitize(' zammad-chat-field-invalid'));
+      }
+    
+      __out.push('" value="');
     
       __out.push(this.email || '');
     
@@ -1840,7 +1949,7 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <div class="zammad-chat-waiting-spinner">\n    <span class="zammad-chat-waiting-spinner-track"></span>\n    <span class="zammad-chat-waiting-spinner-arc"></span>\n    <span class="zammad-chat-waiting-spinner-icon">\n      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.81C11.31 22.81 10.66 22.46 10.2 21.85L8.7 19.85C8.67 19.81 8.55 19.76 8.5 19.75H8C3.83 19.75 1.25 18.62 1.25 13V8C1.25 3.58 3.58 1.25 8 1.25H16C20.42 1.25 22.75 3.58 22.75 8V13C22.75 17.42 20.42 19.75 16 19.75H15.5C15.42 19.75 15.35 19.79 15.3 19.85L13.8 21.85C13.34 22.46 12.69 22.81 12 22.81ZM8 2.75C4.42 2.75 2.75 4.42 2.75 8V13C2.75 17.52 4.3 18.25 8 18.25H8.5C9.01 18.25 9.59 18.54 9.9 18.95L11.4 20.95C11.75 21.41 12.25 21.41 12.6 20.95L14.1 18.95C14.43 18.51 14.95 18.25 15.5 18.25H16C19.58 18.25 21.25 16.58 21.25 13V8C21.25 4.42 19.58 2.75 16 2.75H8Z"/><path d="M17 8.75H7C6.59 8.75 6.25 8.41 6.25 8C6.25 7.59 6.59 7.25 7 7.25H17C17.41 7.25 17.75 7.59 17.75 8C17.75 8.41 17.41 8.75 17 8.75Z"/><path d="M13 13.75H7C6.59 13.75 6.25 13.41 6.25 13C6.25 12.59 6.59 12.25 7 12.25H13C13.41 12.25 13.75 12.59 13.75 13C13.75 13.41 13.41 13.75 13 13.75Z"/></svg>\n    </span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, mockup\n  "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen\n  polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada\n  padanannya di preseden kit baru. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -2871,6 +2980,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onOtpDigitInput = bind(this.onOtpDigitInput, this);
       this.showOfflineOtp = bind(this.showOfflineOtp, this);
       this.onOfflineSessionInitResult = bind(this.onOfflineSessionInitResult, this);
+      this.applyOnlineHomeState = bind(this.applyOnlineHomeState, this);
       this.applyOfflineHomeState = bind(this.applyOfflineHomeState, this);
       this.enterOfflineMode = bind(this.enterOfflineMode, this);
       this.submitPrechatForm = bind(this.submitPrechatForm, this);
@@ -3715,6 +3825,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             if (pipe.data.phrases) {
               this.updatePhrases(pipe.data.phrases);
             }
+            if (pipe.data.category_options) {
+              this.categoryOptions = pipe.data.category_options;
+            }
             this.statusReceived = true;
             if (this.cssLoaded) {
               this.hidePreload();
@@ -4075,6 +4188,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.showPrechatForm = function(params) {
+      var j, len, menu, opt, ref, selectedValue, toggleBtn;
       if (params == null) {
         params = {};
       }
@@ -4082,12 +4196,58 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         error: params.error,
         notice: params.notice,
         name: params.name,
-        email: params.email
+        email: params.email,
+        category: params.category
       });
       this.el.querySelector('.zammad-chat-prechat-form').addEventListener('submit', this.submitPrechatForm);
       if (this.logoUrl) {
-        return this.updateHomeLogo(this.logoUrl);
+        this.updateHomeLogo(this.logoUrl);
       }
+      menu = this.el.querySelector('.js-prechat-category-menu');
+      selectedValue = params.category;
+      ref = this.categoryOptions || [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        opt = ref[j];
+        menu.insertAdjacentHTML('beforeend', this.view('prechat_category_option')({
+          value: opt.value,
+          label: opt.label,
+          selected: opt.value === selectedValue
+        }));
+      }
+      toggleBtn = this.el.querySelector('.js-prechat-category-toggle');
+      toggleBtn.addEventListener('click', (function(_this) {
+        return function(event) {
+          var isOpen;
+          event.preventDefault();
+          isOpen = !menu.classList.contains('zammad-chat-is-hidden');
+          menu.classList.toggle('zammad-chat-is-hidden', isOpen);
+          toggleBtn.classList.toggle('is-open', !isOpen);
+          return toggleBtn.setAttribute('aria-expanded', (!isOpen).toString());
+        };
+      })(this));
+      return menu.addEventListener('click', (function(_this) {
+        return function(event) {
+          var k, label, len1, option, other, ref1, value, valueEl;
+          option = event.target.closest('.js-prechat-category-option');
+          if (!option) {
+            return;
+          }
+          value = option.dataset.value;
+          label = option.querySelector('span').textContent;
+          _this.el.querySelector('.js-prechat-category-input').value = value;
+          valueEl = _this.el.querySelector('.js-prechat-category-value');
+          valueEl.textContent = label;
+          valueEl.classList.remove('is-placeholder');
+          ref1 = menu.querySelectorAll('.js-prechat-category-option');
+          for (k = 0, len1 = ref1.length; k < len1; k++) {
+            other = ref1[k];
+            other.classList.toggle('is-selected', other === option);
+          }
+          menu.classList.add('zammad-chat-is-hidden');
+          toggleBtn.classList.remove('is-open');
+          return toggleBtn.setAttribute('aria-expanded', 'false');
+        };
+      })(this));
     };
 
     ZammadChat.prototype.setButtonLoading = function(button, loading) {
@@ -4118,16 +4278,18 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.submitPrechatForm = function(event) {
-      var email, emailFormat, name, ref, ref1, ref2, ref3;
+      var category, email, emailFormat, name, ref, ref1, ref2, ref3, ref4, ref5;
       event.preventDefault();
       name = (ref = this.el.querySelector('.zammad-chat-prechat-name')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
       email = (ref2 = this.el.querySelector('.zammad-chat-prechat-email')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
+      category = (ref4 = this.el.querySelector('.js-prechat-category-input')) != null ? (ref5 = ref4.value) != null ? ref5.trim() : void 0 : void 0;
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-      if (!name || !email || !emailFormat.test(email)) {
+      if (!name || !email || !emailFormat.test(email) || !category) {
         this.showPrechatForm({
-          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.'),
+          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name, email, and category.'),
           name: name,
-          email: email
+          email: email,
+          category: category
         });
         return;
       }
@@ -4139,14 +4301,16 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return this.send('chat_offline_session_init', {
           url: window.location.href,
           name: name,
-          email: email
+          email: email,
+          category: category
         });
       } else {
         this.showLoader();
         return this.send('chat_session_init', {
           url: window.location.href,
           name: name,
-          email: email
+          email: email,
+          category: category
         });
       }
     };
@@ -4184,6 +4348,18 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (startAction) {
         return startAction.querySelector('.js-home-start-label').textContent = this.T(this.phrases['chat_phrase_offline_start_button'] || 'Leave us a message');
       }
+    };
+
+    ZammadChat.prototype.applyOnlineHomeState = function() {
+      var notice;
+      if (this.offlineMode) {
+        return;
+      }
+      if (!this.el) {
+        return;
+      }
+      notice = this.el.querySelector('.zammad-chat-home-online-notice');
+      return notice != null ? notice.classList.remove('zammad-chat-is-hidden') : void 0;
     };
 
     ZammadChat.prototype.onOfflineSessionInitResult = function(data) {
@@ -5197,6 +5373,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         input.setAttribute('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
       }
       this.applyOfflineHomeState();
+      this.applyOnlineHomeState();
       if (this.logoUrl) {
         return this.updateHomeLogo(this.logoUrl);
       }

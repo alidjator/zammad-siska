@@ -15,6 +15,7 @@ payload (widget anonim, Fase 5)
       url: 'the browser url',
       name: 'the customer name (Fase 5 -- wajib, lihat DESIGN_LIVE_CHAT_ENHANCEMENT.md 5.1.1)',
       email: 'the customer email (Fase 5 -- wajib)',
+      category: 'kategori tiket, wajib, salah satu value Chat::Session.category_options',
     },
   }
 
@@ -57,20 +58,26 @@ return is sent as message back to peer
 
     return if !check_chat_exists
 
-    name  = @payload['data']['name'].to_s.strip
-    email = @payload['data']['email'].to_s.strip.downcase
+    name     = @payload['data']['name'].to_s.strip
+    email    = @payload['data']['email'].to_s.strip.downcase
+    category = @payload['data']['category'].to_s.strip
 
-    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT)
+    # Atas permintaan user (field Category Prechat, wajib diisi sama
+    # spt name/email): divalidasi thd Chat::Session.category_options
+    # (SUMBER KEBENARAN yang sama dipakai utk menampilkan pilihan ke
+    # widget, lihat chat_status_customer.rb) -- BUKAN daftar hardcode
+    # terpisah yang bisa basi kalau admin ubah opsi Ticket.category.
+    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
       return {
         event: 'chat_session_init',
         data:  {
           state:   'failed',
-          message: __('Please provide a valid name and email address before starting the chat.'),
+          message: __('Please provide a valid name, email, and category before starting the chat.'),
         },
       }
     end
 
-    create_session(chat_id: @payload['data']['chat_id'], name: name, email: email, ticket_id: nil, self_service: false)
+    create_session(chat_id: @payload['data']['chat_id'], name: name, email: email, category: category, ticket_id: nil, self_service: false)
   end
 
   private
@@ -147,7 +154,12 @@ return is sent as message back to peer
   # cuma beda ASAL name/email/ticket_id/self_service, sisanya
   # (geo/dns lookup, pembuatan Chat::Session, broadcast, balasan
   # queue) identik, jadi dipusatkan di sini bukan diduplikasi.
-  def create_session(chat_id:, name:, email:, ticket_id:, self_service:)
+  #
+  # `category:` default `nil` -- jalur follow-up (`self_service_init`)
+  # TIDAK PERNAH mengisinya (tiket-nya SUDAH ADA & SUDAH punya
+  # category sendiri, tidak ditanya ulang), cuma jalur widget anonim
+  # (tiket BARU) yang mengisi.
+  def create_session(chat_id:, name:, email:, ticket_id:, self_service:, category: nil)
     # geo ip lookup
     geo_ip = nil
     if remote_ip
@@ -174,6 +186,7 @@ return is sent as message back to peer
       chat_id:     chat_id,
       name:        name,
       email:       email,
+      category:    category,
       ticket_id:   ticket_id,
       state:       'waiting',
       preferences: {

@@ -1491,6 +1491,14 @@ do(window) ->
             # panjang di sana).
             @launcherEl?.classList.toggle('zammad-chat-launcher--offline', @offlineMode)
             @updatePhrases(pipe.data.phrases) if pipe.data.phrases
+            # Atas permintaan user (field Category Prechat) -- pola
+            # SAMA dgn `@phrases`: disimpan di instance, dibaca nanti
+            # oleh `showPrechatForm` saat form dirender. TIDAK perlu
+            # method `updateX()` terpisah spt `updatePhrases` (yg ada
+            # krn phrases menyentuh BANYAK elemen sekaligus) -- field
+            # ini cuma dipakai SATU tempat (Prechat), cukup assignment
+            # polos, dibaca ulang tiap `showPrechatForm` dipanggil.
+            @categoryOptions = pipe.data.category_options if pipe.data.category_options
             # Bug ditemukan user -- mirror persis dari chat.coffee
             # (lihat catatan panjang di sana): `hidePreload()` HARUS
             # jalan utk STATUS APA PUN, bukan cuma 'online'.
@@ -1886,11 +1894,64 @@ do(window) ->
         notice: params.notice
         name: params.name
         email: params.email
+        category: params.category
       )
       @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
       # Logo custom -- mirror persis dari chat.coffee (lihat catatan
       # panjang di sana).
       @updateHomeLogo(@logoUrl) if @logoUrl
+
+      # Atas permintaan user (field Category Prechat, wajib diisi
+      # sama spt name/email) -- kontrol dropdown CUSTOM (bukan
+      # <select> native, widget ini konsisten pakai kontrol sendiri
+      # spy gaya Able Pro genuinely terpasang, lihat catatan di
+      # views/prechat.eco). Isi menu dipopulasi di sini via loop +
+      # `insertAdjacentHTML` (pola SAMA dgn `onKnowledgeBaseSearchResult`
+      # utk `.zammad-chat-kb-results`) -- BUKAN loop di eco -- dari
+      # `@categoryOptions` (diisi `chat_status_customer`, 1 sumber
+      # kebenaran yg SAMA dipakai server memvalidasi, lihat
+      # `Chat::Session.category_options`).
+      menu           = @el.querySelector('.js-prechat-category-menu')
+      selectedValue  = params.category
+      for opt in (@categoryOptions or [])
+        menu.insertAdjacentHTML 'beforeend', @view('prechat_category_option')(
+          value:    opt.value
+          label:    opt.label
+          selected: opt.value is selectedValue
+        )
+
+      toggleBtn = @el.querySelector('.js-prechat-category-toggle')
+      # Listener DIAJARKAN LANGSUNG di sini (bukan delegasi ke `@el`)
+      # -- SENGAJA, pola SAMA dgn listener `submit` di atas: fungsi
+      # INI SATU-SATUNYA yg pernah mengganti `.zammad-chat-modal`
+      # (beda dari `.js-kb-search`/entri 170 yg KETIMPA `updatePhrases()`
+      # -- Prechat sama sekali tidak disentuh fungsi itu), jadi aman
+      # tanpa delegasi.
+      toggleBtn.addEventListener 'click', (event) =>
+        event.preventDefault()
+        isOpen = !menu.classList.contains('zammad-chat-is-hidden')
+        menu.classList.toggle('zammad-chat-is-hidden', isOpen)
+        toggleBtn.classList.toggle('is-open', !isOpen)
+        toggleBtn.setAttribute('aria-expanded', (!isOpen).toString())
+
+      menu.addEventListener 'click', (event) =>
+        option = event.target.closest('.js-prechat-category-option')
+        return if !option
+
+        value = option.dataset.value
+        label = option.querySelector('span').textContent
+
+        @el.querySelector('.js-prechat-category-input').value = value
+        valueEl = @el.querySelector('.js-prechat-category-value')
+        valueEl.textContent = label
+        valueEl.classList.remove('is-placeholder')
+
+        for other in menu.querySelectorAll('.js-prechat-category-option')
+          other.classList.toggle('is-selected', other is option)
+
+        menu.classList.add('zammad-chat-is-hidden')
+        toggleBtn.classList.remove('is-open')
+        toggleBtn.setAttribute('aria-expanded', 'false')
 
     # Atas permintaan user -- mirror persis dari chat.coffee (lihat
     # komentar detail di sana), disesuaikan ke DOM API polos.
@@ -1917,15 +1978,23 @@ do(window) ->
     submitPrechatForm: (event) =>
       event.preventDefault()
 
-      name  = @el.querySelector('.zammad-chat-prechat-name')?.value?.trim()
-      email = @el.querySelector('.zammad-chat-prechat-email')?.value?.trim()
+      name     = @el.querySelector('.zammad-chat-prechat-name')?.value?.trim()
+      email    = @el.querySelector('.zammad-chat-prechat-email')?.value?.trim()
+      # Atas permintaan user (field Category, wajib sama spt
+      # name/email) -- nilai SUNGGUHAN disimpan di input tersembunyi
+      # `.js-prechat-category-input` (diisi lewat klik opsi menu,
+      # lihat `showPrechatForm`), BUKAN dibaca dari tombol toggle-nya
+      # (yang cuma menampilkan LABEL, bisa beda kapitalisasi/dst dari
+      # `value` sungguhan yang dikirim ke server).
+      category = @el.querySelector('.js-prechat-category-input')?.value?.trim()
 
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-      if !name || !email || !emailFormat.test(email)
+      if !name || !email || !emailFormat.test(email) || !category
         @showPrechatForm
-          error: @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.')
-          name:  name
-          email: email
+          error:    @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name, email, and category.')
+          name:     name
+          email:    email
+          category: category
         return
 
       # Dipakai lagi nanti utk avatar inisial di bubble pesan sendiri
@@ -1945,16 +2014,18 @@ do(window) ->
 
       if @offlineMode
         @send('chat_offline_session_init'
-          url:   window.location.href
-          name:  name
-          email: email
+          url:      window.location.href
+          name:     name
+          email:    email
+          category: category
         )
       else
         @showLoader()
         @send('chat_session_init'
-          url: window.location.href
-          name: name
-          email: email
+          url:      window.location.href
+          name:     name
+          email:    email
+          category: category
         )
 
     # ============================================================
@@ -2011,6 +2082,20 @@ do(window) ->
       startAction = @el.querySelector('.js-home-start-action')
       if startAction
         startAction.querySelector('.js-home-start-label').textContent = @T(@phrases['chat_phrase_offline_start_button'] || 'Leave us a message')
+
+    # Atas permintaan user ("pada halaman home saat agent online,
+    # ditambahkan juga alert seperti tadi") -- kebalikan
+    # `applyOfflineHomeState()` di atas, pola SAMA PERSIS (aman
+    # dipanggil berulang kali, cukup toggle class, tidak menggambar
+    # ulang apa pun). Notice ini SENGAJA tidak diberi konten dinamis
+    # lain (spt status dot di welcome-subtext) -- cuma satu alert
+    # statis, beda dari offline yg jg mengubah subtext & label tombol.
+    applyOnlineHomeState: =>
+      return if @offlineMode
+      return if !@el
+
+      notice = @el.querySelector('.zammad-chat-home-online-notice')
+      notice?.classList.remove('zammad-chat-is-hidden')
 
     onOfflineSessionInitResult: (data) =>
       if data.state isnt 'ok'
@@ -2920,6 +3005,14 @@ do(window) ->
 
       # Bug ditemukan user -- lihat catatan panjang di chat.coffee.
       @applyOfflineHomeState()
+      # Atas permintaan user (notice Home saat agent online) -- pola
+      # SAMA, dipanggil di titik yg SAMA (`updatePhrases` jalan tiap
+      # `chat_status_customer`, status APA PUN) supaya notice yg
+      # benar SELALU tampil begitu status berubah arah manapun --
+      # `.zammad-chat-tab-body--home` di atas SUDAH digambar ulang
+      # PENUH dari template (notice online balik ke hidden by default
+      # tiap kali), jadi di sini cukup tampilkan kalau memang online.
+      @applyOnlineHomeState()
       # Logo custom -- mirror persis dari chat.coffee (lihat catatan
       # panjang di sana).
       @updateHomeLogo(@logoUrl) if @logoUrl

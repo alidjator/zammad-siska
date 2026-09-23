@@ -1,0 +1,10 @@
+<!-- Atas pelajaran entri 191 (ACTIVITY_LOG_SISKA.md -- ikon centang
+ganda rusak krn 2 sumber render SVG tidak sinkron): ikon centang di
+sini SELALU dirender tanpa syarat, lalu tampil/sembunyi MURNI lewat
+CSS class is-selected (chat.scss) -- klik opsi lain (chat-no-jquery.coffee)
+cukup tukar class ke row yang tepat, TIDAK PERNAH perlu menyisipkan
+atau menghapus markup SVG lagi. -->
+<div class="zammad-chat-prechat-category-option js-prechat-category-option<%= ' is-selected' if @selected %>" data-value="<%- @value %>">
+  <span><%- @label %></span>
+  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+</div>

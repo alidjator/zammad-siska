@@ -22,6 +22,27 @@ class Chat::Session < ApplicationModel
 
   store :preferences
 
+  # Atas permintaan user ("saya mau menambahkan kategori ini pada
+  # halaman messages, sejalan dengan inputan name, email"): field
+  # Category Prechat wajib punya SATU sumber kebenaran utk daftar
+  # pilihannya -- BUKAN dihardcode di frontend (bisa basi kalau admin
+  # ubah/tambah lewat Admin > Objects > Ticket > category) -- dibaca
+  # LANGSUNG dari `ObjectManager::Attribute` custom field Ticket yang
+  # SUDAH ADA (`no_category` dikecualikan, sama seperti
+  # `script/create_siska_report_profiles.rb` yang sudah pakai pola
+  # baca yang sama). Dipusatkan di sini (bukan ditulis ulang di
+  # `chat_status_customer.rb` MAUPUN `chat_session_init.rb`/
+  # `chat_offline_session_init.rb`) supaya 1 sumber dipakai baik utk
+  # menampilkan pilihan (widget) maupun memvalidasi nilai (server).
+  def self.category_options
+    attr = ObjectManager::Attribute.get(object: 'Ticket', name: 'category')
+    return [] if !attr
+
+    (attr.data_option['options'] || {}).except('no_category').map do |value, label|
+      { value: value, label: label }
+    end
+  end
+
   # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
   # global + per-agent. docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section
   # 5.2.6. Dipusatkan di sini (bukan diulang di
@@ -134,6 +155,16 @@ class Chat::Session < ApplicationModel
       title:         title.presence || "Live Chat - #{name.presence || email}",
       group_id:      group_id,
       customer_id:   customer.id,
+      # Atas permintaan user (field Category Prechat) -- `category`
+      # kolom NYATA custom field Ticket yang SUDAH ADA (`no_category`
+      # = kosong/default), diisi dari nilai yang visitor pilih di
+      # Prechat/OfflineHome (`Chat::Session#category`, lihat migration
+      # 20260922000001). `nil`-safe: sesi lama (sebelum field ini ada)
+      # & jalur follow-up user login (`self_service_init`, TIDAK
+      # pernah lewat Prechat) tetap `category: nil` -- Ticket sendiri
+      # SUDAH menerima kosong (bukan field yang divalidasi WAJIB di
+      # level model Ticket, cuma wajib di layar Admin/Edit agent).
+      category:      category,
       created_by_id: actor_id,
       updated_by_id: actor_id,
     )

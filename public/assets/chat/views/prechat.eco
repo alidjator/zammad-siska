@@ -9,23 +9,48 @@
     <% if @error: %>
       <div class="zammad-chat-prechat-error"><%- @error %></div>
     <% end %>
-    <!-- Atas permintaan user: notice BUKAN error (kabar baik, mis.
-    "agent sekarang tersedia") pakai gaya notice SUKSES Able Pro
-    (outline hijau), TERPISAH dari `.zammad-chat-prechat-error` (tetap
-    merah, dipakai pesan gagal validasi sungguhan). -->
+    <!-- Notice BUKAN error (kabar baik, mis. "agent sekarang
+    tersedia"), TERPISAH dari `.zammad-chat-prechat-error` (tetap
+    merah, dipakai pesan gagal validasi sungguhan). Atas permintaan
+    user (audit kit Able Pro TAILWIND baru): pola alert diganti ke
+    `.alert-success` GENUINE kit baru (lihat chat.scss, sama dgn
+    notice Home). Ikon centang stroke lama diganti Tabler
+    `circle-check` (diekstrak+diverifikasi dgn cara sama spt ikon
+    Home). -->
     <% if @notice: %>
       <div class="zammad-chat-prechat-notice">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7.75 12 2.83 2.83 5.67-5.66"/></svg>
+        <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>
         <span><%- @notice %></span>
       </div>
     <% end %>
+    <!-- Atas permintaan user ("saya mau menambahkan kategori ini pada
+    halaman messages, sejalan dengan inputan name, email"): field
+    wajib diisi, gaya & tinggi identik dgn Name/Email di bawah.
+    Ditaruh PALING ATAS (urutan Category -> Name -> Email, atas
+    permintaan user) -- BUKAN <select> native, widget ini konsisten
+    pakai kontrol custom (pola sama dgn emoji-picker) supaya gaya Able
+    Pro genuinely terpasang (select native tidak bisa di-skin lintas-
+    browser). Isi pilihan (.js-prechat-category-menu) SENGAJA kosong
+    di sini, dipopulasi via JS dari @categoryOptions
+    (chat-no-jquery.coffee, showPrechatForm) -- pola SAMA dgn
+    `.zammad-chat-kb-results` (views/help.eco) yg jg dipopulasi via
+    JS, bukan loop di eco. -->
+    <div class="zammad-chat-prechat-field zammad-chat-prechat-field--category">
+      <label><%- @T(@phrases['chat_phrase_prechat_category_label'] || 'Category') %></label>
+      <button type="button" class="zammad-chat-prechat-category js-prechat-category-toggle<%= ' zammad-chat-field-invalid' if @error and !@category %>" aria-expanded="false">
+        <span class="zammad-chat-prechat-category-value js-prechat-category-value<%= ' is-placeholder' if !@category %>"><%- @T(@phrases['chat_phrase_prechat_category_placeholder'] || 'Select a category') %></span>
+        <svg class="zammad-chat-prechat-category-chevron" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.919 8.18H6.079c-.96 0-1.44 1.16-.76 1.84l5.18 5.18c.83.83 2.18.83 3.01 0l1.97-1.97 3.21-3.21c.67-.68.19-1.84-.77-1.84z"/></svg>
+      </button>
+      <input type="hidden" class="js-prechat-category-input" value="<%- @category || '' %>">
+      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>
+    </div>
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_name_label'] || 'Your name') %></label>
-      <input type="text" class="zammad-chat-prechat-name" value="<%- @name || '' %>" required>
+      <input type="text" class="zammad-chat-prechat-name<%= ' zammad-chat-field-invalid' if @error and !@name %>" value="<%- @name || '' %>" required>
     </div>
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_email_label'] || 'Your email') %></label>
-      <input type="email" class="zammad-chat-prechat-email" value="<%- @email || '' %>" required>
+      <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%- @email || '' %>" required>
     </div>
     <!-- Atas permintaan user ("hilangkan icon pada button Start
     Chat"): ikon paper-plane dihapus, teks polos saja. -->

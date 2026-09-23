@@ -187,13 +187,13 @@
 
 .zammad-chat-welcome-title {
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.3;
 }
 
 .zammad-chat-welcome-subtext {
   font-size: 13px;
-  color: #5b6b79;
+  color: rgba(33, 37, 41, 0.75);
 }
 
 .zammad-chat-header-title {
@@ -518,10 +518,18 @@
   color: #4680ff;
 }
 
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--sent {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--read {
+  color: #ffffff;
+}
+
 .zammad-chat-message-body {
   white-space: pre-line;
   overflow-wrap: break-word;
-  border-radius: 8px;
+  border-radius: 4px;
   min-width: 0;
 }
 
@@ -550,8 +558,12 @@
 }
 
 .zammad-chat-message--customer .zammad-chat-message-body {
-  background: rgba(62, 201, 214, 0.12);
-  color: #1d2630;
+  background: #4680ff;
+  color: white;
+}
+
+.zammad-chat-message--agent .zammad-chat-message-body {
+  border: 1px solid #e8ebee;
 }
 
 .zammad-chat-message--unread {
@@ -643,9 +655,8 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   width: 100%;
-  border: 1px solid #bec8d0;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border: none;
+  padding: 10px 4px;
   max-height: 96px;
   min-height: 20px;
   font-family: inherit;
@@ -654,18 +665,11 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  background: white;
+  background: transparent;
   -webkit-box-shadow: none;
   box-shadow: none;
   outline: none;
   overflow: auto;
-  -webkit-transition: border-color 100ms ease;
-  -o-transition: border-color 100ms ease;
-  transition: border-color 100ms ease;
-}
-.zammad-chat-input:focus {
-  border: 2px solid #4680ff;
-  padding: 9px 13px;
 }
 
 .zammad-chat-input:empty::before {
@@ -700,11 +704,11 @@
   justify-content: center;
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   -webkit-appearance: none;
@@ -757,13 +761,14 @@
   justify-content: center;
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   margin-left: auto;
   padding: 0;
   border: none;
-  border-radius: 50%;
-  background: #4680ff;
+  border-radius: 12px;
+  background: transparent;
+  color: #4680ff;
   cursor: pointer;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -774,14 +779,13 @@
   font-family: inherit;
 }
 .zammad-chat-send svg {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   fill: none;
-  stroke: white;
+  stroke: currentColor;
 }
 .zammad-chat-send:hover {
-  -webkit-filter: brightness(0.92);
-  filter: brightness(0.92);
+  background: rgba(70, 128, 255, 0.12);
 }
 
 .zammad-chat-input:disabled {
@@ -1071,7 +1075,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(70, 128, 255, 0.08);
+  background: rgba(70, 128, 255, 0.1);
   color: #4680ff;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -1088,12 +1092,12 @@
 
 .zammad-chat-prechat-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
 .zammad-chat-prechat-subtext {
-  color: #5b6b79;
+  color: rgba(33, 37, 41, 0.75);
   font-size: 13px;
   line-height: 1.5;
   margin-bottom: 20px;
@@ -1129,13 +1133,13 @@
   color: #1d2630;
 }
 
-.zammad-chat-prechat-field input {
+.zammad-chat-prechat-field input,
+.zammad-chat-prechat-category {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  height: 44px;
   font-family: inherit;
   font-size: 14px;
-  padding: 0 16px;
+  padding: 12.8px 12px;
   border: 1px solid #bec8d0;
   border-radius: 8px;
   outline: none;
@@ -1143,9 +1147,120 @@
   -o-transition: border-color 100ms ease;
   transition: border-color 100ms ease;
 }
-.zammad-chat-prechat-field input:focus {
-  border: 2px solid #4680ff;
-  padding: 0 15px;
+.zammad-chat-prechat-field input:focus,
+.zammad-chat-prechat-category:focus {
+  border-color: #4680ff;
+}
+
+.zammad-chat-prechat-category {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: white;
+  color: #1d2630;
+  cursor: pointer;
+  text-align: left;
+}
+.zammad-chat-prechat-category.is-open {
+  border-color: #4680ff;
+}
+
+.zammad-chat-prechat-category-value.is-placeholder {
+  color: rgba(33, 37, 41, 0.75);
+}
+
+.zammad-chat-prechat-category-chevron {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  color: rgba(33, 37, 41, 0.75);
+  -webkit-transition: -webkit-transform 120ms ease;
+  transition: -webkit-transform 120ms ease;
+  -o-transition: transform 120ms ease;
+  transition: transform 120ms ease;
+  transition: transform 120ms ease, -webkit-transform 120ms ease;
+}
+
+.zammad-chat-prechat-category.is-open .zammad-chat-prechat-category-chevron {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.zammad-chat-prechat-field--category {
+  position: relative;
+}
+
+.zammad-chat-prechat-category-menu:not(.zammad-chat-is-hidden) {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  gap: 2px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid #e8ebee;
+  border-radius: 8px;
+  -webkit-box-shadow: 0 4px 24px rgba(62, 57, 107, 0.18);
+  box-shadow: 0 4px 24px rgba(62, 57, 107, 0.18);
+  padding: 8px;
+}
+
+.zammad-chat-prechat-category-option {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1d2630;
+  cursor: pointer;
+}
+.zammad-chat-prechat-category-option:hover {
+  background: rgba(70, 128, 255, 0.1);
+}
+.zammad-chat-prechat-category-option.is-selected {
+  background: rgba(70, 128, 255, 0.1);
+  color: #4680ff;
+}
+
+.zammad-chat-prechat-category-check {
+  display: none;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
+
+.zammad-chat-prechat-category-option.is-selected .zammad-chat-prechat-category-check {
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+}
+
+.zammad-chat-prechat-field input.zammad-chat-field-invalid,
+.zammad-chat-prechat-category.zammad-chat-field-invalid {
+  border-color: #dc2626;
 }
 
 .zammad-chat-prechat-error {
@@ -1160,20 +1275,18 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 12px 20px;
   border-radius: 8px;
-  background: transparent;
-  border: 1px solid currentColor;
-  color: #2ca87f;
+  background: rgba(44, 168, 127, 0.2);
+  border: 1px solid rgba(44, 168, 127, 0.2);
+  color: #1a8c61;
   font-size: 13px;
   line-height: 1.4;
 }
 .zammad-chat-prechat-notice svg {
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
 }
 
 /*
@@ -1280,7 +1393,7 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 20px;
+  padding: 25px;
   gap: 12px;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -1401,6 +1514,29 @@
   background: white;
   color: #4680ff;
   border: 1px solid #4680ff;
+}
+.zammad-chat-home-action--secondary:hover {
+  background: #4680ff;
+  color: white;
+}
+
+.zammad-chat-home-action,
+.zammad-chat-prechat-submit {
+  height: auto;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-weight: 500;
+  text-transform: none;
+}
+.zammad-chat-home-action:hover,
+.zammad-chat-prechat-submit:hover {
+  -webkit-filter: none;
+  filter: none;
+  background: #3f78ff;
+}
+.zammad-chat-home-action:active,
+.zammad-chat-prechat-submit:active {
+  background: #386eff;
 }
 
 .zammad-chat-prechat-submit,
@@ -1734,65 +1870,28 @@
 }
 
 .zammad-chat-waiting-spinner {
-  position: relative;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   margin-bottom: 10px;
-}
-
-.zammad-chat-waiting-spinner-track {
-  position: absolute;
-  inset: 0;
   border-radius: 50%;
-  border: 4px solid #e8ebee;
-}
-
-.zammad-chat-waiting-spinner-arc {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 4px solid transparent;
-  border-top-color: #4680ff;
-  border-right-color: #4680ff;
+  border: 4px solid #4680ff;
+  border-left-color: transparent;
   -webkit-animation: zammad-chat-spin 900ms linear infinite;
   animation: zammad-chat-spin 900ms linear infinite;
 }
 
-.zammad-chat-waiting-spinner-icon {
-  position: absolute;
-  inset: 0;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  color: #4680ff;
-}
-.zammad-chat-waiting-spinner-icon svg {
-  fill: currentColor;
-  stroke: none;
-}
-
-.zammad-chat-waiting-spinner-arc--danger {
-  border-top-color: #dc2626;
-  border-right-color: #dc2626;
-}
-
-.zammad-chat-waiting-spinner-icon--danger {
-  color: #dc2626;
+.zammad-chat-waiting-spinner--danger {
+  border-color: #dc2626;
+  border-left-color: transparent;
 }
 
 .zammad-chat-waiting-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .zammad-chat-waiting-subtext {
-  color: #5b6b79;
+  color: rgba(33, 37, 41, 0.75);
   font-size: 13px;
   max-width: 220px;
   line-height: 1.5;
@@ -1966,8 +2065,8 @@
   margin-top: 8px;
   display: inline-block;
   padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(70, 128, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(70, 128, 255, 0.1);
   color: #4680ff;
   font-size: 13px;
   font-weight: 600;
@@ -1977,12 +2076,15 @@
   margin-top: 22px;
   border: none;
   background: transparent;
-  color: #5b6b79;
+  color: #4680ff;
   font-family: inherit;
   font-size: 13px;
-  text-decoration: underline;
+  text-decoration: none;
   cursor: pointer;
   padding: 0;
+}
+.zammad-chat-waiting-cancel:hover {
+  text-decoration: underline;
 }
 
 .zammad-chat-welcome-offline-status {
@@ -1994,7 +2096,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #5b6b79;
+  color: rgba(33, 37, 41, 0.75);
 }
 
 .zammad-chat-welcome-offline-dot {
@@ -2007,7 +2109,6 @@
 }
 
 .zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden) {
-  position: relative;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -2015,25 +2116,40 @@
   -ms-flex-align: center;
   align-items: center;
   gap: 16px;
-  padding: 16px;
-  padding-top: 24px;
+  padding: 12px 20px;
   border-radius: 8px;
-  background: transparent;
-  border: 1px solid currentColor;
-  color: #e58a00;
+  background: rgba(229, 138, 0, 0.2);
+  border: 1px solid rgba(229, 138, 0, 0.2);
+  color: #da6d00;
   font-size: 12.5px;
   line-height: 1.5;
   margin-bottom: 4px;
 }
-.zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  border-top: 8px solid rgba(229, 138, 0, 0.38);
-  pointer-events: none;
+
+.zammad-chat-home-offline-notice-icon {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
 }
-.zammad-chat-home-offline-notice:not(.zammad-chat-is-hidden) svg {
+
+.zammad-chat-home-online-notice:not(.zammad-chat-is-hidden) {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: rgba(62, 201, 214, 0.2);
+  border: 1px solid rgba(62, 201, 214, 0.2);
+  color: #28b5c6;
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.zammad-chat-home-online-notice-icon {
   -ms-flex-negative: 0;
   flex-shrink: 0;
 }
