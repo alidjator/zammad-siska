@@ -32,14 +32,27 @@ diterapkan proaktif sampai user eksplisit minta dilanjutkan kembali.
   pernah ke grup produksi — supaya tidak mengirim notifikasi email ke staf
   sungguhan.
 - Mockup/frontend wajib merujuk ke starter kit Able Pro asli di
-  `/usr/local/src/claudeai/able-pro-vue-v1.7.0/full-version`, bukan dari
-  ingatan/tebakan.
+  `/usr/local/src/claudeai/able-pro-tailwind-v1.2.0` (kit **Tailwind**,
+  BUKAN lagi kit Vue/Vuetify v1.7.0 lama — referensi dipindah 2026-09-23),
+  bukan dari ingatan/tebakan.
 - Kerjakan tugas langsung sendiri — jangan delegasikan ke Agent/Workflow
   tool (subagent paralel), untuk jenis tugas apa pun.
 - Balas ke user dalam Bahasa Indonesia.
 
 ## Disiplin deploy & build
 
+- **Kerja SISKA (widget maupun backend) SELALU langsung di repo asli
+  `/usr/local/src/zammad-staging/app` — JANGAN di clone/scratchpad
+  manapun di `/tmp/...`.** Insiden 2026-09-23: satu sesi penuh (redesign
+  kit Tailwind layar Messages) dikerjakan + `npx gulp build` di scratchpad
+  clone yang ternyata sudah lama diverged dari live (histori commit beda,
+  `origin/main` lokalnya ketinggalan berhari-hari) — baru ketahuan setelah
+  user screenshot widget live yang sama sekali tidak berubah walau sudah
+  "selesai di-deploy". Edit, `npx gulp build`, DAN `docker cp` semuanya
+  wajib dari path repo asli ini, supaya git history & container yang
+  dideploy selalu dari sumber yang SAMA. Scratchpad (`/tmp/.../scratchpad/`)
+  hanya boleh dipakai utk file benar2 sementara/di luar repo (mis. mockup
+  Artifact `.dc.html`), tidak pernah utk kode widget/backend.
 - Ubah `.coffee`/`.eco` widget → wajib `npx gulp build` ulang (dijalankan
   dari `public/assets/chat/`, BUKAN root repo) sebelum deploy. File `.eco`
   dikompilasi ke dalam bundle JS saat build time (`gulp-eco`), tidak dibaca
