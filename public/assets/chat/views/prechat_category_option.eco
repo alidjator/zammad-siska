@@ -6,5 +6,5 @@ cukup tukar class ke row yang tepat, TIDAK PERNAH perlu menyisipkan
 atau menghapus markup SVG lagi. -->
 <div class="zammad-chat-prechat-category-option js-prechat-category-option<%= ' is-selected' if @selected %>" data-value="<%- @value %>">
   <span><%- @label %></span>
-  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M845 650C832.237 650 825.686 646.124 818 641C815 639 726 550 620 444L427 251L335 343C256 422 242 435 237 437C226.703 440.433 210.034 444.356 199 437C190.706 432.854 184.839 424.259 180 417C177 412 178 411 178 400S177 388 180 382C185.88 372.2000000000001 396.996 159.145 409 154C415 151 418 150 424 150C436.133 150 440.926 152.463 448 156C451.27 158.18 872.944 576.9159999999999 877 583C882.59 590.453 885 599.9300000000001 885 611C885 631.797 865.878 650 845 650z"/></g></svg>
 </div>
