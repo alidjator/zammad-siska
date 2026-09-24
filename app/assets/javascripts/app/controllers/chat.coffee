@@ -18,6 +18,9 @@ class App.CustomerChat extends App.Controller
     'change .js-onlineSwitch': 'onOnlineSwitch'
     'input .js-listSearch':    'onListSearch'
     'click .js-goOnline':      'onGoOnline'
+    'click .js-settingsCancel': 'closeSettings'
+    'submit .js-settingsForm':  'saveSettings'
+    'change .js-topicActive':   'onTopicActiveChange'
 
   elements:
     '.chat-workspace':  'workspace'
@@ -27,6 +30,7 @@ class App.CustomerChat extends App.Controller
     '.js-onlineLabel':  'onlineLabel'
     '.js-detailEmpty':  'detailEmpty'
     '.js-offlineBanner': 'offlineBanner'
+    '.js-settingsView':  'settingsView'
 
   sounds:
     chat_new: new Audio('assets/sounds/chat_new.mp3')
@@ -428,11 +432,110 @@ class App.CustomerChat extends App.Controller
     App.WebSocket.send(event:'chat_session_start', chat_id: chat_id)
     @idleTimeoutStop()
 
+  # Redesign sisi agent (Tahap 5) -- halaman Pengaturan menggantikan modal
+  # `Setting` lama. Dipanggil dari tombol Settings ATAU dari `switch` (Online
+  # tanpa topik aktif, dgn pesan error + `active` = status yang diminta),
+  # persis seperti modal dulu. Jendela chat tetap hidup di belakangnya.
   settings: (params = {}) ->
-    new Setting(
-      windowSpace: @
-      errors: params.errors
-      active: params.active
+    @openSettings(params)
+
+  openSettings: (params = {}) =>
+    preferences = @Session.get('preferences') || {}
+    chatPrefs = preferences.chat || {}
+    active = chatPrefs.active || {}
+    phrase = chatPrefs.phrase || {}
+    @settingsActive = params.active
+
+    chats = for chat in App.Chat.all()
+      id: chat.id
+      name: chat.displayName()
+      phrase: phrase[chat.id] || phrase[chat.id.toString()]
+      active: active[chat.id] is 'on' || active[chat.id.toString()] is 'on'
+
+    @settingsView.html App.view('customer_chat/siska_settings')(
+      preferences:      _.extend({ max_windows: @maxChatWindows }, chatPrefs)
+      chats:            chats
+      error:            params.errors?.settings
+      attachmentGlobal: !!App.Config.get('chat_attachment_enabled')
+      policy:           @meta.attachment_policy
+      firstname:        App.Session.get('firstname')
+    )
+    @el.find('.siska-chat-page').addBack('.siska-chat-page').addClass('is-settings')
+    @settingsView.removeClass('hidden')
+    @settingsView.find('.js-maxWindows').trigger('focus')
+
+  closeSettings: (e) =>
+    e?.preventDefault()
+    @settingsView.addClass('hidden').empty()
+    @el.find('.siska-chat-page').addBack('.siska-chat-page').removeClass('is-settings')
+    @$('.js-settings').trigger('focus')
+
+  onTopicActiveChange: (e) =>
+    input = $(e.currentTarget)
+    input.closest('.js-topic').find('.js-topicState').text(
+      App.i18n.translatePlain(if input.prop('checked') then 'Receiving chats' else 'Not receiving chats')
+    )
+
+  saveSettings: (e) =>
+    e.preventDefault()
+    view = @settingsView
+    previous = @Session.get('preferences')?.chat || {}
+
+    chat =
+      max_windows:      view.find('.js-maxWindows').val()
+      alternative_name: view.find('.js-alternativeName').val()
+      avatar_state:     if view.find('.js-avatarState').prop('checked') then 'enabled' else 'disabled'
+      phrase:           {}
+      active:           {}
+    # saklar lampiran hanya tampil bila fitur global menyala; kalau tidak,
+    # nilai lama dipertahankan (modal lama juga tidak menyentuhnya)
+    attachment = view.find('.js-attachmentEnabled')
+    if attachment.length
+      chat.attachment_enabled = attachment.prop('checked')
+    else if previous.attachment_enabled?
+      chat.attachment_enabled = previous.attachment_enabled
+    view.find('.js-topic').each (index, el) ->
+      topic = $(el)
+      id = topic.attr('data-chat-id')
+      chat.phrase[id] = topic.find('.js-topicPhrase').val()
+      chat.active[id] = 'on' if topic.find('.js-topicActive').prop('checked')
+
+    # berlaku langsung tanpa reload (sama dgn modal lama)
+    @maxChatWindows = parseInt(chat.max_windows, 10)
+
+    # semua topik dimatikan -> agent Offline
+    @settingsActive = false if _.isEmpty(chat.active)
+
+    save = view.find('.js-settingsSave').prop('disabled', true)
+    @ajax(
+      id:          'preferences'
+      type:        'PUT'
+      url:         "#{@apiPath}/users/preferences"
+      data:        JSON.stringify(chat: chat)
+      processData: true
+      success:     =>
+        if @settingsActive is true || @settingsActive is false
+          @meta.active = @settingsActive
+          @pushState()
+        else
+          App.WebSocket.send(event:'chat_status_agent')
+        App.User.full(
+          App.Session.get('id'),
+          =>
+            @closeSettings()
+            @renderHeader()
+            @renderList()
+            @updateNavMenu()
+          ,
+          true
+        )
+      error: (xhr) =>
+        save.prop('disabled', false)
+        data = try JSON.parse(xhr.responseText) catch then {}
+        @notify(
+          type: 'error'
+          msg:  data?.message || __('The settings could not be saved.')
+        )
     )
 
   idleTimeoutStart: =>
@@ -1501,78 +1604,6 @@ class App.ChatWindow extends App.Controller
       controller: 'TicketCreate'
       params:     clean_params
       show:       true
-    )
-
-class Setting extends App.ControllerModal
-  buttonClose: true
-  buttonCancel: true
-  buttonSubmit: true
-  head: __('Settings')
-
-  content: =>
-
-    preferences = @Session.get('preferences')
-    if !preferences
-      preferences = {}
-    if !preferences.chat
-      preferences.chat = {}
-    if !preferences.chat.active
-      preferences.chat.active = {}
-    if !preferences.chat.phrase
-      preferences.chat.phrase = {}
-    if !preferences.chat.max_windows
-      preferences.chat.max_windows = @windowSpace.maxChatWindows
-
-    App.view('customer_chat/setting')(
-      chats: App.Chat.all()
-      preferences: preferences
-      errors: @errors || {}
-      chatAttachmentEnabled: App.Config.get('chat_attachment_enabled')
-    )
-
-  submit: (e) =>
-    e.preventDefault()
-    params = @formParam(e.target)
-
-    @formDisable(e)
-
-    # update runtime
-    @windowSpace.maxChatWindows = params.chat.max_windows
-
-    # disable chat if we have no active chat selected
-    if params.chat && ( _.isEmpty(params.chat.active) || !_.includes(_.values(params.chat.active), 'on') )
-      @active = false
-
-    # update user preferences
-    @ajax(
-      id:          'preferences'
-      type:        'PUT'
-      url:         "#{@apiPath}/users/preferences"
-      data:        JSON.stringify(params)
-      processData: true
-      success:     @success
-      error:       @error
-    )
-
-  success: (data, status, xhr) =>
-    if @active is true || @active is false
-      @windowSpace.meta.active = @active
-      @windowSpace.pushState()
-    else
-      App.WebSocket.send(event:'chat_status_agent')
-    App.User.full(
-      App.Session.get('id'),
-      =>
-        @close()
-      ,
-      true
-    )
-
-  error: (xhr, status, error) =>
-    data = JSON.parse(xhr.responseText)
-    @notify(
-      type: 'error'
-      msg:  data.message
     )
 
 class CustomerChatRouter extends App.ControllerPermanent

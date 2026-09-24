@@ -241,7 +241,24 @@ returns
       seads_available:                   seads_available(chat_ids),
       seads_total:                       seads_total(chat_ids),
       active:                            Chat::Agent.state(user_id),
+      # Redesign sisi agent (Tahap 5) -- kotak "Managed by admin" di halaman
+      # Pengaturan. Setting-nya `frontend: false`, jadi dikirim lewat payload
+      # khusus agent ini, bukan dibuka ke semua browser.
+      attachment_policy:                 attachment_policy,
       assets:                            assets,
+    }
+  end
+
+  # Batas yang BENAR-BENAR berlaku, dihitung sama dgn
+  # ChatAttachmentsController#create (Setting dibatasi hard cap; kosong/0 =
+  # hard cap), supaya angka yang dilihat agent tidak menyimpang dari server.
+  def self.attachment_policy
+    hard_cap = ChatAttachmentsController::MAX_SIZE_MB_HARD_CAP
+    max_size_mb = [Setting.get('chat_attachment_max_size_mb').to_i, hard_cap].min
+    max_size_mb = hard_cap if max_size_mb <= 0
+    {
+      max_size_mb:        max_size_mb,
+      allowed_extensions: Setting.get('chat_attachment_allowed_extensions').to_s.split(',').map(&:strip).compact_blank,
     }
   end
 

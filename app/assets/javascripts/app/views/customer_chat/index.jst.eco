@@ -1,5 +1,6 @@
 <div class="chat main siska-agent siska-chat-page">
-  <div class="siska-chat-header">
+  <div class="siska-settings-view js-settingsView hidden"></div>
+  <div class="siska-chat-header js-chatView">
     <div class="siska-chat-header-title">
       <h1 class="s-h1"><%- @T('Customer Chat') %></h1>
       <div class="s-muted s-small js-summary"></div>
@@ -15,12 +16,12 @@
       </button>
     </div>
   </div>
-  <div class="s-alert s-alert-warning siska-chat-offline js-offlineBanner hidden" role="status">
+  <div class="s-alert s-alert-warning siska-chat-offline js-chatView js-offlineBanner hidden" role="status">
     <%- @SiskaIcon('wifi-slash', 20) %>
     <span class="siska-chat-offline-text"><%- @T('You are |offline|. New chats will not be assigned to you until you go online.') %></span>
     <button type="button" class="s-btn s-btn-primary s-btn-sm js-goOnline"><%- @T('Go online') %></button>
   </div>
-  <div class="siska-chat-layout">
+  <div class="siska-chat-layout js-chatView">
     <aside class="s-card siska-chat-list">
       <div class="siska-chat-list-search">
         <div class="s-input-icon">

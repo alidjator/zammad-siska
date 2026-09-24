@@ -1,0 +1,100 @@
+<!-- Redesign sisi agent (Tahap 5): halaman Pengaturan menggantikan modal
+     Settings. Isian & perilaku SAMA dgn modal lama (docs/INVENTORY_AGENT_CHAT.md
+     bagian 3): max_windows, alternative_name, attachment_enabled (hanya bila
+     saklar global menyala), avatar_state, phrase & active per topik. -->
+<div class="siska-chat-header">
+  <div class="siska-chat-header-title">
+    <h1 class="s-h1"><%- @T('Live Chat Settings') %></h1>
+    <div class="s-muted s-small"><%- @T('Set your capacity, greetings per topic, and attachments for the chats you handle.') %></div>
+  </div>
+  <div class="siska-chat-header-actions">
+    <button type="button" class="s-btn s-btn-outline-secondary siska-chat-settings js-settingsCancel"><%- @T('Cancel') %></button>
+    <button type="submit" form="siska-settings-form" class="s-btn s-btn-primary siska-chat-settings js-settingsSave"><%- @SiskaIcon('check', 16) %><%- @T('Save changes') %></button>
+  </div>
+</div>
+
+<% if @error: %>
+  <div class="s-alert s-alert-danger siska-settings-error" role="alert"><%- @SiskaIcon('warning', 20) %><span><%- @T(@error) %></span></div>
+<% end %>
+
+<form id="siska-settings-form" class="siska-settings-grid js-settingsForm" novalidate>
+  <div class="siska-settings-col">
+    <section class="s-card">
+      <div class="s-card-header siska-settings-card-head"><h2 class="s-h2"><%- @T('General') %></h2></div>
+      <div class="s-card-body siska-settings-body">
+        <div class="siska-field">
+          <label class="siska-field-label" for="siska-max-windows"><%- @T('Maximum concurrent chats') %></label>
+          <div class="siska-select">
+            <select id="siska-max-windows" class="s-form-control js-maxWindows">
+              <% for count in [1..20]: %>
+                <option value="<%= count %>"<%= ' selected' if parseInt(@preferences.max_windows, 10) is count %>><%- @T('%s chats', count) %></option>
+              <% end %>
+            </select>
+            <%- @SiskaIcon('caret-down', 16) %>
+          </div>
+          <div class="siska-field-help"><%- @T('New chats in the queue are not assigned to you once this limit is reached.') %></div>
+        </div>
+        <div class="siska-field">
+          <label class="siska-field-label" for="siska-alt-name"><%- @T('Display name for customers') %></label>
+          <input id="siska-alt-name" class="s-form-control js-alternativeName" value="<%= @preferences.alternative_name || '' %>" placeholder="<%- @Ti('e.g. SISKA CS') %>">
+          <div class="siska-field-help"><%- @T('Leave empty to use your account name.') %></div>
+        </div>
+        <div class="siska-field-row">
+          <div>
+            <div class="siska-field-label" id="siska-avatar-label"><%- @T('Show avatar') %></div>
+            <div class="siska-field-help"><%- @T('Your profile picture is visible in the customer widget.') %></div>
+          </div>
+          <label class="s-switch"><input type="checkbox" class="js-avatarState" aria-labelledby="siska-avatar-label"<%= ' checked' if @preferences.avatar_state isnt 'disabled' %>></label>
+        </div>
+      </div>
+    </section>
+
+    <section class="s-card">
+      <div class="s-card-header siska-settings-card-head">
+        <h2 class="s-h2"><%- @T('Topics & greetings') %></h2>
+        <div class="s-muted s-small"><%- @T('The greeting is sent automatically when you accept a chat from that topic. Separate several greetings with ; to pick one at random.') %></div>
+      </div>
+      <div class="s-card-body siska-settings-body">
+        <% for chat in @chats: %>
+          <div class="siska-topic js-topic" data-chat-id="<%= chat.id %>">
+            <div>
+              <div class="siska-topic-name" id="siska-topic-<%= chat.id %>"><%= chat.name %></div>
+              <div class="siska-field-help js-topicState"><%- @T(if chat.active then 'Receiving chats' else 'Not receiving chats') %></div>
+            </div>
+            <textarea rows="2" class="s-form-control js-topicPhrase" aria-label="<%- @Ti('Greeting for %s', chat.name) %>" placeholder="<%- @Ti('Hello, my name is %s, what can I do for you?', @firstname) %>"><%= chat.phrase || '' %></textarea>
+            <label class="s-switch"><input type="checkbox" class="js-topicActive" aria-label="<%- @Ti('Active for %s', chat.name) %>"<%= ' checked' if chat.active %>></label>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+
+  <div class="siska-settings-col">
+    <section class="s-card">
+      <div class="s-card-header siska-settings-card-head"><h2 class="s-h2"><%- @T('Attachments') %></h2></div>
+      <div class="s-card-body siska-settings-body">
+        <% if @attachmentGlobal: %>
+          <div class="siska-field-row">
+            <div>
+              <div class="siska-field-label" id="siska-attach-label"><%- @T('Allow attachments from customers') %></div>
+              <div class="siska-field-help"><%- @T('The image and attachment buttons appear in the widget for the chats you handle.') %></div>
+            </div>
+            <label class="s-switch"><input type="checkbox" class="js-attachmentEnabled" aria-labelledby="siska-attach-label"<%= ' checked' if @preferences.attachment_enabled %>></label>
+          </div>
+        <% else: %>
+          <div class="siska-field-help"><%- @T('File attachments are turned off by the administrator.') %></div>
+        <% end %>
+        <% if @policy: %>
+          <div class="siska-policy">
+            <div class="siska-policy-title"><%- @SiskaIcon('info', 14) %><%- @T('Managed by admin') %></div>
+            <div class="siska-policy-row"><span class="s-muted"><%- @T('Maximum size') %></span><span><%= @policy.max_size_mb %> MB</span></div>
+            <div>
+              <div class="s-muted"><%- @T('Allowed file types') %></div>
+              <div class="siska-policy-types"><%= (@policy.allowed_extensions || []).join(', ') %></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </div>
+</form>
