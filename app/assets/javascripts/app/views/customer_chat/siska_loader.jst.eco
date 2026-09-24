@@ -1,0 +1,5 @@
+<div class="siska-msg siska-msg--customer siska-msg--typing js-loader">
+  <span class="s-avatar s-avatar-sm siska-msg-avatar" aria-hidden="true"><%= @initials %></span>
+  <div class="siska-typing-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  <span class="siska-typing-label" role="status"><%- @T('%s is typing…', @name) %></span>
+</div>

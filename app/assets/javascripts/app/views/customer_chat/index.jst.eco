@@ -9,7 +9,7 @@
         <input type="checkbox" class="js-onlineSwitch">
         <span class="js-onlineLabel"></span>
       </label>
-      <button type="button" class="s-btn s-btn-outline js-settings">
+      <button type="button" class="s-btn s-btn-outline-secondary siska-chat-settings js-settings">
         <%- @SiskaIcon('gear-six', 16) %>
         <%- @T('Settings') %>
       </button>
@@ -20,7 +20,7 @@
       <div class="siska-chat-list-search">
         <div class="s-input-icon">
           <%- @SiskaIcon('magnifying-glass', 16) %>
-          <input type="search" class="s-form-control s-form-control-sm js-listSearch" placeholder="<%- @Ti('Search chats') %>" aria-label="<%- @Ti('Search chats') %>">
+          <input type="search" class="s-form-control js-listSearch" placeholder="<%- @Ti('Search chats') %>" aria-label="<%- @Ti('Search chats') %>">
         </div>
       </div>
       <div class="siska-chat-list-body js-list"></div>

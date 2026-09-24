@@ -1,0 +1,43 @@
+<div class="siska-msg siska-msg--<%= @sender %><%= ' chat-message--new' if @isNew %>"<% if @messageId: %> data-message-id="<%= @messageId %>"<% end %><% if @pendingId: %> data-pending-id="<%= @pendingId %>"<% end %>>
+  <% if @sender is 'customer': %>
+    <span class="s-avatar s-avatar-sm siska-msg-avatar" aria-hidden="true"><%= @initials %></span>
+  <% end %>
+  <div class="siska-msg-main">
+    <div class="siska-msg-meta"><%= @author %> <span class="siska-msg-time"><%= @time %></span></div>
+    <div class="siska-msg-row">
+      <div class="siska-msg-bubble siska-msg-bubble--<%= @kind %>">
+        <% if @replyTo: %>
+          <div class="siska-msg-quote"><%= @replyTo %></div>
+        <% end %>
+        <% if @kind is 'image': %>
+          <button type="button" class="siska-msg-image js-siskaImage" aria-label="<%- @Ti('Preview %s', @file.name) %>">
+            <img src="<%= @file.previewUrl %>" alt="<%= @file.name %>" loading="lazy">
+          </button>
+        <% else if @kind is 'file': %>
+          <a class="siska-msg-file" href="<%= @file.downloadUrl %>" target="_blank" rel="noopener" download>
+            <span class="siska-file-icon siska-tone-<%= @file.tone %>"><%- @SiskaIcon(@file.icon, 20) %></span>
+            <span class="siska-msg-file-text">
+              <span class="siska-msg-file-name"><%= @file.name %></span>
+              <span class="siska-msg-file-meta"><%= @file.meta %></span>
+            </span>
+            <span class="siska-msg-file-download"><%- @SiskaIcon('download-simple', 18) %></span>
+          </a>
+        <% else: %>
+          <div class="siska-msg-text"><%- @html %></div>
+        <% end %>
+        <% if @sender is 'agent': %>
+          <span class="siska-msg-reaction js-reaction<%= ' hidden' if !@reaction %>"<% if @reaction: %> aria-label="<%- @Ti('Customer reaction: %s', @reactionLabel) %>"<% end %>><%= @reaction %></span>
+        <% end %>
+      </div>
+      <div class="siska-msg-menu js-msgMenu">
+        <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm siska-msg-menu-toggle js-msgMenuToggle" aria-label="<%- @Ti('Message options') %>" aria-haspopup="menu" aria-expanded="false"><%- @SiskaIcon('dots-three-vertical', 18) %></button>
+        <div class="s-menu siska-msg-menu-list hidden" role="menu" aria-label="<%- @Ti('Message options') %>">
+          <button type="button" class="s-menu-item js-replyMessage" role="menuitem"><%- @SiskaIcon('arrow-bend-up-left', 16) %><%- @T('Reply') %></button>
+          <% if @file: %>
+            <a class="s-menu-item" role="menuitem" href="<%= @file.downloadUrl %>" target="_blank" rel="noopener" download><%- @SiskaIcon('download-simple', 16) %><%- @T('Download') %></a>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

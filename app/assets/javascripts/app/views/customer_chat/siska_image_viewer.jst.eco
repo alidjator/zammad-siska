@@ -1,0 +1,16 @@
+<div class="siska-agent siska-viewer" role="dialog" aria-modal="true" aria-label="<%- @Ti('Image preview') %>">
+  <div class="siska-viewer-bar">
+    <span class="siska-viewer-icon"><%- @SiskaIcon('image', 18) %></span>
+    <span class="siska-viewer-title">
+      <span class="siska-viewer-name"><%= @name %></span>
+      <span class="siska-viewer-meta"><%= @meta %></span>
+    </span>
+    <% if @downloadUrl: %>
+      <a class="s-btn s-btn-primary siska-viewer-download" href="<%= @downloadUrl %>" target="_blank" rel="noopener" download><%- @SiskaIcon('download-simple', 16) %><%- @T('Download') %></a>
+    <% end %>
+    <button type="button" class="siska-viewer-close js-close" aria-label="<%- @Ti('Close') %>"><%- @SiskaIcon('x', 20) %></button>
+  </div>
+  <div class="siska-viewer-stage js-stage">
+    <img class="siska-viewer-image" src="<%= @src %>" alt="<%= @name %>">
+  </div>
+</div>

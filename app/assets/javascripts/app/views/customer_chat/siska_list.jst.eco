@@ -1,7 +1,7 @@
 <div class="siska-chat-section">
   <div class="siska-chat-section-head">
-    <span class="s-label"><%- @T('In progress') %></span>
-    <span class="s-badge s-badge-secondary"><%= @running.length %></span>
+    <span><%- @T('In progress') %></span>
+    <span><%= @running.length %></span>
   </div>
   <% if @running.length: %>
     <ul class="siska-chat-items" role="list">
@@ -40,8 +40,8 @@
 
 <div class="siska-chat-section">
   <div class="siska-chat-section-head">
-    <span class="s-label"><%- @T('Waiting for agent') %></span>
-    <span class="s-badge <%= if @waitingTotal then 's-badge-warning' else 's-badge-secondary' %>"><%= @waitingTotal %></span>
+    <span><%- @T('Waiting for agent') %></span>
+    <span><%= @waitingTotal %></span>
   </div>
   <% if !@active: %>
     <div class="siska-chat-section-empty s-muted s-small"><%- @T('Go online to receive waiting customers.') %></div>

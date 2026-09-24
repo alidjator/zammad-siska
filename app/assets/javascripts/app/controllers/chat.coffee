@@ -289,8 +289,8 @@ class App.CustomerChat extends App.Controller
       running.push(
         sessionId:   sessionId
         name:        chat.name || "##{session.id}"
-        initials:    @initials(chat.name)
-        time:        @formatTime(last?.time || session.created_at)
+        initials:    App.SiskaFormat.initials(chat.name)
+        time:        App.SiskaFormat.time(last?.time || session.created_at)
         snippet:     last?.text || App.i18n.translatePlain('Chat #%s', session.id)
         snippetIcon: last?.icon
         unread:      chat.unreadMessages()
@@ -307,7 +307,7 @@ class App.CustomerChat extends App.Controller
         continue if !matches("#{waitingSession.name || ''} #{waitingSession.email || ''} #{waitingSession.category || ''}")
         sessions.push(
           name:     waitingSession.name || App.i18n.translatePlain('Visitor')
-          initials: @initials(waitingSession.name)
+          initials: App.SiskaFormat.initials(waitingSession.name)
           category: waitingSession.category
           wait:     @formatWait(waitingSession.created_at)
         )
@@ -325,21 +325,6 @@ class App.CustomerChat extends App.Controller
     )
 
     @detailEmpty.toggleClass('hidden', !!@selectedSessionId)
-
-  initials: (name) ->
-    words = _.compact((name || '').trim().split(/\s+/))
-    return '?' if !words.length
-    return words[0].substr(0, 2).toUpperCase() if words.length is 1
-    (words[0][0] + words[words.length - 1][0]).toUpperCase()
-
-  formatTime: (time) ->
-    return '' if !time
-    date = new Date(time)
-    return '' if isNaN(date.getTime())
-    if date.toDateString() is new Date().toDateString()
-      pad = (n) -> if n < 10 then "0#{n}" else "#{n}"
-      return "#{pad(date.getHours())}:#{pad(date.getMinutes())}"
-    App.i18n.translateDate(time)
 
   formatWait: (time) ->
     return '' if !time
@@ -388,6 +373,7 @@ class App.CustomerChat extends App.Controller
       removeCallback: @removeChat
       messageCallback: @onChatChanged
       changeCallback: @onChatChanged
+      siska: true
     )
 
     @workspace.append chat.el
@@ -482,6 +468,15 @@ class App.ChatWindow extends App.Controller
     'click .js-openPreviousTicket':  'openPreviousTicket'
     'click .js-attachButton':        'triggerAttachmentInput'
     'change .js-attachmentInput':    'uploadAttachment'
+    # Redesign sisi agent (Tahap 2) -- hanya ada di markup varian `siska`
+    'click .js-imageButton':         'triggerImageInput'
+    'change .js-imageInput':         'uploadAttachment'
+    'click .js-siskaImage':          'openSiskaImage'
+    'click .siska-msg-text img':     'imageView'
+    'click .js-msgMenuToggle':       'toggleMessageMenu'
+    'click .js-emojiToggle':         'toggleEmojiPicker'
+    'click .js-emojiItem':           'insertEmoji'
+    'keydown':                       'onWindowKeydown'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -496,6 +491,8 @@ class App.ChatWindow extends App.Controller
     '.js-metaForm':                  'metaForm'
     '.js-replyIndicator':            'replyIndicator'
     '.js-attachmentInput':           'attachmentInput'
+    '.js-imageInput':                'imageInput'
+    '.js-uploadStatus':              'uploadStatus'
 
   sounds:
     message: new Audio('assets/sounds/chat_message.mp3')
@@ -536,7 +533,20 @@ class App.ChatWindow extends App.Controller
     # (lihat lib/sessions/event/chat_session_message.rb).
     @messagesById = {}
 
+    # Redesign sisi agent (Tahap 2): `siska: true` (dari App.CustomerChat)
+    # memakai bubble & area ketik gaya kit. App.MyChat tidak mengisinya,
+    # jadi tetap memakai template lama.
+    @pendingMessages = []
+    @pendingCounter = 0
+
     @on('layout-change', @onLayoutChange)
+
+    # Reaksi emoji customer pada pesan agent (server sudah menyiarkan
+    # event ini ke agent sejak fitur reaksi widget; baru ditampilkan sekarang).
+    @controllerBind('chat_session_reaction', (data) =>
+      return if data.session_id isnt @session.session_id
+      @setReaction(data.message_id, data.reaction)
+    )
 
     @controllerBind('chat_session_typing', (data) =>
       return if data.session_id isnt @session.session_id
@@ -545,7 +555,9 @@ class App.ChatWindow extends App.Controller
     )
     @controllerBind('chat_session_message', (data) =>
       return if data.session_id isnt @session.session_id
-      return if data.self_written
+      if data.self_written
+        @confirmOwnMessage(data.message)
+        return
       @receiveMessage(data.message)
     )
     # Fase 5 -- Item No. 6 (Attachment). docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md
@@ -622,7 +634,9 @@ class App.ChatWindow extends App.Controller
       session: @session
       chats: App.Chat.all()
       previousSessions: @session.previous_sessions
+      siska: @siska
     )
+    @el.addClass('siska-chat-window') if @siska
 
     @el.one('transitionend', @onTransitionend)
     @scrollHolder.on('scroll', @detectScrolledtoBottom)
@@ -657,7 +671,7 @@ class App.ChatWindow extends App.Controller
       App.Config.get('chat_attachment_enabled') && preferences?.chat?.attachment_enabled
     else
       !!@session.attachment_enabled
-    @$('.js-attachButton').toggleClass('hidden', !attachmentEnabled)
+    @$('.js-attachButton, .js-imageButton').toggleClass('hidden', !attachmentEnabled)
 
     # force repaint
     @el.prop('offsetHeight')
@@ -770,7 +784,11 @@ class App.ChatWindow extends App.Controller
     @trigger('closed')
     @el.remove()
 
-  clearUnread: =>
+  clearUnread: (e) =>
+    if @siska && e?.type is 'click'
+      target = $(e.target)
+      @closeMenus() if !target.closest('.js-msgMenu').length
+      @closeEmojiPicker() if !target.closest('.siska-composer-emoji').length
     hadUnread = @unreadMessagesCounter > 0
     @$('.chat-message--new').removeClass('chat-message--new')
     @updateModified(false)
@@ -865,7 +883,10 @@ class App.ChatWindow extends App.Controller
       @delay(send, delay)
 
     @hideMeta()
-    @addMessage({ content: content, reply_to: @replyTo }, 'agent')
+    @pendingCounter += 1
+    pendingId = "p#{@pendingCounter}"
+    @pendingMessages.push(pendingId)
+    @addMessage({ content: content, reply_to: @replyTo, pendingId: pendingId }, 'agent')
     @input.html('')
     @cancelReply()
 
@@ -924,27 +945,163 @@ class App.ChatWindow extends App.Controller
 
     @messagesById[message.id] = message if message.id
 
-    @body.append App.view('customer_chat/chat_message')(
-      message: message.content
-      messageId: message.id
-      replyTo: message.reply_to
-      sender: sender
-      isNew: isNew
-      timestamp: Date.now()
-    )
+    if @siska
+      @body.append App.view('customer_chat/siska_message')(@siskaMessageParams(message, sender, isNew, 'text'))
+    else
+      @body.append App.view('customer_chat/chat_message')(
+        message: message.content
+        messageId: message.id
+        replyTo: message.reply_to
+        sender: sender
+        isNew: isNew
+        timestamp: Date.now()
+      )
 
     @scrollToBottom(showHint: true)
+
+  # Parameter template `siska_message`. `pendingId` dipakai untuk pesan
+  # agent yang dirender optimis sebelum server membalas dengan id-nya
+  # (lihat `confirmOwnMessage`).
+  siskaMessageParams: (message, sender, isNew, kind) =>
+    isAgent = sender is 'agent'
+    params =
+      sender:        sender
+      isNew:         isNew
+      kind:          kind
+      messageId:     message.id
+      pendingId:     message.pendingId
+      author:        if isAgent then App.i18n.translatePlain('You') else (@name || App.i18n.translatePlain('Customer'))
+      initials:      App.SiskaFormat.initials(@name)
+      time:          App.SiskaFormat.time(message.created_at || new Date().toISOString())
+      html:          message.content
+      replyTo:       if message.reply_to then App.Utils.html2text(message.reply_to.content || '').substr(0, 80) else undefined
+      reaction:      message.customer_reaction
+      reactionLabel: App.SiskaFormat.REACTIONS[message.customer_reaction] || message.customer_reaction
+    if kind isnt 'text'
+      base = "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
+      icon = if kind is 'image' then 'file-image' else App.SiskaIcon.forFile(message.filename)
+      params.file =
+        name:        message.filename
+        url:         base
+        previewUrl:  "#{base}?view=preview"
+        downloadUrl: "#{base}?disposition=attachment"
+        meta:        App.SiskaFormat.fileMeta(message.filename, message.size)
+        icon:        icon
+        tone:        App.SiskaIcon.fileTone(message.filename)
+    params
+
+  # Echo `self_written` dari server membawa id pesan agent sendiri. Id itu
+  # ditempel ke bubble optimis tertua yang masih menunggu, supaya pesan
+  # agent bisa di-reply & menerima reaksi customer.
+  confirmOwnMessage: (message) =>
+    return if !message?.id
+    pendingId = @pendingMessages.shift()
+    return if !pendingId
+    @messagesById[message.id] = message
+    el = @body.find("[data-pending-id='#{pendingId}']")
+    el.attr('data-message-id', message.id).removeAttr('data-pending-id')
+    el.find('.siska-msg-time').text(App.SiskaFormat.time(message.created_at))
+
+  setReaction: (messageId, reaction) =>
+    message = @messagesById[messageId]
+    message.customer_reaction = reaction if message
+    chip = @body.find("[data-message-id='#{messageId}'] .js-reaction")
+    return if !chip.length
+    if reaction
+      label = App.SiskaFormat.REACTIONS[reaction] || reaction
+      chip.text(reaction).attr('aria-label', App.i18n.translateInline('Customer reaction: %s', label)).removeClass('hidden')
+    else
+      chip.text('').removeAttr('aria-label').addClass('hidden')
+
+  toggleMessageMenu: (e) =>
+    e.preventDefault()
+    e.stopPropagation()
+    toggle = $(e.currentTarget)
+    menu = toggle.siblings('[role=menu]')
+    open = menu.hasClass('hidden')
+    @closeMenus()
+    return if !open
+    menu.removeClass('hidden')
+    toggle.attr('aria-expanded', 'true').closest('.siska-msg').addClass('is-menu-open')
+    menu.find('[role=menuitem]').first().trigger('focus')
+
+  closeMenus: (restoreFocus = false) =>
+    openToggle = @$('.js-msgMenuToggle[aria-expanded=true]')
+    @$('.js-msgMenu [role=menu]').addClass('hidden')
+    @$('.js-msgMenuToggle').attr('aria-expanded', 'false')
+    @$('.siska-msg.is-menu-open').removeClass('is-menu-open')
+    openToggle.trigger('focus') if restoreFocus && openToggle.length
+
+  toggleEmojiPicker: (e) =>
+    e.preventDefault()
+    e.stopPropagation()
+    picker = @$('.js-emojiPicker')
+    open = picker.hasClass('hidden')
+    @closeEmojiPicker()
+    return if !open
+    # simpan posisi kursor supaya emoji disisipkan di tempat yang benar
+    selection = window.getSelection()
+    if selection.rangeCount && @input.get(0).contains(selection.anchorNode)
+      @emojiRange = selection.getRangeAt(0).cloneRange()
+    picker.removeClass('hidden')
+    @$('.js-emojiToggle').attr('aria-expanded', 'true').addClass('is-active')
+    picker.find('.js-emojiItem').first().trigger('focus')
+
+  closeEmojiPicker: =>
+    @$('.js-emojiPicker').addClass('hidden')
+    @$('.js-emojiToggle').attr('aria-expanded', 'false').removeClass('is-active')
+
+  insertEmoji: (e) =>
+    e.preventDefault()
+    emoji = $(e.currentTarget).attr('data-emoji')
+    @closeEmojiPicker()
+    @input.trigger('focus')
+    if @emojiRange
+      selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(@emojiRange)
+      @emojiRange = null
+    document.execCommand('insertText', false, emoji)
+
+  # Esc menutup menu/pemilih emoji; klik di luar menutup semuanya.
+  onWindowKeydown: (e) =>
+    return if e.keyCode isnt 27
+    if @$('.js-msgMenuToggle[aria-expanded=true]').length
+      @closeMenus(true)
+      e.stopPropagation()
+    else if !@$('.js-emojiPicker').hasClass('hidden')
+      @closeEmojiPicker()
+      @$('.js-emojiToggle').trigger('focus')
+      e.stopPropagation()
+
+  openSiskaImage: (e) =>
+    e.preventDefault()
+    messageId = $(e.currentTarget).closest('[data-message-id]').attr('data-message-id')
+    message = @messagesById[messageId]
+    return if !message
+    base = "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
+    sender = if message.created_by_id then App.i18n.translatePlain('You') else @name
+    new App.SiskaImageViewer(
+      src:         base
+      name:        message.filename
+      meta:        _.compact([sender, App.SiskaFormat.time(message.created_at), App.SiskaFormat.fileMeta(message.filename, message.size)]).join(' · ')
+      downloadUrl: "#{base}?disposition=attachment"
+      returnFocus: e.currentTarget
+    )
 
   # Fitur tambahan "Reply ke Pesan Spesifik (Seperti WhatsApp)" --
   # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
   startReply: (e) =>
     e.preventDefault()
-    messageId = $(e.currentTarget).closest('.chat-message').data('message-id')
+    messageId = $(e.currentTarget).closest('[data-message-id]').attr('data-message-id')
     return if !messageId
     message = @messagesById[messageId]
     return if !message
+    @closeMenus()
+    content = message.content
+    content = message.filename if message.filename
 
-    @replyTo = { id: messageId, content: message.content }
+    @replyTo = { id: messageId, content: content }
     @renderReplyIndicator()
     @input.trigger('focus')
 
@@ -979,12 +1136,22 @@ class App.ChatWindow extends App.Controller
     e.preventDefault()
     @attachmentInput.trigger('click')
 
+  triggerImageInput: (e) =>
+    e.preventDefault()
+    @imageInput.trigger('click')
+
   uploadAttachment: (e) =>
+    input = $(e.currentTarget)
     file = e.currentTarget.files?[0]
     return if !file
 
     formData = new FormData()
     formData.append('File', file)
+    # Sama dgn widget ("Opsi B", ikuti WhatsApp): lewat tombol lampiran
+    # selalu jadi kartu file, gambar hanya lewat tombol kirim gambar.
+    formData.append('display', 'file') if @siska && input.is(@attachmentInput)
+
+    @setUploading(true, file.name)
 
     @ajax(
       id:          'chat-attachment-upload'
@@ -994,12 +1161,14 @@ class App.ChatWindow extends App.Controller
       processData: false
       contentType: false
       cache:       false
-      success:     ->
+      success:     =>
+        @setUploading(false)
         # rendering dilakukan lewat broadcast chat_session_attachment
         # (dikirim server ke KEDUA sisi termasuk pengunggah sendiri),
         # bukan di sini, supaya tidak dobel & konsisten dengan cara
         # pesan teks sendiri direfleksikan balik.
       error: (xhr) =>
+        @setUploading(false)
         message = xhr.responseJSON?.error || __('The attachment could not be uploaded.')
         new App.ControllerConfirm(
           head:         __('Attachment')
@@ -1009,7 +1178,12 @@ class App.ChatWindow extends App.Controller
         )
     )
 
-    @attachmentInput.val('')
+    input.val('')
+
+  setUploading: (state, filename) =>
+    return if !@uploadStatus?.length
+    @$('.js-attachOnly').prop('disabled', state)
+    @uploadStatus.text(if state then App.i18n.translatePlain('Uploading %s…', filename) else '')
 
   addAttachmentMessage: (message, sender, isNew) =>
     @maybeAddTimestamp()
@@ -1022,13 +1196,20 @@ class App.ChatWindow extends App.Controller
       icon: if /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(message.filename || '') then 'image' else 'paperclip'
     )
 
-    @body.append App.view('customer_chat/chat_attachment_message')(
-      sender:      sender
-      isNew:       isNew
-      filename:    message.filename
-      url:         "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
-      timestamp:   Date.now()
-    )
+    if @siska
+      @messagesById[message.id] = message if message.id
+      kind = if App.SiskaFormat.isImage(message) then 'image' else 'file'
+      @body.append App.view('customer_chat/siska_message')(@siskaMessageParams(message, sender, isNew, kind))
+      # tinggi gambar baru diketahui setelah dimuat
+      @body.find('.js-siskaImage img').last().one('load', => @scrollToBottom())
+    else
+      @body.append App.view('customer_chat/chat_attachment_message')(
+        sender:      sender
+        isNew:       isNew
+        filename:    message.filename
+        url:         "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
+        timestamp:   Date.now()
+      )
 
     @scrollToBottom(showHint: true)
 
@@ -1036,7 +1217,13 @@ class App.ChatWindow extends App.Controller
     if !@isTyping
       @isTyping = true
       @maybeAddTimestamp()
-      @body.append App.view('customer_chat/chat_loader')()
+      if @siska
+        @body.append App.view('customer_chat/siska_loader')(
+          name: @name || App.i18n.translatePlain('Customer')
+          initials: App.SiskaFormat.initials(@name)
+        )
+      else
+        @body.append App.view('customer_chat/chat_loader')()
       @scrollToBottom()
 
     # clear old delay, set new
@@ -1122,6 +1309,10 @@ class App.ChatWindow extends App.Controller
     @scrollToBottom()
 
   imageView: (e) ->
+    if @siska
+      e.preventDefault()
+      new App.SiskaImageViewer(src: $(e.target).get(0).src, name: App.i18n.translatePlain('Image'), returnFocus: e.target)
+      return
     e.preventDefault()
     e.stopPropagation()
     new App.CustomerChatImageView(image_base64: $(e.target).get(0).src)
