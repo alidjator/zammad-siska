@@ -3383,3 +3383,23 @@
   -o-transition: width 0.2s linear;
   transition: width 0.2s linear;
 }
+
+.zammad-chat-attachment-icon--danger {
+  background: rgba(221, 39, 39, 0.1);
+  color: #dd2727;
+}
+
+.zammad-chat-attachment-icon--success {
+  background: rgba(32, 150, 107, 0.1);
+  color: #20966b;
+}
+
+.zammad-chat-attachment-icon--warning {
+  background: rgba(210, 89, 0, 0.1);
+  color: #d25900;
+}
+
+.zammad-chat-attachment-icon--secondary {
+  background: rgba(91, 107, 121, 0.1);
+  color: #5b6b79;
+}

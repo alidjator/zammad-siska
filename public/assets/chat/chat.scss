@@ -3870,3 +3870,25 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   transition: width 0.2s linear;
 }
 
+// Warna ikon kartu lampiran per jenis file (lihat SISKA_FILE_TONES di
+// chat-no-jquery.coffee). Default (primary) = rule `.zammad-chat-
+// attachment-icon` yg sudah ada (tint primary 10% + ikon primary).
+.zammad-chat-attachment-icon--danger {
+  background: rgba(221, 39, 39, 0.1);
+  color: #dd2727; // danger-500
+}
+
+.zammad-chat-attachment-icon--success {
+  background: rgba(32, 150, 107, 0.1);
+  color: #20966b; // success-700
+}
+
+.zammad-chat-attachment-icon--warning {
+  background: rgba(210, 89, 0, 0.1);
+  color: #d25900; // warning-900
+}
+
+.zammad-chat-attachment-icon--secondary {
+  background: rgba(91, 107, 121, 0.1);
+  color: $siska-text-muted; // secondary-500
+}
