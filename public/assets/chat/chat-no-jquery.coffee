@@ -1258,6 +1258,9 @@ do(window) ->
       if tabName is 'help' and !@kbLoaded
         @kbLoaded = true
         @loadKnowledgeBase(true)
+      else if tabName is 'help'
+        # Hasil sempat dimuat saat tab tersembunyi / ukuran layar berubah.
+        @fillKbResults()
 
     # Revisi desain (identik referensi Intercom/Claude) -- isi header
     # BERBEDA per tab. Mirror persis dari chat.coffee.
@@ -1364,6 +1367,24 @@ do(window) ->
       emptyMessage?.classList.add('zammad-chat-is-hidden')
       for item in (data.result || [])
         results.insertAdjacentHTML('beforeend', @view('kb_result')(item))
+
+      @fillKbResults()
+
+    # Laporan user ("pada device mobile, scroll untuk help tidak
+    # berfungsi"): halaman berikutnya SEBELUMNYA hanya dimuat dari event
+    # scroll -- di layar tinggi (mobile, panel penuh) 5 artikel pertama
+    # muat tanpa overflow, daftar tak bisa di-scroll sama sekali, event
+    # scroll tak pernah terjadi, artikel berikutnya tak pernah dimuat.
+    # Kini: selama daftar belum cukup panjang utk di-scroll (ambang sama
+    # dgn onKbResultsScroll) & masih ada halaman berikut, langsung muat.
+    # Hanya saat tab Help TAMPIL (clientHeight > 0) -- tab tersembunyi
+    # tidak boleh diam2 memuat semua halaman.
+    fillKbResults: =>
+      window.requestAnimationFrame =>
+        results = @el.querySelector('.zammad-chat-kb-results')
+        return if !results or results.clientHeight is 0
+        return if results.scrollHeight > results.clientHeight + 200
+        @loadKnowledgeBase(false)
 
     # Dipicu scroll di dalam `.zammad-chat-kb-results` -- listener
     # dipasang di FASE CAPTURE pada `@el` (bukan didelegasikan biasa,

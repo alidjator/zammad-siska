@@ -3887,6 +3887,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onPaste = bind(this.onPaste, this);
       this.onDrop = bind(this.onDrop, this);
       this.onKbResultsScroll = bind(this.onKbResultsScroll, this);
+      this.fillKbResults = bind(this.fillKbResults, this);
       this.onKnowledgeBaseSearchResult = bind(this.onKnowledgeBaseSearchResult, this);
       this.loadKnowledgeBase = bind(this.loadKnowledgeBase, this);
       this.onKbSearchInput = bind(this.onKbSearchInput, this);
@@ -4359,6 +4360,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (tabName === 'help' && !this.kbLoaded) {
         this.kbLoaded = true;
         return this.loadKnowledgeBase(true);
+      } else if (tabName === 'help') {
+        return this.fillKbResults();
       }
     };
 
@@ -4434,7 +4437,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onKnowledgeBaseSearchResult = function(data) {
-      var emptyMessage, isFirstPage, item, j, len, ref, ref1, ref2, results, results1;
+      var emptyMessage, isFirstPage, item, j, len, ref, ref1, ref2, results;
       this.kbLoading = false;
       if ((ref = this.el.querySelector('.zammad-chat-kb-loading')) != null) {
         ref.classList.add('zammad-chat-is-hidden');
@@ -4460,12 +4463,27 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         emptyMessage.classList.add('zammad-chat-is-hidden');
       }
       ref2 = data.result || [];
-      results1 = [];
       for (j = 0, len = ref2.length; j < len; j++) {
         item = ref2[j];
-        results1.push(results.insertAdjacentHTML('beforeend', this.view('kb_result')(item)));
+        results.insertAdjacentHTML('beforeend', this.view('kb_result')(item));
       }
-      return results1;
+      return this.fillKbResults();
+    };
+
+    ZammadChat.prototype.fillKbResults = function() {
+      return window.requestAnimationFrame((function(_this) {
+        return function() {
+          var results;
+          results = _this.el.querySelector('.zammad-chat-kb-results');
+          if (!results || results.clientHeight === 0) {
+            return;
+          }
+          if (results.scrollHeight > results.clientHeight + 200) {
+            return;
+          }
+          return _this.loadKnowledgeBase(false);
+        };
+      })(this));
     };
 
     ZammadChat.prototype.onKbResultsScroll = function(event) {
