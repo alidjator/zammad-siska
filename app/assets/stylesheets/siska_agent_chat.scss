@@ -36,6 +36,9 @@ $siska-radius-sm: 8px;
 $siska-radius: 12px;
 $siska-radius-pill: 20px;
 $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+// Ukuran seragam pratinjau gambar di bubble (crop penuh)
+$siska-thumb-w: 240px;
+$siska-thumb-h: 180px;
 
 // Salinan mixin `phone` dari zammad.scss (file ini entry Dart Sass
 // terpisah, jadi mixin di sana tidak ikut terbaca).
@@ -834,9 +837,16 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
 
   a { color: inherit; text-decoration: underline; }
 
+  // gambar yang ditempel di dalam pesan: aturan pratinjau yang sama
   img {
+    display: block;
+    width: $siska-thumb-w;
+    height: $siska-thumb-h;
     max-width: 100%;
     border-radius: 4px;
+    background: $siska-border;
+    object-fit: cover;
+    object-position: center;
     cursor: zoom-in;
   }
 }
@@ -867,13 +877,16 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   overflow: hidden;
   cursor: zoom-in;
 
+  // Keputusan user (mockup "Pratinjau gambar berukuran seragam"): semua
+  // pratinjau SAMA ukurannya, 240x180 crop penuh di tengah (seperti
+  // WhatsApp), apa pun rasio aslinya. Gambar utuh tetap lewat viewer.
   img {
     display: block;
-    max-width: 260px;
-    max-height: 260px;
-    min-width: 80px;
-    min-height: 60px;
+    width: $siska-thumb-w;
+    height: $siska-thumb-h;
+    max-width: 100%;
     object-fit: cover;
+    object-position: center;
   }
 }
 
