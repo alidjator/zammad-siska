@@ -1083,10 +1083,14 @@ do(window) ->
       activeBody = @el.querySelector(".zammad-chat-tab-body--#{tabName}")
       activeBody?.classList.add('is-active')
 
+      # Audit kit Tailwind -- `aria-current` ikut `is-active` supaya tab
+      # aktif diumumkan pembaca layar.
       for item in @el.querySelectorAll('.zammad-chat-tabbar-item')
         item.classList.remove('is-active')
+        item.removeAttribute('aria-current')
       activeItem = @el.querySelector(".zammad-chat-tabbar-item[data-tab='#{tabName}']")
       activeItem?.classList.add('is-active')
+      activeItem?.setAttribute('aria-current', 'page')
 
       @updateHeader(tabName)
 
@@ -1879,6 +1883,9 @@ do(window) ->
       # karena panel sekarang SELALU tersembunyi total saat tertutup,
       # bukan cuma digeser sebagian ke luar layar.
       @launcherEl.classList.add 'zammad-chat-is-open'
+      # Audit kit Tailwind -- launcher sekarang <button>, status buka/
+      # tutup diumumkan ke pembaca layar.
+      @launcherEl.setAttribute 'aria-expanded', 'true'
       @el.addEventListener 'transitionend', @onOpenAnimationEnd
       @el.classList.add 'zammad-chat-is-open'
 
@@ -2466,6 +2473,7 @@ do(window) ->
 
       # Fase 7 -- lihat komentar sama di open().
       @launcherEl.classList.remove 'zammad-chat-is-open'
+      @launcherEl.setAttribute 'aria-expanded', 'false'
       @el.addEventListener 'transitionend', @onCloseAnimationEnd
       @el.classList.remove 'zammad-chat-is-open'
 

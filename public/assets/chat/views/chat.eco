@@ -53,7 +53,9 @@
   semi-transparan status koneksi WebSocket widget sendiri, menutupi
   seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,
   lihat `connection_overlay.eco`). -->
-  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden"></div>
+  <!-- Audit kit Tailwind: `aria-live` -- perubahan status koneksi
+  (Reconnecting -> restored/lost) dibacakan pembaca layar. -->
+  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden" aria-live="polite"></div>
 
   <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit
   feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,

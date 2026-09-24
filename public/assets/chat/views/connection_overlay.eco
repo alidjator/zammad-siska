@@ -1,9 +1,8 @@
 <% if @state is 'reconnecting': %>
-  <div class="zammad-chat-connection-overlay-spinner">
-    <svg viewBox="0 0 44 44" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
-      <circle class="zammad-chat-pc-track" cx="22" cy="22" r="20" fill="none" stroke-width="4"></circle>
-      <circle class="zammad-chat-pc-arc" cx="22" cy="22" r="20" fill="none" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="0"></circle>
-    </svg>
+  <!-- Audit kit Tailwind: spinner satu elemen (lihat chat.scss) +
+  `role="status"`/`sr-only` spt spinner Waiting/EndingChat. -->
+  <div class="zammad-chat-connection-overlay-spinner" role="status">
+    <span class="zammad-chat-sr-only"><%- @T('Loading...') %></span>
   </div>
 <% else if @state is 'restored': %>
   <div class="zammad-chat-connection-overlay-icon">
