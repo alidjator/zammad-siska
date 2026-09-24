@@ -3069,11 +3069,15 @@
   background: linear-gradient(to top, rgba(19, 25, 32, 0.55), rgba(19, 25, 32, 0));
   pointer-events: none;
 }
+.zammad-chat-image-meta .zammad-chat-message-status {
+  -webkit-filter: drop-shadow(0 0 1px rgba(19, 25, 32, 0.6));
+  filter: drop-shadow(0 0 1px rgba(19, 25, 32, 0.6));
+}
 .zammad-chat-image-meta .zammad-chat-message-status--sent {
   color: rgba(255, 255, 255, 0.6);
 }
 .zammad-chat-image-meta .zammad-chat-message-status--read {
-  color: #ffffff;
+  color: #a3c0ff;
 }
 
 .zammad-chat-image-fallback {
