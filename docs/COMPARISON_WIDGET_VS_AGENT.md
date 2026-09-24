@@ -31,7 +31,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | Reply | Ada, hanya ke pesan agent | Ada, ke semua pesan | ◐ |
 | Copy teks | Ada + toast "Copied" (`copyMessage`) | Ada di menu titik tiga (juga pesan teks riwayat) + notifikasi "Copied" | ✅ **G2 selesai** (2026-09-25) |
 | Download lampiran | Ada | Ada | ✅ |
-| Reaksi emoji | Customer bereaksi (5 emoji whitelist) ke pesan agent | Agent hanya **melihat** chip reaksi; tidak bisa bereaksi. Backend `chat_session_reaction.rb` menolak event dari sesi agent | ❗ **G3** (satu arah) |
+| Reaksi emoji | Customer bereaksi (5 emoji whitelist) ke pesan agent; melihat badge reaksi agent di pesannya | Agent bereaksi ke pesan customer (baris emoji di menu, chip bisa dihapus) + melihat reaksi customer | ✅ **G3 selesai** (2026-09-25, dua arah) |
 
 ## 3. Gambar & file
 
@@ -75,7 +75,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 |---|---|---|---|
 | G1 | Tanda terkirim/dibaca untuk pesan agent | Agent (+ backend) | ✅ **Selesai** 2026-09-25 |
 | G2 | Copy teks pesan | Agent | ✅ **Selesai** 2026-09-25 |
-| G3 | Reaksi emoji dari agent | Agent (+ backend + widget) | **Putuskan dulu** perlu/tidak; bila perlu, backend menerima reaksi dari agent & widget menampilkannya |
+| G3 | Reaksi emoji dari agent | Agent (+ backend + widget) | ✅ **Selesai** 2026-09-25 (keputusan user: perlu) |
 | G4 | Pratinjau gambar seragam 240 × 180 | Widget | Terapkan aturan yang sama |
 | G5 | Kartu gambar | Widget | Terapkan, atau putuskan tetap ringkas di widget yang sempit |
 | G6 | Progress unggah dengan persen | Agent | ✅ **Selesai** 2026-09-25, bersama perbaikan B1 |

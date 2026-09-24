@@ -1632,8 +1632,13 @@ do(window) ->
             if pipe.data && pipe.data.state is 'chat_disabled'
               @destroy(remove: true)
           when 'chat_session_message'
-            return if pipe.data.self_written
-            @receiveMessage pipe.data
+            # G3: echo pesan sendiri membawa id server -> ditempel ke bubble
+            # lokal (dulu `return` di sini ikut membuang pipe lain di paket
+            # yang sama)
+            if pipe.data.self_written
+              @confirmOwnMessage(pipe.data.message)
+            else
+              @receiveMessage pipe.data
           when 'chat_session_attachment'
             # Fase 5 -- Item No. 6. Server mem-broadcast ke KEDUA sisi
             # TERMASUK pengunggah sendiri (tidak ada self_written di
@@ -1668,7 +1673,11 @@ do(window) ->
             @markMessagesRead() if pipe.data.reader isnt 'customer'
           # Reaksi emoji (echo milik sendiri / tab lain dari customer yg sama).
           when 'chat_session_reaction'
-            @applyReaction(pipe.data.message_id, pipe.data.reaction)
+            # G3: reactor 'agent' = reaksi agent ke pesan customer
+            if pipe.data.reactor is 'agent'
+              @applyAgentReaction(pipe.data.message_id, pipe.data.reaction)
+            else
+              @applyReaction(pipe.data.message_id, pipe.data.reaction)
           when 'chat_knowledge_base_search'
             @onKnowledgeBaseSearchResult pipe.data
           # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee.
@@ -1851,6 +1860,8 @@ do(window) ->
           @agentMessagesById[message.id] = message if isAgentMessage and message.id
           # G1: pesan agent yang belum pernah terlihat oleh customer
           @unreadAgentMessages = true if isAgentMessage and !message.read_at
+          # G3: reaksi agent ke pesan customer ikut digambar ulang saat reload
+          @applyAgentReaction(message.id, message.agent_reaction) if !isAgentMessage and message.agent_reaction
           # Reaksi emoji tersimpan di server -> digambar ulang saat reload.
           @applyReaction(message.id, message.customer_reaction) if isAgentMessage and message.customer_reaction
 
@@ -1911,10 +1922,13 @@ do(window) ->
       replyToId = @replyTo?.id
       replyToSnippet = @replyTo?.content
 
+      # G3: id lokal sementara; diganti id server oleh `confirmOwnMessage`
+      localId = "local-#{@_messageCount++}"
+      (@pendingOwnMessages ||= []).push(localId)
       messageElement = @view('message')
         message: message
         from: 'customer'
-        id: @_messageCount++
+        id: localId
         unreadClass: ''
         replyTo: replyToSnippet
         time: @formatTime()
@@ -2104,11 +2118,40 @@ do(window) ->
       body.appendChild(badge)
 
     # Copy: teks pesan saja (tanpa jam, kutipan reply & tombol menu).
+    # G3: id server utk bubble pesan sendiri (urutan kirim = urutan echo).
+    confirmOwnMessage: (message) =>
+      return if !message?.id
+      localId = @pendingOwnMessages?.shift()
+      return if !localId
+      el = @body?.querySelector(".zammad-chat-message[data-message-id='#{localId}']")
+      el.dataset.messageId = message.id if el
+
+    # G3 (keputusan user "perlu"): reaksi AGENT ke pesan customer -- badge
+    # hanya tampilan (bukan tombol), karena customer tidak bisa mengubahnya.
+    applyAgentReaction: (messageId, reaction) =>
+      return if !messageId
+      messageEl = @body?.querySelector(".zammad-chat-message[data-message-id='#{messageId}']")
+      return if !messageEl
+      body = messageEl.querySelector('.zammad-chat-message-body')
+      return if !body
+      body.querySelector('.js-agent-reaction-badge')?.remove()
+      if !reaction
+        messageEl.classList.remove('has-reaction')
+        return
+      label = (item.label for item in @REACTIONS when item.emoji is reaction)[0] || ''
+      messageEl.classList.add('has-reaction')
+      badge = document.createElement('span')
+      badge.className = 'zammad-chat-reaction-badge zammad-chat-reaction-badge--agent js-agent-reaction-badge'
+      badge.setAttribute('role', 'img')
+      badge.setAttribute('aria-label', "#{@T('Agent reaction')}: #{@T(label)}")
+      badge.textContent = reaction
+      body.appendChild(badge)
+
     copyMessage: (messageEl) =>
       body = messageEl?.querySelector('.zammad-chat-message-body')
       return if !body
       clone = body.cloneNode(true)
-      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge').forEach (el) -> el.remove()
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge, .js-agent-reaction-badge').forEach (el) -> el.remove()
       text = clone.textContent.trim()
       done = => @showToast(@T('Copied'))
       if navigator.clipboard?.writeText

@@ -37,6 +37,14 @@
         <% else: %>
           <div class="siska-msg-text"><%- @html %></div>
         <% end %>
+        <% if @sender is 'customer': %>
+          <!-- G3: reaksi AGENT ke pesan customer; klik = hapus (bukan di riwayat) -->
+          <% if @history: %>
+            <span class="siska-msg-reaction<%= ' hidden' if !@agentReaction %>"<% if @agentReaction: %> role="img" aria-label="<%- @Ti('Your reaction: %s', @agentReactionLabel) %>"<% end %>><%= @agentReaction %></span>
+          <% else: %>
+            <button type="button" class="siska-msg-reaction siska-msg-reaction--own js-agentReaction<%= ' hidden' if !@agentReaction %>" aria-label="<%- @Ti('Your reaction: %s. Remove', @agentReactionLabel || '') %>"><%= @agentReaction %></button>
+          <% end %>
+        <% end %>
         <% if @sender is 'agent': %>
           <span class="siska-msg-reaction js-reaction<%= ' hidden' if !@reaction %>"<% if @reaction: %> aria-label="<%- @Ti('Customer reaction: %s', @reactionLabel) %>"<% end %>><%= @reaction %></span>
         <% end %>
@@ -45,6 +53,13 @@
       <div class="siska-msg-menu js-msgMenu">
         <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm siska-msg-menu-toggle js-msgMenuToggle" aria-label="<%- @Ti('Message options') %>" aria-haspopup="menu" aria-expanded="false"><%- @SiskaIcon('dots-three-vertical', 18) %></button>
         <div class="s-menu siska-msg-menu-list hidden" role="menu" aria-label="<%- @Ti('Message options') %>">
+          <% if @sender is 'customer' and !@history and @messageId: %>
+            <div class="siska-reaction-row" role="group" aria-label="<%- @Ti('React') %>">
+              <% for item in @reactions: %>
+                <button type="button" class="siska-reaction-item js-reactMessage<%= ' is-active' if item.emoji is @agentReaction %>" role="menuitemradio" aria-checked="<%= if item.emoji is @agentReaction then 'true' else 'false' %>" aria-label="<%- @Ti(item.label) %>" data-reaction="<%= item.emoji %>"><%= item.emoji %></button>
+              <% end %>
+            </div>
+          <% end %>
           <% if !@history: %><button type="button" class="s-menu-item js-replyMessage" role="menuitem"><%- @SiskaIcon('arrow-bend-up-left', 16) %><%- @T('Reply') %></button><% end %>
           <% if @kind is 'text': %><button type="button" class="s-menu-item js-copyMessage" role="menuitem"><%- @SiskaIcon('copy', 16) %><%- @T('Copy') %></button><% end %>
           <% if @file: %>

@@ -153,7 +153,7 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 |---|---|---|
 | G1 | Tanda terkirim/dibaca untuk pesan agent tidak ada | ✅ **Selesai** 2026-09-25 |
 | G2 | Copy teks pesan tidak ada di agent | ✅ **Selesai** 2026-09-25 |
-| G3 | Reaksi emoji hanya satu arah (customer → agent) | **Keputusan user** dulu: perlu/tidak reaksi dari agent |
+| G3 | Reaksi emoji hanya satu arah (customer → agent) | ✅ **Selesai** 2026-09-25 (keputusan user: perlu) |
 | G4 | Pratinjau gambar di widget belum seragam 240 × 180 | Terapkan aturan agent ke widget |
 | G5 | Kartu gambar belum ada di widget | Terapkan, atau putuskan tetap ringkas |
 | G6 | Progress unggah agent tanpa persen | ✅ **Selesai** 2026-09-25 |

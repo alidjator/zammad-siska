@@ -597,6 +597,8 @@ class App.ChatWindow extends App.Controller
     'click .js-toggleProfile':       'toggleProfile'
     'click .js-historyMore':         'loadMoreHistory'
     'click .js-copyMessage':         'copyMessage'
+    'click .js-reactMessage':        'reactToMessage'
+    'click .js-agentReaction':       'removeAgentReaction'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -665,7 +667,12 @@ class App.ChatWindow extends App.Controller
     # event ini ke agent sejak fitur reaksi widget; baru ditampilkan sekarang).
     @controllerBind('chat_session_reaction', (data) =>
       return if data.session_id isnt @session.session_id
-      @setReaction(data.message_id, data.reaction)
+      # G3: reactor 'agent' = reaksi agent ke pesan customer (echo sendiri /
+      # agent lain); selain itu reaksi customer ke pesan agent
+      if data.reactor is 'agent'
+        @applyAgentReaction(data.message_id, data.reaction)
+      else
+        @setReaction(data.message_id, data.reaction)
     )
 
     @controllerBind('chat_session_typing', (data) =>
@@ -1344,6 +1351,9 @@ class App.ChatWindow extends App.Controller
       isRead:        !!message.read_at
       reaction:      message.customer_reaction
       reactionLabel: App.SiskaFormat.REACTIONS[message.customer_reaction] || message.customer_reaction
+      agentReaction: message.agent_reaction
+      agentReactionLabel: App.SiskaFormat.REACTIONS[message.agent_reaction] || message.agent_reaction
+      reactions:     ({ emoji: emoji, label: label } for emoji, label of App.SiskaFormat.REACTIONS)
     if kind isnt 'text'
       base = "#{@apiPath}/chat_sessions/#{sessionKey}/attachments/#{message.id}"
       icon = if kind is 'image' then 'file-image' else App.SiskaIcon.forFile(message.filename)
@@ -1380,6 +1390,51 @@ class App.ChatWindow extends App.Controller
     label = App.i18n.translateInline('Read')
     @body.children('.siska-msg--agent').find('.js-msgStatus').not('.is-read')
       .addClass('is-read').attr('aria-label', label).attr('title', label)
+
+  # G3: agent memberi / mengganti / menghapus reaksi pada pesan customer.
+  # Klik emoji yang sama dgn reaksi aktif = hapus (pola widget). UI diperbarui
+  # langsung (optimis); echo server menegaskan nilai yang sama.
+  reactToMessage: (e) =>
+    e.preventDefault()
+    button = $(e.currentTarget)
+    messageId = button.closest('[data-message-id]').attr('data-message-id')
+    return if !messageId
+    emoji = button.attr('data-reaction')
+    current = @messagesById[messageId]?.agent_reaction || null
+    next = if emoji && emoji isnt current then emoji else null
+    @closeMenus(true)
+    @sendAgentReaction(messageId, next)
+
+  removeAgentReaction: (e) =>
+    e.preventDefault()
+    e.stopPropagation()
+    messageId = $(e.currentTarget).closest('[data-message-id]').attr('data-message-id')
+    @sendAgentReaction(messageId, null) if messageId
+
+  sendAgentReaction: (messageId, reaction) =>
+    @applyAgentReaction(messageId, reaction)
+    App.WebSocket.send(
+      event: 'chat_session_reaction'
+      data:
+        session_id: @session.session_id
+        message_id: parseInt(messageId, 10)
+        reaction:   reaction
+    )
+
+  applyAgentReaction: (messageId, reaction) =>
+    message = @messagesById[messageId]
+    message.agent_reaction = reaction if message
+    el = @body.find("[data-message-id='#{messageId}']")
+    return if !el.length
+    chip = el.find('.js-agentReaction')
+    if reaction
+      label = App.SiskaFormat.REACTIONS[reaction] || reaction
+      chip.text(reaction).attr('aria-label', App.i18n.translatePlain('Your reaction: %s. Remove', App.i18n.translatePlain(label))).removeClass('hidden')
+    else
+      chip.text('').addClass('hidden')
+    el.find('.js-reactMessage').each (index, item) ->
+      active = $(item).attr('data-reaction') is reaction
+      $(item).toggleClass('is-active', active).attr('aria-checked', String(active))
 
   setReaction: (messageId, reaction) =>
     message = @messagesById[messageId]

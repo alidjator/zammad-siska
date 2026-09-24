@@ -3591,6 +3591,17 @@
   margin-bottom: 18px;
 }
 
+.zammad-chat-message--customer .zammad-chat-message-body {
+  position: relative;
+}
+
+.zammad-chat-reaction-badge--agent {
+  cursor: default;
+}
+.zammad-chat-reaction-badge--agent:hover {
+  background: #ffffff;
+}
+
 .zammad-chat-reaction-badge {
   position: absolute;
   left: 8px;

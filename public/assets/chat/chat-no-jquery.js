@@ -3871,6 +3871,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.showToast = bind(this.showToast, this);
       this.copyTextFallback = bind(this.copyTextFallback, this);
       this.copyMessage = bind(this.copyMessage, this);
+      this.applyAgentReaction = bind(this.applyAgentReaction, this);
+      this.confirmOwnMessage = bind(this.confirmOwnMessage, this);
       this.applyReaction = bind(this.applyReaction, this);
       this.setReaction = bind(this.setReaction, this);
       this.closeMessageMenu = bind(this.closeMessageMenu, this);
@@ -4765,9 +4767,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             break;
           case 'chat_session_message':
             if (pipe.data.self_written) {
-              return;
+              this.confirmOwnMessage(pipe.data.message);
+            } else {
+              this.receiveMessage(pipe.data);
             }
-            this.receiveMessage(pipe.data);
             break;
           case 'chat_session_attachment':
             from = pipe.data.message.created_by_id ? 'agent' : 'customer';
@@ -4804,7 +4807,11 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             }
             break;
           case 'chat_session_reaction':
-            this.applyReaction(pipe.data.message_id, pipe.data.reaction);
+            if (pipe.data.reactor === 'agent') {
+              this.applyAgentReaction(pipe.data.message_id, pipe.data.reaction);
+            } else {
+              this.applyReaction(pipe.data.message_id, pipe.data.reaction);
+            }
             break;
           case 'chat_knowledge_base_search':
             this.onKnowledgeBaseSearchResult(pipe.data);
@@ -4953,6 +4960,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           if (isAgentMessage && !message.read_at) {
             this.unreadAgentMessages = true;
           }
+          if (!isAgentMessage && message.agent_reaction) {
+            this.applyAgentReaction(message.id, message.agent_reaction);
+          }
           if (isAgentMessage && message.customer_reaction) {
             this.applyReaction(message.id, message.customer_reaction);
           }
@@ -5003,7 +5013,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.sendMessage = function() {
-      var data, message, messageElement, ref, ref1, replyToId, replyToSnippet;
+      var data, localId, message, messageElement, ref, ref1, replyToId, replyToSnippet;
       message = this.input.innerHTML;
       if (!message) {
         return;
@@ -5012,10 +5022,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       sessionStorage.removeItem('unfinished_message');
       replyToId = (ref = this.replyTo) != null ? ref.id : void 0;
       replyToSnippet = (ref1 = this.replyTo) != null ? ref1.content : void 0;
+      localId = "local-" + (this._messageCount++);
+      (this.pendingOwnMessages || (this.pendingOwnMessages = [])).push(localId);
       messageElement = this.view('message')({
         message: message,
         from: 'customer',
-        id: this._messageCount++,
+        id: localId,
         unreadClass: '',
         replyTo: replyToSnippet,
         time: this.formatTime()
@@ -5256,6 +5268,62 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       return body.appendChild(badge);
     };
 
+    ZammadChat.prototype.confirmOwnMessage = function(message) {
+      var el, localId, ref, ref1;
+      if (!(message != null ? message.id : void 0)) {
+        return;
+      }
+      localId = (ref = this.pendingOwnMessages) != null ? ref.shift() : void 0;
+      if (!localId) {
+        return;
+      }
+      el = (ref1 = this.body) != null ? ref1.querySelector(".zammad-chat-message[data-message-id='" + localId + "']") : void 0;
+      if (el) {
+        return el.dataset.messageId = message.id;
+      }
+    };
+
+    ZammadChat.prototype.applyAgentReaction = function(messageId, reaction) {
+      var badge, body, item, label, messageEl, ref, ref1;
+      if (!messageId) {
+        return;
+      }
+      messageEl = (ref = this.body) != null ? ref.querySelector(".zammad-chat-message[data-message-id='" + messageId + "']") : void 0;
+      if (!messageEl) {
+        return;
+      }
+      body = messageEl.querySelector('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      if ((ref1 = body.querySelector('.js-agent-reaction-badge')) != null) {
+        ref1.remove();
+      }
+      if (!reaction) {
+        messageEl.classList.remove('has-reaction');
+        return;
+      }
+      label = ((function() {
+        var j, len, ref2, results1;
+        ref2 = this.REACTIONS;
+        results1 = [];
+        for (j = 0, len = ref2.length; j < len; j++) {
+          item = ref2[j];
+          if (item.emoji === reaction) {
+            results1.push(item.label);
+          }
+        }
+        return results1;
+      }).call(this))[0] || '';
+      messageEl.classList.add('has-reaction');
+      badge = document.createElement('span');
+      badge.className = 'zammad-chat-reaction-badge zammad-chat-reaction-badge--agent js-agent-reaction-badge';
+      badge.setAttribute('role', 'img');
+      badge.setAttribute('aria-label', (this.T('Agent reaction')) + ": " + (this.T(label)));
+      badge.textContent = reaction;
+      return body.appendChild(badge);
+    };
+
     ZammadChat.prototype.copyMessage = function(messageEl) {
       var body, clone, done, ref, text;
       body = messageEl != null ? messageEl.querySelector('.zammad-chat-message-body') : void 0;
@@ -5263,7 +5331,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return;
       }
       clone = body.cloneNode(true);
-      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge').forEach(function(el) {
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge, .js-agent-reaction-badge').forEach(function(el) {
         return el.remove();
       });
       text = clone.textContent.trim();

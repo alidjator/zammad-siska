@@ -1038,8 +1038,43 @@ $siska-thumb-h: 180px;
   &.hidden { display: none; }
 }
 
-.siska-agent .siska-msg--agent:has(.siska-msg-reaction:not(.hidden)) {
+// bubble dgn chip reaksi (agent: reaksi customer; customer: reaksi agent)
+.siska-agent .siska-msg:has(.siska-msg-reaction:not(.hidden)) {
   margin-bottom: 14px;
+}
+
+// G3: chip reaksi agent sendiri di bubble customer -- tombol, klik = hapus
+.siska-agent .siska-msg-reaction--own {
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover { background: $siska-body-bg; }
+}
+
+// G3: baris 5 emoji di atas item menu pesan customer (pola widget)
+.siska-agent .siska-reaction-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  margin: 0 0 6px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid $siska-border;
+}
+
+.siska-agent .siska-reaction-item {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: $siska-radius-sm;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover { background: $siska-hover-bg; }
+  &.is-active { background: $siska-primary-tint; box-shadow: inset 0 0 0 1px $siska-primary; }
 }
 
 // Menu titik tiga di samping bubble (pola kit `chat-msg-option`)
