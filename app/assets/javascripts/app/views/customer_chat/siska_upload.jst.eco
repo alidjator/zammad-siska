@@ -1,0 +1,35 @@
+<!-- G6 (docs/COMPARISON_WIDGET_VS_AGENT.md): placeholder unggah milik agent,
+     pola sama dgn widget (image_upload.eco / file_upload.eco). Diganti di
+     posisinya oleh pesan asli saat broadcast chat_session_attachment tiba. -->
+<div class="siska-msg siska-msg--agent siska-upload js-upload" data-upload-id="<%= @uploadId %>" data-upload-kind="<%= @kind %>">
+  <div class="siska-msg-main">
+    <div class="siska-msg-meta"><%= @author %></div>
+    <div class="siska-msg-row">
+      <div class="siska-msg-bubble siska-msg-bubble--<%= @kind %>">
+        <% if @kind is 'image': %>
+          <div class="siska-img-card">
+            <div class="siska-msg-image siska-upload-image">
+              <img src="<%= @previewUrl %>" alt="">
+              <span class="siska-upload-overlay js-uploadLabel" role="status"><%- @T('Uploading…') %></span>
+            </div>
+            <div class="siska-img-card-foot">
+              <span class="siska-img-card-text">
+                <span class="siska-img-card-name" title="<%= @filename %>"><%= @filename %></span>
+                <span class="siska-upload-bar"><span class="js-uploadBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="<%- @Ti('Upload progress') %>"></span></span>
+              </span>
+            </div>
+          </div>
+        <% else: %>
+          <div class="siska-msg-file">
+            <span class="siska-file-icon siska-tone-<%= @tone %>"><%- @SiskaIcon(@icon, 20) %></span>
+            <span class="siska-msg-file-text">
+              <span class="siska-msg-file-name"><%= @filename %></span>
+              <span class="siska-msg-file-meta js-uploadLabel" role="status"><%- @T('Uploading…') %></span>
+              <span class="siska-upload-bar"><span class="js-uploadBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="<%- @Ti('Upload progress') %>"></span></span>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

@@ -611,7 +611,6 @@ class App.ChatWindow extends App.Controller
     '.js-replyIndicator':            'replyIndicator'
     '.js-attachmentInput':           'attachmentInput'
     '.js-imageInput':                'imageInput'
-    '.js-uploadStatus':              'uploadStatus'
     '.js-profile':                   'profile'
 
   sounds:
@@ -930,6 +929,8 @@ class App.ChatWindow extends App.Controller
       @removeCallback(@session.session_id)
 
   release: =>
+    for uploadId of (@uploadPreviewUrls || {})
+      @releaseUploadPreview(uploadId)
     @trigger('closed')
     @el.remove()
 
@@ -1505,26 +1506,44 @@ class App.ChatWindow extends App.Controller
     formData.append('File', file)
     # Sama dgn widget ("Opsi B", ikuti WhatsApp): lewat tombol lampiran
     # selalu jadi kartu file, gambar hanya lewat tombol kirim gambar.
-    formData.append('display', 'file') if @siska && input.is(@attachmentInput)
+    asFile = @siska && input.is(@attachmentInput)
+    formData.append('display', 'file') if asFile
 
-    @setUploading(true, file.name)
+    # B1 (docs/INVENTORY_AGENT_CHAT.md): id unik per upload. Dulu id tetap
+    # 'chat-attachment-upload' -- App.Ajax membatalkan request lama ber-id
+    # sama secara global, jadi upload di satu jendela chat membatalkan upload
+    # yang masih berjalan di jendela lain.
+    @uploadSeq = (@uploadSeq || 0) + 1
+    uploadId = "#{@session.session_id}-#{@uploadSeq}"
+    kind = if !asFile && _.contains(App.SiskaFormat.IMAGE_TYPES, file.type) then 'image' else 'file'
+    @addUploadPlaceholder(uploadId, file, kind) if @siska
 
     @ajax(
-      id:          'chat-attachment-upload'
+      id:          "chat-attachment-upload-#{uploadId}"
       type:        'POST'
       url:         "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments"
       data:        formData
       processData: false
       contentType: false
       cache:       false
+      # G6: progres unggah dalam persen (pola sama dgn widget)
+      xhr:         =>
+        request = new window.XMLHttpRequest()
+        if @siska
+          request.upload.addEventListener('progress', (event) =>
+            return if !event.lengthComputable
+            @updateUploadPlaceholder(uploadId, Math.round(event.loaded / event.total * 100))
+          )
+        request
       success:     =>
-        @setUploading(false)
+        @updateUploadPlaceholder(uploadId, 100)
         # rendering dilakukan lewat broadcast chat_session_attachment
         # (dikirim server ke KEDUA sisi termasuk pengunggah sendiri),
         # bukan di sini, supaya tidak dobel & konsisten dengan cara
-        # pesan teks sendiri direfleksikan balik.
+        # pesan teks sendiri direfleksikan balik. Placeholder diganti di
+        # posisinya oleh `addAttachmentMessage`.
       error: (xhr) =>
-        @setUploading(false)
+        @removeUploadPlaceholder(uploadId)
         message = xhr.responseJSON?.error || __('The attachment could not be uploaded.')
         new App.ControllerConfirm(
           head:         __('Attachment')
@@ -1536,10 +1555,41 @@ class App.ChatWindow extends App.Controller
 
     input.val('')
 
-  setUploading: (state, filename) =>
-    return if !@uploadStatus?.length
-    @$('.js-attachOnly').prop('disabled', state)
-    @uploadStatus.text(if state then App.i18n.translatePlain('Uploading %s…', filename) else '')
+  # --- G6: placeholder unggah (varian siska) -------------------------------
+  addUploadPlaceholder: (uploadId, file, kind) =>
+    @uploadPreviewUrls ||= {}
+    previewUrl = undefined
+    if kind is 'image' && window.URL?.createObjectURL
+      previewUrl = @uploadPreviewUrls[uploadId] = window.URL.createObjectURL(file)
+    @maybeAddTimestamp()
+    @lastAddedType = 'agent'
+    @body.append App.view('customer_chat/siska_upload')(
+      uploadId:   uploadId
+      kind:       kind
+      previewUrl: previewUrl
+      filename:   file.name
+      author:     App.i18n.translatePlain('You')
+      icon:       App.SiskaIcon.forFile(file.name)
+      tone:       App.SiskaIcon.fileTone(file.name)
+    )
+    @scrollToBottom(showHint: true)
+
+  updateUploadPlaceholder: (uploadId, percent) =>
+    el = @body.find(".js-upload[data-upload-id='#{uploadId}']")
+    return if !el.length
+    label = if percent >= 100 then App.i18n.translatePlain('Processing…') else "#{App.i18n.translatePlain('Uploading…')} #{percent}%"
+    el.find('.js-uploadLabel').text(label)
+    el.find('.js-uploadBar').css('width', "#{percent}%").attr('aria-valuenow', percent)
+
+  releaseUploadPreview: (uploadId) =>
+    url = @uploadPreviewUrls?[uploadId]
+    return if !url
+    window.URL.revokeObjectURL(url)
+    delete @uploadPreviewUrls[uploadId]
+
+  removeUploadPlaceholder: (uploadId) =>
+    @body.find(".js-upload[data-upload-id='#{uploadId}']").remove()
+    @releaseUploadPreview(uploadId)
 
   addAttachmentMessage: (message, sender, isNew) =>
     @maybeAddTimestamp()
@@ -1555,7 +1605,15 @@ class App.ChatWindow extends App.Controller
     if @siska
       @messagesById[message.id] = message if message.id
       kind = if App.SiskaFormat.isImage(message) then 'image' else 'file'
-      @body.append App.view('customer_chat/siska_message')(@siskaMessageParams(message, sender, isNew, kind))
+      html = App.view('customer_chat/siska_message')(@siskaMessageParams(message, sender, isNew, kind))
+      # lampiran milik sendiri menggantikan placeholder unggah tertua dgn jenis
+      # yang sama DI POSISINYA (pola widget), bukan ditambah di bawah
+      placeholder = if sender is 'agent' then @body.find(".js-upload[data-upload-kind='#{kind}']").first() else $()
+      if placeholder.length
+        @releaseUploadPreview(placeholder.attr('data-upload-id'))
+        placeholder.before(html).remove()
+      else
+        @body.append html
       # tinggi gambar baru diketahui setelah dimuat
       @body.find('.js-siskaImage img').last().one('load', => @scrollToBottom())
     else

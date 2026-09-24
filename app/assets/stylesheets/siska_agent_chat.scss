@@ -1932,3 +1932,54 @@ $siska-thumb-h: 180px;
   color: $siska-primary;
   font-weight: 600;
 }
+
+// ---------------------------------------------------------------------
+// G6 -- placeholder unggah agent (bar persen), pola sama dgn widget.
+// ---------------------------------------------------------------------
+.siska-agent .siska-upload-image {
+  position: relative;
+  cursor: default;
+
+  img { opacity: 0.6; }
+}
+
+.siska-agent .siska-upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(19, 25, 32, 0.6);
+}
+
+.siska-agent .siska-upload-bar {
+  display: block;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: $siska-border;
+  overflow: hidden;
+
+  > span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 4px;
+    background: $siska-primary;
+    transition: width 0.2s linear;
+  }
+
+  // di kartu file agent (biru solid) bar memakai putih
+  @at-root .siska-agent .siska-msg--agent .siska-msg-file .siska-upload-bar {
+    background: rgba(255, 255, 255, 0.3);
+
+    > span { background: #fff; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siska-agent .siska-upload-bar > span { transition: none; }
+}

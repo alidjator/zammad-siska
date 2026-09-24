@@ -69,7 +69,6 @@
     <input type="file" class="js-imageInput hidden" accept="image/jpeg,image/png,image/gif,image/webp">
     <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-attachButton js-attachOnly" aria-label="<%- @Ti('Attach file') %>"><%- @SiskaIcon('paperclip', 20) %></button>
     <input type="file" class="js-attachmentInput hidden">
-    <span class="siska-composer-status s-small s-muted js-uploadStatus" role="status"></span>
     <button type="button" class="s-btn s-btn-primary s-btn-icon siska-composer-send js-send" aria-label="<%- @Ti('Send') %>"><%- @SiskaIcon('paper-plane-right', 18) %></button>
   </div>
 </div>

@@ -41,7 +41,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | Kartu gambar (nama, tipe · ukuran, unduh) | Tidak ada; jam + centang ditumpuk di atas gambar | Ada, putih bergaris (`71047e60`) | ❗ **G5** |
 | Kartu file per tipe | Ada, warna per tipe | Ada, pemetaan & warna sama (`App.SiskaIcon`) | ✅ |
 | Viewer layar penuh | Ada | Ada | ✅ |
-| Progress unggah | Placeholder + bar persen (`updateImageUpload`) | Hanya teks "Uploading …" tanpa persen | ❗ **G6** |
+| Progress unggah | Placeholder + bar persen (`updateImageUpload`) | Placeholder + bar persen, diganti di posisinya oleh pesan asli | ✅ **G6 selesai** (2026-09-25) |
 | Tempel / seret gambar ke kotak ketik | Paste & drop | Lewat editor rich text Zammad | ✅ |
 
 ## 4. Area ketik
@@ -78,7 +78,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | G3 | Reaksi emoji dari agent | Agent (+ backend + widget) | **Putuskan dulu** perlu/tidak; bila perlu, backend menerima reaksi dari agent & widget menampilkannya |
 | G4 | Pratinjau gambar seragam 240 × 180 | Widget | Terapkan aturan yang sama |
 | G5 | Kartu gambar | Widget | Terapkan, atau putuskan tetap ringkas di widget yang sempit |
-| G6 | Progress unggah dengan persen | Agent | Samakan dengan widget (XHR `upload.onprogress`) |
+| G6 | Progress unggah dengan persen | Agent | ✅ **Selesai** 2026-09-25, bersama perbaikan B1 |
 | G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` — **direvisi di audit (bagian 8): lebih kecil** |
 | G8 | Bahasa label panel agent | Agent | Terjemahan Bahasa Indonesia untuk string baru — **direvisi di audit (bagian 8): locale `id` belum aktif** |
 
