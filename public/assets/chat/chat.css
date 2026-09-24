@@ -2974,9 +2974,9 @@
 .zammad-chat-image-open {
   position: relative;
   display: block;
-  width: 220px;
+  width: 240px;
+  height: 180px;
   max-width: 100%;
-  min-height: 120px;
   padding: 0;
   margin: 0;
   border: none;
@@ -2998,10 +2998,11 @@
 .zammad-chat-image-thumb {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 280px;
+  height: 100%;
   -o-object-fit: cover;
   object-fit: cover;
+  -o-object-position: center;
+  object-position: center;
 }
 
 .zammad-chat-image-meta {
@@ -3045,6 +3046,7 @@
 }
 
 .zammad-chat-image-open.is-broken {
+  height: auto;
   min-height: 0;
   background: transparent;
   cursor: pointer;

@@ -3517,12 +3517,16 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   white-space: normal;
 }
 
+// G4 (keputusan user: 240x180): semua pratinjau gambar -- termasuk
+// placeholder unggah -- berukuran SAMA, crop penuh di tengah, seperti panel
+// agent (`$siska-thumb-w/h` di siska_agent_chat.scss). Gambar utuh tetap
+// lewat viewer layar penuh.
 .zammad-chat-image-open {
   position: relative;
   display: block;
-  width: 220px;
+  width: 240px;
+  height: 180px;
   max-width: 100%;
-  min-height: 120px;
   padding: 0;
   margin: 0;
   border: none;
@@ -3541,9 +3545,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-image-thumb {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 280px;
+  height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
 .zammad-chat-image-meta {
@@ -3587,6 +3591,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 .zammad-chat-image-open.is-broken {
+  // G4: gagal dimuat -> kartu file ringkas, bukan kotak kosong 240x180
+  height: auto;
   min-height: 0;
   background: transparent;
   cursor: pointer;

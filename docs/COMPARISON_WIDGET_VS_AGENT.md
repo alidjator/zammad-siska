@@ -37,7 +37,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 
 | Fitur | Widget customer | Panel agent | Status |
 |---|---|---|---|
-| Ukuran pratinjau gambar | `width: 100%`, `height: auto`, `max-height: 280px` → tidak seragam | Seragam 240 × 180, crop penuh (`d3dff1bf`) | ❗ **G4** |
+| Ukuran pratinjau gambar | Seragam 240 × 180, crop penuh (termasuk placeholder unggah) | Seragam 240 × 180, crop penuh (`d3dff1bf`) | ✅ **G4 selesai** (2026-09-25) |
 | Kartu gambar (nama, tipe · ukuran, unduh) | Tidak ada; jam + centang ditumpuk di atas gambar | Ada, putih bergaris (`71047e60`) | ❗ **G5** |
 | Kartu file per tipe | Ada, warna per tipe | Ada, pemetaan & warna sama (`App.SiskaIcon`) | ✅ |
 | Viewer layar penuh | Ada | Ada | ✅ |
@@ -76,7 +76,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | G1 | Tanda terkirim/dibaca untuk pesan agent | Agent (+ backend) | ✅ **Selesai** 2026-09-25 |
 | G2 | Copy teks pesan | Agent | ✅ **Selesai** 2026-09-25 |
 | G3 | Reaksi emoji dari agent | Agent (+ backend + widget) | ✅ **Selesai** 2026-09-25 (keputusan user: perlu) |
-| G4 | Pratinjau gambar seragam 240 × 180 | Widget | Terapkan aturan yang sama |
+| G4 | Pratinjau gambar seragam 240 × 180 | Widget | ✅ **Selesai** 2026-09-25 (keputusan user: 240 × 180) |
 | G5 | Kartu gambar | Widget | Terapkan, atau putuskan tetap ringkas di widget yang sempit |
 | G6 | Progress unggah dengan persen | Agent | ✅ **Selesai** 2026-09-25, bersama perbaikan B1 |
 | G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` — **direvisi di audit (bagian 8): lebih kecil** |
