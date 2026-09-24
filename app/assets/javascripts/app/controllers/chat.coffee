@@ -1,15 +1,30 @@
+# Redesign sisi agent (Tahap 1) -- pola DAFTAR + DETAIL (mockup canvas
+# "SISKA Agent - Kit Tailwind", artboard 1) menggantikan jendela chat yang
+# berjajar. Semua jendela (`App.ChatWindow`) tetap dibuat & hidup seperti
+# sebelumnya (event WebSocket, unread, dst tidak berubah), hanya SATU yang
+# tampil di kartu detail; sisanya disembunyikan dengan `visibility`, BUKAN
+# `display: none`, karena `ChatWindow` baru menyiapkan input-nya di event
+# `transitionend` (lihat `onTransitionend`), yang tidak pernah terjadi pada
+# elemen `display: none`.
+#
+# Terima chat tetap FIFO (keputusan user): satu tombol "Accept next" per
+# topik, backend `chat_session_start` tidak berubah. Daftar tunggu hanya
+# informasi.
 class App.CustomerChat extends App.Controller
   events:
-    'click .js-acceptChat': 'acceptChat'
-    'click .js-settings': 'settings'
+    'click .js-acceptChat':    'acceptChat'
+    'click .js-settings':      'settings'
+    'click .js-selectChat':    'onSelectChat'
+    'change .js-onlineSwitch': 'onOnlineSwitch'
+    'input .js-listSearch':    'onListSearch'
 
   elements:
-    '.js-acceptChat':             'acceptChatElement'
-    '.js-badgeWaitingCustomers':  'badgeWaitingCustomers'
-    '.js-totalInfo':              'totalInfo'
-    '.js-badgeChattingCustomers': 'badgeChattingCustomers'
-    '.js-badgeActiveAgents':      'badgeActiveAgents'
-    '.chat-workspace':            'workspace'
+    '.chat-workspace':  'workspace'
+    '.js-list':         'list'
+    '.js-summary':      'summary'
+    '.js-onlineSwitch': 'onlineSwitch'
+    '.js-onlineLabel':  'onlineLabel'
+    '.js-detailEmpty':  'detailEmpty'
 
   sounds:
     chat_new: new Audio('assets/sounds/chat_new.mp3')
@@ -17,7 +32,6 @@ class App.CustomerChat extends App.Controller
   constructor: ->
     super
 
-    @popovers = []
     @chatWindows = {}
     @maxChatWindows = 4
     preferences = @Session.get('preferences')
@@ -25,6 +39,8 @@ class App.CustomerChat extends App.Controller
       @maxChatWindows = parseInt(preferences.chat.max_windows)
 
     @pushStateIntervalOn = undefined
+    @selectedSessionId = undefined
+    @listQuery = ''
     @idleTimeout = parseInt(@Config.get('chat_agent_idle_timeout') || 120)
     @messageCounter = 0
     @meta =
@@ -41,6 +57,15 @@ class App.CustomerChat extends App.Controller
     @render()
     @on('layout-has-changed', @propagateLayoutChange)
 
+    # timer tunggu & jam di daftar
+    @interval(@renderList, 30000, 'siska-chat-list')
+
+    # klik notifikasi desktop -> pilih percakapannya juga (fokus input
+    # sendiri tetap ditangani ChatWindow lewat event yang sama)
+    @controllerBind('chat_focus', (data) =>
+      @selectChat(data.session_id) if @chatWindows[data.session_id]
+    )
+
     # update navbar on new status
     @controllerBind('chat_status_agent', (data) =>
       if data.assets
@@ -55,6 +80,10 @@ class App.CustomerChat extends App.Controller
     @controllerBind('chat_session_start', (data) =>
       if data.session
         @addChat(data.session)
+      else
+        # mis. antrean sudah diambil agent lain -- jangan sampai sesi lain
+        # yang datang belakangan ikut dipilih otomatis
+        @acceptPending = false
     )
 
     # on new login or on
@@ -102,23 +131,9 @@ class App.CustomerChat extends App.Controller
       return
 
     @html App.view('customer_chat/index')()
-
-  chatSessionList: (list) ->
-    list = [] if !list
-    for chat_session in list
-      chat = App.Chat.find(chat_session.chat_id)
-      chat_session.name = "#{chat.displayName()} [##{chat_session.id}]"
-      chat_session.geo_data = ''
-      if chat_session.preferences && chat_session.preferences.geo_ip
-        if chat_session.preferences.geo_ip.country_name
-          chat_session.geo_data += chat_session.preferences.geo_ip.country_name
-        if chat_session.preferences.geo_ip.city_name
-          chat_session.geo_data += " #{chat_session.preferences.geo_ip.city_name}"
-      if chat_session.user_id
-        chat_session.user = App.User.find(chat_session.user_id)
-    App.view('customer_chat/chat_list')(
-      chat_sessions: list
-    )
+    @selectedSessionId = undefined
+    @renderHeader()
+    @renderList()
 
 
   show: (params) =>
@@ -210,6 +225,9 @@ class App.CustomerChat extends App.Controller
       @stopPushState()
       @pushState()
 
+    @renderHeader()
+    @renderList()
+
   activeChatTopcis: =>
     preferences = @Session.get('preferences')
     return [] if !preferences
@@ -222,63 +240,10 @@ class App.CustomerChat extends App.Controller
     chats
 
   updateMeta: =>
-
-    # clear old popovers
-    for popover in @popovers
-      popover.popover('destroy')
-    @popovers = []
-
-    activeChatTopcis = @activeChatTopcis()
-    @$('.js-header').html(App.view('customer_chat/chat_header')(chats: activeChatTopcis))
-    @refreshElements()
     if @meta.waiting_chat_count && @maxChatWindows > @windowCount()
-
-      # activate normal button
-      @acceptChatElement.not('[data-chat-id]').next().addBack().addClass('is-active pulsate-animation')
-
-      # activate specific chat buttons
-      if activeChatTopcis.length > 1
-        for chat in activeChatTopcis
-          if @meta.waiting_chat_count_by_chat[chat.id]
-            @$(".js-header .js-acceptChat[data-chat-id=#{chat.id}]").attr('disabled', false).next().addBack().addClass('is-active pulsate-animation')
       @idleTimeoutStart()
     else
-      @acceptChatElement.next().addBack().removeClass('is-active pulsate-animation')
       @idleTimeoutStop()
-
-    if activeChatTopcis.length > 1
-      for chat in App.Chat.all()
-        do (chat) =>
-          @$(".js-header .js-waitingCustomers[data-chat-id=#{chat.id}] .js-badgeWaitingCustomers").text(@meta.waiting_chat_count_by_chat[chat.id])
-          @popovers.push @el.find(".js-waitingCustomers[data-chat-id=#{chat.id}] .js-info").popover(
-            trigger:    'hover'
-            html:       true
-            animation:  false
-            delay:      0
-            placement:  'bottom'
-            container:  'body' # place in body do prevent it from animating
-            title: ->
-              App.i18n.translateContent('Waiting Customers')
-            content: =>
-              @chatSessionList(@meta.waiting_chat_session_list_by_chat[chat.id])
-          )
-    else
-      @badgeWaitingCustomers.text(@meta.waiting_chat_count)
-      @popovers.push @el.find('.js-waitingCustomers .js-totalInfo').popover(
-        trigger:    'hover'
-        html:       true
-        animation:  false
-        delay:      0
-        placement:  'bottom'
-        container:  'body' # place in body do prevent it from animating
-        title: ->
-          App.i18n.translateContent('Waiting Customers')
-        content: =>
-          @chatSessionList(@meta.waiting_chat_session_list_by_chat[activeChatTopcis[0].id])
-      )
-
-    @badgeChattingCustomers.text(@meta.running_chat_count)
-    @badgeActiveAgents.text(@meta.active_agent_count)
 
     # reopen chats
     if @meta.active_sessions
@@ -286,53 +251,156 @@ class App.CustomerChat extends App.Controller
         @addChat(session)
     @meta.active_sessions = false
 
-    @popovers.push @el.find('.js-chattingCustomers .js-info').popover(
-      trigger:    'hover'
-      html:       true
-      animation:  false
-      delay:      0
-      placement:  'bottom'
-      container:  'body'
-      title: ->
-        App.i18n.translateContent('Chatting Customers')
-      content: =>
-        @chatSessionList(@meta.running_chat_session_list)
-    )
-
-    @popovers.push @el.find('.js-activeAgents .js-info').popover(
-      trigger:    'hover'
-      html:       true
-      animation:  false
-      delay:      0
-      placement:  'bottom'
-      container:  'body'
-      title: ->
-        App.i18n.translateContent('Active Agents')
-      content: =>
-        users = []
-        for user_id in @meta.active_agent_ids
-          users.push App.User.find(user_id)
-        App.view('customer_chat/user_list')(
-          users: users
-        )
-    )
-
+    @renderHeader()
+    @renderList()
     @updateNavMenu()
+
+  renderHeader: =>
+    return if !@summary?.length
+    running = _.filter(_.values(@chatWindows), (chat) -> chat && !chat.isOffline).length
+    waiting = @meta.waiting_chat_count || 0
+    parts = [
+      App.i18n.translateInline('%s in progress', running)
+      App.i18n.translateInline('%s waiting', waiting)
+      App.i18n.translateInline('%s active agents', @meta.active_agent_count || 0)
+    ]
+    @summary.html(parts.join(' &middot; '))
+
+    agents = (App.User.find(id)?.displayName() for id in (@meta.active_agent_ids || []))
+    @summary.attr('title', _.compact(agents).join(', '))
+
+    active = !!@meta.active
+    @onlineSwitch.prop('checked', active)
+    @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
+
+  renderList: =>
+    return if !@list?.length
+    query = @listQuery.toLowerCase()
+    matches = (text) ->
+      return true if !query
+      (text || '').toLowerCase().indexOf(query) isnt -1
+
+    running = []
+    for sessionId, chat of @chatWindows
+      continue if !chat
+      session = chat.session
+      continue if !matches("#{chat.name} #{session.email || ''} ##{session.id}")
+      last = chat.lastMessage
+      running.push(
+        sessionId:   sessionId
+        name:        chat.name || "##{session.id}"
+        initials:    @initials(chat.name)
+        time:        @formatTime(last?.time || session.created_at)
+        snippet:     last?.text || App.i18n.translatePlain('Chat #%s', session.id)
+        snippetIcon: last?.icon
+        unread:      chat.unreadMessages()
+        ended:       !!chat.isOffline
+        selected:    sessionId is @selectedSessionId
+      )
+
+    topics = @activeChatTopcis()
+    waiting = []
+    waitingTotal = 0
+    for topic in topics
+      sessions = []
+      for waitingSession in (@meta.waiting_chat_session_list_by_chat?[topic.id] || [])
+        continue if !matches("#{waitingSession.name || ''} #{waitingSession.email || ''} #{waitingSession.category || ''}")
+        sessions.push(
+          name:     waitingSession.name || App.i18n.translatePlain('Visitor')
+          initials: @initials(waitingSession.name)
+          category: waitingSession.category
+          wait:     @formatWait(waitingSession.created_at)
+        )
+      waitingTotal += sessions.length
+      waiting.push(id: topic.id, name: topic.displayName(), sessions: sessions)
+
+    @list.html App.view('customer_chat/siska_list')(
+      running:      running
+      waiting:      waiting
+      waitingTotal: waitingTotal
+      showTopics:   topics.length > 1
+      canAccept:    @maxChatWindows > @windowCount()
+      active:       !!@meta.active
+      query:        @listQuery
+    )
+
+    @detailEmpty.toggleClass('hidden', !!@selectedSessionId)
+
+  initials: (name) ->
+    words = _.compact((name || '').trim().split(/\s+/))
+    return '?' if !words.length
+    return words[0].substr(0, 2).toUpperCase() if words.length is 1
+    (words[0][0] + words[words.length - 1][0]).toUpperCase()
+
+  formatTime: (time) ->
+    return '' if !time
+    date = new Date(time)
+    return '' if isNaN(date.getTime())
+    if date.toDateString() is new Date().toDateString()
+      pad = (n) -> if n < 10 then "0#{n}" else "#{n}"
+      return "#{pad(date.getHours())}:#{pad(date.getMinutes())}"
+    App.i18n.translateDate(time)
+
+  formatWait: (time) ->
+    return '' if !time
+    minutes = Math.max(0, Math.floor((Date.now() - new Date(time).getTime()) / 60000))
+    return App.i18n.translatePlain('just now') if minutes < 1
+    return App.i18n.translatePlain('%s min', minutes) if minutes < 60
+    App.i18n.translatePlain('%s h %s min', Math.floor(minutes / 60), minutes % 60)
+
+  onListSearch: (e) =>
+    @listQuery = $(e.currentTarget).val() || ''
+    @renderList()
+
+  onOnlineSwitch: (e) =>
+    @switch($(e.currentTarget).prop('checked'))
+    @updateNavMenu()
+
+  onSelectChat: (e) =>
+    e.preventDefault()
+    @selectChat($(e.currentTarget).attr('data-session-id'))
+
+  # Tampilkan satu jendela di kartu detail. Fokus ke input memicu
+  # `clearUnread` milik ChatWindow (tanda dibaca ke customer), sama seperti
+  # agent mengklik jendela di tata letak lama.
+  selectChat: (sessionId) =>
+    chat = @chatWindows[sessionId]
+    return if !chat
+    @selectedSessionId = sessionId
+    for id, other of @chatWindows
+      other.el.toggleClass('is-selected', id is sessionId)
+    chat.trigger('layout-changed')
+    chat.focus()
+    @renderList()
+
+  # dipanggil ChatWindow per pesan (termasuk saat replay riwayat), jadi
+  # di-debounce supaya daftar tidak dirender ulang puluhan kali berturut-turut
+  onChatChanged: =>
+    @delay(=>
+      @renderList()
+      @updateNavMenu()
+    , 50, 'siska-chat-changed')
 
   addChat: (session) ->
     return if @chatWindows[session.session_id]
     chat = new App.ChatWindow(
       session: session
       removeCallback: @removeChat
-      messageCallback: @updateNavMenu
+      messageCallback: @onChatChanged
+      changeCallback: @onChatChanged
     )
 
     @workspace.append chat.el
     chat.render()
     @chatWindows[session.session_id] = chat
 
-    if @windowCount() is 1
-      chat.focus()
+    # chat yang baru diterima (atau satu-satunya) langsung dibuka;
+    # sesi yang dipulihkan setelah reload tidak merebut pilihan agent
+    if !@selectedSessionId || @acceptPending
+      @acceptPending = false
+      @selectChat(session.session_id)
+    else
+      @renderList()
 
   windowCount: =>
     count = 0
@@ -342,6 +410,10 @@ class App.CustomerChat extends App.Controller
 
   removeChat: (session_id) =>
     delete @chatWindows[session_id]
+    if @selectedSessionId is session_id
+      @selectedSessionId = undefined
+      next = _.keys(@chatWindows)[0]
+      @selectChat(next) if next
     @updateMeta()
 
   propagateLayoutChange: (event) =>
@@ -352,6 +424,7 @@ class App.CustomerChat extends App.Controller
   acceptChat: (e) =>
     return if @windowCount() >= @maxChatWindows
     chat_id = $(e.currentTarget).attr('data-chat-id')
+    @acceptPending = true
     App.WebSocket.send(event:'chat_session_start', chat_id: chat_id)
     @idleTimeoutStop()
 
@@ -843,6 +916,12 @@ class App.ChatWindow extends App.Controller
     if _.isString(message)
       message = { content: message }
 
+    @setLastMessage(
+      text: App.Utils.html2text(message.content || '').substr(0, 120)
+      time: message.created_at
+      sender: sender
+    )
+
     @messagesById[message.id] = message if message.id
 
     @body.append App.view('customer_chat/chat_message')(
@@ -936,6 +1015,13 @@ class App.ChatWindow extends App.Controller
     @maybeAddTimestamp()
     @lastAddedType = sender
 
+    @setLastMessage(
+      text: message.filename
+      time: message.created_at
+      sender: sender
+      icon: if /\.(jpe?g|png|gif|webp|bmp|heic)$/i.test(message.filename || '') then 'image' else 'paperclip'
+    )
+
     @body.append App.view('customer_chat/chat_attachment_message')(
       sender:      sender
       isNew:       isNew
@@ -960,7 +1046,17 @@ class App.ChatWindow extends App.Controller
     @isTyping = false
     @$('.js-loader').remove()
 
+  # Redesign sisi agent (Tahap 1) -- cuplikan pesan terakhir untuk kartu
+  # daftar di App.CustomerChat. `changeCallback` opsional: App.MyChat (yang
+  # juga memakai ChatWindow) tidak mengisinya, jadi perilakunya tidak berubah.
+  setLastMessage: (last) =>
+    last.time ||= new Date().toISOString()
+    @lastMessage = last
+    @changeCallback?(@session.session_id)
+
   goOffline: =>
+    @isOffline = true
+    @changeCallback?(@session.session_id)
     @status.attr('data-status', 'offline')
     @disconnectButton.addClass 'is-hidden'
     @closeButton.removeClass 'is-hidden'

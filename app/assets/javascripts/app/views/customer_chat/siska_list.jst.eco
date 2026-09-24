@@ -1,0 +1,80 @@
+<div class="siska-chat-section">
+  <div class="siska-chat-section-head">
+    <span class="s-label"><%- @T('In progress') %></span>
+    <span class="s-badge s-badge-secondary"><%= @running.length %></span>
+  </div>
+  <% if @running.length: %>
+    <ul class="siska-chat-items" role="list">
+      <% for item in @running: %>
+        <li>
+          <button type="button" class="s-list-item siska-chat-item js-selectChat<%= ' is-selected' if item.selected %><%= ' is-ended' if item.ended %>" data-session-id="<%= item.sessionId %>"<% if item.selected: %> aria-current="true"<% end %>>
+            <span class="s-avatar<%= ' s-avatar-muted' if item.ended %>">
+              <%= item.initials %>
+              <% if !item.ended: %><span class="s-avatar-dot"></span><% end %>
+            </span>
+            <span class="siska-chat-item-main">
+              <span class="siska-chat-item-row">
+                <span class="siska-chat-item-name"><%= item.name %></span>
+                <span class="s-muted s-small"><%= item.time %></span>
+              </span>
+              <span class="siska-chat-item-row">
+                <span class="siska-chat-item-snippet s-muted">
+                  <% if item.snippetIcon: %><%- @SiskaIcon(item.snippetIcon, 14) %><% end %>
+                  <%= item.snippet %>
+                </span>
+                <% if item.ended: %>
+                  <span class="s-badge s-badge-secondary"><%- @T('Ended') %></span>
+                <% else if item.unread: %>
+                  <span class="s-count" aria-label="<%- @Ti('%s unread', item.unread) %>"><%= item.unread %></span>
+                <% end %>
+              </span>
+            </span>
+          </button>
+        </li>
+      <% end %>
+    </ul>
+  <% else: %>
+    <div class="siska-chat-section-empty s-muted s-small"><%- @T(if @query then 'No matching chats' else 'No active conversations') %></div>
+  <% end %>
+</div>
+
+<div class="siska-chat-section">
+  <div class="siska-chat-section-head">
+    <span class="s-label"><%- @T('Waiting for agent') %></span>
+    <span class="s-badge <%= if @waitingTotal then 's-badge-warning' else 's-badge-secondary' %>"><%= @waitingTotal %></span>
+  </div>
+  <% if !@active: %>
+    <div class="siska-chat-section-empty s-muted s-small"><%- @T('Go online to receive waiting customers.') %></div>
+  <% else if !@waitingTotal: %>
+    <div class="siska-chat-section-empty s-muted s-small"><%- @T('The queue is empty') %></div>
+  <% else: %>
+    <% for group in @waiting: %>
+      <% continue if !group.sessions.length %>
+      <div class="siska-chat-queue">
+        <div class="siska-chat-queue-head">
+          <% if @showTopics: %><span class="siska-chat-queue-topic"><%= group.name %></span><% end %>
+          <button type="button" class="s-btn s-btn-primary s-btn-sm js-acceptChat"<% if @showTopics: %> data-chat-id="<%= group.id %>"<% end %><%= ' disabled' if !@canAccept %> title="<%- @Ti(if @canAccept then 'Accept the customer who has waited longest' else 'Maximum concurrent chats reached') %>">
+            <%- @SiskaIcon('check', 14) %>
+            <%- @T('Accept next') %>
+          </button>
+        </div>
+        <ul class="siska-chat-items" role="list">
+          <% for waiting in group.sessions: %>
+            <li class="siska-chat-waiting">
+              <span class="s-avatar s-avatar-sm s-avatar-muted"><%= waiting.initials %></span>
+              <span class="siska-chat-item-main">
+                <span class="siska-chat-item-row">
+                  <span class="siska-chat-item-name"><%= waiting.name %></span>
+                  <span class="siska-chat-wait s-small"><%- @SiskaIcon('hourglass', 12) %><%= waiting.wait %></span>
+                </span>
+                <% if waiting.category: %>
+                  <span class="siska-chat-item-snippet s-muted s-small"><%= waiting.category %></span>
+                <% end %>
+              </span>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  <% end %>
+</div>

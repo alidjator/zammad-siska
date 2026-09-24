@@ -1,12 +1,37 @@
-<div class="chat main">
-  <div class="page-header">
-      <div class="page-header-title">
-        <h1><%- @T('Customer Chat') %></h1>
-      </div>
-      <div class="page-header-center js-header"></div>
-      <div class="page-header-meta">
-        <div class="btn btn--action js-settings"><%- @T('Settings') %></div>
-      </div>
+<div class="chat main siska-agent siska-chat-page">
+  <div class="siska-chat-header">
+    <div class="siska-chat-header-title">
+      <h1 class="s-h1"><%- @T('Customer Chat') %></h1>
+      <div class="s-muted s-small js-summary"></div>
     </div>
-  <div class="chat-workspace"></div>
+    <div class="siska-chat-header-actions">
+      <label class="s-switch siska-chat-online">
+        <input type="checkbox" class="js-onlineSwitch">
+        <span class="js-onlineLabel"></span>
+      </label>
+      <button type="button" class="s-btn s-btn-outline js-settings">
+        <%- @SiskaIcon('gear-six', 16) %>
+        <%- @T('Settings') %>
+      </button>
+    </div>
+  </div>
+  <div class="siska-chat-layout">
+    <aside class="s-card siska-chat-list">
+      <div class="siska-chat-list-search">
+        <div class="s-input-icon">
+          <%- @SiskaIcon('magnifying-glass', 16) %>
+          <input type="search" class="s-form-control s-form-control-sm js-listSearch" placeholder="<%- @Ti('Search chats') %>" aria-label="<%- @Ti('Search chats') %>">
+        </div>
+      </div>
+      <div class="siska-chat-list-body js-list"></div>
+    </aside>
+    <section class="s-card siska-chat-detail">
+      <div class="siska-chat-empty js-detailEmpty">
+        <span class="siska-chat-empty-icon"><%- @SiskaIcon('chats', 32, tone: 'full') %></span>
+        <div class="s-h2"><%- @T('No conversation selected') %></div>
+        <div class="s-muted"><%- @T('Pick a chat from the list, or accept a waiting customer.') %></div>
+      </div>
+      <div class="chat-workspace"></div>
+    </section>
+  </div>
 </div>
