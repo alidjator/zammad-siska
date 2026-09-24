@@ -152,7 +152,7 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 | # | Item | Usulan |
 |---|---|---|
 | G1 | Tanda terkirim/dibaca untuk pesan agent tidak ada | Widget kirim `chat_session_message_read`; backend terima dari sesi customer; agent tampilkan centang |
-| G2 | Copy teks pesan tidak ada di agent | Item "Copy" di menu titik tiga |
+| G2 | Copy teks pesan tidak ada di agent | ✅ **Selesai** 2026-09-25 |
 | G3 | Reaksi emoji hanya satu arah (customer → agent) | **Keputusan user** dulu: perlu/tidak reaksi dari agent |
 | G4 | Pratinjau gambar di widget belum seragam 240 × 180 | Terapkan aturan agent ke widget |
 | G5 | Kartu gambar belum ada di widget | Terapkan, atau putuskan tetap ringkas |

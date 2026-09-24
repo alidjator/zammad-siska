@@ -41,11 +41,12 @@
           <span class="siska-msg-reaction js-reaction<%= ' hidden' if !@reaction %>"<% if @reaction: %> aria-label="<%- @Ti('Customer reaction: %s', @reactionLabel) %>"<% end %>><%= @reaction %></span>
         <% end %>
       </div>
-      <% if !@history or @file: %>
+      <% if !@history or @file or @kind is 'text': %>
       <div class="siska-msg-menu js-msgMenu">
         <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm siska-msg-menu-toggle js-msgMenuToggle" aria-label="<%- @Ti('Message options') %>" aria-haspopup="menu" aria-expanded="false"><%- @SiskaIcon('dots-three-vertical', 18) %></button>
         <div class="s-menu siska-msg-menu-list hidden" role="menu" aria-label="<%- @Ti('Message options') %>">
           <% if !@history: %><button type="button" class="s-menu-item js-replyMessage" role="menuitem"><%- @SiskaIcon('arrow-bend-up-left', 16) %><%- @T('Reply') %></button><% end %>
+          <% if @kind is 'text': %><button type="button" class="s-menu-item js-copyMessage" role="menuitem"><%- @SiskaIcon('copy', 16) %><%- @T('Copy') %></button><% end %>
           <% if @file: %>
             <a class="s-menu-item" role="menuitem" href="<%= @file.downloadUrl %>" target="_blank" rel="noopener" download><%- @SiskaIcon('download-simple', 16) %><%- @T('Download') %></a>
           <% end %>

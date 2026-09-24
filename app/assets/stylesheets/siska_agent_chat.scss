@@ -1067,6 +1067,12 @@ $siska-thumb-h: 180px;
 
   &.hidden { display: none; }
 
+  // dibuka ke atas bila ruang di bawah tidak cukup (placeMessageMenu)
+  &.is-up {
+    top: auto;
+    bottom: 0;
+  }
+
   .s-menu-item {
     gap: 12px;
     padding: 10px 15px;

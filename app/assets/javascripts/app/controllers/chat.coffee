@@ -596,6 +596,7 @@ class App.ChatWindow extends App.Controller
     'keydown':                       'onWindowKeydown'
     'click .js-toggleProfile':       'toggleProfile'
     'click .js-historyMore':         'loadMoreHistory'
+    'click .js-copyMessage':         'copyMessage'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -1370,6 +1371,33 @@ class App.ChatWindow extends App.Controller
     else
       chip.text('').removeAttr('aria-label').addClass('hidden')
 
+  # G2 (docs/COMPARISON_WIDGET_VS_AGENT.md): salin teks pesan, pola sama dgn
+  # widget (`copyMessage`): teks bubble tanpa kutipan reply, jam, atau chip.
+  copyMessage: (e) =>
+    e.preventDefault()
+    toggle = $(e.currentTarget).closest('.js-msgMenu').find('.js-msgMenuToggle')
+    text = App.Utils.html2text($(e.currentTarget).closest('.siska-msg').find('.siska-msg-text').html() || '').trim()
+    @closeMenus()
+    toggle.trigger('focus')
+    return if !text
+    done = => @notify(type: 'success', msg: __('Copied'), timeout: 2000)
+    failed = => @notify(type: 'error', msg: __('The text could not be copied.'))
+    if navigator.clipboard?.writeText
+      navigator.clipboard.writeText(text).then(done, => @copyTextFallback(text, done, failed))
+    else
+      @copyTextFallback(text, done, failed)
+
+  # Fallback untuk konteks tanpa Clipboard API (mis. http non-aman).
+  copyTextFallback: (text, done, failed) ->
+    area = $('<textarea readonly></textarea>').val(text).css(position: 'fixed', top: 0, left: 0, opacity: 0)
+    $('body').append(area)
+    area.get(0).select()
+    copied = false
+    try
+      copied = document.execCommand('copy')
+    area.remove()
+    if copied then done() else failed()
+
   toggleMessageMenu: (e) =>
     e.preventDefault()
     e.stopPropagation()
@@ -1380,11 +1408,29 @@ class App.ChatWindow extends App.Controller
     return if !open
     menu.removeClass('hidden')
     toggle.attr('aria-expanded', 'true').closest('.siska-msg').addClass('is-menu-open')
+    @placeMessageMenu(menu)
     menu.find('[role=menuitem]').first().trigger('focus')
+
+  # Menu dibuka di dalam area pesan yang bisa digulir (overflow), jadi pada
+  # pesan paling bawah menu yang membuka ke bawah terpotong. Buka ke atas bila
+  # ruang di bawah tidak cukup; bila di atas pun tidak cukup, tetap ke bawah &
+  # gulir seperlunya supaya seluruh menu terlihat.
+  placeMessageMenu: (menu) =>
+    menu.removeClass('is-up')
+    holder = menu.closest('.js-scrollHolder').get(0)
+    return if !holder
+    bounds = holder.getBoundingClientRect()
+    rect = menu.get(0).getBoundingClientRect()
+    return if rect.bottom <= bounds.bottom
+    menu.addClass('is-up')
+    rect = menu.get(0).getBoundingClientRect()
+    return if rect.top >= bounds.top
+    menu.removeClass('is-up')
+    menu.get(0).scrollIntoView?(block: 'nearest')
 
   closeMenus: (restoreFocus = false) =>
     openToggle = @$('.js-msgMenuToggle[aria-expanded=true]')
-    @$('.js-msgMenu [role=menu]').addClass('hidden')
+    @$('.js-msgMenu [role=menu]').addClass('hidden').removeClass('is-up')
     @$('.js-msgMenuToggle').attr('aria-expanded', 'false')
     @$('.siska-msg.is-menu-open').removeClass('is-menu-open')
     openToggle.trigger('focus') if restoreFocus && openToggle.length
