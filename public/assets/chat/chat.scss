@@ -13,7 +13,10 @@
 // font-face (browser visitor yang SUDAH punya Inter terpasang akan
 // otomatis pakai itu), fallback ke font sistem standar.
 $siska-primary: #4680ff;
-$siska-primary-tint: rgba(70, 128, 255, 0.08);
+// Audit ulang kit: 8% -> 10%, kit konsisten `bg-primary-500/10` utk
+// latar tint statis (header tinted, avatar inisial, ikon OTP, ikon
+// lampiran). `-strong` (12%) kini HANYA utk state hover tombol Send.
+$siska-primary-tint: rgba(70, 128, 255, 0.1);
 $siska-primary-tint-strong: rgba(70, 128, 255, 0.12);
 $siska-border: #e8ebee;
 // Atas permintaan user (audit Kategori 5 -- Color): NILAI LAMA
@@ -24,6 +27,14 @@ $siska-border: #e8ebee;
 // (breadcrumb, data table, dark-mode override, dst).
 $siska-text: #1d2630;
 $siska-text-muted: #5b6b79;
+// Audit ulang kit Tailwind (gap lintas layar): token teks kit yang
+// SEBELUMNYA ditulis sebagai literal di tiap layar yg sudah diaudit.
+// `theme-bodycolor` (#131920) = warna teks body kit; `#1d2630` di atas
+// tetap dipakai utk JUDUL (`theme-headings` kit = #1d2630).
+// `theme-secondarytextcolor` = `.text-muted` kit. `$siska-text-muted`
+// (#5b6b79 = `secondary-500`) sekarang hanya utk IKON/border, bukan teks.
+$siska-body-color: #131920;
+$siska-text-secondary: rgba(33, 37, 41, 0.75);
 $siska-success: #2ca87f;
 $siska-warning: #e58a00;
 // Ditambahkan (atas permintaan user "gunakan struktur ablepro untuk
@@ -122,8 +133,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // panel (anak-anaknya -- tab-body, home, dst. -- SENGAJA tidak
   // diberi background sendiri2, mengandalkan ini).
   background: white;
-  color: $siska-text;
+  // Audit ulang kit: warna body kit (`theme-bodycolor`), bukan warna
+  // heading; + `font-feature-settings: "salt"` spt `body` di
+  // `typography.css` kit (glyph alternatif Inter yg dipakai kit).
+  color: $siska-body-color;
   font-family: $siska-font;
+  font-feature-settings: 'salt';
   position: fixed;
   // Bug ditemukan lewat perbandingan LANGSUNG ke mockup (dilaporkan
   // user "mockup sama hasil berbeda") -- ukuran panel di sini masih
@@ -423,7 +438,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-header-title {
   flex: 1;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600; // audit ulang kit: h5 16px/600, sama dgn judul lain
   font-size: 16px;
 }
 
@@ -527,8 +542,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 .zammad-chat-agent-subtext {
-  font-size: 11px;
-  color: $siska-text-muted;
+  font-size: 12px;
+  color: $siska-text-secondary;
 }
 
 // Dot status (online/connecting/sibuk) -- SEBELUMNYA pill teks
@@ -627,7 +642,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   border-bottom: 1px solid $siska-border;
   padding: 7px 10px 6px;
-  color: $siska-text-muted;
+  color: $siska-text-secondary;
   cursor: pointer;
 
   &.is-hidden {
@@ -677,8 +692,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 
 .zammad-chat-timestamp {
   text-align: center;
-  color: $siska-text-muted;
-  font-size: 11px;
+  color: $siska-text-secondary;
+  font-size: 12px;
   margin: 12px 0;
 }
 
@@ -761,8 +776,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   align-items: center;
   justify-content: flex-end;
   gap: 3px;
-  font-size: 10px;
-  color: $siska-text-muted;
+  font-size: 12px;
+  color: $siska-text-secondary;
   margin-top: 3px;
 }
 
@@ -811,6 +826,13 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   color: #ffffff;
 }
 
+// Audit ulang kit: jam pesan di bubble TEKS customer sebelumnya ikut
+// warna muted default (abu di atas biru solid, kontras buruk) --
+// disamakan pola ikon status di atas: putih 75% (opacity `text-muted`).
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-time {
+  color: rgba(255, 255, 255, 0.75);
+}
+
 // Audit kepatuhan kit Tailwind baru: preseden nyata `application/
 // chat.html` bubble pakai `rounded` polos Tailwind = 4px, BUKAN
 // `$siska-radius-sm` (8px) -- di-hardcode LOKAL di sini (BUKAN ubah
@@ -848,7 +870,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   background: white;
   border-radius: $siska-radius-sm;
   font-size: 13px;
-  color: $siska-text-muted;
+  color: $siska-text-secondary;
   max-width: 70%;
 }
 
@@ -1006,7 +1028,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // `:empty::before { content: attr(placeholder) }`.
 .zammad-chat-input:empty::before {
   content: attr(placeholder);
-  color: $siska-text-muted;
+  // Audit ulang kit: placeholder `.form-control` kit = `#bec8d0`.
+  color: $siska-input-border;
   pointer-events: none;
 }
 
@@ -1166,7 +1189,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-emoji-picker-title {
   font-size: 13px;
   font-weight: 600;
-  color: $siska-text-muted;
+  color: $siska-text-secondary;
   padding: 2px 4px 8px;
 }
 
@@ -1262,7 +1285,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // kebetulan menang krn ditulis lebih belakangan.
 .zammad-chat-message--customer .zammad-chat-message-body.zammad-chat-attachment {
   background: white;
-  color: $siska-text;
+  color: $siska-body-color;
   border: 1px solid $siska-border;
 }
 
@@ -1270,7 +1293,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   width: 38px;
   height: 38px;
   border-radius: $siska-radius-sm;
-  background: $siska-primary-tint-strong;
+  background: $siska-primary-tint; // kit `bg-primary-500/10`
   color: $siska-primary;
   flex-shrink: 0;
   display: flex;
@@ -1300,13 +1323,13 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .zammad-chat-attachment-meta {
-  font-size: 11.5px;
-  color: $siska-text-muted;
+  font-size: 12px;
+  color: $siska-text-secondary;
   margin-top: 2px;
 }
 
@@ -1420,7 +1443,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   gap: 6px;
   padding: 6px 12px;
   font-size: 12px;
-  color: $siska-text-muted;
+  color: $siska-text-secondary;
   background: $siska-container-bg;
   border-top: 1px solid $siska-border;
 
@@ -1550,6 +1573,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
+// Audit ulang kit: placeholder `.form-control` kit = `#bec8d0` (sebelumnya
+// warna bawaan browser), sama dgn Help/OTP/Compose/Feedback.
+.zammad-chat-prechat-field input::placeholder {
+  color: $siska-input-border;
+}
+
 // Bagian yang BEDA dari `<input>` polos -- tombol dropdown perlu
 // layout flex (label + chevron) & reset gaya `<button>` bawaan
 // browser, `<input>` tidak butuh ini.
@@ -1560,7 +1589,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   gap: 8px;
   width: 100%;
   background: white;
-  color: $siska-text;
+  color: $siska-body-color;
   cursor: pointer;
   text-align: left;
 
@@ -1572,7 +1601,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // Audit kit Tailwind baru -- lihat catatan sama di
 // `.zammad-chat-welcome-subtext`.
 .zammad-chat-prechat-category-value.is-placeholder {
-  color: rgba(33, 37, 41, 0.75);
+  color: $siska-input-border; // placeholder kit
 }
 
 .zammad-chat-prechat-category-chevron {
@@ -1640,7 +1669,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   padding: 10px 12px;
   border-radius: 6px;
   font-size: 14px;
-  color: $siska-text;
+  color: $siska-body-color;
   cursor: pointer;
 
   // Opacity tint 8%->10%, dicek ke preseden NYATA `w_chart.html`
@@ -2627,7 +2656,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // warning-800 kit baru (OKLCH 0.65 0.1647 53.24 -> hex), literal
   // krn scope dibatasi HANYA elemen Home (bukan token bersama).
   color: #da6d00;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.5;
   margin-bottom: 4px;
 }
@@ -2649,7 +2678,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // info-800 kit baru (OKLCH 0.71 0.1141 207.51 -> hex), literal krn
   // scope dibatasi HANYA elemen Home.
   color: #28b5c6;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.5;
   margin-bottom: 4px;
 }
@@ -2727,7 +2756,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // `#bec8d0` (atribut placeholder ditambah di offline_otp.eco).
   font-size: 14px;
   font-weight: 400;
-  color: $siska-text;
+  color: $siska-body-color;
   text-align: center;
   padding: 0;
 
@@ -2816,7 +2845,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 
   &:disabled {
-    color: $siska-text-muted;
+    color: $siska-text-secondary;
     cursor: default;
   }
 }
@@ -2876,7 +2905,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   padding: 10px 16px;
   background: transparent;
   border-bottom: 1px solid currentColor;
-  font-size: 12.5px;
+  font-size: 13px;
   color: $siska-success;
 
   // Audit migrasi ikon Tabler (2026-09-23): fill:none/stroke dihapus --
@@ -2923,7 +2952,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   padding: 12.8px 12px;
   font-family: inherit;
   font-size: 14px;
-  color: $siska-text;
+  color: $siska-body-color;
   background: white;
   transition: border-color 100ms ease;
 
@@ -2949,7 +2978,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   padding: 12.8px 12px;
   font-family: inherit;
   font-size: 14px;
-  color: $siska-text;
+  color: $siska-body-color;
   line-height: 1.5;
   background: white;
   transition: border-color 100ms ease;
@@ -3019,7 +3048,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 
   span {
-    color: $siska-text-muted;
+    color: $siska-text-secondary;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -3037,7 +3066,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   background: none;
   color: $siska-primary;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   // Audit migrasi ikon Tabler (2026-09-23): svg{fill:none;stroke}
@@ -3248,7 +3277,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   padding: 12.8px 12px;
   font-family: inherit;
   font-size: 14px;
-  color: $siska-text;
+  color: $siska-body-color;
   line-height: 1.5;
   background: white;
   margin-top: 20px;
@@ -3386,4 +3415,59 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   line-height: 1.55;
   max-width: 270px;
   margin-top: 8px;
+}
+
+// Audit ulang kit Tailwind (gap #1): fokus keyboard sebelumnya TIDAK
+// terlihat di hampir semua elemen interaktif (`outline: none` tanpa
+// pengganti; cincin fokus cuma ada di Launcher & Tabbar). Pola SAMA
+// dgn Launcher/Tabbar: cincin primary 2px, HANYA `:focus-visible`
+// (keyboard), tidak muncul saat diklik mouse. Tombol primary solid
+// juga ikut `focus:bg-primary-600` spt `.btn-primary` kit. Input teks
+// TIDAK dimasukkan -- sudah punya penanda fokus kit sendiri (warna
+// border `primary-500`). Sengaja di AKHIR file supaya menang urutan
+// atas `&:focus { outline: none }` di rule masing2 (spesifisitas sama).
+.zammad-chat-home-action,
+.zammad-chat-prechat-submit,
+.zammad-chat-timeout-restart,
+.zammad-chat-offline-otp-submit,
+.zammad-chat-offline-compose-submit,
+.zammad-chat-offline-sent-button,
+.zammad-chat-feedback-submit,
+.zammad-chat-connection-overlay-reload,
+.zammad-chat-feedback-skip,
+.zammad-chat-send,
+.zammad-chat-header-icon,
+.zammad-chat-message-reply,
+.zammad-chat-attachment-download,
+.zammad-chat-prechat-category,
+.zammad-chat-kb-result-link,
+.zammad-chat-waiting-cancel,
+.zammad-chat-offline-otp-resend-btn,
+.zammad-chat-offline-otp-change-email,
+.zammad-chat-offline-compose-attach,
+.zammad-chat-feedback-star {
+  &:focus-visible {
+    outline: 2px solid $siska-primary;
+    outline-offset: 2px;
+  }
+}
+
+.zammad-chat-home-action:not(.zammad-chat-home-action--secondary),
+.zammad-chat-prechat-submit,
+.zammad-chat-timeout-restart,
+.zammad-chat-offline-otp-submit,
+.zammad-chat-offline-compose-submit,
+.zammad-chat-offline-sent-button,
+.zammad-chat-feedback-submit,
+.zammad-chat-connection-overlay-reload {
+  &:focus-visible {
+    background: #3f78ff; // primary-600, `focus:bg-primary-600` kit
+  }
+}
+
+// Reply & Download normalnya 50% dan penuh saat pesan di-hover --
+// disamakan saat difokus keyboard.
+.zammad-chat-message-reply:focus-visible,
+.zammad-chat-attachment-download:focus-visible {
+  opacity: 1;
 }
