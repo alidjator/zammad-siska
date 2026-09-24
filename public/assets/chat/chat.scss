@@ -4014,3 +4014,88 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   }
 }
 
+// ---------------------------------------------------------------------
+// Reaksi emoji (mockup "Reaksi emoji bubble"): bar 5 emoji di atas item
+// menu bubble + lencana pil di kiri bawah bubble pesan agent.
+// ---------------------------------------------------------------------
+.zammad-chat-message-menu {
+  min-width: 196px;
+}
+
+.zammad-chat-message-reactions {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 2px 4px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid $siska-border;
+}
+
+.zammad-chat-message-reaction {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 100%;
+  background: transparent;
+  font-family: $siska-font;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  transition: transform 100ms, background-color 100ms;
+
+  &:hover {
+    background: rgba(225, 229, 232, 0.5);
+    transform: scale(1.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $siska-primary;
+    outline-offset: 1px;
+  }
+
+  &.is-active {
+    background: rgba(70, 128, 255, 0.2);
+  }
+}
+
+.zammad-chat-message.has-reaction {
+  margin-bottom: 18px;
+}
+
+.zammad-chat-reaction-badge {
+  position: absolute;
+  left: 8px;
+  bottom: -14px;
+  z-index: 1;
+  height: 24px;
+  min-width: 30px;
+  padding: 0 6px;
+  border: 1px solid $siska-border;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
+  font-family: $siska-font;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+
+  &:hover {
+    background: $siska-container-bg;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $siska-primary;
+    outline-offset: 1px;
+  }
+}

@@ -1030,6 +1030,16 @@ do(window) ->
           event.preventDefault()
           if @messageMenu?.toggle is toggle then @closeMessageMenu() else @openMessageMenu(toggle)
           return
+        react = event.target.closest('.js-message-react')
+        if react
+          event.preventDefault()
+          @setReaction(react.closest('.zammad-chat-message'), react.dataset.reaction)
+          @closeMessageMenu(true)
+          return
+        if event.target.closest('.js-reaction-badge')
+          event.preventDefault()
+          @setReaction(event.target.closest('.zammad-chat-message'), null)
+          return
         if event.target.closest('.js-message-copy')
           event.preventDefault()
           @copyMessage(event.target.closest('.zammad-chat-message'))
@@ -1613,6 +1623,9 @@ do(window) ->
           # chat.coffee (lihat komentar detail di sana).
           when 'chat_session_message_read'
             @markMessagesRead()
+          # Reaksi emoji (echo milik sendiri / tab lain dari customer yg sama).
+          when 'chat_session_reaction'
+            @applyReaction(pipe.data.message_id, pipe.data.reaction)
           when 'chat_knowledge_base_search'
             @onKnowledgeBaseSearchResult pipe.data
           # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee.
@@ -1793,6 +1806,8 @@ do(window) ->
           # `receiveMessage`), balik `undefined` utk pesan hasil replay
           # ini, gagal diam-diam tanpa error.
           @agentMessagesById[message.id] = message if isAgentMessage and message.id
+          # Reaksi emoji tersimpan di server -> digambar ulang saat reload.
+          @applyReaction(message.id, message.customer_reaction) if isAgentMessage and message.customer_reaction
 
         if unfinishedMessage
           @input.innerHTML = unfinishedMessage
@@ -1942,6 +1957,8 @@ do(window) ->
         kind: toggle.dataset.kind
         download: toggle.dataset.download
         filename: toggle.dataset.filename
+        reactions: @REACTIONS
+        current: toggle.closest('.zammad-chat-message')?.dataset.reaction || null
       )
       menu = wrapper.querySelector('.js-message-menu-list')
       body.appendChild(menu)
@@ -1990,12 +2007,60 @@ do(window) ->
       toggle.closest('.zammad-chat-message')?.classList.remove('is-menu-open')
       toggle.focus() if restoreFocus
 
+    # Reaksi emoji (mockup "Reaksi emoji bubble") -- whitelist SAMA dgn
+    # backend (`Sessions::Event::ChatSessionReaction::ALLOWED_REACTIONS`).
+    # Satu reaksi customer per pesan agent; tersimpan di server.
+    REACTIONS: [
+      { emoji: '😀', label: 'Grinning' }
+      { emoji: '😊', label: 'Smile' }
+      { emoji: '🙏', label: 'Thanks' }
+      { emoji: '👍', label: 'Thumbs up' }
+      { emoji: '❤️', label: 'Heart' }
+    ]
+
+    # Klik emoji yg sama dgn reaksi aktif = hapus. UI diperbarui langsung
+    # (optimis); echo server menegaskan nilai yg sama.
+    setReaction: (messageEl, emoji) =>
+      messageId = messageEl?.dataset.messageId
+      return if !messageId
+      current = messageEl.dataset.reaction || null
+      next = if emoji and emoji isnt current then emoji else null
+      @applyReaction(messageId, next)
+      @send('chat_session_reaction',
+        session_id: @sessionId
+        message_id: messageId
+        reaction: next
+      )
+
+    # Lencana reaksi di kiri bawah bubble (klik = hapus). Dibuat via DOM
+    # (textContent), bukan string HTML.
+    applyReaction: (messageId, reaction) =>
+      return if !messageId
+      messageEl = @body?.querySelector(".zammad-chat-message[data-message-id='#{messageId}']")
+      return if !messageEl
+      body = messageEl.querySelector('.zammad-chat-message-body')
+      return if !body
+      body.querySelector('.js-reaction-badge')?.remove()
+      if !reaction
+        delete messageEl.dataset.reaction
+        messageEl.classList.remove('has-reaction')
+        return
+      label = (item.label for item in @REACTIONS when item.emoji is reaction)[0] || ''
+      messageEl.dataset.reaction = reaction
+      messageEl.classList.add('has-reaction')
+      badge = document.createElement('button')
+      badge.type = 'button'
+      badge.className = 'zammad-chat-reaction-badge js-reaction-badge'
+      badge.setAttribute('aria-label', "#{@T('Your reaction')}: #{@T(label)}. #{@T('Remove')}")
+      badge.textContent = reaction
+      body.appendChild(badge)
+
     # Copy: teks pesan saja (tanpa jam, kutipan reply & tombol menu).
     copyMessage: (messageEl) =>
       body = messageEl?.querySelector('.zammad-chat-message-body')
       return if !body
       clone = body.cloneNode(true)
-      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list').forEach (el) -> el.remove()
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge').forEach (el) -> el.remove()
       text = clone.textContent.trim()
       done = => @showToast(@T('Copied'))
       if navigator.clipboard?.writeText

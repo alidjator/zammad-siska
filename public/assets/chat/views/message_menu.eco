@@ -3,6 +3,13 @@ bayangan kit, p-2), item `.dropdown-item` (ikon 18px, 14px). Isi per
 jenis pesan: teks -> Reply + Copy; file/gambar -> Reply + Download.
 Reply memakai `.js-message-reply` (handler `startReply` yg sudah ada). -->
 <div class="zammad-chat-message-menu js-message-menu-list" role="menu" aria-label="<%- @T('Message options') %>">
+  <!-- Reaksi emoji (mockup "Reaksi emoji bubble"): tepat 5 emoji, reaksi
+  aktif ditandai; klik emoji yg sama = hapus. -->
+  <div class="zammad-chat-message-reactions" role="group" aria-label="<%- @T('React') %>">
+    <% for reaction in @reactions: %>
+    <button type="button" class="zammad-chat-message-reaction js-message-react<%= ' is-active' if reaction.emoji is @current %>" role="menuitemradio" aria-checked="<%= if reaction.emoji is @current then 'true' else 'false' %>" aria-label="<%- @T(reaction.label) %>" data-reaction="<%= reaction.emoji %>"><%= reaction.emoji %></button>
+    <% end %>
+  </div>
   <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem"><%- @icon('arrow-bend-up-left', 18) %><span><%- @T('Reply') %></span></button>
   <% if @kind is 'text': %>
   <button type="button" class="zammad-chat-message-menu-item js-message-copy" role="menuitem"><%- @icon('copy', 18) %><span><%- @T('Copy') %></span></button>

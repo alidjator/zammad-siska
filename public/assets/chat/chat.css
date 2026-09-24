@@ -3525,3 +3525,107 @@
   -ms-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
 }
+
+.zammad-chat-message-menu {
+  min-width: 196px;
+}
+
+.zammad-chat-message-reactions {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  gap: 2px;
+  padding: 2px 4px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e8ebee;
+}
+
+.zammad-chat-message-reaction {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 100%;
+  background: transparent;
+  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  -webkit-transition: background-color 100ms, -webkit-transform 100ms;
+  transition: background-color 100ms, -webkit-transform 100ms;
+  -o-transition: transform 100ms, background-color 100ms;
+  transition: transform 100ms, background-color 100ms;
+  transition: transform 100ms, background-color 100ms, -webkit-transform 100ms;
+}
+.zammad-chat-message-reaction:hover {
+  background: rgba(225, 229, 232, 0.5);
+  -webkit-transform: scale(1.12);
+  -ms-transform: scale(1.12);
+  transform: scale(1.12);
+}
+.zammad-chat-message-reaction:focus-visible {
+  outline: 2px solid #4680ff;
+  outline-offset: 1px;
+}
+.zammad-chat-message-reaction.is-active {
+  background: rgba(70, 128, 255, 0.2);
+}
+
+.zammad-chat-message.has-reaction {
+  margin-bottom: 18px;
+}
+
+.zammad-chat-reaction-badge {
+  position: absolute;
+  left: 8px;
+  bottom: -14px;
+  z-index: 1;
+  height: 24px;
+  min-width: 30px;
+  padding: 0 6px;
+  border: 1px solid #e8ebee;
+  border-radius: 12px;
+  background: #ffffff;
+  -webkit-box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
+  box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
+  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+}
+.zammad-chat-reaction-badge:hover {
+  background: #f8f9fa;
+}
+.zammad-chat-reaction-badge:focus-visible {
+  outline: 2px solid #4680ff;
+  outline-offset: 1px;
+}

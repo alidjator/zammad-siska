@@ -1579,11 +1579,37 @@ window.zammadChatTemplates["message_menu"] = function(__obj) {
   }
   (function() {
     (function() {
+      var i, len, reaction, ref;
+    
       __out.push('<!-- Menu bubble ala WhatsApp: gaya `.dropdown-menu` kit (radius 8,\nbayangan kit, p-2), item `.dropdown-item` (ikon 18px, 14px). Isi per\njenis pesan: teks -> Reply + Copy; file/gambar -> Reply + Download.\nReply memakai `.js-message-reply` (handler `startReply` yg sudah ada). -->\n<div class="zammad-chat-message-menu js-message-menu-list" role="menu" aria-label="');
     
       __out.push(this.T('Message options'));
     
-      __out.push('">\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
+      __out.push('">\n  <!-- Reaksi emoji (mockup "Reaksi emoji bubble"): tepat 5 emoji, reaksi\n  aktif ditandai; klik emoji yg sama = hapus. -->\n  <div class="zammad-chat-message-reactions" role="group" aria-label="');
+    
+      __out.push(this.T('React'));
+    
+      __out.push('">\n    ');
+    
+      ref = this.reactions;
+      for (i = 0, len = ref.length; i < len; i++) {
+        reaction = ref[i];
+        __out.push('\n    <button type="button" class="zammad-chat-message-reaction js-message-react');
+        if (reaction.emoji === this.current) {
+          __out.push(__sanitize(' is-active'));
+        }
+        __out.push('" role="menuitemradio" aria-checked="');
+        __out.push(__sanitize(reaction.emoji === this.current ? 'true' : 'false'));
+        __out.push('" aria-label="');
+        __out.push(this.T(reaction.label));
+        __out.push('" data-reaction="');
+        __out.push(__sanitize(reaction.emoji));
+        __out.push('">');
+        __out.push(__sanitize(reaction.emoji));
+        __out.push('</button>\n    ');
+      }
+    
+      __out.push('\n  </div>\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
     
       __out.push(this.icon('arrow-bend-up-left', 18));
     
@@ -3842,6 +3868,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.showToast = bind(this.showToast, this);
       this.copyTextFallback = bind(this.copyTextFallback, this);
       this.copyMessage = bind(this.copyMessage, this);
+      this.applyReaction = bind(this.applyReaction, this);
+      this.setReaction = bind(this.setReaction, this);
       this.closeMessageMenu = bind(this.closeMessageMenu, this);
       this.onMessageMenuKeydown = bind(this.onMessageMenuKeydown, this);
       this.openMessageMenu = bind(this.openMessageMenu, this);
@@ -4015,7 +4043,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.body.addEventListener('click', this.startReply);
       this.body.addEventListener('click', (function(_this) {
         return function(event) {
-          var ref, toggle;
+          var react, ref, toggle;
           toggle = event.target.closest('.js-message-menu');
           if (toggle) {
             event.preventDefault();
@@ -4024,6 +4052,18 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             } else {
               _this.openMessageMenu(toggle);
             }
+            return;
+          }
+          react = event.target.closest('.js-message-react');
+          if (react) {
+            event.preventDefault();
+            _this.setReaction(react.closest('.zammad-chat-message'), react.dataset.reaction);
+            _this.closeMessageMenu(true);
+            return;
+          }
+          if (event.target.closest('.js-reaction-badge')) {
+            event.preventDefault();
+            _this.setReaction(event.target.closest('.zammad-chat-message'), null);
             return;
           }
           if (event.target.closest('.js-message-copy')) {
@@ -4711,6 +4751,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           case 'chat_session_message_read':
             this.markMessagesRead();
             break;
+          case 'chat_session_reaction':
+            this.applyReaction(pipe.data.message_id, pipe.data.reaction);
+            break;
           case 'chat_knowledge_base_search':
             this.onKnowledgeBaseSearchResult(pipe.data);
             break;
@@ -4855,6 +4898,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           if (isAgentMessage && message.id) {
             this.agentMessagesById[message.id] = message;
           }
+          if (isAgentMessage && message.customer_reaction) {
+            this.applyReaction(message.id, message.customer_reaction);
+          }
         }
         if (unfinishedMessage) {
           this.input.innerHTML = unfinishedMessage;
@@ -4984,7 +5030,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.openMessageMenu = function(toggle) {
-      var body, bodyRect, menu, menuRect, onDocClick, onKeydown, ref, ref1, wrapper;
+      var body, bodyRect, menu, menuRect, onDocClick, onKeydown, ref, ref1, ref2, wrapper;
       this.closeMessageMenu();
       body = toggle.closest('.zammad-chat-message-body');
       if (!body) {
@@ -4994,13 +5040,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       wrapper.innerHTML = this.view('message_menu')({
         kind: toggle.dataset.kind,
         download: toggle.dataset.download,
-        filename: toggle.dataset.filename
+        filename: toggle.dataset.filename,
+        reactions: this.REACTIONS,
+        current: ((ref = toggle.closest('.zammad-chat-message')) != null ? ref.dataset.reaction : void 0) || null
       });
       menu = wrapper.querySelector('.js-message-menu-list');
       body.appendChild(menu);
       toggle.setAttribute('aria-expanded', 'true');
-      if ((ref = body.closest('.zammad-chat-message')) != null) {
-        ref.classList.add('is-menu-open');
+      if ((ref1 = body.closest('.zammad-chat-message')) != null) {
+        ref1.classList.add('is-menu-open');
       }
       bodyRect = this.body.getBoundingClientRect();
       menuRect = menu.getBoundingClientRect();
@@ -5027,7 +5075,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         toggle: toggle,
         onDocClick: onDocClick
       };
-      return (ref1 = menu.querySelector('[role=menuitem]')) != null ? ref1.focus() : void 0;
+      return (ref2 = menu.querySelector('[role=menuitem]')) != null ? ref2.focus() : void 0;
     };
 
     ZammadChat.prototype.onMessageMenuKeydown = function(event) {
@@ -5073,6 +5121,84 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
     };
 
+    ZammadChat.prototype.REACTIONS = [
+      {
+        emoji: '😀',
+        label: 'Grinning'
+      }, {
+        emoji: '😊',
+        label: 'Smile'
+      }, {
+        emoji: '🙏',
+        label: 'Thanks'
+      }, {
+        emoji: '👍',
+        label: 'Thumbs up'
+      }, {
+        emoji: '❤️',
+        label: 'Heart'
+      }
+    ];
+
+    ZammadChat.prototype.setReaction = function(messageEl, emoji) {
+      var current, messageId, next;
+      messageId = messageEl != null ? messageEl.dataset.messageId : void 0;
+      if (!messageId) {
+        return;
+      }
+      current = messageEl.dataset.reaction || null;
+      next = emoji && emoji !== current ? emoji : null;
+      this.applyReaction(messageId, next);
+      return this.send('chat_session_reaction', {
+        session_id: this.sessionId,
+        message_id: messageId,
+        reaction: next
+      });
+    };
+
+    ZammadChat.prototype.applyReaction = function(messageId, reaction) {
+      var badge, body, item, label, messageEl, ref, ref1;
+      if (!messageId) {
+        return;
+      }
+      messageEl = (ref = this.body) != null ? ref.querySelector(".zammad-chat-message[data-message-id='" + messageId + "']") : void 0;
+      if (!messageEl) {
+        return;
+      }
+      body = messageEl.querySelector('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      if ((ref1 = body.querySelector('.js-reaction-badge')) != null) {
+        ref1.remove();
+      }
+      if (!reaction) {
+        delete messageEl.dataset.reaction;
+        messageEl.classList.remove('has-reaction');
+        return;
+      }
+      label = ((function() {
+        var j, len, ref2, results1;
+        ref2 = this.REACTIONS;
+        results1 = [];
+        for (j = 0, len = ref2.length; j < len; j++) {
+          item = ref2[j];
+          if (item.emoji === reaction) {
+            results1.push(item.label);
+          }
+        }
+        return results1;
+      }).call(this))[0] || '';
+      messageEl.dataset.reaction = reaction;
+      messageEl.classList.add('has-reaction');
+      badge = document.createElement('button');
+      badge.type = 'button';
+      badge.className = 'zammad-chat-reaction-badge js-reaction-badge';
+      badge.setAttribute('aria-label', (this.T('Your reaction')) + ": " + (this.T(label)) + ". " + (this.T('Remove')));
+      badge.textContent = reaction;
+      return body.appendChild(badge);
+    };
+
     ZammadChat.prototype.copyMessage = function(messageEl) {
       var body, clone, done, ref, text;
       body = messageEl != null ? messageEl.querySelector('.zammad-chat-message-body') : void 0;
@@ -5080,7 +5206,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return;
       }
       clone = body.cloneNode(true);
-      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list').forEach(function(el) {
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge').forEach(function(el) {
         return el.remove();
       });
       text = clone.textContent.trim();
