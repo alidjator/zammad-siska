@@ -1686,7 +1686,7 @@ do(window) ->
           if message.filename
             # Fitur kirim gambar: gambar -> bubble gambar (jalur riwayat
             # kini membawa `content_type`, lihat Chat::Session).
-            @body.insertAdjacentHTML 'beforeend', @view(@attachmentView(message.content_type))(
+            @body.insertAdjacentHTML 'beforeend', @view(@attachmentView(message.content_type, message.display))(
               from: if isAgentMessage then 'agent' else 'customer'
               id: message.id
               filename: message.filename
@@ -1907,9 +1907,13 @@ do(window) ->
       formData = new FormData()
       formData.append('File', file)
 
-      # Fitur kirim gambar: gambar (lewat tombol Image MAUPUN Attach)
-      # langsung tampil sbg placeholder + persentase selama upload.
-      uploadId = if file.type in @IMAGE_TYPES then @addImageUpload(file) else null
+      # Opsi B ("ikuti WhatsApp", permintaan user): tombol ATTACH selalu
+      # menghasilkan kartu file -- termasuk gambar -- lewat penanda
+      # `display=file` (disimpan server, ikut broadcast & riwayat). Hanya
+      # tombol Image yg menghasilkan preview + placeholder upload.
+      asFile = event.target.classList.contains('js-chat-attachment-input')
+      formData.append('display', 'file') if asFile
+      uploadId = if !asFile and file.type in @IMAGE_TYPES then @addImageUpload(file) else null
 
       xhr = new XMLHttpRequest()
       xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
@@ -1937,7 +1941,7 @@ do(window) ->
     # Bug ditemukan lewat laporan user ("kenapa pada attachment tidak
     # terdapat reply?") -- mirror persis dari chat.coffee.
     addAttachmentMessage: (data, from) =>
-      viewName = @attachmentView(data.content_type)
+      viewName = @attachmentView(data.content_type, data.display)
       html = @view(viewName)(
         from: from
         id: data.id
@@ -1972,7 +1976,8 @@ do(window) ->
     # sbg bubble gambar, lainnya tetap kartu file.
     IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 
-    attachmentView: (contentType) ->
+    attachmentView: (contentType, display) ->
+      return 'attachment_message' if display is 'file'
       if contentType in @IMAGE_TYPES then 'image_message' else 'attachment_message'
 
     attachmentSender: (isAgent) ->

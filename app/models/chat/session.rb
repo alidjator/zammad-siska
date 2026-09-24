@@ -464,6 +464,8 @@ class Chat::Session < ApplicationModel
       # sbg <img> (widget jatuh ke kartu file), server tetap menyajikan
       # berdasarkan deteksi ulang isi (`ChatAttachmentsController#show`).
       attrs['content_type'] = store.preferences['Content-Type']
+      # Opsi B ("ikuti WhatsApp"): gambar lewat tombol Attach -> kartu file.
+      attrs['display'] = store.preferences['chat_display']
     end
     attrs
   end

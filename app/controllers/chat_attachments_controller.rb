@@ -206,12 +206,20 @@ class ChatAttachmentsController < ApplicationController
     # Fallback ke user System (id 1) kalau tidak ada user login sama
     # sekali -- konvensi yang sama dipakai Zammad sendiri untuk konten
     # tanpa aktor manusia yang jelas.
+    # Atas permintaan user (opsi B, "ikuti WhatsApp"): gambar yg dikirim
+    # lewat tombol ATTACH (bukan tombol Image) tampil sbg KARTU FILE, bukan
+    # preview -- widget mengirim `display=file`. Disimpan di preferences
+    # supaya jalur riwayat/reconnect (Chat::Session) ikut tahu.
+    preferences = { 'Content-Type' => content_type }
+    display = params[:display] == 'file' ? 'file' : nil
+    preferences['chat_display'] = display if display
+
     store = Store.create!(
       object:        'Chat::Message',
       o_id:          chat_message.id,
       data:          data,
       filename:      file.original_filename,
-      preferences:   { 'Content-Type' => content_type },
+      preferences:   preferences,
       created_by_id: current_user&.id || 1,
     )
 
@@ -223,6 +231,7 @@ class ChatAttachmentsController < ApplicationController
           filename:     store.filename,
           size:         store.size,
           content_type: content_type,
+          display:      display,
           store_id:     store.id,
         ),
       },
@@ -243,6 +252,7 @@ class ChatAttachmentsController < ApplicationController
       filename:     store.filename,
       size:         store.size,
       content_type: content_type,
+      display:      display,
     }, status: :created
   end
 

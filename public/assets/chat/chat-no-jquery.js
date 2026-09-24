@@ -4574,7 +4574,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           time = this.formatTime(message.created_at);
           isRead = !!message.read_at;
           if (message.filename) {
-            this.body.insertAdjacentHTML('beforeend', this.view(this.attachmentView(message.content_type))({
+            this.body.insertAdjacentHTML('beforeend', this.view(this.attachmentView(message.content_type, message.display))({
               from: isAgentMessage ? 'agent' : 'customer',
               id: message.id,
               filename: message.filename,
@@ -4782,14 +4782,18 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.uploadAttachment = function(event) {
-      var file, formData, ref, ref1, uploadId, xhr;
+      var asFile, file, formData, ref, ref1, uploadId, xhr;
       file = (ref = event.target.files) != null ? ref[0] : void 0;
       if (!file) {
         return;
       }
       formData = new FormData();
       formData.append('File', file);
-      uploadId = (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : null;
+      asFile = event.target.classList.contains('js-chat-attachment-input');
+      if (asFile) {
+        formData.append('display', 'file');
+      }
+      uploadId = !asFile && (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : null;
       xhr = new XMLHttpRequest();
       xhr.open('POST', (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments");
       if (uploadId) {
@@ -4835,7 +4839,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.addAttachmentMessage = function(data, from) {
       var html, placeholder, viewName;
-      viewName = this.attachmentView(data.content_type);
+      viewName = this.attachmentView(data.content_type, data.display);
       html = this.view(viewName)({
         from: from,
         id: data.id,
@@ -4870,7 +4874,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
-    ZammadChat.prototype.attachmentView = function(contentType) {
+    ZammadChat.prototype.attachmentView = function(contentType, display) {
+      if (display === 'file') {
+        return 'attachment_message';
+      }
       if (indexOf.call(this.IMAGE_TYPES, contentType) >= 0) {
         return 'image_message';
       } else {
