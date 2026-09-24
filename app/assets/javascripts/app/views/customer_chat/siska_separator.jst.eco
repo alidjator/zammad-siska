@@ -1,0 +1,1 @@
+<div class="siska-separator" role="status"><span><%= @text %><% if @time: %> · <%= @time %><% end %></span></div>

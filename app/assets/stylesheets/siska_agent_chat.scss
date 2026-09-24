@@ -1523,3 +1523,83 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   p { display: inline; margin: 0; }
   .is-agent strong { color: $siska-primary; }
 }
+
+// ---------------------------------------------------------------------
+// Tahap 4 -- banner Offline, chat berakhir (pemisah, kartu rating,
+// bilah "percakapan telah berakhir").
+// ---------------------------------------------------------------------
+.siska-agent .siska-chat-offline {
+  flex-shrink: 0;
+  padding: 14px 18px;
+  color: #b04a00; // warning-900 kit, kontras teks di atas tint oranye
+  font-size: 14px;
+
+  &.hidden { display: none; }
+
+  strong, b { font-weight: 600; }
+}
+
+.siska-agent .siska-chat-offline-text { flex: 1; }
+
+.siska-agent .siska-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: $siska-text-secondary;
+  font-size: 12px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $siska-border;
+  }
+}
+
+.siska-agent .siska-rating-card {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 90%;
+  padding: 12px 18px;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius;
+  font-size: 13px;
+}
+
+.siska-agent .siska-rating-comment {
+  color: $siska-body-color;
+  overflow-wrap: anywhere;
+}
+
+.siska-agent .siska-ended-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-top: 1px solid $siska-border;
+  background: $siska-body-bg;
+
+  &.hidden { display: none; }
+}
+
+.siska-agent .siska-ended-bar-icon {
+  display: flex;
+  color: $siska-secondary;
+}
+
+.siska-agent .siska-ended-bar-text {
+  flex: 1;
+  min-width: 200px;
+  color: $siska-body-color;
+  font-size: 14px;
+}
+
+// composer disembunyikan setelah chat berakhir
+.siska-agent .siska-composer.hidden { display: none; }

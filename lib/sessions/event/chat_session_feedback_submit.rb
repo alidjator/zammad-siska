@@ -46,11 +46,27 @@ class Sessions::Event::ChatSessionFeedbackSubmit < Sessions::Event::ChatBase
       }
     end
 
+    comment = @payload['data']['comment'].to_s.strip.presence
     ticket.update_columns( # rubocop:disable Rails/SkipsModelValidations
       csat_score:        score,
-      csat_comment:      @payload['data']['comment'].to_s.strip.presence,
+      csat_comment:      comment,
       csat_submitted_at: Time.zone.now,
     )
+
+    # Redesign sisi agent (Tahap 4) -- kartu "Rating from customer" di
+    # jendela chat yang sudah berakhir. Hanya dikirim kalau Setting
+    # `chat_agent_show_rating` menyala (keputusan user: bisa diatur, default
+    # tampil); kalau mati, rating tetap tersimpan di tiket saja.
+    if Setting.get('chat_agent_show_rating')
+      chat_session.send_to_recipients({
+                                        event: 'chat_session_feedback',
+                                        data:  {
+                                          session_id: chat_session.session_id,
+                                          score:      score,
+                                          comment:    comment,
+                                        },
+                                      }, @client_id)
+    end
 
     {
       event: 'chat_session_feedback_submit',

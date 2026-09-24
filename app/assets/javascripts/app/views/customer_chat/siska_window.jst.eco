@@ -30,7 +30,6 @@
       <button type="button" class="s-btn s-btn-link s-btn-icon js-toggleProfile" aria-label="<%- @Ti('Profile & history') %>" title="<%- @Ti('Profile & history') %>" aria-expanded="false"><%- @SiskaIcon('user-circle', 20, tone: 'active') %></button>
       <span class="siska-conv-actions-gap"></span>
       <button type="button" class="s-btn s-btn-outline-danger s-btn-sm js-disconnect"><%- @SiskaIcon('sign-out', 16) %><%- @T('End chat') %></button>
-      <button type="button" class="s-btn s-btn-outline s-btn-sm js-close is-hidden"><%- @SiskaIcon('x', 16) %><%- @T('Close') %></button>
     </div>
   </div>
   <div class="chat-scroll-hint js-scrollHint is-hidden">
@@ -41,6 +40,20 @@
     <div class="chat-body js-body"></div>
   </div>
   <div class="chat-reply-indicator js-replyIndicator hidden"></div>
+<div class="siska-ended-bar js-endedBar hidden" role="status">
+  <span class="siska-ended-bar-icon"><%- @SiskaIcon('check-circle', 20) %></span>
+  <span class="siska-ended-bar-text">
+    <% if @session.ticket_id: %>
+      <%- @T('The conversation has ended. The transcript is saved in ticket') %> <span class="js-ticketNumber">…</span>.
+    <% else: %>
+      <%- @T('The conversation has ended.') %>
+    <% end %>
+  </span>
+  <% if @session.ticket_id: %>
+    <button type="button" class="s-btn s-btn-outline-secondary s-btn-sm js-openPreviousTicket" data-ticket-id="<%= @session.ticket_id %>"><%- @SiskaIcon('ticket', 16) %><%- @T('Open ticket') %></button>
+  <% end %>
+  <button type="button" class="s-btn s-btn-primary s-btn-sm js-close"><%- @SiskaIcon('x', 16) %><%- @T('Remove from list') %></button>
+</div>
 <div class="siska-composer">
   <div class="siska-composer-input js-customerChatInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="<%- @Ti('Reply') %>" data-placeholder="<%- @Ti('Type a reply…') %>"></div>
   <div class="siska-composer-bar">

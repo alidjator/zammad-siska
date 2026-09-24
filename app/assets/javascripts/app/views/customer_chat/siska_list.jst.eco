@@ -38,6 +38,44 @@
   <% end %>
 </div>
 
+<% if @ended.length: %>
+<div class="siska-chat-section">
+  <div class="siska-chat-section-head">
+    <span><%- @T('Recently ended') %></span>
+    <span><%= @ended.length %></span>
+  </div>
+    <ul class="siska-chat-items" role="list">
+      <% for item in @ended: %>
+        <li>
+          <button type="button" class="s-list-item siska-chat-item js-selectChat<%= ' is-selected' if item.selected %><%= ' is-ended' if item.ended %>" data-session-id="<%= item.sessionId %>"<% if item.selected: %> aria-current="true"<% end %>>
+            <span class="s-avatar<%= ' s-avatar-muted' if item.ended %>">
+              <%= item.initials %>
+              <% if !item.ended: %><span class="s-avatar-dot"></span><% end %>
+            </span>
+            <span class="siska-chat-item-main">
+              <span class="siska-chat-item-row">
+                <span class="siska-chat-item-name"><%= item.name %></span>
+                <span class="s-muted s-small"><%= item.time %></span>
+              </span>
+              <span class="siska-chat-item-row">
+                <span class="siska-chat-item-snippet s-muted">
+                  <% if item.snippetIcon: %><%- @SiskaIcon(item.snippetIcon, 14) %><% end %>
+                  <%= item.snippet %>
+                </span>
+                <% if item.ended: %>
+                  <span class="s-badge s-badge-secondary"><%- @T('Ended') %></span>
+                <% else if item.unread: %>
+                  <span class="s-count" aria-label="<%- @Ti('%s unread', item.unread) %>"><%= item.unread %></span>
+                <% end %>
+              </span>
+            </span>
+          </button>
+        </li>
+      <% end %>
+    </ul>
+</div>
+<% end %>
+
 <div class="siska-chat-section">
   <div class="siska-chat-section-head">
     <span><%- @T('Waiting for agent') %></span>

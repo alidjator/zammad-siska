@@ -1,0 +1,7 @@
+<div class="siska-rating-card">
+  <span class="s-muted"><%- @T('Rating from customer') %></span>
+  <span class="siska-rating" role="img" aria-label="<%- @Ti('Rating %s of 5', @score) %>">
+    <% for n in [1..5]: %><span class="siska-rating-heart<%= ' is-on' if n <= @score %>"><%- @SiskaIcon('heart', 16, tone: 'full') %></span><% end %>
+  </span>
+  <% if @comment: %><span class="siska-rating-comment">“<%= @comment %>”</span><% end %>
+</div>

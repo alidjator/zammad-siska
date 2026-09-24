@@ -15,6 +15,11 @@
       </button>
     </div>
   </div>
+  <div class="s-alert s-alert-warning siska-chat-offline js-offlineBanner hidden" role="status">
+    <%- @SiskaIcon('wifi-slash', 20) %>
+    <span class="siska-chat-offline-text"><%- @T('You are |offline|. New chats will not be assigned to you until you go online.') %></span>
+    <button type="button" class="s-btn s-btn-primary s-btn-sm js-goOnline"><%- @T('Go online') %></button>
+  </div>
   <div class="siska-chat-layout">
     <aside class="s-card siska-chat-list">
       <div class="siska-chat-list-search">

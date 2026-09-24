@@ -17,6 +17,7 @@ class App.CustomerChat extends App.Controller
     'click .js-selectChat':    'onSelectChat'
     'change .js-onlineSwitch': 'onOnlineSwitch'
     'input .js-listSearch':    'onListSearch'
+    'click .js-goOnline':      'onGoOnline'
 
   elements:
     '.chat-workspace':  'workspace'
@@ -25,6 +26,7 @@ class App.CustomerChat extends App.Controller
     '.js-onlineSwitch': 'onlineSwitch'
     '.js-onlineLabel':  'onlineLabel'
     '.js-detailEmpty':  'detailEmpty'
+    '.js-offlineBanner': 'offlineBanner'
 
   sounds:
     chat_new: new Audio('assets/sounds/chat_new.mp3')
@@ -71,6 +73,9 @@ class App.CustomerChat extends App.Controller
       if data.assets
         App.Collection.loadAssets(data.assets)
       @meta = data
+      # banner Offline baru boleh tampil setelah status asli dari server
+      # diketahui (bukan default `active: false` saat halaman dimuat)
+      @metaLoaded = true
       @updateMeta()
       if data.active is true
         @startPushState()
@@ -272,6 +277,12 @@ class App.CustomerChat extends App.Controller
     active = !!@meta.active
     @onlineSwitch.prop('checked', active)
     @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
+    @offlineBanner.toggleClass('hidden', !@metaLoaded || active)
+
+  onGoOnline: (e) =>
+    e.preventDefault()
+    @switch(true)
+    @updateNavMenu()
 
   renderList: =>
     return if !@list?.length
@@ -281,12 +292,14 @@ class App.CustomerChat extends App.Controller
       (text || '').toLowerCase().indexOf(query) isnt -1
 
     running = []
+    ended = []
     for sessionId, chat of @chatWindows
       continue if !chat
       session = chat.session
       continue if !matches("#{chat.name} #{session.email || ''} ##{session.id}")
       last = chat.lastMessage
-      running.push(
+      target = if chat.isOffline then ended else running
+      target.push(
         sessionId:   sessionId
         name:        chat.name || "##{session.id}"
         initials:    App.SiskaFormat.initials(chat.name)
@@ -316,6 +329,7 @@ class App.CustomerChat extends App.Controller
 
     @list.html App.view('customer_chat/siska_list')(
       running:      running
+      ended:        ended
       waiting:      waiting
       waitingTotal: waitingTotal
       showTopics:   topics.length > 1
@@ -582,14 +596,31 @@ class App.ChatWindow extends App.Controller
     @controllerBind('chat_session_left', (data) =>
       return if data.session_id isnt @session.session_id
       return if data.self_written
-      @addStatusMessage("<strong>#{data.realname}</strong> left the conversation")
+      if @siska
+        @addSeparator(App.i18n.translatePlain('The customer left the conversation'))
+      else
+        @addStatusMessage("<strong>#{data.realname}</strong> left the conversation")
       @goOffline()
     )
     @controllerBind('chat_session_closed', (data) =>
       return if data.session_id isnt @session.session_id
       return if data.self_written
-      @addStatusMessage("<strong>#{data.realname}</strong> closed the conversation")
+      if @siska
+        text = if data.closed_by_agent
+          App.i18n.translatePlain('Chat ended by %s', data.realname)
+        else
+          App.i18n.translatePlain('Chat ended by the customer')
+        @addSeparator(text)
+      else
+        @addStatusMessage("<strong>#{data.realname}</strong> closed the conversation")
       @goOffline()
+    )
+    # Redesign sisi agent (Tahap 4) -- rating yang dikirim customer setelah
+    # chat berakhir (server hanya menyiarkannya bila Setting
+    # chat_agent_show_rating menyala, lihat chat_session_feedback_submit.rb).
+    @controllerBind('chat_session_feedback', (data) =>
+      return if data.session_id isnt @session.session_id
+      @addRatingCard(data)
     )
     @controllerBind('chat_focus', (data) =>
       return if data.session_id isnt @session.session_id
@@ -770,7 +801,10 @@ class App.ChatWindow extends App.Controller
     })
 
   disconnect: =>
-    @addStatusMessage('<strong>You</strong> left the conversation')
+    if @siska
+      @addSeparator(App.i18n.translatePlain('You ended the chat'))
+    else
+      @addStatusMessage('<strong>You</strong> left the conversation')
     App.WebSocket.send(
       event:'chat_session_close'
       data:
@@ -992,6 +1026,26 @@ class App.ChatWindow extends App.Controller
     details:          details
     previousSessions: previous
     showRating:       App.Config.get('chat_agent_show_rating') isnt false
+
+  # Pemisah "Chat ended by … · HH:MM" (teks di-escape oleh template).
+  addSeparator: (text) =>
+    @body.append App.view('customer_chat/siska_separator')(
+      text: text
+      time: App.SiskaFormat.time(new Date().toISOString())
+    )
+    @scrollToBottom()
+
+  addRatingCard: (data) =>
+    return if !@siska
+    return if App.Config.get('chat_agent_show_rating') is false
+    score = parseInt(data.score, 10)
+    return if !(score >= 1 && score <= 5)
+    @$('.siska-rating-card').remove()
+    @body.append App.view('customer_chat/siska_rating_card')(
+      score: score
+      comment: data.comment
+    )
+    @scrollToBottom()
 
   # Nomor tiket (bukan id) utk baris "Ticket" di panel profil.
   loadTicketNumber: =>
@@ -1316,6 +1370,12 @@ class App.ChatWindow extends App.Controller
     # "Open Ticket" kalau tiket sudah otomatis dibuat sejak awal
     # (Fase 5, Item No. 5, Section 5.1.5), supaya tidak duplikat
     # dengan tiket yang sudah ada.
+    if @siska
+      # composer diganti bilah "percakapan telah berakhir" (mockup artboard 5)
+      @$('.siska-composer, .js-replyIndicator').addClass('hidden')
+      @$('.js-endedBar').removeClass('hidden')
+      return
+
     @body.append App.view('customer_chat/chat_footer')(
       ticketId: @session.ticket_id
     )
