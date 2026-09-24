@@ -144,3 +144,18 @@ wajib saat Tahap 5.
 | 2.35 | Download gambar inline di viewer | Opsional: tombol Download memakai `src` gambar |
 | 1.11 | Animasi denyut Accept | Opsional (kosmetik) |
 | 1.20 | Tata letak ponsel | **Uji** di perangkat |
+
+### Tambahan backlog: komparasi widget customer vs panel agent (2026-09-25)
+
+Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
+
+| # | Item | Usulan |
+|---|---|---|
+| G1 | Tanda terkirim/dibaca untuk pesan agent tidak ada | Widget kirim `chat_session_message_read`; backend terima dari sesi customer; agent tampilkan centang |
+| G2 | Copy teks pesan tidak ada di agent | Item "Copy" di menu titik tiga |
+| G3 | Reaksi emoji hanya satu arah (customer → agent) | **Keputusan user** dulu: perlu/tidak reaksi dari agent |
+| G4 | Pratinjau gambar di widget belum seragam 240 × 180 | Terapkan aturan agent ke widget |
+| G5 | Kartu gambar belum ada di widget | Terapkan, atau putuskan tetap ringkas |
+| G6 | Progress unggah agent tanpa persen | Samakan dengan widget |
+| G7 | Tidak ada penanda putus koneksi di jendela chat agent | Banner "Connection lost, reconnecting…" |
+| G8 | Label panel agent masih English | Terjemahan Bahasa Indonesia |
