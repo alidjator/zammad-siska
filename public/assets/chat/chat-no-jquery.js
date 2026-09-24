@@ -111,7 +111,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -177,17 +177,21 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push('</span>');
       }
     
-      __out.push('</span></span>');
+      __out.push('</span>');
     
       if (this.from === 'agent' && this.id) {
-        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
-        __out.push(this.T('Reply'));
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="file" data-download="');
+        __out.push(__sanitize(this.url));
+        __out.push('?disposition=attachment" data-filename="');
+        __out.push(__sanitize(this.filename));
         __out.push('">');
-        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push(this.icon('caret-down', 16));
         __out.push('</button>');
       }
     
-      __out.push('</span>\n</div>\n');
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -1063,7 +1067,7 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -1133,17 +1137,21 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
         __out.push('</span>');
       }
     
-      __out.push('</span></button></span>');
+      __out.push('</span></button>');
     
       if (this.from === 'agent' && this.id) {
-        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
-        __out.push(this.T('Reply'));
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="image" data-download="');
+        __out.push(__sanitize(this.url));
+        __out.push('?disposition=attachment" data-filename="');
+        __out.push(__sanitize(this.filename));
         __out.push('">');
-        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push(this.icon('caret-down', 16));
         __out.push('</button>');
       }
     
-      __out.push('</span>\n</div>\n');
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -1532,6 +1540,89 @@ window.zammadChatTemplates["loader"] = function(__obj) {
 if (!window.zammadChatTemplates) {
   window.zammadChatTemplates = {};
 }
+window.zammadChatTemplates["message_menu"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Menu bubble ala WhatsApp: gaya `.dropdown-menu` kit (radius 8,\nbayangan kit, p-2), item `.dropdown-item` (ikon 18px, 14px). Isi per\njenis pesan: teks -> Reply + Copy; file/gambar -> Reply + Download.\nReply memakai `.js-message-reply` (handler `startReply` yg sudah ada). -->\n<div class="zammad-chat-message-menu js-message-menu-list" role="menu" aria-label="');
+    
+      __out.push(this.T('Message options'));
+    
+      __out.push('">\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
+    
+      __out.push(this.icon('arrow-bend-up-left', 18));
+    
+      __out.push('<span>');
+    
+      __out.push(this.T('Reply'));
+    
+      __out.push('</span></button>\n  ');
+    
+      if (this.kind === 'text') {
+        __out.push('\n  <button type="button" class="zammad-chat-message-menu-item js-message-copy" role="menuitem">');
+        __out.push(this.icon('copy', 18));
+        __out.push('<span>');
+        __out.push(this.T('Copy'));
+        __out.push('</span></button>\n  ');
+      } else {
+        __out.push('\n  <a class="zammad-chat-message-menu-item js-message-download" role="menuitem" href="');
+        __out.push(__sanitize(this.download));
+        __out.push('" download="');
+        __out.push(__sanitize(this.filename));
+        __out.push('" target="_blank" rel="noopener">');
+        __out.push(this.icon('download-simple', 18));
+        __out.push('<span>');
+        __out.push(this.T('Download'));
+        __out.push('</span></a>\n  ');
+      }
+    
+      __out.push('\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
 window.zammadChatTemplates["message"] = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -1571,7 +1662,7 @@ window.zammadChatTemplates["message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -1615,17 +1706,17 @@ window.zammadChatTemplates["message"] = function(__obj) {
         __out.push('</span>');
       }
     
-      __out.push('</span></span>');
+      __out.push('</span>');
     
       if (this.from === 'agent' && this.id) {
-        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
-        __out.push(this.T('Reply'));
-        __out.push('">');
-        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="text">');
+        __out.push(this.icon('caret-down', 16));
         __out.push('</button>');
       }
     
-      __out.push('</span>\n</div>\n');
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -3001,7 +3092,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     'file-text': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480zM672 544c0 17.673-14.327 32-32 32v0h-256c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h256c17.673 0 32 14.327 32 32v0zM672 672c0 17.673-14.327 32-32 32v0h-256c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h256c17.673 0 32 14.327 32 32v0z"],
     'file-audio': ["M288 640l96-96v352l-96-96h-96v-160zM608 128v224h224z", "M396.24 514.44c-3.623-1.545-7.838-2.443-12.262-2.443-8.832 0-16.828 3.578-22.618 9.363l0-0-86.6 86.64h-82.76c-17.673 0-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h82.76l86.6 86.64c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32 0-0.009-0-0.018-0-0.027l0 0.001v-352c-0.003-13.254-8.064-24.626-19.55-29.481l-0.21-0.079zM352 818.76l-41.36-41.4c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-63.999-0v-96h64c0.007 0 0.016 0 0.025 0 8.83 0 16.825-3.577 22.615-9.36l-0 0 41.36-41.4zM608 720c-0.071 59.2-31.846 110.963-79.256 139.229l-0.744 0.411c-4.157 2.115-9.065 3.354-14.263 3.354-17.673 0-32-14.327-32-32 0-11.063 5.614-20.815 14.148-26.562l0.114-0.072c29.029-17.357 48.165-48.624 48.165-84.36s-19.135-67.003-47.719-84.113l-0.446-0.247c-8.649-5.82-14.263-15.571-14.263-26.634 0-17.673 14.327-32 32-32 5.198 0 10.106 1.239 14.445 3.438l-0.182-0.084c48.154 28.677 79.929 80.44 80 139.63l0 0.010zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 320c0 17.673 14.327 32 32 32s32-14.327 32-32v0-320h352v192c0 17.673 14.327 32 32 32v0h192v480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"],
     'file-video': ["M448 702.68l128-62.68v224l-128-67.28v35.28c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-160c0-17.673 14.327-32 32-32v0h224c17.673 0 32 14.327 32 32v0zM608 128v224h224z", "M592.92 612.84c-4.801-3.032-10.644-4.831-16.906-4.831-5.131 0-9.98 1.208-14.279 3.354l0.185-0.084-84.88 41.56c-8.405-26.197-32.545-44.829-61.039-44.84l-224.001-0c-35.346 0-64 28.654-64 64v0 160c0 35.346 28.654 64 64 64v0h224c29.442-0.034 54.225-19.943 61.655-47.031l0.105-0.449 83.36 44c4.315 2.312 9.439 3.67 14.881 3.67 17.673 0 32-14.327 32-32 0-0.067-0-0.134-0.001-0.201l0 0.010v-224c-0-11.405-5.967-21.415-14.948-27.082l-0.132-0.078zM416 832h-224v-160h224v124c0 0.52 0 1 0 1.52v34.48zM544 811.040l-64-33.68v-54.72l64-31.32zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 352c0 17.673 14.327 32 32 32s32-14.327 32-32v0-352h352v192c0 17.673 14.327 32 32 32v0h192v480h-96c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h96c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"],
-    'file': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480z"]
+    'file': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480z"],
+    'copy': ["M864 160v512h-192v-320h-320v-192z", "M864 128h-512c-17.673 0-32 14.327-32 32v0 160h-160c-17.673 0-32 14.327-32 32v0 512c0 17.673 14.327 32 32 32v0h512c17.673 0 32-14.327 32-32v0-160h160c17.673 0 32-14.327 32-32v0-512c0-17.673-14.327-32-32-32v0zM640 832h-448v-448h448zM832 640h-128v-288c0-17.673-14.327-32-32-32v0h-288v-128h448z"]
   };
   siskaIcon = function(name, size, opts) {
     var cls, fill, paths, tone;
@@ -3747,6 +3839,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.renderReplyIndicator = bind(this.renderReplyIndicator, this);
       this.cancelReply = bind(this.cancelReply, this);
       this.startReply = bind(this.startReply, this);
+      this.showToast = bind(this.showToast, this);
+      this.copyTextFallback = bind(this.copyTextFallback, this);
+      this.copyMessage = bind(this.copyMessage, this);
+      this.closeMessageMenu = bind(this.closeMessageMenu, this);
+      this.onMessageMenuKeydown = bind(this.onMessageMenuKeydown, this);
+      this.openMessageMenu = bind(this.openMessageMenu, this);
       this.renderMessage = bind(this.renderMessage, this);
       this.playMessageSound = bind(this.playMessageSound, this);
       this.receiveMessage = bind(this.receiveMessage, this);
@@ -3915,6 +4013,30 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.input.addEventListener('paste', this.onPaste);
       this.input.addEventListener('drop', this.onDrop);
       this.body.addEventListener('click', this.startReply);
+      this.body.addEventListener('click', (function(_this) {
+        return function(event) {
+          var ref, toggle;
+          toggle = event.target.closest('.js-message-menu');
+          if (toggle) {
+            event.preventDefault();
+            if (((ref = _this.messageMenu) != null ? ref.toggle : void 0) === toggle) {
+              _this.closeMessageMenu();
+            } else {
+              _this.openMessageMenu(toggle);
+            }
+            return;
+          }
+          if (event.target.closest('.js-message-copy')) {
+            event.preventDefault();
+            _this.copyMessage(event.target.closest('.zammad-chat-message'));
+            _this.closeMessageMenu(true);
+            return;
+          }
+          if (event.target.closest('.js-message-reply, .js-message-download')) {
+            return _this.closeMessageMenu();
+          }
+        };
+      })(this));
       this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
         return function(event) {
           var target;
@@ -4859,6 +4981,160 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.lastAddedType = "message--" + data.from;
       data.unreadClass = document.hidden ? ' zammad-chat-message--unread' : '';
       return this.body.insertAdjacentHTML('beforeend', this.view('message')(data));
+    };
+
+    ZammadChat.prototype.openMessageMenu = function(toggle) {
+      var body, bodyRect, menu, menuRect, onDocClick, onKeydown, ref, ref1, wrapper;
+      this.closeMessageMenu();
+      body = toggle.closest('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      wrapper = document.createElement('div');
+      wrapper.innerHTML = this.view('message_menu')({
+        kind: toggle.dataset.kind,
+        download: toggle.dataset.download,
+        filename: toggle.dataset.filename
+      });
+      menu = wrapper.querySelector('.js-message-menu-list');
+      body.appendChild(menu);
+      toggle.setAttribute('aria-expanded', 'true');
+      if ((ref = body.closest('.zammad-chat-message')) != null) {
+        ref.classList.add('is-menu-open');
+      }
+      bodyRect = this.body.getBoundingClientRect();
+      menuRect = menu.getBoundingClientRect();
+      if (menuRect.bottom > bodyRect.bottom && menuRect.height < toggle.getBoundingClientRect().top - bodyRect.top) {
+        menu.classList.add('is-up');
+      }
+      onDocClick = (function(_this) {
+        return function(event) {
+          if (event.target.closest('.js-message-menu-list') || event.target.closest('.js-message-menu') === toggle) {
+            return;
+          }
+          return _this.closeMessageMenu();
+        };
+      })(this);
+      onKeydown = (function(_this) {
+        return function(event) {
+          return _this.onMessageMenuKeydown(event);
+        };
+      })(this);
+      document.addEventListener('click', onDocClick, true);
+      menu.addEventListener('keydown', onKeydown);
+      this.messageMenu = {
+        menu: menu,
+        toggle: toggle,
+        onDocClick: onDocClick
+      };
+      return (ref1 = menu.querySelector('[role=menuitem]')) != null ? ref1.focus() : void 0;
+    };
+
+    ZammadChat.prototype.onMessageMenuKeydown = function(event) {
+      var index, items, ref, ref1;
+      if (!this.messageMenu) {
+        return;
+      }
+      items = Array.from(this.messageMenu.menu.querySelectorAll('[role=menuitem]'));
+      index = items.indexOf(document.activeElement);
+      switch (event.key) {
+        case 'Escape':
+          event.preventDefault();
+          return this.closeMessageMenu(true);
+        case 'ArrowDown':
+          event.preventDefault();
+          return (ref = items[(index + 1) % items.length]) != null ? ref.focus() : void 0;
+        case 'ArrowUp':
+          event.preventDefault();
+          return (ref1 = items[(index - 1 + items.length) % items.length]) != null ? ref1.focus() : void 0;
+        case 'Tab':
+          return this.closeMessageMenu();
+      }
+    };
+
+    ZammadChat.prototype.closeMessageMenu = function(restoreFocus) {
+      var menu, onDocClick, ref, ref1, toggle;
+      if (restoreFocus == null) {
+        restoreFocus = false;
+      }
+      if (!this.messageMenu) {
+        return;
+      }
+      ref = this.messageMenu, menu = ref.menu, toggle = ref.toggle, onDocClick = ref.onDocClick;
+      this.messageMenu = null;
+      document.removeEventListener('click', onDocClick, true);
+      menu.remove();
+      toggle.setAttribute('aria-expanded', 'false');
+      if ((ref1 = toggle.closest('.zammad-chat-message')) != null) {
+        ref1.classList.remove('is-menu-open');
+      }
+      if (restoreFocus) {
+        return toggle.focus();
+      }
+    };
+
+    ZammadChat.prototype.copyMessage = function(messageEl) {
+      var body, clone, done, ref, text;
+      body = messageEl != null ? messageEl.querySelector('.zammad-chat-message-body') : void 0;
+      if (!body) {
+        return;
+      }
+      clone = body.cloneNode(true);
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list').forEach(function(el) {
+        return el.remove();
+      });
+      text = clone.textContent.trim();
+      done = (function(_this) {
+        return function() {
+          return _this.showToast(_this.T('Copied'));
+        };
+      })(this);
+      if ((ref = navigator.clipboard) != null ? ref.writeText : void 0) {
+        return navigator.clipboard.writeText(text).then(done)["catch"]((function(_this) {
+          return function() {
+            return _this.copyTextFallback(text, done);
+          };
+        })(this));
+      } else {
+        return this.copyTextFallback(text, done);
+      }
+    };
+
+    ZammadChat.prototype.copyTextFallback = function(text, done) {
+      var area;
+      area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        if (document.execCommand('copy')) {
+          done();
+        }
+      } catch (error1) {}
+      return area.remove();
+    };
+
+    ZammadChat.prototype.showToast = function(message) {
+      var toast;
+      toast = this.el.querySelector('.js-chat-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'zammad-chat-toast js-chat-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        this.el.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      if (this.toastTimer) {
+        clearTimeout(this.toastTimer);
+      }
+      return this.toastTimer = setTimeout((function() {
+        return toast.classList.remove('is-visible');
+      }), 1600);
     };
 
     ZammadChat.prototype.startReply = function(event) {

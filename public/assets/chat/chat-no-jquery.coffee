@@ -246,6 +246,7 @@ do(window) ->
     'file-audio': ["M288 640l96-96v352l-96-96h-96v-160zM608 128v224h224z", "M396.24 514.44c-3.623-1.545-7.838-2.443-12.262-2.443-8.832 0-16.828 3.578-22.618 9.363l0-0-86.6 86.64h-82.76c-17.673 0-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h82.76l86.6 86.64c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32 0-0.009-0-0.018-0-0.027l0 0.001v-352c-0.003-13.254-8.064-24.626-19.55-29.481l-0.21-0.079zM352 818.76l-41.36-41.4c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-63.999-0v-96h64c0.007 0 0.016 0 0.025 0 8.83 0 16.825-3.577 22.615-9.36l-0 0 41.36-41.4zM608 720c-0.071 59.2-31.846 110.963-79.256 139.229l-0.744 0.411c-4.157 2.115-9.065 3.354-14.263 3.354-17.673 0-32-14.327-32-32 0-11.063 5.614-20.815 14.148-26.562l0.114-0.072c29.029-17.357 48.165-48.624 48.165-84.36s-19.135-67.003-47.719-84.113l-0.446-0.247c-8.649-5.82-14.263-15.571-14.263-26.634 0-17.673 14.327-32 32-32 5.198 0 10.106 1.239 14.445 3.438l-0.182-0.084c48.154 28.677 79.929 80.44 80 139.63l0 0.010zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 320c0 17.673 14.327 32 32 32s32-14.327 32-32v0-320h352v192c0 17.673 14.327 32 32 32v0h192v480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"]
     'file-video': ["M448 702.68l128-62.68v224l-128-67.28v35.28c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-160c0-17.673 14.327-32 32-32v0h224c17.673 0 32 14.327 32 32v0zM608 128v224h224z", "M592.92 612.84c-4.801-3.032-10.644-4.831-16.906-4.831-5.131 0-9.98 1.208-14.279 3.354l0.185-0.084-84.88 41.56c-8.405-26.197-32.545-44.829-61.039-44.84l-224.001-0c-35.346 0-64 28.654-64 64v0 160c0 35.346 28.654 64 64 64v0h224c29.442-0.034 54.225-19.943 61.655-47.031l0.105-0.449 83.36 44c4.315 2.312 9.439 3.67 14.881 3.67 17.673 0 32-14.327 32-32 0-0.067-0-0.134-0.001-0.201l0 0.010v-224c-0-11.405-5.967-21.415-14.948-27.082l-0.132-0.078zM416 832h-224v-160h224v124c0 0.52 0 1 0 1.52v34.48zM544 811.040l-64-33.68v-54.72l64-31.32zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 352c0 17.673 14.327 32 32 32s32-14.327 32-32v0-352h352v192c0 17.673 14.327 32 32 32v0h192v480h-96c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h96c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"]
     'file': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480z"]
+    'copy': ["M864 160v512h-192v-320h-320v-192z", "M864 128h-512c-17.673 0-32 14.327-32 32v0 160h-160c-17.673 0-32 14.327-32 32v0 512c0 17.673 14.327 32 32 32v0h512c17.673 0 32-14.327 32-32v0-160h160c17.673 0 32-14.327 32-32v0-512c0-17.673-14.327-32-32-32v0zM640 832h-448v-448h448zM832 640h-128v-288c0-17.673-14.327-32-32-32v0h-288v-128h448z"]
 
   siskaIcon = (name, size = 16, opts = {}) ->
     paths = SISKA_ICONS[name]
@@ -1019,6 +1020,23 @@ do(window) ->
       # `event.target.closest(...)`, karena bubble pesan ditambahkan
       # dinamis setelah render awal ini.
       @body.addEventListener('click', @startReply)
+
+      # Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp") --
+      # delegasi di @body (bubble dirender dinamis). Reply di dalam menu
+      # ditangani `startReply` di atas (kelas `.js-message-reply` sama).
+      @body.addEventListener 'click', (event) =>
+        toggle = event.target.closest('.js-message-menu')
+        if toggle
+          event.preventDefault()
+          if @messageMenu?.toggle is toggle then @closeMessageMenu() else @openMessageMenu(toggle)
+          return
+        if event.target.closest('.js-message-copy')
+          event.preventDefault()
+          @copyMessage(event.target.closest('.zammad-chat-message'))
+          @closeMessageMenu(true)
+          return
+        if event.target.closest('.js-message-reply, .js-message-download')
+          @closeMessageMenu()
 
       # Atas permintaan user (mockup `Waiting.dc.html`, koreksi "keluar
       # dari antrian kembali ke home") -- tombol Batalkan dirender ulang
@@ -1915,6 +1933,103 @@ do(window) ->
 
     # Fitur tambahan "Reply ke Pesan Spesifik (Seperti WhatsApp)" --
     # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
+    openMessageMenu: (toggle) =>
+      @closeMessageMenu()
+      body = toggle.closest('.zammad-chat-message-body')
+      return if !body
+      wrapper = document.createElement('div')
+      wrapper.innerHTML = @view('message_menu')(
+        kind: toggle.dataset.kind
+        download: toggle.dataset.download
+        filename: toggle.dataset.filename
+      )
+      menu = wrapper.querySelector('.js-message-menu-list')
+      body.appendChild(menu)
+      toggle.setAttribute('aria-expanded', 'true')
+      body.closest('.zammad-chat-message')?.classList.add('is-menu-open')
+
+      # Buka ke ATAS kalau ruang di bawah (sampai tepi area pesan) kurang
+      # -- pesan terakhir tidak terpotong / memaksa scroll.
+      bodyRect = @body.getBoundingClientRect()
+      menuRect = menu.getBoundingClientRect()
+      menu.classList.add('is-up') if menuRect.bottom > bodyRect.bottom and menuRect.height < toggle.getBoundingClientRect().top - bodyRect.top
+
+      onDocClick = (event) =>
+        return if event.target.closest('.js-message-menu-list') or event.target.closest('.js-message-menu') is toggle
+        @closeMessageMenu()
+      onKeydown = (event) => @onMessageMenuKeydown(event)
+      document.addEventListener('click', onDocClick, true)
+      menu.addEventListener('keydown', onKeydown)
+      @messageMenu = { menu, toggle, onDocClick }
+      menu.querySelector('[role=menuitem]')?.focus()
+
+    onMessageMenuKeydown: (event) =>
+      return if !@messageMenu
+      items = Array.from(@messageMenu.menu.querySelectorAll('[role=menuitem]'))
+      index = items.indexOf(document.activeElement)
+      switch event.key
+        when 'Escape'
+          event.preventDefault()
+          @closeMessageMenu(true)
+        when 'ArrowDown'
+          event.preventDefault()
+          items[(index + 1) % items.length]?.focus()
+        when 'ArrowUp'
+          event.preventDefault()
+          items[(index - 1 + items.length) % items.length]?.focus()
+        when 'Tab'
+          @closeMessageMenu()
+
+    closeMessageMenu: (restoreFocus = false) =>
+      return if !@messageMenu
+      { menu, toggle, onDocClick } = @messageMenu
+      @messageMenu = null
+      document.removeEventListener('click', onDocClick, true)
+      menu.remove()
+      toggle.setAttribute('aria-expanded', 'false')
+      toggle.closest('.zammad-chat-message')?.classList.remove('is-menu-open')
+      toggle.focus() if restoreFocus
+
+    # Copy: teks pesan saja (tanpa jam, kutipan reply & tombol menu).
+    copyMessage: (messageEl) =>
+      body = messageEl?.querySelector('.zammad-chat-message-body')
+      return if !body
+      clone = body.cloneNode(true)
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list').forEach (el) -> el.remove()
+      text = clone.textContent.trim()
+      done = => @showToast(@T('Copied'))
+      if navigator.clipboard?.writeText
+        navigator.clipboard.writeText(text).then(done).catch => @copyTextFallback(text, done)
+      else
+        @copyTextFallback(text, done)
+
+    copyTextFallback: (text, done) =>
+      area = document.createElement('textarea')
+      area.value = text
+      area.setAttribute('readonly', '')
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      try
+        done() if document.execCommand('copy')
+      area.remove()
+
+    # Notifikasi singkat (mis. "Copied") di atas area ketik, dibacakan
+    # pembaca layar (aria-live), hilang sendiri.
+    showToast: (message) =>
+      toast = @el.querySelector('.js-chat-toast')
+      if !toast
+        toast = document.createElement('div')
+        toast.className = 'zammad-chat-toast js-chat-toast'
+        toast.setAttribute('role', 'status')
+        toast.setAttribute('aria-live', 'polite')
+        @el.appendChild(toast)
+      toast.textContent = message
+      toast.classList.add('is-visible')
+      clearTimeout(@toastTimer) if @toastTimer
+      @toastTimer = setTimeout((-> toast.classList.remove('is-visible')), 1600)
+
     startReply: (event) =>
       # delegasi manual -- lihat komentar pemasangan listener di renderBase.
       return if !event.target.closest('.js-message-reply')
