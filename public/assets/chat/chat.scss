@@ -2255,7 +2255,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   border-radius: 50%;
   border: 4px solid $siska-primary;
   border-left-color: transparent;
-  animation: zammad-chat-spin 900ms linear infinite;
+  // Audit kit Tailwind (EndingChat): 900ms -> 1s, samakan dgn utility
+  // `animate-spin` kit (`spin 1s linear infinite`).
+  animation: zammad-chat-spin 1s linear infinite;
 }
 
 // Modifier warna dipakai `ending_chat.eco` (spinner "Ending
@@ -2263,6 +2265,22 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-waiting-spinner--danger {
   border-color: $siska-error;
   border-left-color: transparent;
+}
+
+// Audit kit Tailwind (EndingChat): padanan utility `sr-only` kit --
+// teks "Loading..." di dalam spinner `role="status"` (waiting/loader/
+// ending_chat.eco) HANYA utk pembaca layar, tidak terlihat visual.
+// Isi persis definisi `sr-only` Tailwind.
+.zammad-chat-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 // Atas permintaan user (audit kit Tailwind baru): dicek LANGSUNG ke

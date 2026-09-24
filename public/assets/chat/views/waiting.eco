@@ -3,7 +3,13 @@
   "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen
   polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada
   padanannya di preseden kit baru. -->
-  <div class="zammad-chat-waiting-spinner"></div>
+  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit
+  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."
+  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat
+  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->
+  <div class="zammad-chat-waiting-spinner" role="status">
+    <span class="zammad-chat-sr-only"><%- @T('Loading...') %></span>
+  </div>
   <div class="zammad-chat-waiting-title"><%- @T(@phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…') %></div>
   <div class="zammad-chat-waiting-subtext"><%- @T(@phrases['chat_phrase_waiting_subtitle'] || 'All colleagues are busy.') %></div>
   <% if @position: %>

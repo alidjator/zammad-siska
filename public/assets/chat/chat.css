@@ -1862,13 +1862,25 @@
   border-radius: 50%;
   border: 4px solid #4680ff;
   border-left-color: transparent;
-  -webkit-animation: zammad-chat-spin 900ms linear infinite;
-  animation: zammad-chat-spin 900ms linear infinite;
+  -webkit-animation: zammad-chat-spin 1s linear infinite;
+  animation: zammad-chat-spin 1s linear infinite;
 }
 
 .zammad-chat-waiting-spinner--danger {
   border-color: #dc2626;
   border-left-color: transparent;
+}
+
+.zammad-chat-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 .zammad-chat-waiting-title {

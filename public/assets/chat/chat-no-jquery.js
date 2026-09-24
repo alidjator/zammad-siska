@@ -524,7 +524,11 @@ window.zammadChatTemplates["ending_chat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco, modifier warna via `--danger` (chat.scss). -->\n  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco, modifier warna via `--danger` (chat.scss). -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_ending_title'] || 'Ending conversation…'));
     
@@ -957,7 +961,11 @@ window.zammadChatTemplates["loader"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco. -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -1949,7 +1957,11 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, mockup\n  "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen\n  polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada\n  padanannya di preseden kit baru. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, mockup\n  "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen\n  polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada\n  padanannya di preseden kit baru. -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     

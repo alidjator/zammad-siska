@@ -1,7 +1,13 @@
 <div class="zammad-chat-waiting">
   <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di
   waiting.eco, modifier warna via `--danger` (chat.scss). -->
-  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger"></div>
+  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit
+  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."
+  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat
+  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->
+  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger" role="status">
+    <span class="zammad-chat-sr-only"><%- @T('Loading...') %></span>
+  </div>
   <div class="zammad-chat-waiting-title"><%- @T(@phrases['chat_phrase_ending_title'] || 'Ending conversation…') %></div>
   <div class="zammad-chat-waiting-subtext"><%- @T(@phrases['chat_phrase_ending_subtitle'] || 'Please wait a moment.') %></div>
 </div>
