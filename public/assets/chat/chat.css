@@ -2365,8 +2365,6 @@
 .zammad-chat-offline-otp-error:not(.zammad-chat-is-hidden) svg {
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  fill: none;
-  stroke: currentColor;
 }
 
 .zammad-chat-offline-otp-submit {
@@ -2760,17 +2758,12 @@
 }
 .zammad-chat-feedback-star svg {
   display: block;
-  fill: none;
-  stroke: currentColor;
-  -webkit-transition: fill 0.15s ease-in-out, stroke 0.15s ease-in-out;
-  -o-transition: fill 0.15s ease-in-out, stroke 0.15s ease-in-out;
-  transition: fill 0.15s ease-in-out, stroke 0.15s ease-in-out;
 }
 .zammad-chat-feedback-star.is-active {
   color: #dc2626;
 }
-.zammad-chat-feedback-star.is-active svg {
-  fill: currentColor;
+.zammad-chat-feedback-star.is-active .zammad-chat-icon-fill {
+  opacity: 1;
 }
 
 .zammad-chat-feedback-textarea {
@@ -2998,4 +2991,16 @@
 .zammad-chat-message-reply:focus-visible,
 .zammad-chat-attachment-download:focus-visible {
   opacity: 1;
+}
+
+.zammad-chat-icon-fill {
+  opacity: 0;
+  -webkit-transition: opacity 0.2s ease-in-out;
+  -o-transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.zammad-chat-tabbar-item.is-active .zammad-chat-icon-fill,
+.zammad-chat-emoji-toggle.is-active .zammad-chat-icon-fill {
+  opacity: 0.2;
 }

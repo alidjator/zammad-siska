@@ -1,25 +1,19 @@
-<!-- Ikon sprite kit (permintaan user, menggantikan Feather): isi <symbol>
-dari `assets/js/icon/custom-font.js` kit disalin INLINE (bukan <use
-href="#...">: widget tampil di DOM situs klien, simbol sprite tidak ada
-di sana & ID-nya bisa bentrok). Preseden menu sidebar kit
-(`layouts/menu-list.html`): Chat = custom-message-2; Home = custom-home;
-Help = custom-archive-book (tab Help = artikel Knowledge Base -> ikon
-buku, bulk duotone spt dua ikon lain; sempat custom-24-support). Gaya "bulk" duotone: lapisan
-`opacity 0.4` adalah BENTUK utama ikon, jadi tampil di semua state
-(sama spt di sidebar kit), penanda aktif tetap warna primary + latar.
+<!-- Ikon seragam Phosphor Duotone kit (lewat helper `@icon`, lihat
+`siskaIcon` di chat-no-jquery.coffee): house, chat-circle-dots,
+book-open-text, tone 'active' -- lapisan isi hanya tampil di tab aktif.
 Audit kit Tailwind (mockup "Tabbar - ikuti kit" disetujui): ikon
 dibungkus `.zammad-chat-tabbar-icon` (wadah latar penanda aktif/hover,
 preseden `nav-link` sidebar layout "tab" kit), 20px -> 22px.
 `aria-current` disinkronkan di switchTab() (chat-no-jquery.coffee). -->
 <button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home" aria-current="page">
-  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M10.0693 2.8201L3.13929 8.37009C2.35929 8.99009 1.85929 10.3001 2.02929 11.2801L3.35929 19.2401C3.59929 20.6601 4.95928 21.8101 6.39928 21.8101H17.5993C19.0293 21.8101 20.3993 20.6501 20.6393 19.2401L21.9693 11.2801C22.1293 10.3001 21.6293 8.99009 20.8593 8.37009L13.9293 2.83008C12.8593 1.97008 11.1293 1.9701 10.0693 2.8201Z"/><path d="M12 15.5C13.3807 15.5 14.5 14.3807 14.5 13C14.5 11.6193 13.3807 10.5 12 10.5C10.6193 10.5 9.5 11.6193 9.5 13C9.5 14.3807 10.6193 15.5 12 15.5Z"/></svg></span>
+  <span class="zammad-chat-tabbar-icon"><%- @icon('house', 22, tone: 'active') %></span>
   <span><%- @T('Home') %></span>
 </button>
 <button type="button" class="zammad-chat-tabbar-item" data-tab="messages">
-  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z"/></svg></span>
+  <span class="zammad-chat-tabbar-icon"><%- @icon('chat-circle-dots', 22, tone: 'active') %></span>
   <span><%- @T('Messages') %></span>
 </button>
 <button type="button" class="zammad-chat-tabbar-item" data-tab="help">
-  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z"/><path d="M15.5 2V9.85999C15.5 10.3 14.98 10.52 14.66 10.23L12.34 8.09C12.15 7.91 11.85 7.91 11.66 8.09L9.34003 10.23C9.02003 10.53 8.5 10.3 8.5 9.85999V2H15.5Z"/><path d="M17.5 14.75H13.25C12.84 14.75 12.5 14.41 12.5 14C12.5 13.59 12.84 13.25 13.25 13.25H17.5C17.91 13.25 18.25 13.59 18.25 14C18.25 14.41 17.91 14.75 17.5 14.75Z"/><path d="M17.5 18.75H9C8.59 18.75 8.25 18.41 8.25 18C8.25 17.59 8.59 17.25 9 17.25H17.5C17.91 17.25 18.25 17.59 18.25 18C18.25 18.41 17.91 18.75 17.5 18.75Z"/></svg></span>
+  <span class="zammad-chat-tabbar-icon"><%- @icon('book-open-text', 22, tone: 'active') %></span>
   <span><%- @T('Help') %></span>
 </button>

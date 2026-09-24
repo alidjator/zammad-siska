@@ -2,12 +2,9 @@
 -> <button> spt preseden `.btn` kit -- bisa difokus lewat Tab & dibaca
 pembaca layar. `aria-expanded` disinkronkan di open()/close()
 (chat-no-jquery.coffee).
-Ikon sprite kit (selaras tabbar, permintaan user; menggantikan Phosphor):
-isi <symbol> `assets/js/icon/custom-font.js` disalin INLINE --
-custom-message-2 (tertutup, sama dgn tab Messages & menu "Chat" sidebar
-kit) & custom-arrow-down (terbuka = minimize panel, BUKAN
-custom-close-circle yg terbaca "akhiri chat"). -->
+Ikon seragam Phosphor Duotone kit (helper `@icon`): chat-circle-dots
+(tertutup) & caret-down (terbuka), tone 'full' -- tombol utama. -->
 <button type="button" class="zammad-chat-launcher" aria-label="<%- @T('Chat') %>" aria-expanded="false">
-  <svg class="zammad-chat-launcher-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z"/></svg>
-  <svg class="zammad-chat-launcher-icon-close" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.9188 8.17969H11.6888H6.07877C5.11877 8.17969 4.63877 9.33969 5.31877 10.0197L10.4988 15.1997C11.3288 16.0297 12.6788 16.0297 13.5088 15.1997L15.4788 13.2297L18.6888 10.0197C19.3588 9.33969 18.8788 8.17969 17.9188 8.17969Z"/></svg>
+  <%- @icon('chat-circle-dots', 24, tone: 'full', class: 'zammad-chat-launcher-icon-open') %>
+  <%- @icon('caret-down', 24, tone: 'full', class: 'zammad-chat-launcher-icon-close') %>
 </button>

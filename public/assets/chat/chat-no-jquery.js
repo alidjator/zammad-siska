@@ -125,7 +125,13 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push('"');
       }
     
-      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon"><svg width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg></span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
+      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon">');
+    
+      __out.push(this.icon('paperclip', 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
     
       __out.push(__sanitize(this.filename));
     
@@ -149,7 +155,11 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push(this.T('Download'));
     
-      __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M512 775C534.703 775 545.336 757.991 551 741C552 737 552 666 552 535V335L623 406C690 472 695 477 701 480S708 482 718 482C732.592 482 737.314 480.686 744 474C752.568 465.432 760 456.384 760 439C760 434 758 429 756 425C749.58 412.157 538.164 202.0989999999999 528 196C518.958 189.972 501.501 189.6660000000001 492 196C481.741 202.155 270.421 412.1570000000001 264 425C262 429 260 434 260 439C260 456.203 267.382 465.382 276 474C282.645 480.645 287.4700000000001 482 302 482C312 482 313 483 319 480S330 472 397 406L468 335V535C468 666 468 737 469 741C475.379 760.137 486.626 775 512 775zM178 233C163.43 233 157.889 230.889 151 224C145.679 218.679 139.234 212.935 137 204C135 197 135 195 135 143C135 79.298 135.24 95.038 142 68C147.162 47.35 161.751 30.249 175 17C187.27 4.73 204.18 -7.0360000000001 224 -11C229 -12 236 -14 240 -15C245 -16 301 -16 510 -16C729 -16 775 -16 781 -15C834.774 -1.557 869.578 29.313 883 83C884 89 885 97 885 143C885 195 885 197 883 204C880.768 212.932 874.33 218.67 869 224C862.522 230.478 858.063 232 844 232C817.815 232 811.505 218.634 802 202V152C801 103 801 100 799 95C794.441 81.323 784.04 72.68 770 68H250C235.754 72.749 225.655 81.035 221 95C219 100 219 103 218 152V202C209.756 216.427 200.435 233 178 233z"/></g></svg></a></span><span class="zammad-chat-message-time">');
+      __out.push('">');
+    
+      __out.push(this.icon('download-simple', 16));
+    
+      __out.push('</a></span><span class="zammad-chat-message-time">');
     
       __out.push(__sanitize(this.time));
     
@@ -158,7 +168,9 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M720 650C738.623 650 749.698 637.602 756 625C758 620 760 617 760 611C760 599.9100000000001 757.596 590.46 752 583C751.74 582.61 541.751 370.65 529 363C512.684 352.122 488.8 362.2000000000001 480 371C471.095 379.905 462.707 403.56 473 419C480.21 431.019 605.111 553.111 696 644C700.571 648.571 710.63 650 720 650zM927 650C942.425 650 951.324 641.6759999999999 959 634C965.36 627.64 968 621.76 968 608C968 598 968 597 965 591C957.456 575.9110000000001 536.13 159.087 533 157C527.059 153.04 518.734 150 510 150C501.297 150 492.928 153.048 487 157C474.262 165.492 270.288 372.567 266 379C262.755 385.49 260 391.09 260 402C260 431.84 288.96 448.014 319 438C324 436 334 426 417 343L510 251L706 447C867 607 904 643 908 645C911 646 915 649 917 649S924 650 927 650zM93 442C91 442 87 441 85 441C71.335 441 60.726 425.589 55 417C52 412 52 411 52 400S52 388 55 382C60.88 372.2000000000001 271.996 159.145 284 154C290 151 293 150 299 150C316.203 150 325.382 157.382 334 166C340.645 172.645 342 177.47 342 192C342 202 343 203 340 209C334.549 219.9020000000001 118.586 433.707 116 435C109.999 438.001 100.128 442 93 442z"/></g></svg></span>');
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
       }
     
       __out.push('</span></span>');
@@ -166,7 +178,9 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
       if (this.from === 'agent' && this.id) {
         __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
         __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M386 733C374.042 733 367.644 731.644 362 726C341.089 705.0889999999999 192.556 562.9259999999999 180 542C177 536 178 536 178 525S177 514 180 508C189.953 491.412 356.9410000000001 326.636 368 320C374 317 374 318 385 318C401.474 318 404.629 319.629 413 328C420.525 335.525 429.352 348.2430000000001 426 365L422 377C420 382 412 391 370 433L320 483H504C662 483 689 483 697 482C716.607 478.078 737.03 470.176 751 459C778.753 436.7970000000001 801 407.045 801 358C801 310.507 778.565 278.674 751 258C723.071 237.054 707.807 234.814 657 233L624 232C607.495 226.4980000000001 598.516 216.062 594 198C593 193 593 190 594 185L598 173C601.412 162.765 614.0360000000001 154.321 624 151C628 150 638 150 659 150C700.11 150 713.085 152.7380000000001 742 161C758.07 165.592 779.356 174.685 791 184C807.701 197.361 825.05 209.733 838 227C841 231 847 239 851 244C860.308 255.635 869.405 276.92 874 293C879.924 313.732 885 331.702 885 358C885 426.824 858.064 470.937 823 506C794.9 534.1 765.26 554.123 718 562C676.52 568.913 652.8199999999999 567 502 567H320L370 617C412 659 420 668 422 673L426 685C430.658 708.2909999999999 415.403 721.065 402 730C397 732 394 733 386 733z"/></g></svg></button>');
+        __out.push('">');
+        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push('</button>');
       }
     
       __out.push('</span>\n</div>\n');
@@ -244,11 +258,27 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push(this.T('Minimize'));
     
-      __out.push('">\n        <svg width="17" height="17" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 567C235.564 567 213.687 544.5640000000001 219 518C220 514 221 509 223 506C232.459 490.235 479.177 245.0940000000001 491 238C501.756 230.8300000000001 517.81 234.27 529 238C538.213 241.6860000000001 791.3009999999999 496.501 797 506C810.366 526.05 794.566 556.812 779 562C768.606 565.4649999999999 751.99 569.326 741 562C736 559 721 546 622 447L510 335L397 447C300 544 284 560 279 562C273.193 563.9359999999999 266.477 567 259 567z"/></g></svg>\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
+      __out.push('">\n        ');
+    
+      __out.push(this.icon('caret-down', 17));
+    
+      __out.push('\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
     
       __out.push(this.T('End chat'));
     
-      __out.push('">\n        <svg class="zammad-chat-header-icon-close" width="17" height="17" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 692C235.564 692 213.687 669.564 219 643C220 639 221 634 223 631C226 626 239 611 338 512L450 400L338 288C239 189 226 174 223 169C217.037 160.0560000000001 216.766 140.352 223 131C230.87 119.1950000000001 245.002 104.6 267 109C271 110 276 112 279 113C284 115 300 131 397 228L510 340L622 228C721 129 736 116 741 113C755.69 103.207 780.28 111.28 789 120C798.387 129.387 808.02 152.47 797 169C794 174 781 189 682 288L570 400L682 512C781 611 794 626 797 631C810.366 651.05 794.566 681.812 779 687C768.606 690.465 751.99 694.326 741 687C736 684 721 671 622 572L510 460L397 572C300 669 284 685 279 687C273.193 688.936 266.477 692 259 692z"/></g></svg>\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      <svg class="zammad-scroll-hint-icon" width="20" height="18" viewBox="0 0 20 18"><path d="M0,2.00585866 C0,0.898053512 0.898212381,0 1.99079514,0 L18.0092049,0 C19.1086907,0 20,0.897060126 20,2.00585866 L20,11.9941413 C20,13.1019465 19.1017876,14 18.0092049,14 L1.99079514,14 C0.891309342,14 0,13.1029399 0,11.9941413 L0,2.00585866 Z M10,14 L16,18 L16,14 L10,14 Z" fill-rule="evenodd"/></svg>\n      ');
+      __out.push('">\n        ');
+    
+      __out.push(this.icon('x', 17, {
+        "class": 'zammad-chat-header-icon-close'
+      }));
+    
+      __out.push('\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      ');
+    
+      __out.push(this.icon('arrow-circle-down', 20, {
+        "class": 'zammad-scroll-hint-icon'
+      }));
+    
+      __out.push('\n      ');
     
       __out.push(this.T(this.scrollHint));
     
@@ -260,11 +290,21 @@ window.zammadChatTemplates["chat"] = function(__obj) {
     
       __out.push(this.T('Emoji'));
     
-      __out.push('" aria-expanded="false">\n          <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 295.901 893.852 224.779 852 162C841.594 146.39 829.555 130.555 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.224 9.414 602.538 -16 510 -16C456.467 -16 421.03 -7.723 380 4C329.755 18.355 287.91 46.922 250 74C233.797 85.574 217.93 103.0700000000001 204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C165.724 643.448 200.981 683.9839999999999 243 720C295.099 764.656 363.178 800.025 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C498 733 484 732 479 732C445.765 732 413.549 718.85 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.01 471.536 177 440.877 177 400C177 359.0800000000001 183.964 328.626 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C677.198 105.732 707.225 131.187 737 156C749.114 166.095 764.064 184.086 773 196C784.495 211.326 798.348 232.472 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM427 484C427 458.255 409.5710000000001 442 383 442C340.153 442 329.724 507.908 366 520C374.133 522.71 374.992 525 387 525C403.385 525 411.847 514.153 420 506C424.2080000000001 501.792 427 491.67 427 484zM677 484C677 458.255 659.571 442 633 442C590.153 442 579.724 507.908 616 520C624.133 522.71 624.992 525 637 525C653.385 525 661.847 514.153 670 506C674.208 501.792 677 491.67 677 484zM406 317C380.43 317 364 297.736 364 272C364 262.53 368.902 256.146 373 250C384.86 232.2100000000001 405.217 221.305 425 210C444.383 198.924 469.645 190 497 190H522C539.757 190 542.767 193.46 558 196C564 197 571 200 576 202C589.984 207.5940000000001 605.783 214.026 617 223C631.995 234.996 656 247.352 656 272C656 298.346 641.948 310.7630000000001 621 316C602.528 319.694 593.18 310.944 582 302C562.888 286.7100000000001 544.151 273 510 273C476.81 273 456.499 287.2000000000001 438 302C427.262 310.5900000000001 422.427 317 406 317z"/></g></svg>\n        </button>\n        <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="');
+      __out.push('" aria-expanded="false">\n          ');
+    
+      __out.push(this.icon('smiley', 16, {
+        tone: 'active'
+      }));
+    
+      __out.push('\n        </button>\n        <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="');
     
       __out.push(this.T('Attach file'));
     
-      __out.push('">\n          <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg>\n        </button>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
+      __out.push('">\n          ');
+    
+      __out.push(this.icon('paperclip', 16));
+    
+      __out.push('\n        </button>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
     
       __out.push(this.T('Send'));
     
@@ -274,7 +314,11 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         __out.push(__sanitize(" style='background: " + this.background + "'"));
       }
     
-      __out.push('>\n          <svg width="15" height="15" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M887 817C905.39 817 920.353 802.938 925 789C926 785 926 780 926 774V766L789 386C714 178 651 6 650 4C640.814 -14.371 621.332 -30 594 -30C572.757 -30 551.768 -19.15 543 -6C540 -3 515 48 468 142L396 286L252 358C158 405 107 430 104 433C90.687 441.876 80 462.057 80 484C80 512.133 95.208 530.605 114 540C135.429 550.7139999999999 853.955 807.582 865 812C870 814 876 816 877 816S883 817 887 817zM720 671C719.662 671 713.743 668.74 194 481C194 481 244 455 306 424L418 368L570 519C653 602 721 671 720 671zM782 612L478 308L534 195C579 105 590 82 591 84C591 84.321 591.312 84.0940000000001 782 612z"/></g></svg>\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n\n  <!-- Atas permintaan user (mockup "SISKA Widget Mockup" -- board\n  IndicatorReconnecting/Restored/Lost): indikator fullpage\n  semi-transparan status koneksi WebSocket widget sendiri, menutupi\n  seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,\n  lihat `connection_overlay.eco`). -->\n  <!-- Audit kit Tailwind: `aria-live` -- perubahan status koneksi\n  (Reconnecting -> restored/lost) dibacakan pembaca layar. -->\n  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden" aria-live="polite"></div>\n\n  <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit\n  feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,\n  lihat `showFeedback`) tetap fullpage -- container TERPISAH dari\n  overlay koneksi di atas (semantik beda, sengaja tidak dicampur),\n  gaya visual scrim sama (lihat `chat.scss`). Isi disuntik dinamis\n  oleh `showFeedbackThanks()`. -->\n  <div class="zammad-chat-feedback-thanks-overlay js-feedback-thanks-overlay zammad-chat-is-hidden"></div>\n</div>');
+      __out.push('>\n          ');
+    
+      __out.push(this.icon('paper-plane-right', 15));
+    
+      __out.push('\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n\n  <!-- Atas permintaan user (mockup "SISKA Widget Mockup" -- board\n  IndicatorReconnecting/Restored/Lost): indikator fullpage\n  semi-transparan status koneksi WebSocket widget sendiri, menutupi\n  seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,\n  lihat `connection_overlay.eco`). -->\n  <!-- Audit kit Tailwind: `aria-live` -- perubahan status koneksi\n  (Reconnecting -> restored/lost) dibacakan pembaca layar. -->\n  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden" aria-live="polite"></div>\n\n  <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit\n  feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,\n  lihat `showFeedback`) tetap fullpage -- container TERPISAH dari\n  overlay koneksi di atas (semantik beda, sengaja tidak dicampur),\n  gaya visual scrim sama (lihat `chat.scss`). Isi disuntik dinamis\n  oleh `showFeedbackThanks()`. -->\n  <div class="zammad-chat-feedback-thanks-overlay js-feedback-thanks-overlay zammad-chat-is-hidden"></div>\n</div>');
     
     }).call(this);
     
@@ -330,9 +374,17 @@ window.zammadChatTemplates["connection_overlay"] = function(__obj) {
         __out.push(this.T('Loading...'));
         __out.push('</span>\n  </div>\n');
       } else if (this.state === 'restored') {
-        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    <svg width="56" height="56" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n');
+        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    ');
+        __out.push(this.icon('check-circle', 56, {
+          tone: 'full'
+        }));
+        __out.push('\n  </div>\n');
       } else {
-        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    <svg width="56" height="56" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 295.901 893.852 224.779 852 162C841.594 146.39 829.555 130.555 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.224 9.414 602.538 -16 510 -16C456.467 -16 421.03 -7.723 380 4C329.755 18.355 287.91 46.922 250 74C233.797 85.574 217.93 103.0700000000001 204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C165.724 643.448 200.981 683.9839999999999 243 720C295.099 764.656 363.178 800.025 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C498 733 484 732 479 732C445.765 732 413.549 718.85 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.01 471.536 177 440.877 177 400C177 359.0800000000001 183.964 328.626 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C677.198 105.732 707.225 131.187 737 156C749.114 166.095 764.064 184.086 773 196C784.495 211.326 798.348 232.472 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM427 525C406.52 525 396.173 514.345 389 500C387 495 385 492 385 486C385 473.867 387.463 469.074 391 462C392 460 406 445 422 429L450 400L422 371C406 355 392 340 391 338C387.487 330.9740000000001 385 326.1 385 314C385 293.8 404.072 275 424 275C436.133 275 440.926 277.463 448 281C450 282 465 296 481 312L510 340L539 312C555 296 570 282 572 281C579.026 277.487 583.9 275 596 275C615.8 275 635 294.531 635 314C635 326.1330000000001 632.537 330.9260000000001 629 338C628 340 614 355 598 371L570 400L598 429C614 445 628 460 629 462C632.513 469.026 635 473.9 635 486C635 505.8 615.469 525 596 525C583.867 525 579.074 522.537 572 519C570 518 555 504 539 488L510 460L481 488C457.76 511.24 454.002 517.6659999999999 438 523C435 524 430 525 427 525z"/></g></svg>\n  </div>\n');
+        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    ');
+        __out.push(this.icon('x-circle', 56, {
+          tone: 'full'
+        }));
+        __out.push('\n  </div>\n');
       }
     
       __out.push('\n\n<div class="zammad-chat-connection-overlay-title">');
@@ -601,7 +653,13 @@ window.zammadChatTemplates["feedback_thanks"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
+      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    ');
+    
+      __out.push(this.icon('check-circle', 30, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_thanks_title'] || 'Thank you for your feedback!'));
     
@@ -668,7 +726,42 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_subtitle'] || 'Your feedback helps us improve.'));
     
-      __out.push('</div>\n\n  <!-- Atas permintaan user (audit kit Tailwind, mockup "Feedback - ikuti\n  kit"): bintang DIGANTI hati -- preseden rating "Heart" kit\n  (`forms/form2_rating.html`, ikon `feather-heart`). Class `-star` &\n  `js-feedback-star` SENGAJA dipertahankan (dipakai logic skor di\n  chat-no-jquery.coffee), cuma ikonnya yg berubah. -->\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg class="zammad-chat-feedback-heart" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg class="zammad-chat-feedback-heart" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg class="zammad-chat-feedback-heart" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg class="zammad-chat-feedback-heart" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg class="zammad-chat-feedback-heart" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
+      __out.push('</div>\n\n  <!-- Atas permintaan user (audit kit Tailwind, mockup "Feedback - ikuti\n  kit"): bintang DIGANTI hati -- preseden rating "Heart" kit\n  (`forms/form2_rating.html`, ikon `feather-heart`). Class `-star` &\n  `js-feedback-star` SENGAJA dipertahankan (dipakai logic skor di\n  chat-no-jquery.coffee), cuma ikonnya yg berubah. -->\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_comment_placeholder'] || 'Add a comment (optional)'));
     
@@ -731,7 +824,13 @@ window.zammadChatTemplates["help"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M424 817C482.908 817 531.409 804.295 572 784C614.98 762.51 650.403 735.517 680 700C698.662 677.605 714.264 656.656 727 628C735.18 609.595 739.768 598.698 746 580C752.974 559.078 755.026 533.844 759 510C760 504 760 493 760 484C760 409.04 737.148 352.9120000000001 709 306C706 301 700 294 697 289L691 279L805 165C905 64 919 49 922 44C935.366 23.95 919.566 -6.812 904 -12C893.606 -15.465 876.99 -19.326 866 -12C861 -9 846 5 745 105L631 219C588.481 192.4260000000001 544.012 162.751 482 155C462.927 152.616 448.493 150 426 150C368.317 150 321.973 163.514 283 183C240.335 204.333 205.194 228.967 176 264C171 270 163 279 158 285C125.036 324.557 104.987 381.088 96 444C95 451 93 464 93 472C93 500.213 96.071 527.4300000000001 100 551C101 557 105 568 107 576C128.058 660.23 180.935 717.667 243 762C250 767 260 773 266 776L288 787C314.697 800.349 346.014 807.336 380 813C386 814 396 816 402 816S418 817 424 817zM431 732H405C385.508 732 360.958 724.3199999999999 345 719C319.692 710.564 298.389 697.592 278 684C264.698 675.133 251.656 663.071 242 651C207.226 607.5319999999999 178 563.142 178 484C178 389.584 216.855 331.516 270 289C280.756 280.396 293.998 271.001 306 265L324 256C353.0590000000001 241.4700000000001 383.603 234 426 234C474.144 234 513.147 244.487 544 263C549 266 558 270 565 275C599.877 299.9120000000001 625.376 329.293 648 367C662.986 391.977 669.4 422.4 675 456C676 462 676 474 676 484C676 516.895 670.264 537.577 663 563C661 570 657 580 654 586L645 604C635.787 622.425 621.957 641.043 608 655C604 659 596 668 590 673C565.077 693.77 535.951 708.22 504 721C499 723 490 725 484 726S470 730 464 731S445 732 431 732z"/></g></svg>\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
+      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    ');
+    
+      __out.push(this.icon('magnifying-glass', 16, {
+        "class": 'zammad-chat-help-search-icon'
+      }));
+    
+      __out.push('\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
@@ -790,7 +889,14 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --\n  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,\n  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri\n  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --\n  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1\n  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan\n  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit\n  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),\n  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius\n  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit\n  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,\n  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang\n  terverifikasi identik, ukuran 52px & background SOLID (bukan tint\n  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-\n  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu\n  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-offline-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 818C563.386 818 598.068 788.886 619 754C634.577 728.04 904.693 261.6120000000001 918 235C924.652 221.694 925 214.2000000000001 925 192C925 141.04 903.451 112.088 874 90C860.403 79.803 842.976 72.995 823 69C815 68 780 67 509 67C236 67 203 68 196 69C135.622 81.0750000000001 93 123.586 93 196C93 219.963 99.464 232.928 108 250C108.083 250.165 406.993 763.988 407 764C413.665 775.107 427.904 789.343 439 796C457.02 806.813 478.581 818 508 818zM515 734H504C496.24 734 484.625 726.625 480 722C472.12 714.12 184.16 212.24 180 206C177 201 177 199 177 190C177 168.735 191.042 157.3200000000001 207 152C212 151 245 150 509 150C705 150 807 150 810 151C825.843 158.92 848.593 171.63 842 198C839.872 210.7670000000001 544.6890000000001 716.311 539 722C534.01 726.99 523.65 734 515 734zM509 567C532.466 567 544.995 551.015 551 533C552 530 552 513 552 484C552 444.207 552.282 438.848 547 423C542.719 410.155 526.815 400 510 400C485.452 400 475.161 415.517 469 434C468 437 468 458 468 484C468 513 468 530 469 533C474.66 549.981 486.697 567 509 567zM509 317C485.564 317 463.687 294.564 469 268C473.813 248.751 485.473 234 510 234C534.6 234 546.07 248.28 551 268C556.251 294.257 537.382 309.54 518 316C515 317 511 317 509 317z"/></g></svg>\n    <span class="zammad-chat-home-offline-notice-text">');
+      __out.push('<div class="zammad-chat-home">\n  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --\n  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,\n  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri\n  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --\n  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1\n  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan\n  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit\n  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),\n  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius\n  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit\n  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,\n  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang\n  terverifikasi identik, ukuran 52px & background SOLID (bukan tint\n  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-\n  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu\n  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    ');
+    
+      __out.push(this.icon('warning', 20, {
+        tone: 'full',
+        "class": 'zammad-chat-home-offline-notice-icon'
+      }));
+    
+      __out.push('\n    <span class="zammad-chat-home-offline-notice-text">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || 'All agents are currently unavailable'));
     
@@ -798,7 +904,14 @@ window.zammadChatTemplates["home"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
     
-      __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-online-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 322.915 909.682 261.192 881 211C877 204 872 192 868 186C852.258 162.387 836.235 137.235 816 117L793 94C772.79 73.79 747.842 57.895 724 42C718 38 706 33 699 29C656.655 4.803 606.866 -6.59 548 -15C541 -16 525 -16 510 -16C366.081 -16 276.3590000000001 44.64 204 117C190.573 130.427 177.435 148.348 167 164C124.516 227.727 93 304.861 93 412C93 442.781 96.97 460.87 103 488C125.691 590.112 175.576 662.208 243 720C265.945 739.667 288.82 755.91 317 770C357.559 790.28 404.55 806.364 458 814C465 815 476 816 483 816H518zM508 733C498 733 486 732 480 732C445.876 732 414.148 719.05 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.175 472.112 177 440.455 177 400C177 358.895 182.469 326.749 194 296C206.502 262.6620000000001 218.494 231.6320000000001 239 206C249.21 193.237 254.906 186.312 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C660.179 100.06 685.883 114.506 704 129C727.81 148.049 753.273 169.031 772 194C789.798 217.73 810.505 254.8450000000001 823 284C826 291 828 303 830 309C840.242 339.727 842 356.197 842 400C842 444.112 840.332 460.005 830 491C828 497 826 509 823 516C809.96 546.428 790.923 580.1030000000001 773 604C749.98 634.694 718.523 661.318 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM512 608C535.563 608 552 590.338 552 567C552 542.79 534.867 526 510 526C485.4 526 473.93 540.28 469 560C466.16 574.2 471.856 586.856 479 594C487.697 602.697 493.958 608 512 608zM488 442C451.182 442 443.8160000000001 437.724 430 417C427 412 428 411 428 400C428 383.526 429.629 380.371 438 372C446.073 363.927 454.126 360.312 468 358V294C468 225.2100000000001 466.814 234.558 474 213C476.994 204.018 490.36 196.584 498 192H562C577.974 201.1280000000001 592 208.35 592 234C592 248.135 590.523 252.477 584 259C577.47 265.53 567.875 275 555 275H552V339C552 383 552 404 551 408C541.555 436.336 528.73 442 488 442z"/></g></svg>\n    <span class="zammad-chat-home-online-notice-text">');
+      __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    ');
+    
+      __out.push(this.icon('info', 20, {
+        tone: 'full',
+        "class": 'zammad-chat-home-online-notice-icon'
+      }));
+    
+      __out.push('\n    <span class="zammad-chat-home-online-notice-text">');
     
       __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online now — start a conversation and we'll respond right away."));
     
@@ -865,7 +978,13 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(__sanitize(this.url));
     
-      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      <svg width="18" height="18" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M926 98C916.799 79.597 908.505 67 881 67C870.58 67 868.266 70.867 858 76C811.917 99.0410000000001 766.724 116 698 116C631.463 116 588.188 101.0940000000001 544 79C530.372 72.187 523.249 67 506 67C495.58 67 493.266 70.867 483 76C436.581 99.209 391.347 116 322 116C275.048 116 247.291 109.43 213 98C207 96 196 92 190 89L170 79C158.379 73.1900000000001 152.146 70.716 141 67C115.432 60.608 102.254 81.4930000000001 94 98L93 376C93 624 94 655 95 660C100.854 677.56 106.553 683.2760000000001 124 692C160.972 713.127 205.186 729.773 255 736C267.8330000000001 737.604 285.564 741 298 741H329C400.373 741 446.438 725.24 496 704L510 698L526 705C576.25 727.333 625.472 741 698 741C762.8199999999999 741 806.097 732.673 852 713C863.715 707.98 898.39 691.406 908 685C915.252 681.374 922.376 671.871 925 664C927 659 926 647 926 378V98zM321 658C286.234 658 268.773 652.462 242 648C225.754 645.292 204.117 637.05 190 631L178 626L177 400V174L190 179C215.981 186.423 244.727 194.34 274 198C285 199 295 199 323 199C377.058 199 393.58 195.105 434 185C447.727 181.568 458.12 178.3920000000001 468 174V625L457 630C418.944 649.028 376.725 658 321 658zM696 658C641.347 658 603.325 647.854 564 631L552 626V174L565 179C609.694 191.77 637.048 199 698 199C752.058 199 768.58 195.105 809 185C822.727 181.568 833.12 178.3920000000001 843 174V400L842 625L832 630C794.014 648.9929999999999 751.545 658 696 658z"/></g></svg>\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
+      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      ');
+    
+      __out.push(this.icon('book-open-text', 18, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
     
       __out.push(this.title);
     
@@ -873,7 +992,13 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(this.body);
     
-      __out.push('</span>\n    </span>\n    <svg class="zammad-chat-kb-result-chevron" width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M384 692C360.67 692 338.697 669.512 344 643C345 639 346 634 348 631C351 626 364 611 463 512L575 400L463 288C364 189 351 174 348 169C342.037 160.0560000000001 341.766 140.352 348 131C355.87 119.1950000000001 370.002 104.6 392 109C396 110 401 112 404 113C413.213 116.686 666.3009999999999 371.501 672 381C677.963 389.944 678.234 409.648 672 419C666.3 428.499 413.213 683.3140000000001 404 687C398.193 688.936 391.477 692 384 692z"/></g></svg>\n  </a>\n</li>\n');
+      __out.push('</span>\n    </span>\n    ');
+    
+      __out.push(this.icon('caret-right', 14, {
+        "class": 'zammad-chat-kb-result-chevron'
+      }));
+    
+      __out.push('\n  </a>\n</li>\n');
     
     }).call(this);
     
@@ -924,11 +1049,25 @@ window.zammadChatTemplates["launcher"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<!-- Audit kit Tailwind (mockup "Launcher - ikuti kit" disetujui): <div>\n-> <button> spt preseden `.btn` kit -- bisa difokus lewat Tab & dibaca\npembaca layar. `aria-expanded` disinkronkan di open()/close()\n(chat-no-jquery.coffee).\nIkon sprite kit (selaras tabbar, permintaan user; menggantikan Phosphor):\nisi <symbol> `assets/js/icon/custom-font.js` disalin INLINE --\ncustom-message-2 (tertutup, sama dgn tab Messages & menu "Chat" sidebar\nkit) & custom-arrow-down (terbuka = minimize panel, BUKAN\ncustom-close-circle yg terbaca "akhiri chat"). -->\n<button type="button" class="zammad-chat-launcher" aria-label="');
+      __out.push('<!-- Audit kit Tailwind (mockup "Launcher - ikuti kit" disetujui): <div>\n-> <button> spt preseden `.btn` kit -- bisa difokus lewat Tab & dibaca\npembaca layar. `aria-expanded` disinkronkan di open()/close()\n(chat-no-jquery.coffee).\nIkon seragam Phosphor Duotone kit (helper `@icon`): chat-circle-dots\n(tertutup) & caret-down (terbuka), tone \'full\' -- tombol utama. -->\n<button type="button" class="zammad-chat-launcher" aria-label="');
     
       __out.push(this.T('Chat'));
     
-      __out.push('" aria-expanded="false">\n  <svg class="zammad-chat-launcher-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z"/></svg>\n  <svg class="zammad-chat-launcher-icon-close" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.9188 8.17969H11.6888H6.07877C5.11877 8.17969 4.63877 9.33969 5.31877 10.0197L10.4988 15.1997C11.3288 16.0297 12.6788 16.0297 13.5088 15.1997L15.4788 13.2297L18.6888 10.0197C19.3588 9.33969 18.8788 8.17969 17.9188 8.17969Z"/></svg>\n</button>\n');
+      __out.push('" aria-expanded="false">\n  ');
+    
+      __out.push(this.icon('chat-circle-dots', 24, {
+        tone: 'full',
+        "class": 'zammad-chat-launcher-icon-open'
+      }));
+    
+      __out.push('\n  ');
+    
+      __out.push(this.icon('caret-down', 24, {
+        tone: 'full',
+        "class": 'zammad-chat-launcher-icon-close'
+      }));
+    
+      __out.push('\n</button>\n');
     
     }).call(this);
     
@@ -1081,7 +1220,9 @@ window.zammadChatTemplates["message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M720 650C738.623 650 749.698 637.602 756 625C758 620 760 617 760 611C760 599.9100000000001 757.596 590.46 752 583C751.74 582.61 541.751 370.65 529 363C512.684 352.122 488.8 362.2000000000001 480 371C471.095 379.905 462.707 403.56 473 419C480.21 431.019 605.111 553.111 696 644C700.571 648.571 710.63 650 720 650zM927 650C942.425 650 951.324 641.6759999999999 959 634C965.36 627.64 968 621.76 968 608C968 598 968 597 965 591C957.456 575.9110000000001 536.13 159.087 533 157C527.059 153.04 518.734 150 510 150C501.297 150 492.928 153.048 487 157C474.262 165.492 270.288 372.567 266 379C262.755 385.49 260 391.09 260 402C260 431.84 288.96 448.014 319 438C324 436 334 426 417 343L510 251L706 447C867 607 904 643 908 645C911 646 915 649 917 649S924 650 927 650zM93 442C91 442 87 441 85 441C71.335 441 60.726 425.589 55 417C52 412 52 411 52 400S52 388 55 382C60.88 372.2000000000001 271.996 159.145 284 154C290 151 293 150 299 150C316.203 150 325.382 157.382 334 166C340.645 172.645 342 177.47 342 192C342 202 343 203 340 209C334.549 219.9020000000001 118.586 433.707 116 435C109.999 438.001 100.128 442 93 442z"/></g></svg></span>');
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
       }
     
       __out.push('</span></span>');
@@ -1089,7 +1230,9 @@ window.zammadChatTemplates["message"] = function(__obj) {
       if (this.from === 'agent' && this.id) {
         __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
         __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M386 733C374.042 733 367.644 731.644 362 726C341.089 705.0889999999999 192.556 562.9259999999999 180 542C177 536 178 536 178 525S177 514 180 508C189.953 491.412 356.9410000000001 326.636 368 320C374 317 374 318 385 318C401.474 318 404.629 319.629 413 328C420.525 335.525 429.352 348.2430000000001 426 365L422 377C420 382 412 391 370 433L320 483H504C662 483 689 483 697 482C716.607 478.078 737.03 470.176 751 459C778.753 436.7970000000001 801 407.045 801 358C801 310.507 778.565 278.674 751 258C723.071 237.054 707.807 234.814 657 233L624 232C607.495 226.4980000000001 598.516 216.062 594 198C593 193 593 190 594 185L598 173C601.412 162.765 614.0360000000001 154.321 624 151C628 150 638 150 659 150C700.11 150 713.085 152.7380000000001 742 161C758.07 165.592 779.356 174.685 791 184C807.701 197.361 825.05 209.733 838 227C841 231 847 239 851 244C860.308 255.635 869.405 276.92 874 293C879.924 313.732 885 331.702 885 358C885 426.824 858.064 470.937 823 506C794.9 534.1 765.26 554.123 718 562C676.52 568.913 652.8199999999999 567 502 567H320L370 617C412 659 420 668 422 673L426 685C430.658 708.2909999999999 415.403 721.065 402 730C397 732 394 733 386 733z"/></g></svg></button>');
+        __out.push('">');
+        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push('</button>');
       }
     
       __out.push('</span>\n</div>\n');
@@ -1143,7 +1286,11 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    <svg width="15" height="15" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M845 650C832.237 650 825.686 646.124 818 641C815 639 726 550 620 444L427 251L335 343C256 422 242 435 237 437C226.703 440.433 210.034 444.356 199 437C190.706 432.854 184.839 424.259 180 417C177 412 178 411 178 400S177 388 180 382C185.88 372.2000000000001 396.996 159.145 409 154C415 151 418 150 424 150C436.133 150 440.926 152.463 448 156C451.27 158.18 872.944 576.9159999999999 877 583C882.59 590.453 885 599.9300000000001 885 611C885 631.797 865.878 650 845 650z"/></g></svg>\n    <span><strong>');
+      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    ');
+    
+      __out.push(this.icon('check', 15));
+    
+      __out.push('\n    <span><strong>');
     
       __out.push(__sanitize(this.email));
     
@@ -1167,7 +1314,11 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…'));
     
-      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).\n  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong\n  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di\n  manapun di codebase ini, konsisten dgn attachment chat biasa yang\n  juga fire-and-forget/tidak bisa dibatalkan). -->\n  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">\n    <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg>\n    <span>');
+      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).\n  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong\n  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di\n  manapun di codebase ini, konsisten dgn attachment chat biasa yang\n  juga fire-and-forget/tidak bisa dibatalkan). -->\n  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">\n    ');
+    
+      __out.push(this.icon('paperclip', 16));
+    
+      __out.push('\n    <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_attach_button'] || 'Add attachment'));
     
@@ -1226,7 +1377,13 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M509 817C516.443 817 523.208 813.9300000000001 529 812C540.163 807.534 914.566 431.39 922 419C935.366 398.95 919.566 368.188 904 363C891.435 358.812 888.744 358 865 358H843V227C843 113 842 94 841 86C830.28 32.4 794.4 -4.3199999999999 741 -15C733 -17 719 -16 510 -16C327 -16 287 -16 281 -15C252.905 -7.977 226.912 2.11 211 22C196.094 40.633 184.648 57.756 179 86C178 94 177 113 177 227V358H155C120.048 358 111.506 360.742 98 381C92.037 389.944 91.766 409.648 98 419C104.226 429.376 483.618 809.447 490 812C494.872 815.248 502.124 817 509 817zM760 410C766.214 422.468 772.665 434.052 786 439L510 715L234 439C247.328 434.044 253.792 422.475 260 410V255C260 133.673 258.715 101.5699999999999 265 89C269.27 80.46 279.176 72.274 289 69C295 67 297 67 319 67H343V179C343 313.539 340.974 276.8970000000001 351 317C353.9 328.5990000000001 363.167 340.2770000000001 369 350C375.763 361.271 387.94 370.4550000000001 398 378C410.945 387.709 427.844 393.46 446 398C451 399 465 400 510 400S569 399 574 398C625.651 385.087 663.353 353.23 674 300C676 291 677 289 677 179V67H701C723 67 725 67 731 69C740.192 72.064 750.981 79.963 755 88C763.426 104.852 760 101.002 760 255V410zM509 317C486 317 465 316 462 316C444.277 316 434.186 298.372 428 286L427 176V67H593V176L592 286C576.017 317.968 563.42 317 509 317z"/></g></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
+      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    ');
+    
+      __out.push(this.icon('lock', 26, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_title'] || 'Enter verification code'));
     
@@ -1238,7 +1395,11 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
     
       __out.push(__sanitize(this.email));
     
-      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">\n    <svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 322.915 909.682 261.192 881 211C877 204 872 192 868 186C852.258 162.387 836.235 137.235 816 117L793 94C772.79 73.79 747.842 57.895 724 42C718 38 706 33 699 29C656.655 4.803 606.866 -6.59 548 -15C541 -16 525 -16 510 -16C366.081 -16 276.3590000000001 44.64 204 117C190.573 130.427 177.435 148.348 167 164C124.516 227.727 93 304.861 93 412C93 442.781 96.97 460.87 103 488C125.691 590.112 175.576 662.208 243 720C265.945 739.667 288.82 755.91 317 770C357.559 790.28 404.55 806.364 458 814C465 815 476 816 483 816H518zM508 733C498 733 486 732 480 732C445.876 732 414.148 719.05 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.175 472.112 177 440.455 177 400C177 358.895 182.469 326.749 194 296C206.502 262.6620000000001 218.494 231.6320000000001 239 206C249.21 193.237 254.906 186.312 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C660.179 100.06 685.883 114.506 704 129C727.81 148.049 753.273 169.031 772 194C789.798 217.73 810.505 254.8450000000001 823 284C826 291 828 303 830 309C840.242 339.727 842 356.197 842 400C842 444.112 840.332 460.005 830 491C828 497 826 509 823 516C809.96 546.428 790.923 580.1030000000001 773 604C749.98 634.694 718.523 661.318 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM512 650C493.784 650 477.57 640.7090000000001 473 627C472 624 470 619 469 616S468 572 468 504C468 429 468 396 469 392C470 389 471 383 473 380C477.998 371.669 605.414 244.352 616 238C630.69 228.207 655.28 236.28 664 245C673.387 254.387 683.02 277.4700000000001 672 294C669 299 660 308 610 359L552 418V514C552 575 552 613 551 616C545.53 632.412 534.014 650 512 650z"/></g></svg>\n    <span class="js-otp-error-text"></span>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
+      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">\n    ');
+    
+      __out.push(this.icon('clock', 14));
+    
+      __out.push('\n    <span class="js-otp-error-text"></span>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_verify_button'] || 'Verify'));
     
@@ -1305,7 +1466,13 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
+      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    ');
+    
+      __out.push(this.icon('check-circle', 30, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_sent_title'] || 'Your message has been sent!'));
     
@@ -1390,7 +1557,13 @@ window.zammadChatTemplates["prechat_category_option"] = function(__obj) {
     
       __out.push(this.label);
     
-      __out.push('</span>\n  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M845 650C832.237 650 825.686 646.124 818 641C815 639 726 550 620 444L427 251L335 343C256 422 242 435 237 437C226.703 440.433 210.034 444.356 199 437C190.706 432.854 184.839 424.259 180 417C177 412 178 411 178 400S177 388 180 382C185.88 372.2000000000001 396.996 159.145 409 154C415 151 418 150 424 150C436.133 150 440.926 152.463 448 156C451.27 158.18 872.944 576.9159999999999 877 583C882.59 590.453 885 599.9300000000001 885 611C885 631.797 865.878 650 845 650z"/></g></svg>\n</div>\n');
+      __out.push('</span>\n  ');
+    
+      __out.push(this.icon('check', 16, {
+        "class": 'zammad-chat-prechat-category-check'
+      }));
+    
+      __out.push('\n</div>\n');
     
     }).call(this);
     
@@ -1441,7 +1614,13 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    <svg width="24" height="24" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 734C622 734 722 733 729 733C774.723 733 809.074 710.9259999999999 833 687C859.828 660.172 876.365 631.81 884 586C885 578 885 538 885 435C885 295 884 294 882 284C879.283 267.697 875.055 256.0950000000001 867 242C863 235 859 225 855 220S845 208 841 204L826 189C811.787 174.787 790.124 166.05 770 158C765 156 756 154 750 153L740 150H360L280 70C216 6 199 -10 195 -12C188.312 -14.23 179.812 -17.963 170 -16L158 -12C147.402 -8.468 140.902 4.196 136 14V588L138 599C144.428 637.565 164.03 665.03 187 688C202.605 703.605 218.262 713.754 240 721C256.766 726.5889999999999 268.4700000000001 733 290 733C296 733 394 734 508 734zM514 650C394 650 294 649 293 649C278.984 649 266.013 642.76 257 636C248.29 629.4680000000001 239.776 624.664 234 616C227.679 606.519 224.068 596.204 220 584L219 355V127L269 177C312 220 320 227 325 229C328 230 334 232 338 233S416 234 537 234C725 234 730 234 738 236C754.136 239.228 767.266 248.266 777 258C786.451 267.451 795.835 281.1760000000001 799 297C801 305 801 309 801 445L800 584C788.876 617.373 771.835 636.722 738 648C732 650 717 650 514 650zM509 567C630 567 681 567 685 566C694.374 562.875 700.423 559.577 707 553C710 550 714 546 715 543C718.89 531.328 719.071 519.213 715 507C711.268 495.802 696.382 487.794 685 484C681 483 631 483 510 483S339 483 335 484C325.626 487.125 319.577 490.423 313 497C310 500 306 504 305 507C301.11 518.672 300.929 530.787 305 543C308.71 554.134 322.7440000000001 562.248 334 566C338 567 379 567 509 567zM468 400C342 400 337 400 331 398C317.32 393.44 302 381.472 302 364C301 360 301 356 302 352L306 340C310.293 327.121 324.266 320.434 338 317C342 316 392 316 468 316C536 316 596 317 599 317C619.693 317 635 337.231 635 358C635 380.3160000000001 621.969 392.344 605 398C600 399 586 400 468 400z"/></g></svg>\n  </div>\n  <div class="zammad-chat-prechat-title">');
+      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    ');
+    
+      __out.push(this.icon('chat-circle-dots', 24, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-prechat-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_title'] || 'Let\'s get started'));
     
@@ -1460,7 +1639,11 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
       __out.push('\n    <!-- Notice BUKAN error (kabar baik, mis. "agent sekarang\n    tersedia"), TERPISAH dari `.zammad-chat-prechat-error` (tetap\n    merah, dipakai pesan gagal validasi sungguhan). Atas permintaan\n    user (audit kit Able Pro TAILWIND baru): pola alert diganti ke\n    `.alert-success` GENUINE kit baru (lihat chat.scss, sama dgn\n    notice Home). Ikon centang stroke lama diganti Tabler\n    `circle-check` (diekstrak+diverifikasi dgn cara sama spt ikon\n    Home). -->\n    ');
     
       if (this.notice) {
-        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n        <span>');
+        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        ');
+        __out.push(this.icon('check-circle', 16, {
+          tone: 'full'
+        }));
+        __out.push('\n        <span>');
         __out.push(this.notice);
         __out.push('</span>\n      </div>\n    ');
       }
@@ -1485,7 +1668,13 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_category_placeholder'] || 'Select a category'));
     
-      __out.push('</span>\n        <svg class="zammad-chat-prechat-category-chevron" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 567C235.564 567 213.687 544.5640000000001 219 518C220 514 221 509 223 506C232.459 490.235 479.177 245.0940000000001 491 238C501.756 230.8300000000001 517.81 234.27 529 238C538.213 241.6860000000001 791.3009999999999 496.501 797 506C810.366 526.05 794.566 556.812 779 562C768.606 565.4649999999999 751.99 569.326 741 562C736 559 721 546 622 447L510 335L397 447C300 544 284 560 279 562C273.193 563.9359999999999 266.477 567 259 567z"/></g></svg>\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
+      __out.push('</span>\n        ');
+    
+      __out.push(this.icon('caret-down', 16, {
+        "class": 'zammad-chat-prechat-category-chevron'
+      }));
+    
+      __out.push('\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
     
       __out.push(this.category || '');
     
@@ -1639,7 +1828,11 @@ window.zammadChatTemplates["reply_indicator"] = function(__obj) {
     
       __out.push(this.T('Cancel reply'));
     
-      __out.push('"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 692C235.564 692 213.687 669.564 219 643C220 639 221 634 223 631C226 626 239 611 338 512L450 400L338 288C239 189 226 174 223 169C217.037 160.0560000000001 216.766 140.352 223 131C230.87 119.1950000000001 245.002 104.6 267 109C271 110 276 112 279 113C284 115 300 131 397 228L510 340L622 228C721 129 736 116 741 113C755.69 103.207 780.28 111.28 789 120C798.387 129.387 808.02 152.47 797 169C794 174 781 189 682 288L570 400L682 512C781 611 794 626 797 631C810.366 651.05 794.566 681.812 779 687C768.606 690.465 751.99 694.326 741 687C736 684 721 671 622 572L510 460L397 572C300 669 284 685 279 687C273.193 688.936 266.477 692 259 692z"/></g></svg></button>\n');
+      __out.push('">');
+    
+      __out.push(this.icon('x', 14));
+    
+      __out.push('</button>\n');
     
     }).call(this);
     
@@ -1745,15 +1938,33 @@ window.zammadChatTemplates["tabbar"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<!-- Ikon sprite kit (permintaan user, menggantikan Feather): isi <symbol>\ndari `assets/js/icon/custom-font.js` kit disalin INLINE (bukan <use\nhref="#...">: widget tampil di DOM situs klien, simbol sprite tidak ada\ndi sana & ID-nya bisa bentrok). Preseden menu sidebar kit\n(`layouts/menu-list.html`): Chat = custom-message-2; Home = custom-home;\nHelp = custom-archive-book (tab Help = artikel Knowledge Base -> ikon\nbuku, bulk duotone spt dua ikon lain; sempat custom-24-support). Gaya "bulk" duotone: lapisan\n`opacity 0.4` adalah BENTUK utama ikon, jadi tampil di semua state\n(sama spt di sidebar kit), penanda aktif tetap warna primary + latar.\nAudit kit Tailwind (mockup "Tabbar - ikuti kit" disetujui): ikon\ndibungkus `.zammad-chat-tabbar-icon` (wadah latar penanda aktif/hover,\npreseden `nav-link` sidebar layout "tab" kit), 20px -> 22px.\n`aria-current` disinkronkan di switchTab() (chat-no-jquery.coffee). -->\n<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home" aria-current="page">\n  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M10.0693 2.8201L3.13929 8.37009C2.35929 8.99009 1.85929 10.3001 2.02929 11.2801L3.35929 19.2401C3.59929 20.6601 4.95928 21.8101 6.39928 21.8101H17.5993C19.0293 21.8101 20.3993 20.6501 20.6393 19.2401L21.9693 11.2801C22.1293 10.3001 21.6293 8.99009 20.8593 8.37009L13.9293 2.83008C12.8593 1.97008 11.1293 1.9701 10.0693 2.8201Z"/><path d="M12 15.5C13.3807 15.5 14.5 14.3807 14.5 13C14.5 11.6193 13.3807 10.5 12 10.5C10.6193 10.5 9.5 11.6193 9.5 13C9.5 14.3807 10.6193 15.5 12 15.5Z"/></svg></span>\n  <span>');
+      __out.push('<!-- Ikon seragam Phosphor Duotone kit (lewat helper `@icon`, lihat\n`siskaIcon` di chat-no-jquery.coffee): house, chat-circle-dots,\nbook-open-text, tone \'active\' -- lapisan isi hanya tampil di tab aktif.\nAudit kit Tailwind (mockup "Tabbar - ikuti kit" disetujui): ikon\ndibungkus `.zammad-chat-tabbar-icon` (wadah latar penanda aktif/hover,\npreseden `nav-link` sidebar layout "tab" kit), 20px -> 22px.\n`aria-current` disinkronkan di switchTab() (chat-no-jquery.coffee). -->\n<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home" aria-current="page">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('house', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Home'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z"/></svg></span>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('chat-circle-dots', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Messages'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <span class="zammad-chat-tabbar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path opacity="0.4" d="M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z"/><path d="M15.5 2V9.85999C15.5 10.3 14.98 10.52 14.66 10.23L12.34 8.09C12.15 7.91 11.85 7.91 11.66 8.09L9.34003 10.23C9.02003 10.53 8.5 10.3 8.5 9.85999V2H15.5Z"/><path d="M17.5 14.75H13.25C12.84 14.75 12.5 14.41 12.5 14C12.5 13.59 12.84 13.25 13.25 13.25H17.5C17.91 13.25 18.25 13.59 18.25 14C18.25 14.41 17.91 14.75 17.5 14.75Z"/><path d="M17.5 18.75H9C8.59 18.75 8.25 18.41 8.25 18C8.25 17.59 8.59 17.25 9 17.25H17.5C17.91 17.25 18.25 17.59 18.25 18C18.25 18.41 17.91 18.75 17.5 18.75Z"/></svg></span>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('book-open-text', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Help'));
     
@@ -2030,7 +2241,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
   slice = [].slice;
 
 (function(window) {
-  var Base, Core, Io, Log, Timeout, ZammadChat, ensureViewportMeta, myScript, scriptHost, scriptProtocol, scripts;
+  var Base, Core, Io, Log, SISKA_ICONS, Timeout, ZammadChat, ensureViewportMeta, myScript, scriptHost, scriptProtocol, scripts, siskaIcon;
   scripts = document.getElementsByTagName('script');
   myScript = scripts[scripts.length - 1];
   scriptProtocol = window.location.protocol.replace(':', '');
@@ -2363,6 +2574,52 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     return Io;
 
   })(Base);
+  SISKA_ICONS = {
+    'arrow-bend-up-left': ["M320 224v384l-192-192z", "M512 384h-160v-160c0-0.007 0-0.016 0-0.025 0-17.673-14.327-32-32-32-8.843 0-16.848 3.587-22.64 9.385l-0 0-192 192c-5.798 5.792-9.385 13.797-9.385 22.64s3.587 16.848 9.385 22.64l0 0 192 192c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32 0-0.009-0-0.018-0-0.027l0 0.001v-160h160c194.313 0.228 351.772 157.687 352 351.978l0 0.022c0 17.673 14.327 32 32 32s32-14.327 32-32v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM288 530.76l-114.76-114.76 114.76-114.76z"],
+    'arrow-circle-down': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM662.64 521.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-128 128c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-128-128c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4v-242.76c0-17.673 14.327-32 32-32s32 14.327 32 32v0 242.76l73.36-73.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0z"],
+    'book-open-text': ["M928 256v512c0 17.673-14.327 32-32 32v0h-256c-70.692 0-128 57.308-128 128v0-576c0-70.692 57.308-128 128-128v0h256c17.673 0 32 14.327 32 32v0z", "M896 192h-256c-52.165 0-98.5 24.964-127.708 63.598l-0.292 0.402c-29.5-39.036-75.835-64-128-64v0h-256c-35.346 0-64 28.654-64 64v0 512c0 35.346 28.654 64 64 64v0h256c53.019 0 96 42.981 96 96v0c0 17.673 14.327 32 32 32s32-14.327 32-32v0c0-53.019 42.981-96 96-96v0h256c35.346 0 64-28.654 64-64v0-512c0-35.346-28.654-64-64-64v0zM384 768h-256v-512h256c53.019 0 96 42.981 96 96v0 448c-26.32-19.976-59.629-32-95.747-32-0.089 0-0.178 0-0.267 0l0.014-0zM896 768h-256c-0.075-0-0.164-0-0.253-0-36.117 0-69.426 12.024-96.142 32.288l0.396-0.288v-448c0-53.019 42.981-96 96-96v0h256zM640 352h160c17.673 0 32 14.327 32 32s-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0zM832 512c0 17.673-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h160c17.673 0 32 14.327 32 32v0zM832 640c0 17.673-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h160c17.673 0 32 14.327 32 32v0z"],
+    'caret-down': ["M832 384l-320 320-320-320z", "M861.56 371.76c-4.934-11.696-16.306-19.757-29.56-19.76l-640-0c-0.007-0-0.016-0-0.025-0-17.673 0-32 14.327-32 32 0 8.843 3.587 16.848 9.385 22.64l0 0 320 320c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 320-320c5.785-5.79 9.363-13.786 9.363-22.618 0-4.425-0.898-8.639-2.522-12.472l0.079 0.21zM512 658.76l-242.76-242.76h485.52z"],
+    'caret-right': ["M704 512l-320 320v-640z", "M726.64 489.36l-320-320c-5.792-5.798-13.797-9.385-22.64-9.385-17.673 0-32 14.327-32 32 0 0.009 0 0.018 0 0.027l-0-0.001v640c-0 0.007-0 0.016-0 0.025 0 17.673 14.327 32 32 32 8.843 0 16.848-3.587 22.64-9.385l0-0 320-320c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0zM416 754.76v-485.52l242.76 242.76z"],
+    'chat-circle-dots': ["M896 512c0 0.014 0 0.031 0 0.048 0 212.077-171.923 384-384 384-70.806 0-137.136-19.164-194.086-52.588l1.806 0.98-149.56 49.88c-3.021 1.042-6.502 1.644-10.124 1.644-17.673 0-32-14.327-32-32 0-3.622 0.602-7.103 1.71-10.349l-0.067 0.225 49.88-149.56c-32.414-55.124-51.56-121.425-51.56-192.197 0-212.077 171.923-384 384-384 212.048 0 383.953 171.875 384 383.912l0 0.005z", "M512 96c-0.027-0-0.059-0-0.091-0-229.75 0-416 186.25-416 416 0 71.565 18.071 138.91 49.9 197.72l-1.089-2.2-45.4 136.2c-2.084 6.042-3.287 13.004-3.287 20.247 0 35.346 28.654 64 64 64 7.243 0 14.205-1.203 20.698-3.421l-0.45 0.134 136.2-45.4c56.567 30.683 123.852 48.72 195.349 48.72 229.75 0 416-186.25 416-416 0-229.69-186.152-415.903-415.82-416l-0.009-0zM512 864c-0.071 0-0.155 0-0.239 0-64.812 0-125.526-17.542-177.654-48.137l1.654 0.897c-4.587-2.706-10.105-4.309-15.997-4.32l-0.003-0c-3.623 0.002-7.103 0.617-10.34 1.747l0.22-0.067-149.64 49.88 49.88-149.6c1.048-3.029 1.653-6.519 1.653-10.151 0-5.895-1.594-11.417-4.374-16.16l0.082 0.151c-29.734-50.544-47.298-111.341-47.298-176.24 0-194.404 157.596-352 352-352s352 157.596 352 352c0 194.384-157.563 351.967-351.939 352l-0.003 0zM560 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM384 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM736 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'check': ["M928 224v576c0 35.346-28.654 64-64 64v0h-704c-35.346 0-64-28.654-64-64v0-576c0-35.346 28.654-64 64-64v0h704c35.346 0 64 28.654 64 64v0z", "M822.64 342.64l-384 384c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-160-160c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l137.36 137.4 361.36-361.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0z"],
+    'check-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M694.64 393.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4 201.36-201.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"],
+    'checks': ["M960 256v512c0 35.346-28.654 64-64 64v0h-768c-35.346 0-64-28.654-64-64v0-512c0-35.346 28.654-64 64-64v0h768c35.346 0 64 28.654 64 64v0z", "M566.64 406.64l-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378h0l73.36 73.4 201.36-201.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM854.64 361.36c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-201.36 201.4-41.36-41.4c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l64 64c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 224-224c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0z"],
+    'clock': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM768 512c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 192h192c17.673 0 32 14.327 32 32v0z"],
+    'download-simple': ["M672 448l-160 160-160-160z", "M896 608v224c0 35.346-28.654 64-64 64v0h-640c-35.346 0-64-28.654-64-64v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 224h640v-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM329.36 470.64c-5.798-5.792-9.385-13.797-9.385-22.64 0-17.673 14.327-32 32-32 0.009 0 0.018 0 0.027 0l127.999-0v-256c0-17.673 14.327-32 32-32s32 14.327 32 32v0 256h128c0.007-0 0.016-0 0.025-0 17.673 0 32 14.327 32 32 0 8.843-3.587 16.848-9.385 22.64l-0 0-160 160c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0zM429.36 480l82.64 82.76 82.76-82.76z"],
+    'heart': ["M928 376c0 264-416 488-416 488s-416-224-416-488c0-119.294 96.706-216 216-216v0c90.36 0 167.76 49.24 200 128 32.24-78.76 109.64-128 200-128 119.294 0 216 96.706 216 216v0z", "M712 128c-82.6 0-154.92 35.52-200 95.56-45.080-60.040-117.4-95.56-200-95.56-136.903 0.159-247.841 111.097-248 247.985l-0 0.015c0 280 415.16 506.64 432.84 516 4.385 2.405 9.607 3.819 15.16 3.819s10.775-1.414 15.327-3.903l-0.167 0.084c17.68-9.36 432.84-236 432.84-516-0.159-136.903-111.097-247.841-247.985-248l-0.015-0zM512 827.2c-73.040-42.56-384-236.44-384-451.2 0.136-101.565 82.435-183.864 183.987-184l0.013-0c77.8 0 143.12 41.44 170.4 108 4.916 11.742 16.312 19.841 29.6 19.841s24.684-8.099 29.521-19.63l0.079-0.211c27.28-66.68 92.6-108 170.4-108 101.565 0.136 183.864 82.435 184 183.987l0 0.013c0 214.44-311.040 408.6-384 451.2z"],
+    'house': ["M864 462.16v369.84c0 17.673-14.327 32-32 32v0h-192c-17.673 0-32-14.327-32-32v0-192c0-17.673-14.327-32-32-32v0h-128c-17.673 0-32 14.327-32 32v0 192c0 17.673-14.327 32-32 32v0h-192c-17.673 0-32-14.327-32-32v0-369.84c0.001-9.373 4.032-17.805 10.455-23.657l0.025-0.023 320-302.16c5.663-5.169 13.232-8.335 21.54-8.335s15.877 3.166 21.565 8.358l-0.025-0.023 320 302.16c6.425 5.873 10.44 14.291 10.44 23.647 0 0.012-0 0.023-0 0.035l0-0.002z", "M875.32 415.080l-320-301.92c-0.158-0.138-0.302-0.282-0.435-0.435l-0.005-0.005c-11.324-10.327-26.453-16.652-43.060-16.652s-31.736 6.325-43.11 16.697l0.050-0.045-0.44 0.44-319.64 301.92c-12.732 11.735-20.68 28.495-20.68 47.11 0 0.003 0 0.007 0 0.010l-0-0.001v369.8c0 35.346 28.654 64 64 64v0h192c35.346 0 64-28.654 64-64v0-192h128v192c0 35.346 28.654 64 64 64v0h192c35.346 0 64-28.654 64-64v0-369.8c0-0.003 0-0.006 0-0.010 0-18.616-7.948-35.375-20.636-47.070l-0.044-0.040zM832 832h-192v-192c0-35.346-28.654-64-64-64v0h-128c-35.346 0-64 28.654-64 64v0 192h-192v-369.8l0.44-0.4 319.56-301.8 320.040 302.12z"],
+    'info': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M576 704c0 17.673-14.327 32-32 32v0c-35.346 0-64-28.654-64-64v0-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0c35.346 0 64 28.654 64 64v0 160c17.673 0 32 14.327 32 32v0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022zM496 384c26.51 0 48-21.49 48-48s-21.49-48-48-48c-26.51 0-48 21.49-48 48v0c0 26.51 21.49 48 48 48v0z"],
+    'lock': ["M864 384v448c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-448c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M832 320h-128v-96c0-106.039-85.961-192-192-192s-192 85.961-192 192v0 96h-128c-35.346 0-64 28.654-64 64v0 448c0 35.346 28.654 64 64 64v0h640c35.346 0 64-28.654 64-64v0-448c0-35.346-28.654-64-64-64v0zM384 224c0-70.692 57.308-128 128-128s128 57.308 128 128v0 96h-256zM832 832h-640v-448h640v448zM560 608c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'magnifying-glass': ["M768 448c0 176.731-143.269 320-320 320s-320-143.269-320-320c0-176.731 143.269-320 320-320v0c176.731 0 320 143.269 320 320v0z", "M918.64 873.36l-200.24-200.24c50.917-60.738 81.843-139.736 81.843-225.957 0-194.868-157.972-352.84-352.84-352.84s-352.84 157.972-352.84 352.84c0 194.868 157.972 352.84 352.84 352.84 86.111 0 165.018-30.847 226.272-82.095l-0.555 0.452 200.24 200.28c5.794 5.794 13.799 9.378 22.64 9.378 17.683 0 32.018-14.335 32.018-32.018 0-8.841-3.584-16.846-9.378-22.64l0 0zM160 448c0-159.058 128.942-288 288-288s288 128.942 288 288c0 159.058-128.942 288-288 288v0c-158.985-0.182-287.818-129.015-288-287.983l-0-0.017z"],
+    'paper-plane-right': ["M879.64 539.44l-671.92 384.56c-4.498 2.561-9.883 4.071-15.62 4.071-17.673 0-32-14.327-32-32 0-3.855 0.682-7.551 1.931-10.974l-0.071 0.222 124-362.84c1.198-3.201 1.891-6.899 1.891-10.76s-0.693-7.559-1.962-10.978l0.071 0.218-124-361.88c-1.178-3.2-1.86-6.896-1.86-10.751 0-17.673 14.327-32 32-32 5.737 0 11.122 1.51 15.779 4.154l-0.158-0.083 672 383.4c9.715 5.616 16.147 15.956 16.147 27.797 0 11.874-6.467 22.238-16.072 27.76l-0.155 0.082z", "M895.48 456l-672-383.56c-9.013-5.147-19.808-8.182-31.311-8.182-35.346 0-64 28.654-64 64 0 7.531 1.301 14.759 3.69 21.47l-0.139-0.447 124 361.88c-0.008 0.060-0.012 0.13-0.012 0.2s0.004 0.14 0.013 0.208l-0.001-0.008c-0.011 0.060-0.017 0.129-0.017 0.2s0.006 0.14 0.018 0.207l-0.001-0.007-124 362.68c-2.325 6.36-3.67 13.703-3.67 21.36 0 35.329 28.625 63.971 63.947 64l0.003 0c11.653-0.031 22.572-3.144 31.993-8.566l-0.313 0.166 671.64-384.2c19.669-11.172 32.722-31.98 32.722-55.836 0-23.776-12.965-44.523-32.21-55.559l-0.312-0.165zM192 896v-0.36l120.56-351.64h231.44c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-231.12l-120.64-351.52-0.24-0.48 672 383.32z"],
+    'paperclip': ["M723 419l93 93-328.24 327.76c-34.631 34.087-82.185 55.134-134.654 55.134-106.039 0-192-85.961-192-192 0-52.47 21.047-100.023 55.159-134.679l-0.025 0.025 397.24-402.76c23.166-23.166 55.17-37.495 90.52-37.495 70.701 0 128.015 57.314 128.015 128.015 0 35.35-14.329 67.354-37.495 90.52v0z", "M838.64 489.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-328.2 328c-40.54 40.535-96.542 65.606-158.4 65.606-123.726 0-224.026-100.3-224.026-224.026 0-61.868 25.079-117.878 65.625-158.42l0-0 397.040-402.88c28.966-28.996 68.998-46.932 113.22-46.932 88.383 0 160.032 71.649 160.032 160.032 0 44.162-17.888 84.146-46.814 113.101l0.001-0.001-397.12 402.88c-17.403 17.403-41.444 28.167-68 28.167-53.111 0-96.167-43.055-96.167-96.167 0-26.556 10.764-50.597 28.167-68l0-0 333.2-338.48c5.853-6.233 14.146-10.115 23.346-10.115 17.673 0 32 14.327 32 32 0 9.021-3.733 17.17-9.738 22.987l-0.008 0.008-333.24 338.84c-5.845 5.8-9.464 13.838-9.464 22.72 0 17.675 14.329 32.004 32.004 32.004 8.793 0 16.758-3.546 22.542-9.286l-0.002 0.002 397.080-402.68c17.427-17.392 28.208-41.437 28.208-68 0-53.057-43.011-96.068-96.068-96.068-26.494 0-50.482 10.725-67.862 28.069l0.002-0.002-396.96 402.72c-29.011 28.967-46.958 69.007-46.958 113.24 0 88.376 71.643 160.018 160.018 160.018 44.143 0 84.111-17.874 113.062-46.78l-0.002 0.002 328.24-328c5.782-5.739 13.747-9.285 22.54-9.285 8.873 0 16.902 3.611 22.698 9.444l0.002 0.002z"],
+    'smiley': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM320 432c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0zM704 432c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM699.68 624c-41.16 71.16-109.56 112-187.68 112s-146.52-40.8-187.68-112c-3.133-4.86-4.995-10.796-4.995-17.167 0-17.673 14.327-32 32-32 12.25 0 22.893 6.884 28.271 16.994l0.084 0.173c29.88 51.64 76.84 80 132.32 80s102.44-28.4 132.32-80c5.462-10.283 16.104-17.167 28.355-17.167 17.673 0 32 14.327 32 32 0 6.371-1.862 12.307-5.071 17.294l0.076-0.127z"],
+    'warning': ["M861.84 864h-699.68c-50.48 0-82.16-52.84-57.64-95.64l349.84-607.48c25.2-44 90.080-44 115.28 0l349.84 607.48c24.52 42.8-7.16 95.64-57.64 95.64z", "M947.2 752.36l-349.8-607.48c-17.525-29.455-49.194-48.883-85.4-48.883s-67.875 19.428-85.149 48.428l-0.251 0.455-349.8 607.48c-8.072 13.588-12.843 29.957-12.843 47.44s4.771 33.852 13.082 47.875l-0.239-0.435c17.146 29.356 48.5 48.765 84.389 48.765 0.356 0 0.711-0.002 1.066-0.006l-0.054 0h699.6c0.277 0.003 0.604 0.004 0.932 0.004 35.888 0 67.242-19.409 84.139-48.304l0.249-0.461c8.097-13.604 12.883-29.998 12.883-47.508 0-17.455-4.756-33.8-13.042-47.808l0.239 0.437zM891.72 815.2c-6.013 10.125-16.892 16.805-29.331 16.805-0.207 0-0.413-0.002-0.619-0.006l0.031 0h-699.6c-0.175 0.003-0.382 0.005-0.589 0.005-12.439 0-23.318-6.68-29.245-16.649l-0.086-0.157c-2.651-4.416-4.219-9.745-4.219-15.44s1.568-11.024 4.296-15.578l-0.077 0.138 349.8-607.48c6.23-10.239 17.329-16.972 30-16.972s23.77 6.734 29.913 16.818l0.087 0.154 349.8 607.48c2.602 4.384 4.14 9.665 4.14 15.305 0 5.75-1.599 11.127-4.376 15.711l0.076-0.135zM480 576v-160c0-17.673 14.327-32 32-32s32 14.327 32 32v0 160c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM560 720c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'x': ["M864 192v640c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-640c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M822.64 777.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-265.36-265.4-265.36 265.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l-0 0 265.4-265.36-265.4-265.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l265.36 265.4 265.36-265.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l-0 0-265.4 265.36z"],
+    'x-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M662.64 406.64l-105.4 105.36 105.4 105.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-105.36-105.4-105.36 105.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l105.4-105.36-105.4-105.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l105.36 105.4 105.36-105.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"]
+  };
+  siskaIcon = function(name, size, opts) {
+    var cls, fill, paths, tone;
+    if (size == null) {
+      size = 16;
+    }
+    if (opts == null) {
+      opts = {};
+    }
+    paths = SISKA_ICONS[name];
+    if (!paths) {
+      return '';
+    }
+    tone = opts.tone || 'single';
+    cls = opts["class"] ? " class=\"" + opts["class"] + "\"" : '';
+    fill = '';
+    if (tone === 'full') {
+      fill = "<path opacity=\"0.2\" d=\"" + paths[0] + "\"/>";
+    } else if (tone === 'active') {
+      fill = "<path class=\"zammad-chat-icon-fill\" d=\"" + paths[0] + "\"/>";
+    }
+    return "<svg" + cls + " width=\"" + size + "\" height=\"" + size + "\" viewBox=\"0 0 1024 1024\" fill=\"currentColor\" aria-hidden=\"true\">" + fill + "<path d=\"" + paths[1] + "\"/></svg>";
+  };
   ZammadChat = (function(superClass) {
     extend(ZammadChat, superClass);
 
@@ -2952,6 +3209,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             options = {};
           }
           options.T = _this.T;
+          options.icon = siskaIcon;
           options.background = _this.options.background;
           options.flat = _this.options.flat;
           options.fontSize = _this.options.fontSize;
@@ -4625,7 +4883,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             data = JSON.parse(xhr.responseText);
             chip = document.createElement('div');
             chip.className = 'zammad-chat-offline-compose-attachment-chip';
-            chip.innerHTML = '<svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg>';
+            chip.innerHTML = siskaIcon('paperclip', 16);
             filenameEl = document.createElement('span');
             filenameEl.textContent = data.filename;
             chip.appendChild(filenameEl);
