@@ -1,0 +1,404 @@
+// Redesign sisi agent (Tahap 0 -- fondasi). Token & komponen dasar gaya
+// kit Able Pro Tailwind (`/usr/local/src/claudeai/able-pro-tailwind-v1.2.0`,
+// `src/assets/scss/themes/tailwind.css` + `partial/*.css`) untuk halaman
+// Customer Chat agent, sesuai mockup canvas "SISKA Agent - Kit Tailwind".
+//
+// SENGAJA TIDAK memuat Tailwind/preflight kit secara global: navigasi &
+// halaman Zammad lain tidak boleh berubah. Semua aturan di sini dibatasi
+// di bawah `.siska-agent` (dipasang di root halaman chat mulai Tahap 1),
+// jadi file ini aman di-deploy sendiri tanpa efek visual apa pun.
+//
+// Nilai token SAMA dengan widget (`public/assets/chat/chat.scss`,
+// `$siska-*`), supaya widget & panel agent satu bahasa visual.
+
+$siska-primary: #4680ff;
+$siska-primary-600: #3f78ff; // primary-600 kit (OKLCH -> hex, sama dgn widget)
+$siska-primary-tint: rgba(70, 128, 255, 0.1);
+$siska-headings: #1d2630;
+$siska-body-color: #131920;
+$siska-text-secondary: rgba(33, 37, 41, 0.75);
+$siska-secondary: #5b6b79;
+$siska-secondary-tint: rgba(91, 107, 121, 0.1);
+$siska-border: #e7eaee;
+$siska-input-border: #bec8d0;
+$siska-body-bg: #f8f9fa;
+$siska-card-bg: #fff;
+$siska-hover-bg: rgba(225, 229, 232, 0.5);
+$siska-hover-bg-soft: rgba(225, 229, 232, 0.3);
+$siska-success: #2aa77e;
+$siska-success-700: #20966b;
+$siska-success-tint: rgba(42, 167, 126, 0.1);
+$siska-warning: #d25900;
+$siska-warning-tint: rgba(210, 89, 0, 0.1);
+$siska-danger: #dd2727;
+$siska-danger-tint: rgba(221, 39, 39, 0.1);
+$siska-radius-sm: 8px;
+$siska-radius: 12px;
+$siska-radius-pill: 20px;
+$siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+
+// Font sama dengan widget. Panel agent = aplikasi internal (same-origin),
+// jadi aman memuat file font lokal widget, tanpa request eksternal.
+@font-face {
+  font-family: 'SISKA Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/assets/chat/fonts/Inter-roman.var.woff2') format('woff2'),
+       url('/assets/chat/fonts/Inter-roman.var.woff') format('woff');
+}
+
+.siska-agent {
+  font-family: 'SISKA Inter', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'salt';
+  font-size: 14px;
+  line-height: 1.5;
+  color: $siska-body-color;
+  background: $siska-body-bg;
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  [contenteditable]:focus-visible {
+    outline: 2px solid $siska-primary;
+    outline-offset: 2px;
+  }
+
+  // Ikon (App.SiskaIcon). Lapisan isi mode 'active' hanya tampil saat
+  // elemen induk berstatus aktif.
+  .siska-icon {
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  .siska-icon-fill {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .is-active > .siska-icon .siska-icon-fill,
+  .is-active .siska-icon-fill {
+    opacity: 0.2;
+  }
+
+  // --- Teks ---
+  .s-h1 { margin: 0; font-size: 20px; font-weight: 600; color: $siska-headings; }
+  .s-h2 { margin: 0; font-size: 16px; font-weight: 600; color: $siska-headings; }
+  .s-h3 { margin: 0; font-size: 14px; font-weight: 600; color: $siska-headings; }
+  .s-muted { color: $siska-text-secondary; }
+  .s-small { font-size: 12px; }
+  .s-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: $siska-secondary;
+  }
+
+  // --- Kartu (partial/card.css) ---
+  .s-card {
+    position: relative;
+    background: $siska-card-bg;
+    border: 1px solid $siska-border;
+    border-radius: $siska-radius;
+  }
+
+  .s-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid $siska-border;
+  }
+
+  .s-card-body {
+    padding: 20px;
+  }
+
+  .s-card-footer {
+    padding: 16px 20px;
+    border-top: 1px solid $siska-border;
+  }
+
+  // --- Tombol (partial/buttons.css) ---
+  .s-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: $siska-radius-pill;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 500;
+    line-height: 1.5;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+
+    &:disabled,
+    &.is-disabled {
+      opacity: 0.65;
+      cursor: default;
+      pointer-events: none;
+    }
+  }
+
+  .s-btn-sm { padding: 4px 12px; font-size: 13px; }
+
+  .s-btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: $siska-radius-sm;
+  }
+
+  .s-btn-icon.s-btn-sm { width: 30px; height: 30px; }
+
+  .s-btn-primary {
+    background: $siska-primary;
+    color: #fff;
+
+    &:hover, &:focus-visible { background: $siska-primary-600; }
+  }
+
+  .s-btn-light-primary {
+    background: $siska-primary-tint;
+    color: $siska-primary;
+
+    &:hover { background: $siska-primary; color: #fff; }
+  }
+
+  .s-btn-light-danger {
+    background: $siska-danger-tint;
+    color: $siska-danger;
+
+    &:hover { background: $siska-danger; color: #fff; }
+  }
+
+  .s-btn-outline {
+    border-color: $siska-border;
+    color: $siska-body-color;
+
+    &:hover { background: $siska-hover-bg; }
+  }
+
+  .s-btn-link {
+    color: $siska-secondary;
+
+    &:hover { background: $siska-hover-bg; color: $siska-body-color; }
+  }
+
+  // --- Lencana (partial/badge.css) ---
+  .s-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.45em 0.8em;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 0.9;
+  }
+
+  .s-badge-primary { background: $siska-primary-tint; color: $siska-primary; }
+  .s-badge-success { background: $siska-success-tint; color: $siska-success-700; }
+  .s-badge-warning { background: $siska-warning-tint; color: $siska-warning; }
+  .s-badge-danger { background: $siska-danger-tint; color: $siska-danger; }
+  .s-badge-secondary { background: $siska-secondary-tint; color: $siska-secondary; }
+
+  // Hitungan belum dibaca (bulat, solid).
+  .s-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: $siska-primary;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  // --- Avatar ---
+  .s-avatar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background: $siska-primary-tint;
+    color: $siska-primary;
+    font-weight: 600;
+    font-size: 14px;
+    overflow: visible;
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .s-avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+  .s-avatar-lg { width: 64px; height: 64px; font-size: 20px; }
+  .s-avatar-muted { background: $siska-secondary-tint; color: $siska-secondary; }
+
+  // Titik status di pojok avatar.
+  .s-avatar-dot {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 10px;
+    height: 10px;
+    border: 2px solid $siska-card-bg;
+    border-radius: 100%;
+    background: $siska-success;
+  }
+
+  // --- Form (partial/forms.css) ---
+  .s-form-control {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 0.75rem;
+    border: 1px solid $siska-input-border;
+    border-radius: $siska-radius-sm;
+    background: #fff;
+    color: $siska-body-color;
+    font: inherit;
+
+    &::placeholder { color: $siska-input-border; }
+    &:focus { outline: none; border-color: $siska-primary; }
+  }
+
+  .s-form-control-sm { padding: 0.5rem 0.7rem; font-size: 13px; }
+
+  .s-input-icon {
+    position: relative;
+
+    > .siska-icon {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: $siska-secondary;
+      pointer-events: none;
+    }
+
+    > .s-form-control { padding-left: 36px; }
+  }
+
+  // Switch (form-switch kit): checkbox asli supaya tetap aksesibel.
+  .s-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+
+    input {
+      position: relative;
+      width: 2em;
+      height: 1.1em;
+      margin: 0;
+      appearance: none;
+      border: 1px solid $siska-input-border;
+      border-radius: 2em;
+      background: #fff;
+      cursor: pointer;
+      transition: background-color 0.15s, border-color 0.15s;
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 2px;
+        width: 0.75em;
+        height: 0.75em;
+        border-radius: 100%;
+        background: $siska-input-border;
+        transform: translateY(-50%);
+        transition: left 0.15s, background-color 0.15s;
+      }
+
+      &:checked {
+        border-color: $siska-primary;
+        background: $siska-primary;
+
+        &::after { left: calc(100% - 0.75em - 2px); background: #fff; }
+      }
+
+      &:disabled { opacity: 0.5; cursor: default; }
+    }
+  }
+
+  // --- Item daftar ---
+  .s-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: $siska-radius-sm;
+    cursor: pointer;
+
+    &:hover { background: $siska-hover-bg-soft; }
+    &.is-selected { background: $siska-primary-tint; }
+  }
+
+  .s-divider {
+    height: 1px;
+    margin: 0;
+    border: 0;
+    background: $siska-border;
+  }
+
+  // --- Menu tarik-turun (partial/dropdown.css) ---
+  .s-menu {
+    min-width: 160px;
+    padding: 6px;
+    border: 1px solid $siska-border;
+    border-radius: $siska-radius-sm;
+    background: #fff;
+    box-shadow: $siska-shadow-pop;
+  }
+
+  .s-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: $siska-body-color;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover { background: $siska-hover-bg; }
+  }
+
+  // --- Banner / alert (partial/alerts.css) ---
+  .s-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: $siska-radius-sm;
+    font-size: 13px;
+  }
+
+  .s-alert-warning { background: $siska-warning-tint; color: $siska-warning; }
+  .s-alert-primary { background: $siska-primary-tint; color: $siska-primary; }
+}

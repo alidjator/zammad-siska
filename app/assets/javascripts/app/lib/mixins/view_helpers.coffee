@@ -201,6 +201,11 @@ App.ViewHelpers =
   fontIcon: (name, font, className = '') ->
     App.Utils.fontIcon(name, font, className)
 
+  # Redesign sisi agent (Tahap 0) -- ikon Phosphor Duotone panel chat
+  # agent, lihat app_post/siska_icons.coffee.
+  SiskaIcon: (name, size = 16, opts = {}) ->
+    App.SiskaIcon.render(name, size, opts)
+
   # define richtext helper
   RichText: (string) ->
     return string if !string

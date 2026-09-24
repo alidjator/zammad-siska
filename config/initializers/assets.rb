@@ -21,5 +21,6 @@ if defined?(Dartsass)
     'aux_status.scss'     => 'aux_status.css',
     'chat_enhancements.scss' => 'chat_enhancements.css',
     'my_chat.scss'           => 'my_chat.css',
+    'siska_agent_chat.scss'  => 'siska_agent_chat.css',
   }
 end
