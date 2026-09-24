@@ -7,7 +7,7 @@
 
   <form class="zammad-chat-prechat-form">
     <% if @error: %>
-      <div class="zammad-chat-prechat-error"><%- @error %></div>
+      <div class="zammad-chat-prechat-error"><%= @error %></div>
     <% end %>
     <!-- Notice BUKAN error (kabar baik, mis. "agent sekarang
     tersedia"), TERPISAH dari `.zammad-chat-prechat-error` (tetap
@@ -20,7 +20,7 @@
     <% if @notice: %>
       <div class="zammad-chat-prechat-notice">
         <%- @icon('check-circle', 16, tone: 'full') %>
-        <span><%- @notice %></span>
+        <span><%= @notice %></span>
       </div>
     <% end %>
     <!-- Atas permintaan user ("saya mau menambahkan kategori ini pada
@@ -41,16 +41,16 @@
         <span class="zammad-chat-prechat-category-value js-prechat-category-value<%= ' is-placeholder' if !@category %>"><%- @T(@phrases['chat_phrase_prechat_category_placeholder'] || 'Select a category') %></span>
         <%- @icon('caret-down', 16, class: 'zammad-chat-prechat-category-chevron') %>
       </button>
-      <input type="hidden" class="js-prechat-category-input" value="<%- @category || '' %>">
+      <input type="hidden" class="js-prechat-category-input" value="<%= @category || '' %>">
       <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>
     </div>
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_name_label'] || 'Your name') %></label>
-      <input type="text" class="zammad-chat-prechat-name<%= ' zammad-chat-field-invalid' if @error and !@name %>" value="<%- @name || '' %>" required>
+      <input type="text" class="zammad-chat-prechat-name<%= ' zammad-chat-field-invalid' if @error and !@name %>" value="<%= @name || '' %>" required>
     </div>
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_email_label'] || 'Your email') %></label>
-      <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%- @email || '' %>" required>
+      <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%= @email || '' %>" required>
     </div>
     <!-- Atas permintaan user ("hilangkan icon pada button Start
     Chat"): ikon paper-plane dihapus, teks polos saja. -->

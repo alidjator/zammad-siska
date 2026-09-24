@@ -1366,7 +1366,12 @@ do(window) ->
 
       emptyMessage?.classList.add('zammad-chat-is-hidden')
       for item in (data.result || [])
-        results.insertAdjacentHTML('beforeend', @view('kb_result')(item))
+        results.insertAdjacentHTML('beforeend', @view('kb_result')(
+          id: item.id
+          url: item.url
+          title: @sanitizeHighlight(item.title)
+          body: @sanitizeHighlight(item.body)
+        ))
 
       @fillKbResults()
 
@@ -1391,6 +1396,18 @@ do(window) ->
     # krn event `scroll` TIDAK bubbling) supaya TETAP jalan walau
     # elemen `.zammad-chat-kb-results` sendiri dibongkar-pasang ulang
     # lewat `updatePhrases()`.
+    # Audit output tak ter-escape: judul & ringkasan hasil KB berasal dari
+    # highlight Elasticsearch (tag <em> penanda kata kunci) yg TIDAK
+    # meng-escape isi artikel asli -- dicetak `<%-` di kb_result.eco.
+    # Disaring DOMPurify (sudah dibundel): HANYA <em> tanpa atribut yg
+    # lolos, sisanya jadi teks/dibuang.
+    escapeHtml: (value) ->
+      String(value ? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
+    sanitizeHighlight: (value) ->
+      return '' if !value
+      window.DOMPurify.sanitize(String(value), { ALLOWED_TAGS: ['em'], ALLOWED_ATTR: [] })
+
     onKbResultsScroll: (event) =>
       return if !event.target.classList?.contains('zammad-chat-kb-results')
       el = event.target
@@ -3146,8 +3163,10 @@ do(window) ->
       @log.notice 'onQueue', data.position
       @inQueue = true
 
+      # Audit output tak ter-escape: disisipkan ke frase ber-HTML (`<%-`),
+      # dipaksa angka.
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('waiting')
-        position: data.position
+        position: parseInt(data.position, 10) || null
 
     onAgentTypingStart: =>
       if @stopTypingId
@@ -3502,9 +3521,12 @@ do(window) ->
         time: @formatTime()
 
     showCustomerTimeout: ->
+      # Audit output tak ter-escape: frase timeout sengaja ber-HTML
+      # (`<strong>%s</strong>`, dicetak `<%-`), jadi NILAI sisipannya yg
+      # di-escape -- nama tampilan agent bisa berisi HTML.
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('customer_timeout')
-        agent: @agent.name
-        delay: @options.inactiveTimeout
+        agent: @escapeHtml(@agent.name)
+        delay: parseInt(@options.inactiveTimeout, 10) || @options.inactiveTimeout
       @el.querySelector('.js-restart').addEventListener 'click', -> location.reload()
       @sessionClose()
 

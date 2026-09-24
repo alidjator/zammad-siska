@@ -405,13 +405,13 @@ window.zammadChatTemplates["connection_overlay"] = function(__obj) {
     
       __out.push('\n\n<div class="zammad-chat-connection-overlay-title">');
     
-      __out.push(this.title);
+      __out.push(__sanitize(this.title));
     
       __out.push('</div>\n');
     
       if (this.subtitle) {
         __out.push('\n  <div class="zammad-chat-connection-overlay-subtitle">');
-        __out.push(this.subtitle);
+        __out.push(__sanitize(this.subtitle));
         __out.push('</div>\n');
       }
     
@@ -2058,11 +2058,11 @@ window.zammadChatTemplates["prechat_category_option"] = function(__obj) {
     
       __out.push('" data-value="');
     
-      __out.push(this.value);
+      __out.push(__sanitize(this.value));
     
       __out.push('">\n  <span>');
     
-      __out.push(this.label);
+      __out.push(__sanitize(this.label));
     
       __out.push('</span>\n  ');
     
@@ -2139,7 +2139,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       if (this.error) {
         __out.push('\n      <div class="zammad-chat-prechat-error">');
-        __out.push(this.error);
+        __out.push(__sanitize(this.error));
         __out.push('</div>\n    ');
       }
     
@@ -2151,7 +2151,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
           tone: 'full'
         }));
         __out.push('\n        <span>');
-        __out.push(this.notice);
+        __out.push(__sanitize(this.notice));
         __out.push('</span>\n      </div>\n    ');
       }
     
@@ -2183,7 +2183,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
     
-      __out.push(this.category || '');
+      __out.push(__sanitize(this.category || ''));
     
       __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
@@ -2197,7 +2197,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('" value="');
     
-      __out.push(this.name || '');
+      __out.push(__sanitize(this.name || ''));
     
       __out.push('" required>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
@@ -2211,7 +2211,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('" value="');
     
-      __out.push(this.email || '');
+      __out.push(__sanitize(this.email || ''));
     
       __out.push('" required>\n    </div>\n    <!-- Atas permintaan user ("hilangkan icon pada button Start\n    Chat"): ikon paper-plane dihapus, teks polos saja. -->\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <span>');
     
@@ -2392,7 +2392,7 @@ window.zammadChatTemplates["status"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-status">\n  <div class="zammad-chat-status-inner">\n    ');
     
-      __out.push(this.status);
+      __out.push(__sanitize(this.status));
     
       __out.push('\n  </div>\n</div>');
     
@@ -4465,7 +4465,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       ref2 = data.result || [];
       for (j = 0, len = ref2.length; j < len; j++) {
         item = ref2[j];
-        results.insertAdjacentHTML('beforeend', this.view('kb_result')(item));
+        results.insertAdjacentHTML('beforeend', this.view('kb_result')({
+          id: item.id,
+          url: item.url,
+          title: this.sanitizeHighlight(item.title),
+          body: this.sanitizeHighlight(item.body)
+        }));
       }
       return this.fillKbResults();
     };
@@ -4484,6 +4489,20 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           return _this.loadKnowledgeBase(false);
         };
       })(this));
+    };
+
+    ZammadChat.prototype.escapeHtml = function(value) {
+      return String(value != null ? value : '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+
+    ZammadChat.prototype.sanitizeHighlight = function(value) {
+      if (!value) {
+        return '';
+      }
+      return window.DOMPurify.sanitize(String(value), {
+        ALLOWED_TAGS: ['em'],
+        ALLOWED_ATTR: []
+      });
     };
 
     ZammadChat.prototype.onKbResultsScroll = function(event) {
@@ -6374,7 +6393,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.log.notice('onQueue', data.position);
       this.inQueue = true;
       return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('waiting')({
-        position: data.position
+        position: parseInt(data.position, 10) || null
       });
     };
 
@@ -6774,8 +6793,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.showCustomerTimeout = function() {
       this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('customer_timeout')({
-        agent: this.agent.name,
-        delay: this.options.inactiveTimeout
+        agent: this.escapeHtml(this.agent.name),
+        delay: parseInt(this.options.inactiveTimeout, 10) || this.options.inactiveTimeout
       });
       this.el.querySelector('.js-restart').addEventListener('click', function() {
         return location.reload();

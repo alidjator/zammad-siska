@@ -4,7 +4,7 @@ sini SELALU dirender tanpa syarat, lalu tampil/sembunyi MURNI lewat
 CSS class is-selected (chat.scss) -- klik opsi lain (chat-no-jquery.coffee)
 cukup tukar class ke row yang tepat, TIDAK PERNAH perlu menyisipkan
 atau menghapus markup SVG lagi. -->
-<div class="zammad-chat-prechat-category-option js-prechat-category-option<%= ' is-selected' if @selected %>" data-value="<%- @value %>">
-  <span><%- @label %></span>
+<div class="zammad-chat-prechat-category-option js-prechat-category-option<%= ' is-selected' if @selected %>" data-value="<%= @value %>">
+  <span><%= @label %></span>
   <%- @icon('check', 16, class: 'zammad-chat-prechat-category-check') %>
 </div>

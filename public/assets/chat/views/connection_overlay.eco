@@ -14,9 +14,9 @@
   </div>
 <% end %>
 
-<div class="zammad-chat-connection-overlay-title"><%- @title %></div>
+<div class="zammad-chat-connection-overlay-title"><%= @title %></div>
 <% if @subtitle: %>
-  <div class="zammad-chat-connection-overlay-subtitle"><%- @subtitle %></div>
+  <div class="zammad-chat-connection-overlay-subtitle"><%= @subtitle %></div>
 <% end %>
 <% if @state is 'lost': %>
   <button type="button" class="zammad-chat-connection-overlay-reload js-connection-reload"><%- @T('Reload page') %></button>
