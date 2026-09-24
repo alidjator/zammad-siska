@@ -1,8 +1,11 @@
+<!-- Audit ulang kit (#12, aksesibilitas): nama agent SUDAH tertulis di
+sebelah avatar, jadi avatar dekoratif -- `alt=""` (bukan nama, supaya
+pembaca layar tidak membacakan nama dua kali) & inisial `aria-hidden`. -->
 <div class="zammad-chat-agent-avatar-wrap">
   <% if @agent.avatar: %>
-    <img class="zammad-chat-agent-avatar" src="<%= @agent.avatar %>">
+    <img class="zammad-chat-agent-avatar" src="<%= @agent.avatar %>" alt="">
   <% else: %>
-    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials"><%= @initials %></span>
+    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials" aria-hidden="true"><%= @initials %></span>
   <% end %>
   <span class="zammad-chat-agent-status js-chat-status" data-status="online"></span>
 </div>

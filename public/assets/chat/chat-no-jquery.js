@@ -40,14 +40,14 @@ window.zammadChatTemplates["agent"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-agent-avatar-wrap">\n  ');
+      __out.push('<!-- Audit ulang kit (#12, aksesibilitas): nama agent SUDAH tertulis di\nsebelah avatar, jadi avatar dekoratif -- `alt=""` (bukan nama, supaya\npembaca layar tidak membacakan nama dua kali) & inisial `aria-hidden`. -->\n<div class="zammad-chat-agent-avatar-wrap">\n  ');
     
       if (this.agent.avatar) {
         __out.push('\n    <img class="zammad-chat-agent-avatar" src="');
         __out.push(__sanitize(this.agent.avatar));
-        __out.push('">\n  ');
+        __out.push('" alt="">\n  ');
       } else {
-        __out.push('\n    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials">');
+        __out.push('\n    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials" aria-hidden="true">');
         __out.push(__sanitize(this.initials));
         __out.push('</span>\n  ');
       }
