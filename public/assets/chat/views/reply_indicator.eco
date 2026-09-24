@@ -1,2 +1,5 @@
 <span class="zammad-chat-reply-indicator-text"><%- @T(@phrases['chat_phrase_messages_reply_prefix'] || 'Replying to:') %> <%= @snippet %></span>
-<span class="zammad-chat-reply-indicator-cancel js-reply-cancel">&times;</span>
+<!-- Audit ulang kit Tailwind: karakter teks `&times;` di <span> diganti
+<button> + ikon Tabler `ti ti-x` (glyph asli kit, pola btn-link-secondary)
+supaya bisa difokus & dipakai lewat keyboard. -->
+<button type="button" class="zammad-chat-reply-indicator-cancel js-reply-cancel" aria-label="<%- @T('Cancel reply') %>"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 692C235.564 692 213.687 669.564 219 643C220 639 221 634 223 631C226 626 239 611 338 512L450 400L338 288C239 189 226 174 223 169C217.037 160.0560000000001 216.766 140.352 223 131C230.87 119.1950000000001 245.002 104.6 267 109C271 110 276 112 279 113C284 115 300 131 397 228L510 340L622 228C721 129 736 116 741 113C755.69 103.207 780.28 111.28 789 120C798.387 129.387 808.02 152.47 797 169C794 174 781 189 682 288L570 400L682 512C781 611 794 626 797 631C810.366 651.05 794.566 681.812 779 687C768.606 690.465 751.99 694.326 741 687C736 684 721 671 622 572L510 460L397 572C300 669 284 685 279 687C273.193 688.936 266.477 692 259 692z"/></g></svg></button>

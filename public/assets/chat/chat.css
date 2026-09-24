@@ -755,19 +755,19 @@
 }
 .zammad-chat-emoji-toggle svg,
 .zammad-chat-attach:not(.zammad-chat-is-hidden) svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 .zammad-chat-emoji-toggle:hover,
 .zammad-chat-attach:not(.zammad-chat-is-hidden):hover {
-  background: #f8f9fa;
+  background: rgba(225, 229, 232, 0.5);
 }
 
 .zammad-chat-emoji-toggle {
   color: #5b6b79;
 }
 .zammad-chat-emoji-toggle.is-active {
-  background: #f8f9fa;
+  background: rgba(225, 229, 232, 0.5);
   color: #4680ff;
 }
 
@@ -805,11 +805,11 @@
   font-family: inherit;
 }
 .zammad-chat-send svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 .zammad-chat-send:hover {
-  background: rgba(70, 128, 255, 0.12);
+  background: #c6d7fd;
 }
 
 .zammad-chat-input:disabled {
@@ -822,13 +822,14 @@
   bottom: 100%;
   left: 8px;
   margin-bottom: 8px;
-  width: 220px;
+  width: 216px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
   background: white;
-  border: 1px solid #e8ebee;
   border-radius: 8px;
-  -webkit-box-shadow: 0 10px 28px rgba(19, 25, 32, 0.16);
-  box-shadow: 0 10px 28px rgba(19, 25, 32, 0.16);
-  padding: 10px;
+  -webkit-box-shadow: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+  box-shadow: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+  padding: 8px;
   z-index: 5;
 }
 
@@ -842,12 +843,20 @@
 .zammad-chat-emoji-picker-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 2px;
+  gap: 0;
 }
 
 .js-emoji-item {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-family: inherit;
+  line-height: 1;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -862,7 +871,7 @@
   cursor: pointer;
 }
 .js-emoji-item:hover {
-  background: #f8f9fa;
+  background: rgba(225, 229, 232, 0.5);
 }
 
 /*
@@ -1050,7 +1059,7 @@
   -ms-flex-align: center;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 4px 8px 4px 12px;
   font-size: 12px;
   color: rgba(33, 37, 41, 0.75);
   background: #f8f9fa;
@@ -1077,10 +1086,35 @@
 }
 
 .zammad-chat-reply-indicator-cancel {
-  cursor: pointer;
-  padding: 0 5px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
   -ms-flex-negative: 0;
   flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #5b6b79;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+.zammad-chat-reply-indicator-cancel svg {
+  width: 14px;
+  height: 14px;
+}
+.zammad-chat-reply-indicator-cancel:hover {
+  background: rgba(225, 229, 232, 0.5);
 }
 
 .zammad-chat-prechat {
@@ -2929,7 +2963,11 @@
 .zammad-chat-offline-otp-resend-btn:focus-visible,
 .zammad-chat-offline-otp-change-email:focus-visible,
 .zammad-chat-offline-compose-attach:focus-visible,
-.zammad-chat-feedback-star:focus-visible {
+.zammad-chat-feedback-star:focus-visible,
+.zammad-chat-emoji-toggle:focus-visible,
+.zammad-chat-attach:focus-visible,
+.zammad-chat-reply-indicator-cancel:focus-visible,
+.js-emoji-item:focus-visible {
   outline: 2px solid #4680ff;
   outline-offset: 2px;
 }

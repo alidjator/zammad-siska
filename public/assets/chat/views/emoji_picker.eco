@@ -1,21 +1,24 @@
+<!-- Audit ulang kit Tailwind: tiap emoji <button type="button"> (bukan <span>)
+supaya bisa dipilih lewat Tab + Enter; `type="button"` WAJIB karena picker
+berada di dalam <form class="zammad-chat-controls"> (default submit). -->
 <div class="zammad-chat-emoji-picker-title"><%- @T('Emoji') %></div>
-<div class="zammad-chat-emoji-picker-grid">
-  <span class="js-emoji-item" data-emoji="😀">😀</span>
-  <span class="js-emoji-item" data-emoji="😂">😂</span>
-  <span class="js-emoji-item" data-emoji="😍">😍</span>
-  <span class="js-emoji-item" data-emoji="😊">😊</span>
-  <span class="js-emoji-item" data-emoji="🙏">🙏</span>
-  <span class="js-emoji-item" data-emoji="👍">👍</span>
-  <span class="js-emoji-item" data-emoji="👋">👋</span>
-  <span class="js-emoji-item" data-emoji="❤️">❤️</span>
-  <span class="js-emoji-item" data-emoji="😢">😢</span>
-  <span class="js-emoji-item" data-emoji="😮">😮</span>
-  <span class="js-emoji-item" data-emoji="🎉">🎉</span>
-  <span class="js-emoji-item" data-emoji="🔥">🔥</span>
-  <span class="js-emoji-item" data-emoji="✅">✅</span>
-  <span class="js-emoji-item" data-emoji="💡">💡</span>
-  <span class="js-emoji-item" data-emoji="🤔">🤔</span>
-  <span class="js-emoji-item" data-emoji="👌">👌</span>
-  <span class="js-emoji-item" data-emoji="🙌">🙌</span>
-  <span class="js-emoji-item" data-emoji="😎">😎</span>
+<div class="zammad-chat-emoji-picker-grid" role="group" aria-label="<%- @T('Emoji') %>">
+  <button type="button" class="js-emoji-item" data-emoji="😀" aria-label="Grinning">😀</button>
+  <button type="button" class="js-emoji-item" data-emoji="😂" aria-label="Joy">😂</button>
+  <button type="button" class="js-emoji-item" data-emoji="😍" aria-label="Heart eyes">😍</button>
+  <button type="button" class="js-emoji-item" data-emoji="😊" aria-label="Smile">😊</button>
+  <button type="button" class="js-emoji-item" data-emoji="🙏" aria-label="Thanks">🙏</button>
+  <button type="button" class="js-emoji-item" data-emoji="👍" aria-label="Thumbs up">👍</button>
+  <button type="button" class="js-emoji-item" data-emoji="👋" aria-label="Wave">👋</button>
+  <button type="button" class="js-emoji-item" data-emoji="❤️" aria-label="Heart">❤️</button>
+  <button type="button" class="js-emoji-item" data-emoji="😢" aria-label="Sad">😢</button>
+  <button type="button" class="js-emoji-item" data-emoji="😮" aria-label="Surprised">😮</button>
+  <button type="button" class="js-emoji-item" data-emoji="🎉" aria-label="Party">🎉</button>
+  <button type="button" class="js-emoji-item" data-emoji="🔥" aria-label="Fire">🔥</button>
+  <button type="button" class="js-emoji-item" data-emoji="✅" aria-label="Check">✅</button>
+  <button type="button" class="js-emoji-item" data-emoji="💡" aria-label="Idea">💡</button>
+  <button type="button" class="js-emoji-item" data-emoji="🤔" aria-label="Thinking">🤔</button>
+  <button type="button" class="js-emoji-item" data-emoji="👌" aria-label="OK">👌</button>
+  <button type="button" class="js-emoji-item" data-emoji="🙌" aria-label="Raised hands">🙌</button>
+  <button type="button" class="js-emoji-item" data-emoji="😎" aria-label="Cool">😎</button>
 </div>

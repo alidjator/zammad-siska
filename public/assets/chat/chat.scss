@@ -1080,13 +1080,16 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   box-shadow: none;
   font-family: inherit;
 
+  // Audit ulang kit (mockup "Messages detail - ikuti kit"): pola
+  // `btn-link-secondary` toolbar composer `application/chat.html` --
+  // kini `<button>`, ikon `text-lg` (18px), hover `secondary-100/50`.
   svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   &:hover {
-    background: $siska-container-bg;
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
   }
 }
 
@@ -1103,7 +1106,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // Disamakan ke mockup -- tombol emoji tampil "aktif" (latar tint)
   // selama panelnya terbuka, bukan cuma saat hover.
   &.is-active {
-    background: $siska-container-bg;
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
     color: $siska-primary;
   }
 }
@@ -1150,13 +1153,15 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   // Audit migrasi ikon Tabler (2026-09-23): ikon send lama stroke-based
   // butuh fill:none/stroke di sini -- glyph Tabler baru (siluet padat,
   // fill inline) rusak kalau dipaksa fill:none, jadi dihapus.
+  // Audit ulang kit: `btn-link-primary` kit -- ikon 18px (sejajar
+  // Emoji/Attach), hover `primary-100`.
   svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   &:hover {
-    background: $siska-primary-tint-strong;
+    background: #c6d7fd; // primary-100
   }
 }
 
@@ -1177,12 +1182,14 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   bottom: 100%;
   left: 8px;
   margin-bottom: 8px;
-  width: 220px;
+  // Audit ulang kit: `.dropdown-menu` kit -- tanpa border, `rounded-lg`,
+  // bayangan kit, `p-2`. Lebar 216 = 6 x 32px + padding.
+  width: 216px;
+  box-sizing: border-box;
   background: white;
-  border: 1px solid $siska-border;
   border-radius: $siska-radius-sm;
-  box-shadow: 0 10px 28px rgba(19, 25, 32, 0.16);
-  padding: 10px;
+  box-shadow: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+  padding: 8px;
   z-index: 5;
 }
 
@@ -1196,12 +1203,19 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-emoji-picker-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 2px;
+  gap: 0;
 }
 
 .js-emoji-item {
-  width: 30px;
-  height: 30px;
+  // Audit ulang kit: kini `<button>` -- reset gaya bawaan browser.
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1210,7 +1224,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   cursor: pointer;
 
   &:hover {
-    background: $siska-container-bg;
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
   }
 }
 
@@ -1441,7 +1455,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 4px 8px 4px 12px; // tombol batal 24px kini punya ruang sendiri
   font-size: 12px;
   color: $siska-text-secondary;
   background: $siska-container-bg;
@@ -1465,9 +1479,29 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 }
 
 .zammad-chat-reply-indicator-cancel {
-  cursor: pointer;
-  padding: 0 5px;
+  // Audit ulang kit: `<button>` ikon `ti ti-x`, pola `btn-link-secondary`.
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: $siska-text-muted;
+  appearance: none;
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
+  }
 }
 
 // Revisi desain (gaya Able Pro) -- form pra-chat (nama+email) direstyle
@@ -3445,7 +3479,11 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-offline-otp-resend-btn,
 .zammad-chat-offline-otp-change-email,
 .zammad-chat-offline-compose-attach,
-.zammad-chat-feedback-star {
+.zammad-chat-feedback-star,
+.zammad-chat-emoji-toggle,
+.zammad-chat-attach,
+.zammad-chat-reply-indicator-cancel,
+.js-emoji-item {
   &:focus-visible {
     outline: 2px solid $siska-primary;
     outline-offset: 2px;

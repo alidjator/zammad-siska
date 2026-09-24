@@ -1130,13 +1130,17 @@ do(window) ->
     toggleEmojiPicker: (event) =>
       event?.preventDefault()
       @el.querySelector('.js-emoji-picker').classList.toggle('zammad-chat-is-hidden')
-      @el.querySelector('.js-emoji-toggle').classList.toggle('is-active')
+      isOpen = @el.querySelector('.js-emoji-toggle').classList.toggle('is-active')
+      # Audit ulang kit: toggle kini `<button>` -- status buka/tutup
+      # picker diumumkan ke pembaca layar.
+      @el.querySelector('.js-emoji-toggle').setAttribute('aria-expanded', String(isOpen))
 
     insertEmoji: (emoji) =>
       @input.focus()
       document.execCommand('insertText', false, emoji)
       @el.querySelector('.js-emoji-picker').classList.add('zammad-chat-is-hidden')
       @el.querySelector('.js-emoji-toggle').classList.remove('is-active')
+      @el.querySelector('.js-emoji-toggle').setAttribute('aria-expanded', 'false')
       @onInput()
 
     # Fase 7 -- Tab Help, pencarian KB. Section 4.5. Debounce dengan
