@@ -738,6 +738,660 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   justify-content: flex-end;
 }
 
+// Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
+// reply berada diluar bubble") -- baris yang membungkus bubble + ikon
+// reply berdampingan (BUKAN lagi ikon absolut menumpuk di pojok dalam
+// bubble).
+// `min-width: 0` -- bug ditemukan lewat pengukuran LANGSUNG (bukan
+// cuma dibaca kodenya): row ini flex-item dari `.zammad-chat-message-
+// content` (kolom, `align-items` non-stretch) -- tanpa `min-width: 0`,
+// ukuran-minimum row TETAP dipatok ke min-content anaknya. Utk bubble
+// TEKS biasa ini tidak kentara (min-content teks SUDAH kecil berkat
+// `overflow-wrap: break-word` di `.zammad-chat-message-body`), TAPI
+// utk lampiran (`.zammad-chat-attachment-filename`, sengaja
+// `white-space: nowrap` demi `text-overflow: ellipsis`) min-content-
+// nya SAMA DENGAN lebar penuh nama file -- row (dan seluruh baris
+// pesan) jadi ikut melebar tanpa batas, ellipsis di lapisan dalam
+// tidak pernah sempat berlaku krn ukuran box-nya sendiri sudah kadung
+// selebar itu.
+.zammad-chat-message-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// Atas permintaan user (screenshot beranotasi tangan, panah menunjuk
+// pojok kanan-bawah bubble): jam+centang SEKARANG di DALAM
+// `.zammad-chat-message-body` (child TERAKHIR, lihat `message.eco`/
+// `attachment_message.eco`), BUKAN lagi baris terpisah DI LUAR/DI
+// BAWAH bubble -- `display:flex;justify-content:flex-end` membuatnya
+// jadi baris block SENDIRI (blok flex SELALU baris baru) rata-kanan
+// di pojok bubble, gaya WhatsApp/Telegram. SELALU rata-kanan apa pun
+// pengirimnya (dulu beda margin kiri/kanan tergantung sisi -- sudah
+// tidak relevan, sekarang SELALU di kanan-bawah bubble yg sama).
+.zammad-chat-message-time {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  font-size: 12px;
+  color: $siska-text-secondary;
+  margin-top: 3px;
+}
+
+// Atas permintaan user (mockup `Messages.dc.html`): penanda
+// "terkirim"/"sudah dibaca" ala WhatsApp -- HANYA pesan customer yang
+// dapat penanda ini (agent tidak melihat status baca miliknya sendiri
+// di widget ini, di luar scope permintaan). `--sent` (1 centang) =
+// default begitu pesan dirender (optimis, TIDAK menunggu balasan
+// server -- lihat `sendMessage()`); `--read` (2 centang) = setelah
+// event `chat_session_message_read` diterima dari agent.
+// SEBELUMNYA sempat py override opasitas-putih KHUSUS bubble customer
+// (perlu krn latar dulu solid biru) -- DIHAPUS (atas permintaan user:
+// bubble customer diganti latar pucat gaya alert info) -- lalu
+// DIPASANG LAGI di bawah (audit kepatuhan kit Tailwind baru: bubble
+// customer kembali solid biru, lihat rule di bawah) krn skema abu2/
+// primer DEFAULT di sini jadi nyaris tak terlihat di latar solid biru.
+.zammad-chat-message-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  svg {
+    fill: currentColor;
+    stroke: none;
+  }
+}
+
+.zammad-chat-message-status--sent {
+  color: $siska-text-muted;
+}
+
+.zammad-chat-message-status--read {
+  color: $siska-primary;
+}
+
+// Bubble visitor lembut (mockup "Reply bubble - usulan opsi A"): latar
+// kini tint `bg-primary-500/10`, jadi jam & centang kembali ke skema
+// default di atas (muted / sent abu / read primary). Override putih
+// LAMA utk bubble biru solid DIHAPUS -- kecuali bubble yg diwarnai opsi
+// widget `background` bawaan Zammad (inline style, tetap solid): teks,
+// jam & centang di situ tetap putih supaya terbaca.
+.zammad-chat-message--customer .zammad-chat-message-body[style*='background'] {
+  color: #ffffff;
+
+  .zammad-chat-message-time {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .zammad-chat-message-status--sent {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .zammad-chat-message-status--read {
+    color: #ffffff;
+  }
+
+  .zammad-chat-message-quote {
+    border-left-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+// Audit kepatuhan kit Tailwind baru: preseden nyata `application/
+// chat.html` bubble pakai `rounded` polos Tailwind = 4px, BUKAN
+// `$siska-radius-sm` (8px) -- di-hardcode LOKAL di sini (BUKAN ubah
+// token globalnya) krn token itu dipakai di 25+ tempat lain (emoji
+// picker, ikon lampiran, dropdown Category, dll) yg TIDAK diaudit
+// terhadap kit & TIDAK boleh ikut berubah diam-diam.
+.zammad-chat-message-body {
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  border-radius: 4px;
+  min-width: 0;
+}
+
+// Preseden NYATA `ChatDetail.vue`: `<v-sheet class="bg-surface
+// rounded-md pa-3 ...">` (bubble lawan bicara) & `<v-sheet
+// class="bg-primary rounded-md pa-3 ...">` (bubble sendiri) --
+// `pa-3` = padding 12px (skala spacing Vuetify, 1 unit = 4px), TANPA
+// border sama sekali (kontras berasal dari latar `bg-containerBg` di
+// atas, bukan garis tepi).
+.zammad-chat-status-inner,
+.zammad-chat-message-body {
+  padding: 12px;
+  line-height: 1.4;
+  font-size: 14px;
+  background: white;
+  display: inline-block;
+  box-shadow: none;
+}
+
+// `.zammad-chat-status-inner` (pesan sistem, mis. "Chat closed by...")
+// BUKAN bagian dari `.zammad-chat-message` (row avatar) -- tetap
+// perlu `max-width` sendiri, tidak ikut ke-cover oleh `max-width` baris
+// pesan di atas.
+.zammad-chat-status-inner {
+  background: white;
+  border-radius: $siska-radius-sm;
+  font-size: 13px;
+  color: $siska-text-secondary;
+  max-width: 70%;
+}
+
+.zammad-chat-message--customer + .zammad-chat-message--agent,
+.zammad-chat-message--agent + .zammad-chat-message--customer {
+  margin-top: 12px;
+}
+
+// Riwayat: bubble customer sempat diganti dari biru SOLID jadi latar
+// pucat gaya alert "info" Able Pro (`$siska-info-tint`, atas
+// permintaan user, screenshot Able Pro Admin) -- lalu warna teksnya
+// jg sempat disamakan ke `$siska-info` lalu ke `$siska-text`.
+// DIKEMBALIKAN ke solid biru di sini (audit kepatuhan kit Tailwind
+// baru: preseden NYATA `application/chat.html` -- `bg-primary-500
+// text-white`, bubble sendiri SELALU solid biru+putih, TANPA varian
+// pucat). Efek ikutan: skema warna centang baca butuh override putih
+// lagi (lihat rule `.zammad-chat-message-status` di atas).
+.zammad-chat-message--customer .zammad-chat-message-body {
+  // Opsi A (permintaan user "bubble visitor dibuat soft"): tint
+  // `bg-primary-500/10` kit, teks warna body. Membalik keputusan audit
+  // sebelumnya (kit `application/chat.html` memakai solid primary).
+  background: $siska-primary-tint;
+  color: $siska-body-color;
+}
+
+// Audit kepatuhan kit Tailwind baru: preseden nyata `.card` (putih +
+// border abu 1px), BUKAN putih polos tanpa garis tepi lagi. Berlaku jg
+// ke kartu lampiran agent (elemen sama, `.zammad-chat-message-body`)
+// -- kartu lampiran CUSTOMER sudah py border sendiri (lihat rule
+// attachment di bawah), jadi tidak dobel.
+.zammad-chat-message--agent .zammad-chat-message-body {
+  border: 1px solid $siska-border;
+}
+
+// Bug ditemukan lewat laporan user ("bubble yang hurufnya tiba-tiba
+// menjadi bold setelah beberapa kali agent mengirim balasan") --
+// SEBELUMNYA pesan yang masuk saat tab sedang tidak aktif
+// (`document.hidden`, lihat `receiveMessage`) ditandai TEBAL sbg
+// penanda "belum dibaca" -- perilaku native Zammad lama, TIDAK ADA
+// padanannya di mockup manapun (semua bubble di `Messages.dc.html`
+// SELALU `font-weight` normal, tidak ada state "unread" yg beda visual
+// sama sekali) & terlihat spt bug krn muncul tiba-tiba tanpa
+// penjelasan visual lain. Class `--unread` TETAP ditambahkan/dihapus
+// spt sebelumnya (dipakai `onInput` utk "tandai sudah dibaca saat
+// mulai mengetik balasan") -- di sini cuma efek visualnya yang
+// dihapus, bukan logikanya.
+.zammad-chat-message--unread {
+  font-weight: normal;
+}
+
+.zammad-chat-message--typing .zammad-chat-message-body {
+  white-space: normal;
+}
+
+// Atas permintaan user (mockup "SISKA Widget Mockup" board
+// AgentTyping) -- gap 4px EKSPLISIT antar 3 titik, gantikan andalan
+// lama pada spasi/whitespace HTML antar `<span>` (fragile, 3 span di
+// `typingIndicator.eco`/`help.eco` sengaja ditulis TANPA spasi di
+// antaranya -- titik jadi saling menempel tanpa gap sama sekali).
+// Dipakai bersama di 2 tempat (indikator "agent mengetik" & "load
+// more" pencarian KB), keduanya diverifikasi tetap tampil benar
+// (wrapper masing2 SUDAH mem-flex/center-kan elemen ini dari luar).
+.zammad-chat-loading-animation {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zammad-chat-loading-circle {
+  background: $siska-text-muted;
+  border-radius: 100%;
+  height: 6px;
+  width: 6px;
+  display: inline-block;
+  animation: ease-in-out load-fade 600ms infinite alternate;
+}
+
+.zammad-chat-loading-circle + .zammad-chat-loading-circle {
+  animation-delay: 0.13s;
+}
+
+.zammad-chat-loading-circle
+  + .zammad-chat-loading-circle
+  + .zammad-chat-loading-circle {
+  animation-delay: 0.26s;
+}
+
+@keyframes load-fade {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.6);
+  }
+
+  67% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Bug ditemukan lewat laporan user (screenshot beranotasi merah,
+// "area mengetik pesan tidak sama antara hasil dan mockup") --
+// SEBELUMNYA ikon+input+send SEMUA dijejalkan SATU BARIS horizontal
+// (kompromi disengaja sebelumnya demi lebar panel sempit -- TERNYATA
+// TIDAK diterima, mockup memang benar-benar 2 BARIS). Preseden NYATA
+// `Messages.dc.html`: baris 1 = kotak input BERBINGKAI (border+radius
+// 12px+padding sendiri, lebar penuh), baris 2 = ikon emoji/attach RATA
+// KIRI + tombol send LINGKARAN PENUH didorong ke kanan
+// (`margin-left:auto`). `.zammad-chat-controls` diganti jadi kolom
+// (`flex-direction:column`), bukan baris lagi.
+.zammad-chat-controls {
+  overflow: visible;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid $siska-border;
+  padding: 10px 12px 12px;
+  margin: 0;
+  position: relative;
+  background: white;
+}
+
+.zammad-chat-is-open .zammad-chat-controls {
+  display: flex;
+}
+
+// Audit kepatuhan kit Tailwind baru: preseden nyata `application/
+// chat.html` -- `form-control border-0 shadow-none`, kotak ketik
+// TANPA bingkai sama sekali, menyatu dgn footer (SEBELUMNYA berbingkai
+// sendiri, radius $siska-radius-sm, border 2px+padding bergeser saat
+// fokus -- semua itu DIHAPUS, bukan cuma diganti warna).
+.zammad-chat-input {
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  border: none;
+  padding: 10px 4px;
+  max-height: 96px;
+  min-height: 20px;
+  font-family: inherit;
+  line-height: 20px;
+  font-size: 14px;
+  appearance: none;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  overflow: auto;
+}
+
+// Bug ditemukan lewat laporan user ("tidak ada placeholder pada area
+// typing") -- `.zammad-chat-input` BUKAN `<input>`/`<textarea>`
+// sungguhan (`<div contenteditable="true">`), jadi selector
+// `::-webkit-input-placeholder` di atas TIDAK PERNAH benar-benar
+// berlaku (cuma jalan utk elemen form asli yang mendukung atribut
+// `placeholder` secara native) -- kemungkinan besar SUDAH dead code
+// sejak lama, baru ketahuan sekarang setelah kotak input diberi
+// bingkai sendiri (entri 125) yang bikin kekosongannya jelas
+// terlihat. Diganti teknik yang genuinely jalan utk contenteditable:
+// `:empty::before { content: attr(placeholder) }`.
+.zammad-chat-input:empty::before {
+  content: attr(placeholder);
+  // Audit ulang kit: placeholder `.form-control` kit = `#bec8d0`.
+  color: $siska-input-border;
+  pointer-events: none;
+}
+
+.zammad-chat-is-hidden {
+  display: none;
+}
+
+// Baris ikon (bawah kotak input) -- emoji+attach rata kiri, send
+// didorong ke kanan lewat `margin-left:auto` di tombolnya sendiri
+// (persis pola mockup, BUKAN `justify-content:space-between` di sini
+// -- attach BISA disembunyikan via flag server, `space-between` akan
+// bikin send "meloncat" ke tengah kalau attach hilang).
+.zammad-chat-controls-icons {
+  display: flex;
+  align-items: center;
+}
+
+// `.zammad-chat-attach:not(.zammad-chat-is-hidden)` -- pola bug
+// SPESIFISITAS yg SAMA sudah terjadi berkali-kali di file ini
+// (ditemukan lagi via audit proaktif setelah bug `.zammad-chat-kb-
+// loading`): `display: flex` di sini menang atas `display: none`
+// milik `.zammad-chat-is-hidden` (baris ~799, LEBIH AWAL) krn urutan
+// baris -- tombol attach jadi TETAP TAMPIL walau `attachment_enabled`
+// backend `false` (`toggleClass('zammad-chat-is-hidden', ...)` di
+// `chat.coffee`). `.zammad-chat-emoji-toggle` TIDAK PERNAH ditoggle
+// class ini, aman tanpa guard. Ikon svg 17px->16px sekalian
+// disamakan ke markup (audit ikon entri 170 sudah ganti markup ke
+// 16px, CSS ini KETINGGALAN & diam-diam menimpanya balik).
+// Audit kepatuhan kit Tailwind baru: preseden nyata `w-8 h-8
+// rounded-md` = 32px, radius 6px (BUKAN 30px/$siska-radius-sm=8px) --
+// radius di-hardcode LOKAL, token globalnya TIDAK disentuh (dipakai di
+// 25+ tempat lain, lihat catatan radius bubble di atas).
+.zammad-chat-emoji-toggle,
+.zammad-chat-attach:not(.zammad-chat-is-hidden) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+  font-family: inherit;
+
+  // Audit ulang kit (mockup "Messages detail - ikuti kit"): pola
+  // `btn-link-secondary` toolbar composer `application/chat.html` --
+  // kini `<button>`, ikon `text-lg` (18px), hover `secondary-100/50`.
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
+  }
+}
+
+// Audit migrasi ikon Tabler (2026-09-23): ikon lama stroke-based BUTUH
+// `svg{fill:none;stroke:currentColor}` di sini -- ikon Tabler BARU
+// (glyph font, `fill="currentColor"` sudah inline di markup) JUSTRU
+// rusak/nyaris tak terlihat kalau dipaksa `fill:none` (path glyph
+// adalah siluet padat, bukan garis tunggal cocok utk stroke). Override
+// svg DIHAPUS -- warna cukup lewat `color` di sini, `currentColor`
+// bawaan SVG yang menangani sisanya.
+.zammad-chat-emoji-toggle {
+  color: $siska-text-muted;
+
+  // Disamakan ke mockup -- tombol emoji tampil "aktif" (latar tint)
+  // selama panelnya terbuka, bukan cuma saat hover.
+  &.is-active {
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
+    color: $siska-primary;
+  }
+}
+
+// Riwayat: bug lama soal fill/stroke bentrok pernah terjadi persis di
+// sini (blok duplikat `svg{fill:currentColor}` yg menimpa `fill:none`).
+// Audit migrasi ikon Tabler (2026-09-23) -- kasus SAMA muncul lagi dari
+// arah SEBALIKNYA: ikon paperclip lama stroke-based diganti glyph font
+// Tabler (siluet padat, `fill="currentColor"` inline) -- `fill:none`
+// yg dulu WAJIB di sini justru bikin ikon baru nyaris tak terlihat.
+// Override svg DIHAPUS -- ini TETAP satu-satunya definisi warna
+// `.zammad-chat-attach` (`color` di sini + `currentColor` bawaan SVG).
+.zammad-chat-attach {
+  color: $siska-text-muted;
+}
+
+// Riwayat: tombol send sempat ikon transparan polos (preseden
+// `ChatSendMsg.vue`), lalu diganti LINGKARAN PENUH warna primer krn
+// preseden mockup HALAMAN INI (`Messages.dc.html`) spesifik
+// menunjukkan itu. DIKEMBALIKAN ke varian transparan di sini (audit
+// kepatuhan kit Tailwind baru: preseden NYATA `application/chat.html`
+// -- `btn-link-primary`, `w-10 h-10 rounded-xl` = 40px kotak membulat
+// 12px radius, transparan, tint HANYA muncul saat hover -- BUKAN
+// lingkaran solid lagi).
+.zammad-chat-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: $siska-primary;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+  font-family: inherit;
+
+  // Audit migrasi ikon Tabler (2026-09-23): ikon send lama stroke-based
+  // butuh fill:none/stroke di sini -- glyph Tabler baru (siluet padat,
+  // fill inline) rusak kalau dipaksa fill:none, jadi dihapus.
+  // Audit ulang kit: `btn-link-primary` kit -- ikon 18px (sejajar
+  // Emoji/Attach), hover `primary-100`.
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: #c6d7fd; // primary-100
+  }
+}
+
+.zammad-chat-input:disabled {
+  cursor: not-allowed;
+  // 0.26 = nilai asli `.v-btn--disabled { opacity }` Vuetify/Able Pro
+  // (dicek ke `VBtn.css` sungguhan), dipakai seragam di SEMUA state
+  // disabled widget ini (atas permintaan user, kategori Button).
+  opacity: 0.26;
+}
+
+// Panel `position: absolute; bottom: 100%` relatif ke
+// `.zammad-chat-controls` (leluhur terdekat ber-`position: relative`,
+// lihat di atas) -- SELALU muncul tepat di atas kotak ketik apa pun
+// tingginya, tidak perlu hitung offset manual.
+.zammad-chat-emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 8px;
+  margin-bottom: 8px;
+  // Audit ulang kit: `.dropdown-menu` kit -- tanpa border, `rounded-lg`,
+  // bayangan kit, `p-2`. Lebar 216 = 6 x 32px + padding.
+  width: 216px;
+  box-sizing: border-box;
+  background: white;
+  border-radius: $siska-radius-sm;
+  box-shadow: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+  padding: 8px;
+  z-index: 5;
+}
+
+.zammad-chat-emoji-picker-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: $siska-text-secondary;
+  padding: 2px 4px 8px;
+}
+
+.zammad-chat-emoji-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+
+.js-emoji-item {
+  // Audit ulang kit: kini `<button>` -- reset gaya bawaan browser.
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border-radius: $siska-radius-sm;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(225, 229, 232, 0.5); // secondary-100/50
+  }
+}
+
+/*
+  # Fase 5 -- Live Chat Enhancement (Item No. 5 & 6, reply-to-message).
+  # See docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.
+*/
+
+// Bug ditemukan lewat laporan user (screenshot: nama file panjang
+// bikin SELURUH jendela chat scroll horizontal) -- root cause: sbg
+// `inline-flex`, `.zammad-chat-attachment` jadi kotak inline ATOMIK
+// (spt inline-block) di mata `.zammad-chat-message-body` (bubble)
+// -- `overflow-wrap: break-word` pada bubble (dipakai utk teks pesan
+// biasa) TIDAK PERNAH berlaku DI DALAM kotak flex ini, dan flex-item
+// (`.zammad-chat-attachment-filename`) defaultnya `min-width: auto`
+// (TIDAK bisa menyusut di bawah lebar teks aslinya) -- gabungan
+// keduanya bikin nama file panjang MEMAKSA seluruh kotak melebar
+// tanpa batas, bukan cuma di dalam bubble. `max-width: 100%` di sini
+// (bukan `min-width: 0` -- ini BUKAN flex-item, `.zammad-chat-message-
+// body` adalah `inline-block` biasa) memaksa kotak ATOMIK ini tunduk
+// ke lebar bubble yang sudah dibatasi row (`.zammad-chat-message {
+// max-width: 82% }`), baru di dalamnya `.zammad-chat-attachment-
+// filename` (poin fix SEBENARNYA) dipotong pakai `text-overflow:
+// ellipsis` -- proporsional mengikuti sisa ruang, bukan angka piksel
+// tetap.
+// Atas permintaan user ("jangan tampilkan link aslinya, tombol
+// download saja di sebelah kanan"), LALU direvisi total jadi KARTU
+// gaya WhatsApp ("format bubble attachment seperti ini" + screenshot
+// referensi -- lencana ikon + nama/tipe-ukuran + tombol download di
+// DALAM kartu, permintaan follow-up "icon download nya berada didalam
+// bubble"). `.zammad-chat-attachment` SEKARANG elemen VISUAL kartu itu
+// SENDIRI (digabung ke `.zammad-chat-message-body` di markup, BUKAN
+// lagi dibungkus di dalamnya) -- lebar TETAP 230px (bukan lagi
+// max-width:100% mengikuti bubble teks biasa), supaya lencana ikon +
+// blok nama/tipe-ukuran + tombol download muat rapi berdampingan.
+// Filename tetap TIDAK bisa diklik (`<span>` polos) -- satu-satunya
+// cara mengunduh adalah `.zammad-chat-attachment-download` di dalam
+// kartu ini.
+// Atas permintaan user (screenshot beranotasi tangan): jam SEKARANG
+// jadi baris KEDUA di dalam kartu (di bawah baris ikon/nama/download),
+// bukan lagi di luar kartu -- kartu jadi flex COLUMN (2 baris: row
+// ikon/info/download BARU `.zammad-chat-attachment-row`, lalu
+// `.zammad-chat-message-time`), beda dari sebelumnya yg cuma 1 baris
+// flex. TANPA centang baca (pesan agent tidak pernah punya status
+// baca) -- kartu customer YANG py centang tetap dapat lewat markup
+// `message-time` yg sama, warnanya skema DEFAULT abu2/primer -- kartu
+// ini SENGAJA dikecualikan (`:not(.zammad-chat-attachment)`) dari
+// override putih bubble TEKS customer (lihat rule status di atas):
+// kartu SELALU putih/netral (lihat rule di bawah), jadi abu2/primer
+// TETAP kontras di situ, TIDAK BOLEH ikut jadi putih spt di bubble
+// teks solid biru.
+.zammad-chat-message-body.zammad-chat-attachment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 230px;
+  max-width: 100%;
+}
+
+.zammad-chat-attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+// Kartu SELALU putih/netral, TERLEPAS dari siapa pengirimnya -- BEDA
+// dari bubble teks biasa (`.zammad-chat-message--customer .zammad-
+// chat-message-body` di atas, solid biru): lencana ikon tint primary &
+// subjudul abu-abu TIDAK akan terbaca kalau latar kartu ikut jadi
+// biru solid. Selector 3-tingkat SENGAJA (bukan mengandalkan urutan
+// baris di file) supaya menang PASTI dari rule biru di atas, bukan
+// kebetulan menang krn ditulis lebih belakangan.
+.zammad-chat-message--customer .zammad-chat-message-body.zammad-chat-attachment {
+  background: white;
+  color: $siska-body-color;
+  border: 1px solid $siska-border;
+}
+
+.zammad-chat-attachment-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: $siska-radius-sm;
+  background: $siska-primary-tint; // kit `bg-primary-500/10`
+  color: $siska-primary;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    fill: currentColor;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Pelajaran bug lama (nama file panjang bikin bubble melebar tanpa
+// batas): elemen FLEX-ITEM perlu `min-width: 0` EKSPLISIT (default
+// `auto` menolak menyusut di bawah lebar konten aslinya) supaya
+// `.zammad-chat-attachment-filename` genuinely mau dipotong ellipsis
+// mengikuti sisa ruang kartu, bukan memaksa kartu melebar.
+.zammad-chat-attachment-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.zammad-chat-attachment-filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.zammad-chat-attachment-meta {
+  font-size: 12px;
+  color: $siska-text-secondary;
+  margin-top: 2px;
+}
+
+// Tombol download -- pola SAMA PERSIS dgn `.zammad-chat-message-
+// reply` di bawah (ukuran, opacity, hover-thd-hover-pesan), TAPI
+// SEKARANG di DALAM kartu (bukan lagi sibling di luar bubble) --
+// ikon reply (khusus pesan agent) TETAP di luar, TIDAK ikut dipindah.
+.zammad-chat-attachment-download {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 150ms;
+  color: $siska-text-muted;
+  text-decoration: none;
+
+  svg {
+    display: block;
+    fill: currentColor;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.zammad-chat-message:hover .zammad-chat-attachment-download {
+  opacity: 1;
+}
+
 // Revisi desain (gaya Able Pro) -- garis kutipan sekarang warna primer
 // (dulu abu-abu netral), konsisten dengan bubble AGENT yang sekarang
 // putih+border (kutipan tetap kelihatan jelas di kedua sisi tanpa
@@ -3359,3 +4013,4 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
     transform: translate(-50%, 0);
   }
 }
+
