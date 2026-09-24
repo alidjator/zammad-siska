@@ -3276,7 +3276,11 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-message-menu {
   position: absolute;
   top: 30px;
-  right: 0;
+  // Laporan user ("dropdownlist kurang proporsional"): dijangkarkan ke
+  // tepi KIRI bubble & melebar ke kanan -- pesan agent selalu di sisi
+  // kiri, `right: 0` membuat menu bubble pendek melewati tepi kiri area
+  // pesan (`overflow: hidden`) sehingga ikon item terpotong.
+  left: 0;
   z-index: 6;
   min-width: 168px;
   padding: 8px;

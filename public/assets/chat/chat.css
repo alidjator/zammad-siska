@@ -2929,7 +2929,7 @@
 .zammad-chat-message-menu {
   position: absolute;
   top: 30px;
-  right: 0;
+  left: 0;
   z-index: 6;
   min-width: 168px;
   padding: 8px;
