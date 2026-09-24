@@ -595,6 +595,7 @@ class App.ChatWindow extends App.Controller
     'click .js-emojiItem':           'insertEmoji'
     'keydown':                       'onWindowKeydown'
     'click .js-toggleProfile':       'toggleProfile'
+    'click .js-historyMore':         'loadMoreHistory'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -721,6 +722,11 @@ class App.ChatWindow extends App.Controller
     # Redesign sisi agent (Tahap 4) -- rating yang dikirim customer setelah
     # chat berakhir (server hanya menyiarkannya bila Setting
     # chat_agent_show_rating menyala, lihat chat_session_feedback_submit.rb).
+    # Riwayat chat dari email yang sama (chat_session_history.rb)
+    @controllerBind('chat_session_history', (data) =>
+      return if data.session_id isnt @session.session_id
+      @onHistoryPage(data)
+    )
     @controllerBind('chat_session_feedback', (data) =>
       return if data.session_id isnt @session.session_id
       @addRatingCard(data)
@@ -769,6 +775,7 @@ class App.ChatWindow extends App.Controller
       @html App.view('customer_chat/siska_window')(@siskaWindowParams())
       @el.addClass('siska-chat-window')
       @loadTicketNumber()
+      @initHistory()
     else
       @html App.view('customer_chat/chat_window')(
         name: @name
@@ -1150,6 +1157,139 @@ class App.ChatWindow extends App.Controller
     )
     @scrollToBottom()
 
+  # --- Riwayat chat di jendela percakapan (gaya WhatsApp) -------------------
+  # Keputusan user: semua sesi lain dari email yang sama; 10 pesan riwayat per
+  # halaman (percakapan saat ini tidak dihitung); halaman berikutnya dimuat
+  # saat digulir mendekati puncak. Semua pesan riwayat yang sudah dimuat
+  # disimpan lalu thread dirender ulang utuh, supaya pil tanggal, kapsul sesi
+  # & penutup sesi selalu benar walau satu sesi terpotong di antara halaman.
+  initHistory: =>
+    @history = { messages: [], sessions: {}, hasMore: false, loading: false, started: false }
+    return if !@session.email
+    @historyEl = $('<div class="siska-thread js-historyThread"></div>')
+    @body.prepend(@historyEl)
+    @scrollHolder.on('scroll', @onHistoryScroll)
+    @requestHistory()
+
+  requestHistory: =>
+    return if @history.loading
+    @history.loading = true
+    @history.pendingBefore = @history.messages[0]?.id
+    @renderHistory() if @history.started
+    App.WebSocket.send(
+      event: 'chat_session_history'
+      data:
+        session_id: @session.session_id
+        before_id:  @history.pendingBefore
+    )
+
+  loadMoreHistory: (e) =>
+    e?.preventDefault()
+    return if !@history?.hasMore
+    @requestHistory()
+
+  onHistoryScroll: =>
+    return if !@history?.hasMore || @history.loading
+    @requestHistory() if @scrollHolder.scrollTop() < 80
+
+  onHistoryPage: (data) =>
+    # balasan basi (halaman lain sudah diminta) diabaikan
+    return if (data.before_id || undefined) isnt (@history.pendingBefore || undefined)
+    first = !@history.started
+    @history.started = true
+    @history.loading = false
+    @history.hasMore = !!data.has_more
+    _.extend(@history.sessions, data.sessions || {})
+    known = _.indexBy(@history.messages, 'id')
+    for message in (data.messages || []) when !known[message.id]
+      @history.messages.push(message)
+    @history.messages = _.sortBy(@history.messages, 'id')
+
+    # jaga posisi: saat dibuka tetap di bawah, saat paging tetap di pesan
+    # yang sedang dilihat (jarak dari bawah tidak berubah)
+    holder = @scrollHolder.get(0)
+    fromBottom = holder.scrollHeight - holder.scrollTop
+    @renderHistory()
+    if first
+      @scrollToBottom()
+    else
+      holder.scrollTop = holder.scrollHeight - fromBottom
+
+  historySessionKey: (message) ->
+    String(message.chat_session_id)
+
+  renderHistory: =>
+    return if !@historyEl
+    items = []
+    lastDay = null
+    lastSession = null
+    messages = @history.messages
+    for message, index in messages
+      session = @history.sessions[@historySessionKey(message)] || {}
+      if session isnt lastSession
+        @pushHistoryEnd(items, lastSession, messages[index - 1]) if lastSession
+      day = new Date(message.created_at).toDateString()
+      if day isnt lastDay
+        items.push(type: 'date', label: App.SiskaFormat.dayLabel(message.created_at))
+        lastDay = day
+      if session isnt lastSession
+        items.push(@historySessionItem(session))
+        lastSession = session
+      items.push(type: 'message', html: @historyMessageHtml(message, session))
+    @pushHistoryEnd(items, lastSession, messages[messages.length - 1]) if lastSession
+
+    state = if @history.loading then 'loading' else if @history.hasMore then 'ready' else if items.length then 'end' else null
+    @historyEl.html App.view('customer_chat/siska_history')(
+      items:     items
+      state:     state
+      pageSize:  10
+      email:     @session.email
+      currentId: @session.id
+    )
+    @historyEl.find('.js-siskaImage img').one('load', => @scrollToBottom() if @scrolledToBottom)
+
+  historySessionItem: (session) ->
+    started = App.SiskaFormat.clock(session.created_at)
+    ended = App.SiskaFormat.clock(session.ended_at)
+    range = if started && ended && started isnt ended then "#{started}–#{ended}" else started
+    type:         'session'
+    id:           session.id
+    meta:         _.compact([session.agent_name, range]).join(' · ')
+    ticketId:     session.ticket_id
+    ticketNumber: session.ticket_number
+
+  # penutup sesi hanya bila pesan terakhir sesi itu memang sudah dimuat
+  pushHistoryEnd: (items, session, lastMessage) ->
+    return if !session || !lastMessage
+    return if session.state isnt 'closed'
+    return if session.last_message_id && lastMessage.id isnt session.last_message_id
+    text = switch session.closed_by
+      when 'agent' then App.i18n.translatePlain('Chat ended by the agent')
+      when 'customer' then App.i18n.translatePlain('Chat ended by the customer')
+      else App.i18n.translatePlain('Chat ended')
+    time = App.SiskaFormat.clock(session.ended_at)
+    showRating = App.Config.get('chat_agent_show_rating') isnt false
+    items.push(
+      type:  'end'
+      text:  _.compact([text, time]).join(' · ')
+      score: if showRating then session.csat_score else undefined
+    )
+
+  historyMessageHtml: (message, session) =>
+    sender = if message.is_from_agent then 'agent' else 'customer'
+    message.history_session_id = session.session_id
+    @messagesById[message.id] = message
+    kind = if message.filename then (if App.SiskaFormat.isImage(message) then 'image' else 'file') else 'text'
+    params = @siskaMessageParams(message, sender, false, kind, session.session_id)
+    params.history = true
+    params.time = App.SiskaFormat.clock(message.created_at)
+    if sender is 'agent'
+      params.author = if session.agent_id && session.agent_id is App.Session.get('id') then App.i18n.translatePlain('You') else (session.agent_name || App.i18n.translatePlain('Agent'))
+    else if session.name
+      params.author = session.name
+      params.initials = App.SiskaFormat.initials(session.name)
+    App.view('customer_chat/siska_message')(params)
+
   # Nomor tiket (bukan id) utk baris "Ticket" di panel profil.
   loadTicketNumber: =>
     ticketId = @session.ticket_id
@@ -1178,7 +1318,7 @@ class App.ChatWindow extends App.Controller
   # Parameter template `siska_message`. `pendingId` dipakai untuk pesan
   # agent yang dirender optimis sebelum server membalas dengan id-nya
   # (lihat `confirmOwnMessage`).
-  siskaMessageParams: (message, sender, isNew, kind) =>
+  siskaMessageParams: (message, sender, isNew, kind, sessionKey = @session.session_id) =>
     isAgent = sender is 'agent'
     params =
       sender:        sender
@@ -1194,7 +1334,7 @@ class App.ChatWindow extends App.Controller
       reaction:      message.customer_reaction
       reactionLabel: App.SiskaFormat.REACTIONS[message.customer_reaction] || message.customer_reaction
     if kind isnt 'text'
-      base = "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
+      base = "#{@apiPath}/chat_sessions/#{sessionKey}/attachments/#{message.id}"
       icon = if kind is 'image' then 'file-image' else App.SiskaIcon.forFile(message.filename)
       params.file =
         name:        message.filename
@@ -1295,8 +1435,8 @@ class App.ChatWindow extends App.Controller
     messageId = $(e.currentTarget).closest('[data-message-id]').attr('data-message-id')
     message = @messagesById[messageId]
     return if !message
-    base = "#{@apiPath}/chat_sessions/#{@session.session_id}/attachments/#{message.id}"
-    sender = if message.created_by_id then App.i18n.translatePlain('You') else @name
+    base = "#{@apiPath}/chat_sessions/#{message.history_session_id || @session.session_id}/attachments/#{message.id}"
+    sender = if message.history_session_id then null else (if message.created_by_id then App.i18n.translatePlain('You') else @name)
     new App.SiskaImageViewer(
       src:         base
       name:        message.filename

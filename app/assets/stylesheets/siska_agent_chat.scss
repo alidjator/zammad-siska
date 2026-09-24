@@ -1755,3 +1755,113 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   margin-top: 4px;
   overflow-wrap: anywhere;
 }
+
+// ---------------------------------------------------------------------
+// Riwayat chat di jendela percakapan (gaya WhatsApp): pil status paging,
+// pil tanggal, kapsul pembuka sesi, pemisah "percakapan saat ini".
+// ---------------------------------------------------------------------
+.siska-agent .siska-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  &:empty { display: none; }
+}
+
+.siska-agent .siska-thread-status {
+  display: flex;
+  justify-content: center;
+
+  &:empty { display: none; }
+}
+
+.siska-agent .siska-thread-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: $siska-radius-pill;
+  background: $siska-body-bg;
+  color: $siska-text-secondary;
+  font: inherit;
+  font-size: 12px;
+
+  &.is-action {
+    background: $siska-primary-tint;
+    color: $siska-primary;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover { background: rgba(70, 128, 255, 0.16); }
+  }
+
+  .siska-thread-up { transform: rotate(180deg); }
+}
+
+.siska-agent .siska-thread-spin {
+  display: inline-flex;
+  color: $siska-primary;
+
+  .siska-icon { animation: siska-spin 0.9s linear infinite; }
+}
+
+@keyframes siska-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siska-agent .siska-thread-spin .siska-icon { animation: none; }
+}
+
+.siska-agent .siska-thread-date {
+  align-self: center;
+
+  span {
+    padding: 4px 12px;
+    border-radius: $siska-radius-pill;
+    background: $siska-body-bg;
+    color: $siska-text-secondary;
+    font-size: 12px;
+  }
+}
+
+.siska-agent .siska-thread-session {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 10px;
+  max-width: 100%;
+  padding: 8px 14px;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-pill;
+  background: #fff;
+  color: $siska-text-secondary;
+  font-size: 12px;
+
+  > .siska-icon { color: $siska-secondary; }
+  strong { color: $siska-headings; font-weight: 600; }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: $siska-primary;
+    text-decoration: none;
+  }
+}
+
+.siska-agent .siska-separator > span {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.siska-agent .siska-thread-current {
+  color: $siska-primary;
+  font-weight: 600;
+}

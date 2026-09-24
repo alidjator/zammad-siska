@@ -1,0 +1,39 @@
+<!-- Riwayat chat dari email yang sama, di atas percakapan saat ini (mockup
+     "Riwayat chat di jendela percakapan"). Dirender ulang utuh tiap halaman
+     baru dimuat; bubble sudah dirender lebih dulu dgn siska_message. -->
+<div class="siska-thread-status">
+  <% if @state is 'loading': %>
+    <span class="siska-thread-pill" role="status"><span class="siska-thread-spin"><%- @SiskaIcon('spinner-gap', 16) %></span><%- @T('Loading %s earlier messages…', @pageSize) %></span>
+  <% else if @state is 'ready': %>
+    <button type="button" class="siska-thread-pill is-action js-historyMore"><%- @SiskaIcon('arrow-down', 14, class: 'siska-thread-up') %><%- @T('Scroll up to load earlier messages') %></button>
+  <% else if @state is 'end': %>
+    <span class="siska-thread-pill"><%- @SiskaIcon('check-circle', 14) %><%- @T('Beginning of the chat history from %s', @email) %></span>
+  <% end %>
+</div>
+<% for item in @items: %>
+  <% if item.type is 'date': %>
+    <div class="siska-thread-date"><span><%= item.label %></span></div>
+  <% else if item.type is 'session': %>
+    <div class="siska-thread-session">
+      <%- @SiskaIcon('clock-counter-clockwise', 14) %>
+      <span><strong><%- @T('Chat #%s', item.id) %></strong><% if item.meta: %> · <%= item.meta %><% end %></span>
+      <% if item.ticketId: %>
+        <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= item.ticketId %>"><%- @T('Ticket #%s', item.ticketNumber || item.ticketId) %><%- @SiskaIcon('arrow-square-out', 12) %></a>
+      <% end %>
+    </div>
+  <% else if item.type is 'end': %>
+    <div class="siska-separator">
+      <span>
+        <%= item.text %>
+        <% if item.score: %>
+          · <span class="siska-rating" role="img" aria-label="<%- @Ti('Rating %s of 5', item.score) %>"><% for n in [1..5]: %><span class="siska-rating-heart<%= ' is-on' if n <= item.score %>"><%- @SiskaIcon('heart', 12, tone: 'full') %></span><% end %></span>
+        <% end %>
+      </span>
+    </div>
+  <% else: %>
+    <%- item.html %>
+  <% end %>
+<% end %>
+<% if @items.length: %>
+  <div class="siska-separator siska-thread-current"><span><%- @SiskaIcon('chats', 14) %><%- @T('Current conversation · Chat #%s', @currentId) %></span></div>
+<% end %>

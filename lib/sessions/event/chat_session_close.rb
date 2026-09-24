@@ -68,6 +68,11 @@ return is sent as message back to peer
 
       # close session if host is closing it
       chat_session.state = 'closed'
+      # Redesign sisi agent -- riwayat chat di jendela percakapan
+      # (chat_session_history.rb) menampilkan "Chat ended by agent/customer
+      # · jam". Sesi lama (sebelum baris ini ada) tidak punya data ini.
+      chat_session.preferences[:closed_by] = closed_by_agent ? 'agent' : 'customer'
+      chat_session.preferences[:closed_at] = Time.zone.now
       chat_session.save
 
       # set state update to all agents

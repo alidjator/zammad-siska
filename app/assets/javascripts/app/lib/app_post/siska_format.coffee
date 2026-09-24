@@ -17,6 +17,21 @@ class App.SiskaFormat
       return "#{pad(date.getHours())}:#{pad(date.getMinutes())}"
     App.i18n.translateDate(time)
 
+  # Selalu HH:MM (dipakai di bubble riwayat, tanggalnya sudah ada di pil).
+  @clock: (time) ->
+    return '' if !time
+    date = new Date(time)
+    return '' if isNaN(date.getTime())
+    pad = (n) -> if n < 10 then "0#{n}" else "#{n}"
+    "#{pad(date.getHours())}:#{pad(date.getMinutes())}"
+
+  # Label pil tanggal: "Today" untuk hari ini, selain itu tanggal lokal.
+  @dayLabel: (time) ->
+    date = new Date(time)
+    return '' if isNaN(date.getTime())
+    return App.i18n.translatePlain('Today') if date.toDateString() is new Date().toDateString()
+    App.i18n.translateDate(time)
+
   @fileSize: (bytes) ->
     bytes = parseInt(bytes, 10)
     return '' if isNaN(bytes)
