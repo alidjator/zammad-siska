@@ -1656,6 +1656,14 @@ do(window) ->
         # (lihat catatan panjang di `onConnectionEstablished`).
         @onConnectionEstablished(data, false)
 
+        # Atas permintaan user ("welcome greeting hilang setelah hard
+        # refresh", opsi A): sapaan cuma disuntik widget (tidak tersimpan
+        # di server), jadi TIDAK ikut riwayat -- digambar ulang di PALING
+        # ATAS (sebelum pesan riwayat pertama, posisi aslinya), bukan di
+        # bawah sbg pesan baru. Jam = pesan pertama (sapaan muncul tepat
+        # sebelumnya; payload reconnect tidak membawa waktu mulai sesi).
+        @showWelcomeGreeting(data.session?[0]?.created_at)
+
         # Bug ditemukan lewat laporan user (hard refresh -> jam pesan
         # hilang dari riwayat) -- mirror persis dari chat.coffee.
         # (`avatarInitials` DIHAPUS -- avatar per-pesan tidak lagi ada
@@ -3165,14 +3173,14 @@ do(window) ->
     # Kosong/tidak dikonfigurasi -> tidak render apa pun (bukan bubble
     # kosong) -- lihat `chat_phrase_messages_welcome_greeting` di
     # `script/create_widget_phrase_settings.rb`.
-    showWelcomeGreeting: =>
+    showWelcomeGreeting: (createdAt) =>
       greeting = @phrases['chat_phrase_messages_welcome_greeting']
       return if !greeting
       @maybeAddTimestamp()
       @renderMessage
         message: greeting
         from: 'agent'
-        time: @formatTime()
+        time: @formatTime(createdAt)
 
     showCustomerTimeout: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('customer_timeout')

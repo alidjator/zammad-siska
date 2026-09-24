@@ -4559,16 +4559,17 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onReopenSession = function(data) {
-      var isAgentMessage, isRead, j, len, message, ref, ref1, time, unfinishedMessage;
+      var isAgentMessage, isRead, j, len, message, ref, ref1, ref2, ref3, time, unfinishedMessage;
       this.hidePreload();
       this.log.debug('old messages', data.session);
       this.inactiveTimeout.start();
       unfinishedMessage = sessionStorage.getItem('unfinished_message');
       if (data.agent) {
         this.onConnectionEstablished(data, false);
-        ref = data.session;
-        for (j = 0, len = ref.length; j < len; j++) {
-          message = ref[j];
+        this.showWelcomeGreeting((ref = data.session) != null ? (ref1 = ref[0]) != null ? ref1.created_at : void 0 : void 0);
+        ref2 = data.session;
+        for (j = 0, len = ref2.length; j < len; j++) {
+          message = ref2[j];
           isAgentMessage = !!message.created_by_id;
           time = this.formatTime(message.created_at);
           isRead = !!message.read_at;
@@ -4591,7 +4592,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
               from: isAgentMessage ? 'agent' : 'customer',
               time: time,
               isRead: isRead,
-              replyTo: (ref1 = message.reply_to) != null ? ref1.content : void 0
+              replyTo: (ref3 = message.reply_to) != null ? ref3.content : void 0
             });
           }
           if (isAgentMessage && message.id) {
@@ -6145,7 +6146,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       return typeof (base = this.options).onConnectionEstablished === "function" ? base.onConnectionEstablished(data) : void 0;
     };
 
-    ZammadChat.prototype.showWelcomeGreeting = function() {
+    ZammadChat.prototype.showWelcomeGreeting = function(createdAt) {
       var greeting;
       greeting = this.phrases['chat_phrase_messages_welcome_greeting'];
       if (!greeting) {
@@ -6155,7 +6156,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       return this.renderMessage({
         message: greeting,
         from: 'agent',
-        time: this.formatTime()
+        time: this.formatTime(createdAt)
       });
     };
 
