@@ -2801,6 +2801,10 @@ do(window) ->
     # sekarang lanjut ke layar Feedback dulu, bukan langsung Home.
     finishOfflineFlow: (event) =>
       event?.preventDefault()
+      # Koreksi user: jalur offline TETAP menampilkan rating setelah pesan
+      # terkirim (pengecualian dari aturan "rating hanya utk customer yg
+      # terhubung ke agent", yg berlaku utk tombol X saat connecting/
+      # waiting -- lihat `exitChat`).
       @setButtonLoading(@el.querySelector('.js-offline-sent-done'), true)
       @showFeedback()
 
@@ -3012,6 +3016,16 @@ do(window) ->
 
       event?.preventDefault()
       event?.stopPropagation()
+
+      # Atas permintaan user ("feedback hanya utk customer yg real sudah
+      # terhubung ke agent"): sesi yg MASIH connecting/waiting (belum ada
+      # agent yg menerima -- `@agent` hanya diisi `onConnectionEstablished`)
+      # diperlakukan spt tombol Cancel di layar Waiting: batalkan antrean &
+      # kembali ke Home, TANPA layar "Ending chat" & rating.
+      if @sessionId and !@agent
+        @log.debug 'exit chat before agent connected -> back to home'
+        @cancelQueue(event)
+        return
 
       if @sessionId
         @log.debug 'exit chat'

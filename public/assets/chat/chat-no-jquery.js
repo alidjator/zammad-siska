@@ -6251,6 +6251,11 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (event != null) {
         event.stopPropagation();
       }
+      if (this.sessionId && !this.agent) {
+        this.log.debug('exit chat before agent connected -> back to home');
+        this.cancelQueue(event);
+        return;
+      }
       if (this.sessionId) {
         this.log.debug('exit chat');
         this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('ending_chat')();
