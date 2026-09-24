@@ -51,6 +51,18 @@ class ChatAttachmentsController < ApplicationController
   # Setting `chat_attachment_allowed_extensions` apa pun isinya.
   DENYLIST_EXTENSIONS = %w[exe bat cmd sh ps1 js html htm php jar msi com scr vbs].freeze
 
+  # Perbaikan celah Content-Type (permintaan user). SEBELUMNYA tipe file
+  # yg disimpan & disajikan diambil MENTAH dari header browser pengunggah
+  # (`file.content_type`) -- `foto.png` bisa diunggah dgn tipe
+  # `text/html` lalu disajikan INLINE sbg halaman HTML di domain
+  # helpdesk (XSS tersimpan). Kini tipe dideteksi dari ISI file (magic
+  # bytes, Marcel -- sudah jadi dependensi Rails), dan yg boleh disajikan
+  # `inline` HANYA whitelist di bawah (dideteksi ULANG dari isi saat
+  # disajikan, jadi rekaman LAMA yg tipenya palsu ikut aman).
+  IMAGE_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
+  IMAGE_EXTENSIONS = %w[jpg jpeg png gif webp].freeze
+  INLINE_TYPES = (IMAGE_TYPES + %w[application/pdf]).freeze
+
   # GET /api/v1/chat_sessions/:session_id/attachments/:id
   # Dipakai widget customer & panel agent dua-duanya untuk menampilkan
   # kembali/mengunduh attachment yang sudah terkirim -- otorisasi SAMA
@@ -79,14 +91,32 @@ class ChatAttachmentsController < ApplicationController
     # ini (browser mengabaikannya utk link lintas-origin, beda dari
     # header `Content-Disposition` yg dikirim server di sini, yg
     # dihormati browser TERLEPAS dari origin).
-    disposition = params[:disposition] == 'attachment' ? 'attachment' : 'inline'
+    content = store.content
+    detected = self.class.detect_content_type(content, store.filename)
+    inline_allowed = INLINE_TYPES.include?(detected)
+    disposition = params[:disposition] != 'attachment' && inline_allowed ? 'inline' : 'attachment'
+
+    # Perbaikan celah Content-Type: browser DILARANG menebak tipe sendiri,
+    # dan gambar dikurung CSP sandbox -- tidak bisa menjalankan script apa
+    # pun walau isinya dimanipulasi.
+    # CSP `sandbox` HANYA utk gambar -- viewer PDF bawaan browser (dipakai
+    # panel agent membuka PDF inline) menolak merender di bawah sandbox.
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" if IMAGE_TYPES.include?(detected)
 
     send_data(
-      store.content,
+      content,
       filename:    store.filename,
-      type:        store.preferences['Content-Type'] || 'application/octet-stream',
+      type:        inline_allowed ? detected : 'application/octet-stream',
       disposition: disposition,
     )
+  end
+
+  # Tipe file dari ISI (magic bytes), nama file cuma dipakai kalau isi
+  # tidak dikenali (mis. docx/xlsx yg secara isi berupa zip). Publik utk
+  # dipakai jg `Chat::Session.enrich_message_attributes`.
+  def self.detect_content_type(data, filename)
+    Marcel::MimeType.for(StringIO.new(data.to_s), name: filename.to_s)
   end
 
   # POST /api/v1/chat_sessions/:session_id/attachments
@@ -131,7 +161,13 @@ class ChatAttachmentsController < ApplicationController
     end
     # :skipped (belum dikonfigurasi) dan :clean sama-sama lanjut.
 
-    content_type = file.content_type.presence || 'application/octet-stream'
+    # Perbaikan celah Content-Type: tipe dari ISI file, bukan header
+    # browser. Ekstensi gambar wajib berisi gambar SUNGGUHAN (whitelist)
+    # -- `foto.png` yg isinya HTML/skrip ditolak.
+    content_type = self.class.detect_content_type(data, file.original_filename)
+    if IMAGE_EXTENSIONS.include?(extension) && IMAGE_TYPES.exclude?(content_type)
+      return render(json: { error: __('This image file is invalid or corrupted.') }, status: :unprocessable_content)
+    end
 
     # Dipaksa eksplisit -- dikonfirmasi lewat pengujian langsung bahwa
     # `UserInfo.current_user_id` ambient di jalur controller HTTP biasa
