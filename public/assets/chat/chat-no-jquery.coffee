@@ -1913,7 +1913,10 @@ do(window) ->
       # tombol Image yg menghasilkan preview + placeholder upload.
       asFile = event.target.classList.contains('js-chat-attachment-input')
       formData.append('display', 'file') if asFile
-      uploadId = if !asFile and file.type in @IMAGE_TYPES then @addImageUpload(file) else null
+      # Semua upload kini punya placeholder + progress: gambar lewat tombol
+      # Image -> placeholder gambar; lainnya (termasuk gambar lewat Attach)
+      # -> placeholder kartu file (`views/file_upload.eco`).
+      uploadId = if !asFile and file.type in @IMAGE_TYPES then @addImageUpload(file) else @addFileUpload(file)
 
       xhr = new XMLHttpRequest()
       xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
@@ -1957,7 +1960,8 @@ do(window) ->
       # Fitur kirim gambar: gambar milik sendiri menggantikan placeholder
       # upload tertua DI POSISINYA (urutan pesan tetap), bukan ditambah
       # di bawah lalu placeholder hilang.
-      placeholder = if from is 'customer' and viewName is 'image_message' then @body.querySelector('.js-image-upload') else null
+      placeholderSelector = if viewName is 'image_message' then '.js-image-upload' else '.js-file-upload'
+      placeholder = if from is 'customer' then @body.querySelector(placeholderSelector) else null
       if placeholder
         @releaseImageUpload(placeholder.dataset.uploadId)
         placeholder.insertAdjacentHTML('beforebegin', html)
@@ -1999,9 +2003,30 @@ do(window) ->
       @scrollToBottom showHint: true
       uploadId
 
+    addFileUpload: (file) =>
+      @imageUploadSeq = (@imageUploadSeq || 0) + 1
+      uploadId = String(@imageUploadSeq)
+      @maybeAddTimestamp()
+      @lastAddedType = 'message--customer'
+      @body.insertAdjacentHTML 'beforeend', @view('file_upload')(
+        uploadId: uploadId
+        filename: file.name
+      )
+      @scrollToBottom showHint: true
+      uploadId
+
+    # Dipakai placeholder gambar & file. 100% = file sudah terkirim,
+    # server masih memindai virus / menyimpan -> "Processing…".
     updateImageUpload: (uploadId, percent) =>
-      el = @body.querySelector(".js-image-upload[data-upload-id='#{uploadId}'] .js-image-progress")
-      el.textContent = "#{@T('Uploading…')} #{percent}%" if el
+      el = @body.querySelector("[data-upload-id='#{uploadId}']")
+      return if !el
+      label = if percent >= 100 then @T('Processing…') else "#{@T('Uploading…')} #{percent}%"
+      text = el.querySelector('.js-image-progress, .js-upload-progress-text')
+      text.textContent = label if text
+      bar = el.querySelector('.js-upload-progress-bar')
+      if bar
+        bar.style.width = "#{percent}%"
+        bar.setAttribute('aria-valuenow', percent)
 
     releaseImageUpload: (uploadId) =>
       return if !@imageUploadUrls?[uploadId]
@@ -2009,7 +2034,7 @@ do(window) ->
       delete @imageUploadUrls[uploadId]
 
     removeImageUpload: (uploadId) =>
-      @body.querySelector(".js-image-upload[data-upload-id='#{uploadId}']")?.remove()
+      @body.querySelector("[data-upload-id='#{uploadId}']")?.remove()
       @releaseImageUpload(uploadId)
 
     # Tampilan layar penuh (mockup "Kirim gambar - layar penuh"): overlay

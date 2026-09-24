@@ -793,6 +793,79 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
 if (!window.zammadChatTemplates) {
   window.zammadChatTemplates = {};
 }
+window.zammadChatTemplates["file_upload"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Permintaan user ("upload file attachment ada progressnya juga seperti\nupload gambar"): placeholder kartu file SELAMA upload -- nama file,\npersentase, progress bar tipis gaya `bc_progress.html` kit (track\nbodybg, bar primary-500 rounded-lg, role="progressbar"). Diganti kartu\nfile asli DI POSISINYA saat broadcast `chat_session_attachment` milik\nsendiri tiba (`addAttachmentMessage`), dihapus kalau upload gagal. -->\n<div class="zammad-chat-message zammad-chat-message--customer zammad-chat-message--uploading js-file-upload" data-upload-id="');
+    
+      __out.push(__sanitize(this.uploadId));
+    
+      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon">');
+    
+      __out.push(this.icon('paperclip', 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-attachment-meta js-upload-progress-text">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push(' 0%</span></span></span><span class="zammad-chat-upload-progress"><span class="zammad-chat-upload-progress-bar js-upload-progress-bar" role="progressbar" aria-label="');
+    
+      __out.push(this.T('Upload progress'));
+    
+      __out.push('" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></span></span></span></span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
 window.zammadChatTemplates["help"] = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -3605,6 +3678,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.removeImageUpload = bind(this.removeImageUpload, this);
       this.releaseImageUpload = bind(this.releaseImageUpload, this);
       this.updateImageUpload = bind(this.updateImageUpload, this);
+      this.addFileUpload = bind(this.addFileUpload, this);
       this.addImageUpload = bind(this.addImageUpload, this);
       this.addAttachmentMessage = bind(this.addAttachmentMessage, this);
       this.uploadAttachment = bind(this.uploadAttachment, this);
@@ -4793,7 +4867,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (asFile) {
         formData.append('display', 'file');
       }
-      uploadId = !asFile && (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : null;
+      uploadId = !asFile && (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : this.addFileUpload(file);
       xhr = new XMLHttpRequest();
       xhr.open('POST', (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments");
       if (uploadId) {
@@ -4838,7 +4912,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.addAttachmentMessage = function(data, from) {
-      var html, placeholder, viewName;
+      var html, placeholder, placeholderSelector, viewName;
       viewName = this.attachmentView(data.content_type, data.display);
       html = this.view(viewName)({
         from: from,
@@ -4853,7 +4927,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (from === 'agent' && data.id) {
         this.agentMessagesById[data.id] = data;
       }
-      placeholder = from === 'customer' && viewName === 'image_message' ? this.body.querySelector('.js-image-upload') : null;
+      placeholderSelector = viewName === 'image_message' ? '.js-image-upload' : '.js-file-upload';
+      placeholder = from === 'customer' ? this.body.querySelector(placeholderSelector) : null;
       if (placeholder) {
         this.releaseImageUpload(placeholder.dataset.uploadId);
         placeholder.insertAdjacentHTML('beforebegin', html);
@@ -4912,11 +4987,37 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       return uploadId;
     };
 
+    ZammadChat.prototype.addFileUpload = function(file) {
+      var uploadId;
+      this.imageUploadSeq = (this.imageUploadSeq || 0) + 1;
+      uploadId = String(this.imageUploadSeq);
+      this.maybeAddTimestamp();
+      this.lastAddedType = 'message--customer';
+      this.body.insertAdjacentHTML('beforeend', this.view('file_upload')({
+        uploadId: uploadId,
+        filename: file.name
+      }));
+      this.scrollToBottom({
+        showHint: true
+      });
+      return uploadId;
+    };
+
     ZammadChat.prototype.updateImageUpload = function(uploadId, percent) {
-      var el;
-      el = this.body.querySelector(".js-image-upload[data-upload-id='" + uploadId + "'] .js-image-progress");
-      if (el) {
-        return el.textContent = (this.T('Uploading…')) + " " + percent + "%";
+      var bar, el, label, text;
+      el = this.body.querySelector("[data-upload-id='" + uploadId + "']");
+      if (!el) {
+        return;
+      }
+      label = percent >= 100 ? this.T('Processing…') : (this.T('Uploading…')) + " " + percent + "%";
+      text = el.querySelector('.js-image-progress, .js-upload-progress-text');
+      if (text) {
+        text.textContent = label;
+      }
+      bar = el.querySelector('.js-upload-progress-bar');
+      if (bar) {
+        bar.style.width = percent + "%";
+        return bar.setAttribute('aria-valuenow', percent);
       }
     };
 
@@ -4931,7 +5032,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.removeImageUpload = function(uploadId) {
       var ref;
-      if ((ref = this.body.querySelector(".js-image-upload[data-upload-id='" + uploadId + "']")) != null) {
+      if ((ref = this.body.querySelector("[data-upload-id='" + uploadId + "']")) != null) {
         ref.remove();
       }
       return this.releaseImageUpload(uploadId);

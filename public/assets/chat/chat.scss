@@ -3848,3 +3848,25 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   outline: 2px solid $siska-primary;
   outline-offset: 2px;
 }
+
+// Progress upload kartu file (views/file_upload.eco) -- `bc_progress.html`
+// kit: track `bg-theme-bodybg`, bar `bg-primary-500 rounded-lg`; versi
+// tipis 4px agar muat di kartu file.
+.zammad-chat-upload-progress {
+  display: block;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 8px;
+  background: $siska-container-bg;
+  overflow: hidden;
+}
+
+.zammad-chat-upload-progress-bar {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: 8px;
+  background: $siska-primary;
+  transition: width 0.2s linear;
+}
+
