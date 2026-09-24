@@ -799,6 +799,17 @@ $siska-thumb-h: 180px;
 
 .siska-agent .siska-msg-time { margin-left: 4px; }
 
+// G1: centang terkirim (abu) / dibaca customer (biru) di pesan agent
+.siska-agent .siska-msg-status {
+  display: inline-flex;
+  margin-left: 4px;
+  vertical-align: -3px;
+  color: $siska-secondary; // kontras >= 3:1 di latar putih (ikon bermakna)
+  transition: color 0.2s;
+
+  &.is-read { color: $siska-primary; }
+}
+
 .siska-agent .siska-msg-row {
   display: flex;
   align-items: center;

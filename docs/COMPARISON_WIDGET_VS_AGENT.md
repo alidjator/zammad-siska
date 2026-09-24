@@ -18,7 +18,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | Fitur | Widget customer | Panel agent | Status |
 |---|---|---|---|
 | Letak jam | Di dalam bubble, pojok kanan bawah | Di atas bubble, bersama nama pengirim | ◐ Beda gaya sesuai mockup masing-masing |
-| Tanda terkirim/dibaca | Pesan customer: centang abu → biru saat agent membaca | **Tidak ada**; agent tidak tahu apakah customer sudah membaca. `chat_session_message_read.rb` hanya menerima event dari agent (menandai pesan customer) | ❗ **G1** |
+| Tanda terkirim/dibaca | Pesan customer: centang abu → biru saat agent membaca | Pesan agent: centang abu → biru saat customer benar-benar melihatnya (panel terbuka, tab Messages, tab browser aktif) | ✅ **G1 selesai** (2026-09-25) |
 | Tanda belum dibaca | Pesan ditandai saat tab tidak aktif + suara | Angka belum dibaca di kartu daftar + suara + notifikasi desktop | ✅ |
 | Indikator mengetik | Ada | Ada | ✅ |
 | Kutipan reply di bubble | Ada | Ada | ✅ |
@@ -73,7 +73,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 
 | # | Gap | Sisi yang kurang | Usulan |
 |---|---|---|---|
-| G1 | Tanda terkirim/dibaca untuk pesan agent | Agent (+ backend) | Widget mengirim `chat_session_message_read` saat customer melihat pesan; backend menerimanya dari sesi customer; agent menampilkan centang |
+| G1 | Tanda terkirim/dibaca untuk pesan agent | Agent (+ backend) | ✅ **Selesai** 2026-09-25 |
 | G2 | Copy teks pesan | Agent | ✅ **Selesai** 2026-09-25 |
 | G3 | Reaksi emoji dari agent | Agent (+ backend + widget) | **Putuskan dulu** perlu/tidak; bila perlu, backend menerima reaksi dari agent & widget menampilkannya |
 | G4 | Pratinjau gambar seragam 240 × 180 | Widget | Terapkan aturan yang sama |

@@ -23,16 +23,27 @@ return is sent as message back to peer
     return super if super
     return if !check_chat_session_exists
 
-    # Cuma AGENT (user login) yang bisa menandai pesan CUSTOMER sebagai
-    # terbaca -- customer menandai pesannya sendiri "terbaca" tidak
-    # masuk akal (lihat komentar sama di `chat_session_message.rb`
-    # utk pola pengecekan `@session['id']` yang identik).
-    return if !@session || !@session['id']
-
     chat_session = current_chat_session
 
+    # Agent (user login) menandai pesan CUSTOMER sebagai terbaca, seperti
+    # sebelumnya. G1 (docs/COMPARISON_WIDGET_VS_AGENT.md): event ini kini
+    # juga dikirim CUSTOMER (widget, tanpa sesi login) saat pesan agent
+    # benar-benar terlihat olehnya -> pesan AGENT ditandai terbaca. Hanya
+    # participant sesi ini yang boleh (pola sama dgn chat_session_reaction.rb).
+    # `reader` di broadcast membedakan kedua arah: widget mengabaikan reader
+    # 'customer' (tab customer lain), jendela agent hanya memakai 'customer'.
+    if @session && @session['id']
+      reader = 'agent'
+      scope = Chat::Message.where(chat_session_id: chat_session.id, created_by_id: nil)
+    else
+      return if Array(chat_session.preferences[:participants]).exclude?(@client_id)
+
+      reader = 'customer'
+      scope = Chat::Message.where(chat_session_id: chat_session.id).where.not(created_by_id: nil)
+    end
+
     read_at = Time.zone.now
-    updated = Chat::Message.where(chat_session_id: chat_session.id, created_by_id: nil, read_at: nil)
+    updated = scope.where(read_at: nil)
     return if !updated.exists?
 
     updated.update_all(read_at: read_at)
@@ -42,18 +53,20 @@ return is sent as message back to peer
       data:  {
         session_id: chat_session.session_id,
         read_at:    read_at,
+        reader:     reader,
       },
     }
 
     # send to participents
     chat_session.send_to_recipients(message, @client_id)
 
-    # send back to agent itself
+    # send back to the sender itself
     {
       event: 'chat_session_message_read',
       data:  {
         session_id:   chat_session.session_id,
         read_at:      read_at,
+        reader:       reader,
         self_written: true,
       },
     }

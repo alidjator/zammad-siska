@@ -1219,6 +1219,8 @@ do(window) ->
       @el.addEventListener('scroll', @onKbResultsScroll, true)
 
       window.addEventListener('beforeunload', @onLeaveTemporary)
+      # G1: kembali ke tab browser = pesan agent yang tampil kini terlihat
+      document.addEventListener('visibilitychange', => @maybeSendRead() if !document.hidden)
       window.addEventListener('hashchange', =>
         if @isOpen
           if @sessionId
@@ -1251,6 +1253,7 @@ do(window) ->
       activeItem?.setAttribute('aria-current', 'page')
 
       @updateHeader(tabName)
+      @maybeSendRead() if tabName is 'messages'
 
       # Atas permintaan user: tab Help langsung menampilkan artikel
       # (5 terbaru) begitu dibuka, TANPA perlu mengetik dulu -- cukup
@@ -1660,7 +1663,9 @@ do(window) ->
           # "sudah dibaca" ala WhatsApp -- mirror persis dari
           # chat.coffee (lihat komentar detail di sana).
           when 'chat_session_message_read'
-            @markMessagesRead()
+            # G1: reader 'customer' = tanda baca yg dikirim tab customer
+            # lain (utk agent), bukan tanda bahwa agent membaca pesan kita
+            @markMessagesRead() if pipe.data.reader isnt 'customer'
           # Reaksi emoji (echo milik sendiri / tab lain dari customer yg sama).
           when 'chat_session_reaction'
             @applyReaction(pipe.data.message_id, pipe.data.reaction)
@@ -1844,6 +1849,8 @@ do(window) ->
           # `receiveMessage`), balik `undefined` utk pesan hasil replay
           # ini, gagal diam-diam tanpa error.
           @agentMessagesById[message.id] = message if isAgentMessage and message.id
+          # G1: pesan agent yang belum pernah terlihat oleh customer
+          @unreadAgentMessages = true if isAgentMessage and !message.read_at
           # Reaksi emoji tersimpan di server -> digambar ulang saat reload.
           @applyReaction(message.id, message.customer_reaction) if isAgentMessage and message.customer_reaction
 
@@ -1867,6 +1874,8 @@ do(window) ->
 
       if unfinishedMessage
         @input.focus()
+
+      @maybeSendRead()
 
     onInput: =>
       # remove unread-state from messages
@@ -1954,6 +1963,7 @@ do(window) ->
         time: @formatTime(data.message.created_at)
 
       @scrollToBottom showHint: true
+      @noteAgentMessage()
 
       # Atas permintaan user ("mau ada sound juga seperti di agent") --
       # mirror `App.ChatWindow#receiveMessage` (`app/assets/javascripts/
@@ -2232,6 +2242,7 @@ do(window) ->
         time: @formatTime(data.created_at)
       )
       @agentMessagesById[data.id] = data if from is 'agent' and data.id
+      @noteAgentMessage() if from is 'agent'
 
       # Fitur kirim gambar: gambar milik sendiri menggantikan placeholder
       # upload tertua DI POSISINYA (urutan pesan tetap), bukan ditambah
@@ -2943,6 +2954,7 @@ do(window) ->
     onOpenAnimationEnd: =>
       @el.removeEventListener 'transitionend', @onOpenAnimationEnd
       @idleTimeout.stop()
+      @maybeSendRead()
 
       if @isFullscreen
         @disableScrollOnRoot()
@@ -3427,6 +3439,23 @@ do(window) ->
     # (lihat komentar detail di sana, termasuk bug `innerHTML` hardcode
     # yg SUDAH DIHAPUS TOTAL -- ikon SEKARANG selalu sama, cuma warna
     # yg beda lewat class).
+    # G1 (docs/COMPARISON_WIDGET_VS_AGENT.md): beri tahu agent bahwa pesannya
+    # sudah terlihat -- HANYA saat benar-benar terlihat oleh customer: panel
+    # terbuka, tab Messages aktif, tab browser tidak tersembunyi. Satu event
+    # menandai semua pesan agent yang belum dibaca (bulk, sama dgn arah
+    # sebaliknya); dikirim sekali per gelombang pesan baru.
+    noteAgentMessage: =>
+      @unreadAgentMessages = true
+      @maybeSendRead()
+
+    maybeSendRead: =>
+      return if !@unreadAgentMessages
+      return if !@sessionId or !@isOpen or document.hidden
+      return if @activeTab isnt 'messages'
+      @unreadAgentMessages = false
+      @send 'chat_session_message_read',
+        session_id: @sessionId
+
     markMessagesRead: =>
       statusEls = @el.querySelectorAll('.zammad-chat-message--customer .zammad-chat-message-status--sent')
       return if !statusEls.length

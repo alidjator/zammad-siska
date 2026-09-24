@@ -3795,6 +3795,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
       this.markMessagesRead = bind(this.markMessagesRead, this);
+      this.maybeSendRead = bind(this.maybeSendRead, this);
+      this.noteAgentMessage = bind(this.noteAgentMessage, this);
       this.onSessionClosed = bind(this.onSessionClosed, this);
       this.onReconnectFailed = bind(this.onReconnectFailed, this);
       this.onIoReconnected = bind(this.onIoReconnected, this);
@@ -4312,6 +4314,13 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       })(this));
       this.el.addEventListener('scroll', this.onKbResultsScroll, true);
       window.addEventListener('beforeunload', this.onLeaveTemporary);
+      document.addEventListener('visibilitychange', (function(_this) {
+        return function() {
+          if (!document.hidden) {
+            return _this.maybeSendRead();
+          }
+        };
+      })(this));
       return window.addEventListener('hashchange', (function(_this) {
         return function() {
           if (_this.isOpen) {
@@ -4357,6 +4366,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         activeItem.setAttribute('aria-current', 'page');
       }
       this.updateHeader(tabName);
+      if (tabName === 'messages') {
+        this.maybeSendRead();
+      }
       if (tabName === 'help' && !this.kbLoaded) {
         this.kbLoaded = true;
         return this.loadKnowledgeBase(true);
@@ -4787,7 +4799,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             this.onSessionClosed(pipe.data);
             break;
           case 'chat_session_message_read':
-            this.markMessagesRead();
+            if (pipe.data.reader !== 'customer') {
+              this.markMessagesRead();
+            }
             break;
           case 'chat_session_reaction':
             this.applyReaction(pipe.data.message_id, pipe.data.reaction);
@@ -4936,6 +4950,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           if (isAgentMessage && message.id) {
             this.agentMessagesById[message.id] = message;
           }
+          if (isAgentMessage && !message.read_at) {
+            this.unreadAgentMessages = true;
+          }
           if (isAgentMessage && message.customer_reaction) {
             this.applyReaction(message.id, message.customer_reaction);
           }
@@ -4953,8 +4970,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         this.scrollToBottom();
       }
       if (unfinishedMessage) {
-        return this.input.focus();
+        this.input.focus();
       }
+      return this.maybeSendRead();
     };
 
     ZammadChat.prototype.onInput = function() {
@@ -5042,6 +5060,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.scrollToBottom({
         showHint: true
       });
+      this.noteAgentMessage();
       return this.playMessageSound();
     };
 
@@ -5427,6 +5446,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       });
       if (from === 'agent' && data.id) {
         this.agentMessagesById[data.id] = data;
+      }
+      if (from === 'agent') {
+        this.noteAgentMessage();
       }
       placeholderSelector = viewName === 'image_message' ? '.js-image-upload' : '.js-file-upload';
       placeholder = from === 'customer' ? this.body.querySelector(placeholderSelector) : null;
@@ -6217,6 +6239,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       var base;
       this.el.removeEventListener('transitionend', this.onOpenAnimationEnd);
       this.idleTimeout.stop();
+      this.maybeSendRead();
       if (this.isFullscreen) {
         this.disableScrollOnRoot();
       }
@@ -6693,6 +6716,27 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           };
         })(this)), 2000);
       }
+    };
+
+    ZammadChat.prototype.noteAgentMessage = function() {
+      this.unreadAgentMessages = true;
+      return this.maybeSendRead();
+    };
+
+    ZammadChat.prototype.maybeSendRead = function() {
+      if (!this.unreadAgentMessages) {
+        return;
+      }
+      if (!this.sessionId || !this.isOpen || document.hidden) {
+        return;
+      }
+      if (this.activeTab !== 'messages') {
+        return;
+      }
+      this.unreadAgentMessages = false;
+      return this.send('chat_session_message_read', {
+        session_id: this.sessionId
+      });
     };
 
     ZammadChat.prototype.markMessagesRead = function() {

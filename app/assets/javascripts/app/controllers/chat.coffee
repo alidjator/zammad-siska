@@ -722,6 +722,14 @@ class App.ChatWindow extends App.Controller
     # Redesign sisi agent (Tahap 4) -- rating yang dikirim customer setelah
     # chat berakhir (server hanya menyiarkannya bila Setting
     # chat_agent_show_rating menyala, lihat chat_session_feedback_submit.rb).
+    # G1 (docs/COMPARISON_WIDGET_VS_AGENT.md): customer sudah melihat pesan
+    # agent. `reader: 'agent'` (tanda baca milik agent sendiri / agent lain)
+    # diabaikan di sini.
+    @controllerBind('chat_session_message_read', (data) =>
+      return if data.session_id isnt @session.session_id
+      return if data.reader isnt 'customer'
+      @markAgentMessagesRead()
+    )
     # Riwayat chat dari email yang sama (chat_session_history.rb)
     @controllerBind('chat_session_history', (data) =>
       return if data.session_id isnt @session.session_id
@@ -1333,6 +1341,7 @@ class App.ChatWindow extends App.Controller
       time:          App.SiskaFormat.time(message.created_at || new Date().toISOString())
       html:          message.content
       replyTo:       if message.reply_to then App.Utils.html2text(message.reply_to.content || '').substr(0, 80) else undefined
+      isRead:        !!message.read_at
       reaction:      message.customer_reaction
       reactionLabel: App.SiskaFormat.REACTIONS[message.customer_reaction] || message.customer_reaction
     if kind isnt 'text'
@@ -1359,6 +1368,18 @@ class App.ChatWindow extends App.Controller
     el = @body.find("[data-pending-id='#{pendingId}']")
     el.attr('data-message-id', message.id).removeAttr('data-pending-id')
     el.find('.siska-msg-time').text(App.SiskaFormat.time(message.created_at))
+
+  # Semua pesan agent di percakapan saat ini jadi "dibaca" (server menandai
+  # secara bulk). Pesan riwayat ada di dalam .js-historyThread, bukan anak
+  # langsung body, jadi tidak ikut.
+  markAgentMessagesRead: =>
+    return if !@siska
+    readAt = new Date().toISOString()
+    for id, message of @messagesById when message.created_by_id && !message.history_session_id
+      message.read_at ||= readAt
+    label = App.i18n.translateInline('Read')
+    @body.children('.siska-msg--agent').find('.js-msgStatus').not('.is-read')
+      .addClass('is-read').attr('aria-label', label).attr('title', label)
 
   setReaction: (messageId, reaction) =>
     message = @messagesById[messageId]

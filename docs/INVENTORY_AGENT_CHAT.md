@@ -151,7 +151,7 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 
 | # | Item | Usulan |
 |---|---|---|
-| G1 | Tanda terkirim/dibaca untuk pesan agent tidak ada | Widget kirim `chat_session_message_read`; backend terima dari sesi customer; agent tampilkan centang |
+| G1 | Tanda terkirim/dibaca untuk pesan agent tidak ada | ✅ **Selesai** 2026-09-25 |
 | G2 | Copy teks pesan tidak ada di agent | ✅ **Selesai** 2026-09-25 |
 | G3 | Reaksi emoji hanya satu arah (customer → agent) | **Keputusan user** dulu: perlu/tidak reaksi dari agent |
 | G4 | Pratinjau gambar di widget belum seragam 240 × 180 | Terapkan aturan agent ke widget |
@@ -160,3 +160,5 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 | G7 | Tidak ada penanda putus koneksi di jendela chat agent | Banner "Connection lost, reconnecting…" |
 | G8 | Label panel agent masih English | Terjemahan Bahasa Indonesia |
 | B1 | **Bug**: upload lampiran bisa membatalkan upload lain. `chat.coffee` memakai `id: 'chat-attachment-upload'` tetap; `@ajax` meneruskannya tanpa awalan per jendela (`_base.coffee`), dan `App.Ajax.request` memanggil `@abort(id)` untuk request lama ber-id sama secara global (`ajax.coffee`). **Terjadi:** antar jendela chat agent (upload di chat A, pindah ke chat B & upload sebelum A selesai → upload A batal diam-diam), dan di `App.MyChat` untuk dua upload berturut-turut di jendela yang sama. **Tidak terjadi** di jendela agent yang sama (tombol lampiran nonaktif selama upload). **Akibat:** file tidak terkirim & tidak tersimpan di tiket; agent hanya melihat dialog umum "The attachment could not be uploaded." | ✅ **Selesai** 2026-09-25: id unik per upload `chat-attachment-upload-<session_id>-<nomor>` (juga untuk `App.MyChat`). Detail: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 8 |
+| B2 | Pil waktu jendela agent ("today HH:MM") memakai jam saat jendela dirender (mis. saat hard refresh), bukan jam pesan pertama -- perilaku lama `maybeAddTimestamp` | Pakai `created_at` pesan saat merender riwayat sesi yang dipulihkan |
+| B3 | Baris URL halaman asal muncul dua kali di jendela agent setelah halaman customer dimuat ulang (notice `chat_session_notice` + URL awal sesi) | Lewati notice bila URL-nya sama dgn notice terakhir |
