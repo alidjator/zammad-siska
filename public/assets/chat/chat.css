@@ -548,16 +548,22 @@
   color: #4680ff;
 }
 
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--sent {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--read {
+.zammad-chat-message--customer .zammad-chat-message-body[style*=background] {
   color: #ffffff;
 }
-
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-time {
+.zammad-chat-message--customer .zammad-chat-message-body[style*=background] .zammad-chat-message-time {
   color: rgba(255, 255, 255, 0.75);
+}
+.zammad-chat-message--customer .zammad-chat-message-body[style*=background] .zammad-chat-message-status--sent {
+  color: rgba(255, 255, 255, 0.6);
+}
+.zammad-chat-message--customer .zammad-chat-message-body[style*=background] .zammad-chat-message-status--read {
+  color: #ffffff;
+}
+.zammad-chat-message--customer .zammad-chat-message-body[style*=background] .zammad-chat-message-quote {
+  border-left-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .zammad-chat-message-body {
@@ -592,8 +598,8 @@
 }
 
 .zammad-chat-message--customer .zammad-chat-message-body {
-  background: #4680ff;
-  color: white;
+  background: rgba(70, 128, 255, 0.1);
+  color: #131920;
 }
 
 .zammad-chat-message--agent .zammad-chat-message-body {
@@ -1045,10 +1051,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   border-left: 3px solid #4680ff;
-  padding-left: 6px;
-  margin-bottom: 4px;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
   font-size: 12px;
-  opacity: 0.75;
+  color: rgba(33, 37, 41, 0.75);
+  background: #f8f9fa;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-quote {
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .zammad-chat-reply-indicator:not(.zammad-chat-is-hidden) {

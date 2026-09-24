@@ -813,24 +813,32 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   color: $siska-primary;
 }
 
-// Override KHUSUS bubble TEKS customer (`:not(.zammad-chat-attachment)`
-// -- kartu lampiran DIKECUALIKAN, tetap putih/netral, lihat rule
-// attachment di bawah, jadi skema abu2/primer default di atas TETAP
-// dipakai di situ) -- gaya WhatsApp: `--sent` putih 60% opacity
-// (belum terkonfirmasi), `--read` putih penuh (terkonfirmasi).
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--sent {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-status--read {
+// Bubble visitor lembut (mockup "Reply bubble - usulan opsi A"): latar
+// kini tint `bg-primary-500/10`, jadi jam & centang kembali ke skema
+// default di atas (muted / sent abu / read primary). Override putih
+// LAMA utk bubble biru solid DIHAPUS -- kecuali bubble yg diwarnai opsi
+// widget `background` bawaan Zammad (inline style, tetap solid): teks,
+// jam & centang di situ tetap putih supaya terbaca.
+.zammad-chat-message--customer .zammad-chat-message-body[style*='background'] {
   color: #ffffff;
-}
 
-// Audit ulang kit: jam pesan di bubble TEKS customer sebelumnya ikut
-// warna muted default (abu di atas biru solid, kontras buruk) --
-// disamakan pola ikon status di atas: putih 75% (opacity `text-muted`).
-.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-attachment) .zammad-chat-message-time {
-  color: rgba(255, 255, 255, 0.75);
+  .zammad-chat-message-time {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .zammad-chat-message-status--sent {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .zammad-chat-message-status--read {
+    color: #ffffff;
+  }
+
+  .zammad-chat-message-quote {
+    border-left-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.85);
+  }
 }
 
 // Audit kepatuhan kit Tailwind baru: preseden nyata `application/
@@ -889,8 +897,11 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 // pucat). Efek ikutan: skema warna centang baca butuh override putih
 // lagi (lihat rule `.zammad-chat-message-status` di atas).
 .zammad-chat-message--customer .zammad-chat-message-body {
-  background: $siska-primary;
-  color: white;
+  // Opsi A (permintaan user "bubble visitor dibuat soft"): tint
+  // `bg-primary-500/10` kit, teks warna body. Membalik keputusan audit
+  // sebelumnya (kit `application/chat.html` memakai solid primary).
+  background: $siska-primary-tint;
+  color: $siska-body-color;
 }
 
 // Audit kepatuhan kit Tailwind baru: preseden nyata `.card` (putih +
@@ -1440,10 +1451,18 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   text-overflow: ellipsis;
   white-space: nowrap;
   border-left: 3px solid $siska-primary;
-  padding-left: 6px;
-  margin-bottom: 4px;
+  // Perbaikan "bubble reply tidak proporsional": kutipan jadi blok kecil
+  // berlatar (bukan cuma teks menjorok), jarak 6px ke isi pesan.
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 6px;
   font-size: 12px;
-  opacity: 0.75;
+  color: $siska-text-secondary;
+  background: $siska-container-bg;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-quote {
+  background: rgba(255, 255, 255, 0.6);
 }
 
 // `:not(.zammad-chat-is-hidden)` -- bug SPESIFISITAS yg SAMA
