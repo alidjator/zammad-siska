@@ -2180,6 +2180,7 @@ do(window) ->
         nextIndex = parseInt(input.dataset.index, 10) + 1
         next = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='#{nextIndex}']")
         next?.focus()
+        @autoSubmitOfflineOtp()
 
     onOtpDigitKeydown: (event) =>
       return if event.keyCode isnt 8
@@ -2204,6 +2205,22 @@ do(window) ->
         el.value = pasted.charAt(i) || ''
       lastFilled = Math.min(pasted.length, boxes.length) - 1
       boxes[Math.max(lastFilled, 0)]?.focus()
+      @autoSubmitOfflineOtp()
+
+    # Atas permintaan user ("ketika input digit terakhir, langsung auto
+    # verify") -- dipanggil setiap kali digit diketik/di-paste: begitu
+    # KEENAM kotak terisi, kode langsung dikirim tanpa perlu klik Verify
+    # (tombol tetap ada utk fallback). Dijaga tombol `disabled` (diset
+    # `setButtonLoading` selama request berjalan) supaya tidak terkirim
+    # dua kali; setelah gagal kotak dikosongkan (onOfflineOtpVerifyResult)
+    # jadi auto-submit baru jalan lagi saat 6 digit baru lengkap.
+    autoSubmitOfflineOtp: =>
+      boxes = @el.querySelectorAll('.js-otp-digit')
+      return if !boxes.length
+      for el in boxes
+        return if !el.value
+      return if @el.querySelector('.js-otp-submit')?.disabled
+      @submitOfflineOtp()
 
     submitOfflineOtp: (event) =>
       event?.preventDefault()

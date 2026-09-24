@@ -3275,6 +3275,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onOfflineOtpVerifyResult = bind(this.onOfflineOtpVerifyResult, this);
       this.showOtpError = bind(this.showOtpError, this);
       this.submitOfflineOtp = bind(this.submitOfflineOtp, this);
+      this.autoSubmitOfflineOtp = bind(this.autoSubmitOfflineOtp, this);
       this.onOtpDigitPaste = bind(this.onOtpDigitPaste, this);
       this.onOtpDigitKeydown = bind(this.onOtpDigitKeydown, this);
       this.onOtpDigitInput = bind(this.onOtpDigitInput, this);
@@ -4703,7 +4704,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (value) {
         nextIndex = parseInt(input.dataset.index, 10) + 1;
         next = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='" + nextIndex + "']");
-        return next != null ? next.focus() : void 0;
+        if (next != null) {
+          next.focus();
+        }
+        return this.autoSubmitOfflineOtp();
       }
     };
 
@@ -4739,7 +4743,28 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return el.value = pasted.charAt(i) || '';
       });
       lastFilled = Math.min(pasted.length, boxes.length) - 1;
-      return (ref2 = boxes[Math.max(lastFilled, 0)]) != null ? ref2.focus() : void 0;
+      if ((ref2 = boxes[Math.max(lastFilled, 0)]) != null) {
+        ref2.focus();
+      }
+      return this.autoSubmitOfflineOtp();
+    };
+
+    ZammadChat.prototype.autoSubmitOfflineOtp = function() {
+      var boxes, el, j, len, ref;
+      boxes = this.el.querySelectorAll('.js-otp-digit');
+      if (!boxes.length) {
+        return;
+      }
+      for (j = 0, len = boxes.length; j < len; j++) {
+        el = boxes[j];
+        if (!el.value) {
+          return;
+        }
+      }
+      if ((ref = this.el.querySelector('.js-otp-submit')) != null ? ref.disabled : void 0) {
+        return;
+      }
+      return this.submitOfflineOtp();
     };
 
     ZammadChat.prototype.submitOfflineOtp = function(event) {
