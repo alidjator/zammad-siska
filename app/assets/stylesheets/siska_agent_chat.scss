@@ -890,6 +890,60 @@ $siska-thumb-h: 180px;
   }
 }
 
+// Kartu gambar: pratinjau di atas + kaki kartu. Putih bergaris untuk
+// customer MAUPUN agent (keputusan user), jadi tidak ikut biru bubble agent.
+.siska-agent .siska-img-card {
+  width: $siska-thumb-w;
+  max-width: 100%;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-sm;
+  background: $siska-card-bg;
+  overflow: hidden;
+
+  .siska-msg-image { border-radius: 0; }
+}
+
+.siska-agent .siska-img-card-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 10px 12px;
+}
+
+.siska-agent .siska-img-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.siska-agent .siska-img-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $siska-body-color;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.siska-agent .siska-img-card-meta {
+  color: $siska-text-secondary;
+  font-size: 12px;
+}
+
+.siska-agent .siska-img-card-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: $siska-radius-sm;
+  color: $siska-secondary;
+
+  &:hover { background: $siska-hover-bg; color: $siska-body-color; }
+}
+
 // Kartu file
 .siska-agent .siska-msg-file {
   display: flex;
