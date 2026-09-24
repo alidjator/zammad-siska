@@ -159,3 +159,4 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 | G6 | Progress unggah agent tanpa persen | Samakan dengan widget |
 | G7 | Tidak ada penanda putus koneksi di jendela chat agent | Banner "Connection lost, reconnecting…" |
 | G8 | Label panel agent masih English | Terjemahan Bahasa Indonesia |
+| B1 | **Bug**: dua lampiran berturut-turut dari agent bisa membatalkan upload pertama (`id: 'chat-attachment-upload'` tetap + `App.Ajax` abort request ber-id sama) | Perbaiki bersama G6 (id unik per upload). Detail: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 8 |

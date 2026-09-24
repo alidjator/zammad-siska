@@ -79,5 +79,38 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | G4 | Pratinjau gambar seragam 240 × 180 | Widget | Terapkan aturan yang sama |
 | G5 | Kartu gambar | Widget | Terapkan, atau putuskan tetap ringkas di widget yang sempit |
 | G6 | Progress unggah dengan persen | Agent | Samakan dengan widget (XHR `upload.onprogress`) |
-| G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` |
-| G8 | Bahasa label panel agent | Agent | Terjemahan Bahasa Indonesia untuk string baru |
+| G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` — **direvisi di audit (bagian 8): lebih kecil** |
+| G8 | Bahasa label panel agent | Agent | Terjemahan Bahasa Indonesia untuk string baru — **direvisi di audit (bagian 8): locale `id` belum aktif** |
+
+## 8. Hasil audit G1–G8 (2026-09-25)
+
+Setiap gap diperiksa ulang ke kode (termasuk bawaan Zammad). Dua gap
+**direvisi** (G7, G8) dan satu **bug baru** ditemukan saat mengaudit G6.
+Ukuran: S = kecil, M = sedang, L = besar.
+
+| # | Hasil verifikasi | Akar masalah & perubahan yang dibutuhkan | Ukuran | Prioritas |
+|---|---|---|---|---|
+| G1 | Terkonfirmasi | Kolom `chat_messages.read_at` sudah ada, tetapi hanya diisi untuk pesan customer; `chat_session_message_read.rb` menolak pengirim non-agent (`return if !@session`). **Backend:** jalur customer (cek participant seperti `chat_session_reaction.rb`) yang menandai pesan agent + field `reader` di broadcast. **Widget:** kirim event saat pesan agent benar-benar terlihat (panel terbuka, tab aktif, dokumen tidak tersembunyi); abaikan broadcast yang berasal dari tab customer lain. **Agent:** centang terkirim/dibaca di bubble agent, kondisi awal dari `read_at` (percakapan & riwayat) | M | Tinggi |
+| G2 | Terkonfirmasi | Hanya frontend agent: item "Copy" di menu titik tiga, `navigator.clipboard.writeText` + fallback, notifikasi "Copied" | S | Sedang |
+| G3 | Terkonfirmasi, **butuh keputusan** | `customer_reaction` hanya berlaku untuk pesan agent. Reaksi agent ke pesan customer butuh kolom baru (migrasi, mis. `agent_reaction`), backend menerima reaksi dari sesi agent, chip reaksi di bubble customer pada widget, emoji di menu agent | M–L | Rendah (kecuali diinginkan) |
+| G4 | Terkonfirmasi | Widget: `.zammad-chat-image-open` lebar 220px, `.zammad-chat-image-thumb` `height: auto` (min 120px, maks 280px) → tinggi berubah-ubah. Cukup CSS + placeholder unggah berukuran sama. Panel widget 380px → **keputusan ukuran**: 240 × 180 (sama dgn agent) atau 220 × 165 (menyesuaikan lebar bubble widget) | S | Sedang |
+| G5 | Terkonfirmasi, **tarik-menarik desain** | Widget menumpuk jam + centang biru di atas gambar (gaya WhatsApp). Kartu berarti memindahkannya ke kaki kartu; di panel sempit nama file gambar kiriman sendiri kurang berguna | M | Butuh keputusan |
+| G6 | Terkonfirmasi + **bug** | `App.Ajax.request` meneruskan parameter apa adanya ke `$.ajax`, jadi opsi `xhr` (`upload.onprogress`) bisa dipakai → placeholder dgn bar persen seperti widget. **Bug (B1):** upload memakai `id: 'chat-attachment-upload'` tetap, dan `App.Ajax.request` memanggil `@abort(id)` untuk request lama ber-id sama → dua lampiran yang dikirim berturut-turut sebelum yang pertama selesai bisa membuat upload pertama terputus | S–M | **Tinggi** (karena B1) |
+| G7 | **Direvisi: lebih kecil** | Zammad sudah menampilkan modal global "Lost network connection! Trying to reconnect…" 7 detik setelah koneksi putus (`websocket.coffee`), dan `App.WebSocket.send` **mengantrekan** pesan selama putus lalu mengirimnya saat tersambung → tidak ada pesan yang hilang. Sisa gap kosmetik: 7 detik pertama tanpa penanda, modal menutup seluruh layar | S | Rendah |
+| G8 | **Direvisi: lebih besar** | Locale Indonesia **belum aktif** (`Locale` aktif tidak memuat `id`; 0 baris `Translation` untuk `id`); semua agent `en-us`. `i18n/zammad.id.po` sudah 96% (4.104 / 4.261 string). Menerjemahkan label chat saja tidak berefek selama agent memakai locale English | M | Butuh keputusan |
+
+### Keputusan yang dibutuhkan
+
+1. **G3:** perlukah agent bisa bereaksi ke pesan customer?
+2. **G4:** ukuran gambar widget 240 × 180 atau 220 × 165?
+3. **G5:** widget memakai kartu gambar, atau tetap gaya WhatsApp (jam + centang di atas gambar)?
+4. **G8:** (a) aktifkan locale Indonesia + terjemahkan string baru redesign (**usulan**), atau (b) tulis langsung Bahasa Indonesia di panel chat saja (lebih cepat, mematikan i18n, tidak konsisten dgn bagian Zammad lain).
+
+### Urutan kerja yang diusulkan
+
+1. G6 + perbaikan B1 (upload paralel)
+2. G2
+3. G1
+4. G4 (setelah ukuran diputuskan)
+5. G8, G5, G3 (setelah diputuskan)
+6. G7
