@@ -96,6 +96,7 @@ return is sent as message back to peer
     chat_phrase_messages_compose_placeholder
     chat_phrase_messages_reply_prefix
     chat_phrase_messages_welcome_greeting
+    chat_phrase_messages_closing_greeting
     chat_phrase_otp_title
     chat_phrase_otp_subtitle_prefix
     chat_phrase_otp_incomplete_error

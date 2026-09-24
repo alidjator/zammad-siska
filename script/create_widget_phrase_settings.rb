@@ -122,6 +122,11 @@ upsert_phrase('chat_phrase_messages_reply_prefix', 'Messages: Prefix indikator b
 # `onReopenSession` di chat.coffee/chat-no-jquery.coffee), supaya tidak
 # menyapa ulang di tengah percakapan yg sudah berjalan.
 upsert_phrase('chat_phrase_messages_welcome_greeting', 'Messages: Sapaan otomatis dari agent saat baru tersambung', 'Hi! How can I help you today?')
+# Atas permintaan user (mockup "Closing greeting"): pasangan welcome
+# greeting -- salam penutup dari agent, disuntik widget tepat SEBELUM baris
+# status "Chat closed by ..." saat AGENT menutup chat (sama dgn pemicu
+# kartu rating). Kosongkan utk menonaktifkan.
+upsert_phrase('chat_phrase_messages_closing_greeting', 'Messages: Salam penutup dari agent saat agent menutup chat', 'Thanks for chatting with us! Feel free to reach out again anytime.')
 
 puts '== Verifikasi OTP =='
 upsert_phrase('chat_phrase_otp_title', 'OTP: Judul', 'Enter verification code')

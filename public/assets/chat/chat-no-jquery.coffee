@@ -3342,6 +3342,10 @@ do(window) ->
       @disableInput()
 
     onSessionClosed: (data) =>
+      # Salam penutup (mockup "Closing greeting") -- HANYA saat agent yg
+      # menutup chat (pemicu sama dgn kartu rating di bawah), tepat
+      # sebelum baris status.
+      @showClosingGreeting() if data.closed_by_agent and @sessionId
       @addStatus @T('Chat closed by %s', data.realname)
       @disableComposeInput()
       @setAgentOnlineState 'offline'
@@ -3449,6 +3453,18 @@ do(window) ->
         message: greeting
         from: 'agent'
         time: @formatTime(createdAt)
+
+    # Pasangan `showWelcomeGreeting`: bubble agent yg cuma disuntik widget
+    # (tanpa `id` -> tanpa menu bubble), teks dari setting
+    # `chat_phrase_messages_closing_greeting`; kosong -> tidak dirender.
+    showClosingGreeting: =>
+      greeting = @phrases['chat_phrase_messages_closing_greeting']
+      return if !greeting
+      @maybeAddTimestamp()
+      @renderMessage
+        message: greeting
+        from: 'agent'
+        time: @formatTime()
 
     showCustomerTimeout: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('customer_timeout')

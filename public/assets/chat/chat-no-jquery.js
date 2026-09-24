@@ -3790,6 +3790,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.setAgentOnlineState = bind(this.setAgentOnlineState, this);
       this.updatePhrases = bind(this.updatePhrases, this);
       this.updateHomeLogo = bind(this.updateHomeLogo, this);
+      this.showClosingGreeting = bind(this.showClosingGreeting, this);
       this.showWelcomeGreeting = bind(this.showWelcomeGreeting, this);
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
@@ -6628,6 +6629,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.onSessionClosed = function(data) {
       var base;
+      if (data.closed_by_agent && this.sessionId) {
+        this.showClosingGreeting();
+      }
       this.addStatus(this.T('Chat closed by %s', data.realname));
       this.disableComposeInput();
       this.setAgentOnlineState('offline');
@@ -6728,6 +6732,20 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         message: greeting,
         from: 'agent',
         time: this.formatTime(createdAt)
+      });
+    };
+
+    ZammadChat.prototype.showClosingGreeting = function() {
+      var greeting;
+      greeting = this.phrases['chat_phrase_messages_closing_greeting'];
+      if (!greeting) {
+        return;
+      }
+      this.maybeAddTimestamp();
+      return this.renderMessage({
+        message: greeting,
+        from: 'agent',
+        time: this.formatTime()
       });
     };
 
