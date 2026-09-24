@@ -2329,6 +2329,7 @@ do(window) ->
       @body.insertAdjacentHTML 'beforeend', @view('image_upload')(
         uploadId: uploadId
         previewUrl: @imageUploadUrls[uploadId]
+        filename: file.name
       )
       @scrollToBottom showHint: true
       uploadId

@@ -155,7 +155,7 @@ Sumber: `docs/COMPARISON_WIDGET_VS_AGENT.md` bagian 7.
 | G2 | Copy teks pesan tidak ada di agent | ✅ **Selesai** 2026-09-25 |
 | G3 | Reaksi emoji hanya satu arah (customer → agent) | ✅ **Selesai** 2026-09-25 (keputusan user: perlu) |
 | G4 | Pratinjau gambar di widget belum seragam 240 × 180 | ✅ **Selesai** 2026-09-25 |
-| G5 | Kartu gambar belum ada di widget | Terapkan, atau putuskan tetap ringkas |
+| G5 | Kartu gambar belum ada di widget | ✅ **Selesai** 2026-09-25 |
 | G6 | Progress unggah agent tanpa persen | ✅ **Selesai** 2026-09-25 |
 | G7 | Tidak ada penanda putus koneksi di jendela chat agent | Banner "Connection lost, reconnecting…" |
 | G8 | Label panel agent masih English | Terjemahan Bahasa Indonesia |

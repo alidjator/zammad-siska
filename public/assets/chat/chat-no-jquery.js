@@ -1067,7 +1067,7 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<!-- G5 (keputusan user: kartu): gambar sebagai KARTU, sama dgn panel agent --\n     pratinjau 240x180 crop penuh di atas, kaki kartu berisi nama file,\n     "tipe · ukuran · jam" (+ centang utk pesan sendiri) dan tombol unduh.\n     Jam & centang dipindah dari atas gambar ke kaki kartu. -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -1081,7 +1081,7 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
         __out.push('"');
       }
     
-      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><button type="button" class="zammad-chat-image-open js-image-open" aria-label="');
+      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image zammad-chat-image-card"><button type="button" class="zammad-chat-image-open js-image-open" aria-label="');
     
       __out.push(this.T('View image'));
     
@@ -1121,11 +1121,28 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
     
       __out.push('<span class="zammad-chat-image-fallback-name">');
     
+      __out.push(this.T('Image unavailable'));
+    
+      __out.push('</span></span></button><span class="zammad-chat-image-card-foot"><span class="zammad-chat-image-card-text"><span class="zammad-chat-image-card-name" title="');
+    
       __out.push(__sanitize(this.filename));
     
-      __out.push('</span></span><span class="zammad-chat-image-meta">');
+      __out.push('">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-image-card-meta">');
+    
+      if (this.metaLabel) {
+        __out.push(__sanitize(this.metaLabel));
+        __out.push(' · ');
+      }
+    
+      __out.push('<span class="zammad-chat-message-time">');
     
       __out.push(__sanitize(this.time));
+    
+      __out.push('</span>');
     
       if (this.from === 'customer') {
         __out.push('<span class="zammad-chat-message-status zammad-chat-message-status--');
@@ -1137,7 +1154,27 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
         __out.push('</span>');
       }
     
-      __out.push('</span></button>');
+      __out.push('</span></span><a class="zammad-chat-image-card-download" href="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?disposition=attachment" download="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" target="_blank" rel="noopener" aria-label="');
+    
+      __out.push(this.T('Download'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">');
+    
+      __out.push(this.icon('download-simple', 18));
+    
+      __out.push('</a></span>');
     
       if (this.from === 'agent' && this.id) {
         __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
@@ -1206,7 +1243,7 @@ window.zammadChatTemplates["image_upload"] = function(__obj) {
     
       __out.push(__sanitize(this.uploadId));
     
-      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><span class="zammad-chat-image-open zammad-chat-image-open--uploading"><img class="zammad-chat-image-thumb" src="');
+      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image zammad-chat-image-card"><span class="zammad-chat-image-open zammad-chat-image-open--uploading"><img class="zammad-chat-image-thumb" src="');
     
       __out.push(__sanitize(this.previewUrl));
     
@@ -1214,11 +1251,19 @@ window.zammadChatTemplates["image_upload"] = function(__obj) {
     
       __out.push(this.T('Uploading…'));
     
-      __out.push('</span></span></span><span class="zammad-chat-image-progress js-image-progress">');
+      __out.push('</span></span></span><span class="zammad-chat-image-card-foot"><span class="zammad-chat-image-card-text"><span class="zammad-chat-image-card-name" title="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-image-card-meta js-image-progress">');
     
       __out.push(this.T('Uploading…'));
     
-      __out.push(' 0%</span></span></span>\n</div>\n');
+      __out.push(' 0%</span></span></span></span></span>\n</div>\n');
     
     }).call(this);
     
@@ -5570,7 +5615,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.lastAddedType = 'message--customer';
       this.body.insertAdjacentHTML('beforeend', this.view('image_upload')({
         uploadId: uploadId,
-        previewUrl: this.imageUploadUrls[uploadId]
+        previewUrl: this.imageUploadUrls[uploadId],
+        filename: file.name
       }));
       this.scrollToBottom({
         showHint: true
