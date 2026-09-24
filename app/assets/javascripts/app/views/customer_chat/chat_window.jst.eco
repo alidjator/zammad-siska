@@ -100,30 +100,6 @@
   </div>
 </div>
 <div class="chat-reply-indicator js-replyIndicator hidden"></div>
-<% if @siska: %>
-<!-- Redesign sisi agent (Tahap 2): area ketik gaya kit. Kelas js-* tetap
-     sama dgn versi lama supaya handler ChatWindow (kirim, text module,
-     lampiran) tidak berubah; App.MyChat tetap memakai blok else. -->
-<div class="siska-composer">
-  <div class="siska-composer-input js-customerChatInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="<%- @Ti('Reply') %>" data-placeholder="<%- @Ti('Type a reply…') %>"></div>
-  <div class="siska-composer-bar">
-    <div class="siska-composer-emoji">
-      <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-emojiToggle" aria-label="<%- @Ti('Emoji') %>" aria-haspopup="true" aria-expanded="false"><%- @SiskaIcon('smiley', 20, tone: 'active') %></button>
-      <div class="s-menu siska-emoji-picker js-emojiPicker hidden" role="group" aria-label="<%- @Ti('Emoji') %>">
-        <% for item in App.SiskaFormat.EMOJI: %>
-          <button type="button" class="siska-emoji-item js-emojiItem" data-emoji="<%= item[0] %>" aria-label="<%= item[1] %>"><%= item[0] %></button>
-        <% end %>
-      </div>
-    </div>
-    <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-imageButton js-attachOnly" aria-label="<%- @Ti('Send image') %>"><%- @SiskaIcon('image', 20) %></button>
-    <input type="file" class="js-imageInput hidden" accept="image/jpeg,image/png,image/gif,image/webp">
-    <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-attachButton js-attachOnly" aria-label="<%- @Ti('Attach file') %>"><%- @SiskaIcon('paperclip', 20) %></button>
-    <input type="file" class="js-attachmentInput hidden">
-    <span class="siska-composer-status s-small s-muted js-uploadStatus" role="status"></span>
-    <button type="button" class="s-btn s-btn-primary s-btn-icon siska-composer-send js-send" aria-label="<%- @Ti('Send') %>"><%- @SiskaIcon('paper-plane-right', 18) %></button>
-  </div>
-</div>
-<% else: %>
 <div class="chat-controls">
   <div class="chat-attach js-attachButton">
     <%- @Icon('paperclip') %>
@@ -134,4 +110,3 @@
   </div>
   <div class="btn btn--primary btn--slim btn--small js-send"><%- @T('Send') %></div>
 </div>
-<% end %>

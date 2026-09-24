@@ -208,6 +208,14 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
     &:hover { background: $siska-secondary; color: #fff; }
   }
 
+  .s-btn-outline-danger {
+    border-color: $siska-danger;
+    background: #fff;
+    color: $siska-danger;
+
+    &:hover { background: $siska-danger; color: #fff; }
+  }
+
   .s-btn-link {
     color: $siska-secondary;
 
@@ -632,7 +640,6 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   min-width: 0;
   min-height: 0;
   position: relative;
-  overflow: hidden;
 
   @include phone {
     min-height: 60vh;
@@ -688,10 +695,12 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   &.is-open { opacity: 1; padding: 0; }
   &.is-selected { visibility: visible; z-index: 1; }
 
-  .chat-header {
-    border: 0;
-    border-bottom: 1px solid $siska-border;
-    border-radius: 0;
+  // Tahap 3: jendela = kartu percakapan + kartu profil (opsional)
+  &.siska-chat-window {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+    overflow: visible;
   }
 
   .chat-body-holder {
@@ -1221,4 +1230,296 @@ $siska-shadow-pop: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
   border-radius: 4px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   object-fit: contain;
+}
+
+// ---------------------------------------------------------------------
+// Tahap 3 -- header percakapan & panel "Profile & history".
+// ---------------------------------------------------------------------
+.siska-agent .siska-conv {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.siska-agent .siska-conv-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid $siska-border;
+}
+
+.siska-agent .siska-conv-avatar {
+  font-size: 13px;
+
+  &[data-status='offline'] {
+    background: $siska-secondary-tint;
+    color: $siska-secondary;
+
+    .s-avatar-dot { display: none; }
+  }
+}
+
+.siska-agent .siska-conv-title { min-width: 0; }
+
+.siska-agent .siska-conv-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $siska-headings;
+  font-weight: 600;
+}
+
+.siska-agent .siska-conv-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $siska-text-secondary;
+  font-size: 12px;
+}
+
+.siska-agent .siska-conv-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
+
+  > .s-btn-icon,
+  .siska-conv-transfer > .s-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: $siska-radius;
+  }
+
+  .js-toggleProfile.is-active {
+    background: $siska-hover-bg;
+    color: $siska-primary;
+  }
+
+  .s-btn-sm { padding: 6px 14px; }
+  .is-hidden, .hidden { display: none; }
+}
+
+.siska-agent .siska-conv-actions-gap { width: 8px; }
+
+.siska-agent .siska-conv-transfer { position: relative; }
+
+.siska-agent .siska-conv-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 3;
+  min-width: 200px;
+  padding: 8px;
+
+  &.hidden { display: none; }
+}
+
+// Panel profil
+.siska-agent .siska-profile {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &.hidden { display: none; }
+
+  @include phone {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    width: auto;
+  }
+}
+
+// daftar dibuat lebih ramping saat panel profil terbuka (mockup)
+.siska-agent .siska-chat-layout:has(.siska-chat-window.is-selected.has-profile) .siska-chat-list {
+  width: 280px;
+}
+
+.siska-agent .siska-profile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid $siska-border;
+}
+
+.siska-agent .siska-profile-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.siska-agent .siska-profile-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+
+  .s-avatar-lg { font-size: 21px; }
+}
+
+.siska-agent .siska-profile-name { margin-top: 8px; overflow-wrap: anywhere; }
+.siska-agent .siska-profile-email { font-size: 13px; overflow-wrap: anywhere; }
+
+.siska-agent .siska-profile-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 10px;
+  border-radius: $siska-radius-pill;
+  background: $siska-success-tint;
+  color: $siska-success-700;
+  font-size: 12px;
+  font-weight: 500;
+
+  > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 100%;
+    background: $siska-success;
+  }
+
+  &.is-ended {
+    background: $siska-secondary-tint;
+    color: $siska-secondary;
+
+    > span { background: $siska-secondary; }
+  }
+}
+
+.siska-agent .siska-profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  border-radius: $siska-radius-sm;
+  background: $siska-body-bg;
+}
+
+.siska-agent .siska-profile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+
+  dt { color: $siska-text-secondary; font-weight: 400; }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: $siska-body-color;
+    text-align: right;
+  }
+
+  a { color: $siska-primary; text-decoration: none; }
+}
+
+.siska-agent .siska-profile-edit {
+  font-size: 13px;
+
+  summary {
+    color: $siska-primary;
+    cursor: pointer;
+  }
+
+  form { margin-top: 12px; }
+}
+
+// Kartu riwayat (klik = buka transkrip lengkap)
+.siska-agent .siska-history {
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-sm;
+
+  &[open] { border-color: $siska-input-border; }
+}
+
+.siska-agent .siska-history-summary {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  list-style: none;
+  cursor: pointer;
+
+  &::-webkit-details-marker { display: none; }
+}
+
+.siska-agent .siska-history-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.siska-agent .siska-history-date {
+  color: $siska-headings;
+  font-weight: 600;
+}
+
+.siska-agent .siska-history-snippet {
+  margin: 6px 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $siska-text-secondary;
+  font-size: 13px;
+}
+
+.siska-agent .siska-history-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.siska-agent .siska-history-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $siska-primary;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.siska-agent .siska-rating {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.siska-agent .siska-rating-heart {
+  display: inline-flex;
+  color: $siska-input-border;
+
+  &.is-on { color: $siska-danger; }
+}
+
+.siska-agent .siska-history-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 14px 12px;
+  border-top: 1px solid $siska-border;
+  list-style: none;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+
+  p { display: inline; margin: 0; }
+  .is-agent strong { color: $siska-primary; }
 }

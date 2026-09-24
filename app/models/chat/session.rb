@@ -482,10 +482,29 @@ class Chat::Session < ApplicationModel
       }
     end
 
-    {
+    entry = {
       created_at: created_at,
       ticket_id:  ticket_id,
       messages:   messages,
     }
+
+    # Redesign sisi agent (Tahap 3) -- kartu "Riwayat chat sebelumnya" di
+    # panel profil: nama agent yang melayani, cuplikan pesan terakhir, &
+    # nomor tiket (bukan id). Rating CSAT (tersimpan di tiket, lihat
+    # chat_session_feedback_submit.rb) HANYA disertakan kalau Setting
+    # `chat_agent_show_rating` menyala -- kalau dimatikan admin, nilainya
+    # tidak pernah dikirim ke browser agent sama sekali.
+    entry[:agent_name] = User.lookup(id: user_id)&.fullname if user_id
+    last = messages.reverse.find { |message| message[:content].present? && message[:content] != '[attachment]' }
+    entry[:snippet] = last && ActionController::Base.helpers.strip_tags(last[:content]).squish.truncate(120)
+    ticket = self.ticket
+    if ticket
+      entry[:ticket_number] = ticket.number
+      if Setting.get('chat_agent_show_rating') && ticket.try(:csat_score).present?
+        entry[:csat_score]   = ticket.csat_score
+        entry[:csat_comment] = ticket.csat_comment
+      end
+    end
+    entry
   end
 end

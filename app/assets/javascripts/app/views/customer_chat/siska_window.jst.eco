@@ -1,0 +1,145 @@
+<!-- Redesign sisi agent (Tahap 3): jendela chat varian kit = kartu
+     percakapan (header, pesan, area ketik) + kartu "Profile & history"
+     di kanan. Kelas js-* yang dipakai ChatWindow (js-status, js-name,
+     js-disconnect, js-close, js-body, js-scrollHolder, js-metaForm, dst)
+     sama dgn chat_window.jst.eco supaya logikanya tidak bercabang. -->
+<div class="s-card siska-conv">
+  <div class="siska-conv-header">
+    <span class="s-avatar siska-conv-avatar js-status" data-status="online" aria-hidden="true">
+      <%= @initials %>
+      <span class="s-avatar-dot"></span>
+    </span>
+    <div class="siska-conv-title">
+      <div class="siska-conv-name"><span class="js-name"><%= @name %></span></div>
+      <div class="siska-conv-sub"><%= @subline %></div>
+    </div>
+    <div class="siska-conv-actions">
+      <% if @session.ticket_id: %>
+        <button type="button" class="s-btn s-btn-link s-btn-icon js-openPreviousTicket" data-ticket-id="<%= @session.ticket_id %>" aria-label="<%- @Ti('Open ticket') %>" title="<%- @Ti('Open ticket') %>"><%- @SiskaIcon('ticket', 20) %></button>
+      <% end %>
+      <% if @transferChats.length: %>
+        <div class="siska-conv-transfer js-msgMenu">
+          <button type="button" class="s-btn s-btn-link s-btn-icon js-msgMenuToggle js-onlineOnly" aria-label="<%- @Ti('Transfer to another topic') %>" title="<%- @Ti('Transfer to another topic') %>" aria-haspopup="menu" aria-expanded="false"><%- @SiskaIcon('arrows-left-right', 20) %></button>
+          <div class="s-menu siska-conv-menu hidden" role="menu" aria-label="<%- @Ti('Transfer to another topic') %>">
+            <% for chat in @transferChats: %>
+              <button type="button" class="s-menu-item js-transferChat" role="menuitem" data-chat-id="<%= chat.id %>"><%= chat.name %></button>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <button type="button" class="s-btn s-btn-link s-btn-icon js-toggleProfile" aria-label="<%- @Ti('Profile & history') %>" title="<%- @Ti('Profile & history') %>" aria-expanded="false"><%- @SiskaIcon('user-circle', 20, tone: 'active') %></button>
+      <span class="siska-conv-actions-gap"></span>
+      <button type="button" class="s-btn s-btn-outline-danger s-btn-sm js-disconnect"><%- @SiskaIcon('sign-out', 16) %><%- @T('End chat') %></button>
+      <button type="button" class="s-btn s-btn-outline s-btn-sm js-close is-hidden"><%- @SiskaIcon('x', 16) %><%- @T('Close') %></button>
+    </div>
+  </div>
+  <div class="chat-scroll-hint js-scrollHint is-hidden">
+    <%- @Icon('chat') %>
+    <%- @T('Scroll down to see new messages') %>
+  </div>
+  <div class="chat-body-holder js-scrollHolder">
+    <div class="chat-body js-body"></div>
+  </div>
+  <div class="chat-reply-indicator js-replyIndicator hidden"></div>
+<div class="siska-composer">
+  <div class="siska-composer-input js-customerChatInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="<%- @Ti('Reply') %>" data-placeholder="<%- @Ti('Type a reply…') %>"></div>
+  <div class="siska-composer-bar">
+    <div class="siska-composer-emoji">
+      <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-emojiToggle" aria-label="<%- @Ti('Emoji') %>" aria-haspopup="true" aria-expanded="false"><%- @SiskaIcon('smiley', 20, tone: 'active') %></button>
+      <div class="s-menu siska-emoji-picker js-emojiPicker hidden" role="group" aria-label="<%- @Ti('Emoji') %>">
+        <% for item in App.SiskaFormat.EMOJI: %>
+          <button type="button" class="siska-emoji-item js-emojiItem" data-emoji="<%= item[0] %>" aria-label="<%= item[1] %>"><%= item[0] %></button>
+        <% end %>
+      </div>
+    </div>
+    <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-imageButton js-attachOnly" aria-label="<%- @Ti('Send image') %>"><%- @SiskaIcon('image', 20) %></button>
+    <input type="file" class="js-imageInput hidden" accept="image/jpeg,image/png,image/gif,image/webp">
+    <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-attachButton js-attachOnly" aria-label="<%- @Ti('Attach file') %>"><%- @SiskaIcon('paperclip', 20) %></button>
+    <input type="file" class="js-attachmentInput hidden">
+    <span class="siska-composer-status s-small s-muted js-uploadStatus" role="status"></span>
+    <button type="button" class="s-btn s-btn-primary s-btn-icon siska-composer-send js-send" aria-label="<%- @Ti('Send') %>"><%- @SiskaIcon('paper-plane-right', 18) %></button>
+  </div>
+</div>
+</div>
+
+<aside class="s-card siska-profile js-profile hidden" aria-label="<%- @Ti('Profile & history') %>">
+  <div class="siska-profile-head">
+    <span class="s-h3"><%- @T('Profile & history') %></span>
+    <button type="button" class="s-btn s-btn-link s-btn-icon s-btn-sm js-toggleProfile" aria-label="<%- @Ti('Close panel') %>"><%- @SiskaIcon('x', 18) %></button>
+  </div>
+  <div class="siska-profile-body">
+    <div class="siska-profile-person">
+      <span class="s-avatar s-avatar-lg" aria-hidden="true"><%= @initials %></span>
+      <div class="s-h2 siska-profile-name js-name"><%= @name %></div>
+      <% if @session.email: %><div class="s-muted siska-profile-email"><%= @session.email %></div><% end %>
+      <span class="siska-profile-state js-profileState"><span></span><%- @T('Online') %></span>
+    </div>
+
+    <dl class="siska-profile-details">
+      <% for row in @details: %>
+        <div class="siska-profile-row">
+          <dt><%- @T(row.label) %></dt>
+          <dd>
+            <% if row.ticketId: %>
+              <a href="#" class="js-openPreviousTicket" data-ticket-id="<%= row.ticketId %>"><span class="js-ticketNumber"><%= row.value %></span></a>
+            <% else: %>
+              <span<% if row.title: %> title="<%= row.title %>"<% end %>><%= row.value %></span>
+            <% end %>
+          </dd>
+        </div>
+      <% end %>
+    </dl>
+
+    <details class="siska-profile-edit">
+      <summary><%- @T('Edit name & tags') %></summary>
+      <form class="js-metaForm"></form>
+    </details>
+
+    <div>
+      <div class="s-h3"><%- @T('Previous chats') %></div>
+      <div class="s-muted s-small">
+        <% if @previousSessions.length: %>
+          <%- @T('%s conversations from this email', @previousSessions.length) %>
+        <% else: %>
+          <%- @T('No earlier conversations from this email') %>
+        <% end %>
+      </div>
+    </div>
+
+    <% for previous in @previousSessions: %>
+      <details class="siska-history">
+        <summary class="siska-history-summary">
+          <span class="siska-history-top">
+            <span class="siska-history-date"><%= previous.dateLabel %></span>
+            <% if previous.agent_name: %><span class="s-muted"><%= previous.agent_name %></span><% end %>
+          </span>
+          <% if previous.snippet: %><span class="siska-history-snippet">“<%= previous.snippet %>”</span><% end %>
+          <span class="siska-history-bottom">
+            <% if @showRating && previous.csat_score: %>
+              <span class="siska-rating" role="img" aria-label="<%- @Ti('Rating %s of 5', previous.csat_score) %>" title="<%= previous.csat_comment || '' %>">
+                <% for n in [1..5]: %><span class="siska-rating-heart<%= ' is-on' if n <= previous.csat_score %>"><%- @SiskaIcon('heart', 14, tone: 'full') %></span><% end %>
+              </span>
+            <% else: %>
+              <span></span>
+            <% end %>
+            <% if previous.ticket_id: %>
+              <a href="#" class="siska-history-ticket js-openPreviousTicket" data-ticket-id="<%= previous.ticket_id %>"><%- @T('Ticket #%s', previous.ticket_number || previous.ticket_id) %><%- @SiskaIcon('arrow-square-out', 14) %></a>
+            <% end %>
+          </span>
+        </summary>
+        <ul class="siska-history-transcript">
+          <% if previous.messages && previous.messages.length: %>
+            <% for message in previous.messages: %>
+              <li class="<%= if message.is_from_agent then 'is-agent' else 'is-customer' %>">
+                <strong><%- if message.is_from_agent then @T('Agent') else @T('Customer') %>:</strong>
+                <%- message.content %>
+              </li>
+            <% end %>
+          <% else: %>
+            <li class="s-muted"><%- @T('(no messages)') %></li>
+          <% end %>
+        </ul>
+      </details>
+    <% end %>
+  </div>
+</aside>

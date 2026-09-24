@@ -477,6 +477,7 @@ class App.ChatWindow extends App.Controller
     'click .js-emojiToggle':         'toggleEmojiPicker'
     'click .js-emojiItem':           'insertEmoji'
     'keydown':                       'onWindowKeydown'
+    'click .js-toggleProfile':       'toggleProfile'
 
   elements:
     '.js-customerChatInput':         'input'
@@ -493,6 +494,7 @@ class App.ChatWindow extends App.Controller
     '.js-attachmentInput':           'attachmentInput'
     '.js-imageInput':                'imageInput'
     '.js-uploadStatus':              'uploadStatus'
+    '.js-profile':                   'profile'
 
   sounds:
     message: new Audio('assets/sounds/chat_message.mp3')
@@ -629,14 +631,17 @@ class App.ChatWindow extends App.Controller
       @metaName.text(params.name)
 
   render: ->
-    @html App.view('customer_chat/chat_window')(
-      name: @name
-      session: @session
-      chats: App.Chat.all()
-      previousSessions: @session.previous_sessions
-      siska: @siska
-    )
-    @el.addClass('siska-chat-window') if @siska
+    if @siska
+      @html App.view('customer_chat/siska_window')(@siskaWindowParams())
+      @el.addClass('siska-chat-window')
+      @loadTicketNumber()
+    else
+      @html App.view('customer_chat/chat_window')(
+        name: @name
+        session: @session
+        chats: App.Chat.all()
+        previousSessions: @session.previous_sessions
+      )
 
     @el.one('transitionend', @onTransitionend)
     @scrollHolder.on('scroll', @detectScrolledtoBottom)
@@ -882,7 +887,7 @@ class App.ChatWindow extends App.Controller
       )
       @delay(send, delay)
 
-    @hideMeta()
+    @hideMeta() if !@siska
     @pendingCounter += 1
     pendingId = "p#{@pendingCounter}"
     @pendingMessages.push(pendingId)
@@ -958,6 +963,60 @@ class App.ChatWindow extends App.Controller
       )
 
     @scrollToBottom(showHint: true)
+
+  # Redesign sisi agent (Tahap 3) -- parameter header percakapan & panel
+  # "Profile & history" (template siska_window).
+  siskaWindowParams: =>
+    session = @session
+    prefs = session.preferences || {}
+    started = App.SiskaFormat.time(session.created_at)
+    details = []
+    details.push(label: __('Category'), value: session.category) if session.category
+    details.push(label: __('Session'), value: _.compact(["##{session.id}", (App.i18n.translatePlain('started %s', started) if started)]).join(' · '))
+    details.push(label: __('Ticket'), value: '…', ticketId: session.ticket_id) if session.ticket_id
+    if prefs.url
+      page = String(prefs.url).split('?')[0].replace(/\/+$/, '').split('/').pop() || prefs.url
+      details.push(label: __('Page'), value: page, title: prefs.url)
+    geo = _.compact([prefs.geo_ip?.city_name, prefs.geo_ip?.country_name]).join(', ')
+    details.push(label: __('Location'), value: geo) if geo
+    details.push(label: __('IP'), value: prefs.remote_ip) if prefs.remote_ip
+
+    previous = for entry in (session.previous_sessions || [])
+      _.extend({}, entry, dateLabel: App.i18n.translateTimestamp(entry.created_at))
+
+    name:             @name
+    session:          session
+    initials:         App.SiskaFormat.initials(@name)
+    subline:          _.compact([session.email, session.category, App.i18n.translatePlain('session #%s', session.id)]).join(' · ')
+    transferChats:    ({ id: chat.id, name: chat.displayName() } for chat in App.Chat.all() when chat.id isnt session.chat_id)
+    details:          details
+    previousSessions: previous
+    showRating:       App.Config.get('chat_agent_show_rating') isnt false
+
+  # Nomor tiket (bukan id) utk baris "Ticket" di panel profil.
+  loadTicketNumber: =>
+    ticketId = @session.ticket_id
+    return if !ticketId
+    show = (ticket) =>
+      @$('.js-ticketNumber').text("##{ticket.number}") if ticket?.number
+    if App.Ticket.exists(ticketId)
+      show(App.Ticket.find(ticketId))
+    else
+      App.Ticket.full(ticketId, show)
+
+  toggleProfile: (e) =>
+    e?.preventDefault()
+    open = @profile.hasClass('hidden')
+    @profile.toggleClass('hidden', !open)
+    @el.toggleClass('has-profile', open)
+    @$('.siska-conv-actions .js-toggleProfile').attr('aria-expanded', String(open)).toggleClass('is-active', open)
+    if open
+      @profile.find('.js-toggleProfile').trigger('focus')
+    else
+      # simpan perubahan nama/tag, sama seperti saat panel meta lama ditutup
+      @sendMetaForm()
+      @$('.siska-conv-actions .js-toggleProfile').trigger('focus')
+    @trigger('layout-changed')
 
   # Parameter template `siska_message`. `pendingId` dipakai untuk pesan
   # agent yang dirender optimis sebelum server membalas dengan id-nya
@@ -1244,6 +1303,9 @@ class App.ChatWindow extends App.Controller
   goOffline: =>
     @isOffline = true
     @changeCallback?(@session.session_id)
+    if @siska
+      @$('.js-onlineOnly').addClass('hidden')
+      @$('.js-profileState').addClass('is-ended').contents().last().replaceWith(App.i18n.translatePlain('Ended'))
     @status.attr('data-status', 'offline')
     @disconnectButton.addClass 'is-hidden'
     @closeButton.removeClass 'is-hidden'

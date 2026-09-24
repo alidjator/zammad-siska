@@ -147,4 +147,32 @@ Setting.create_if_not_exists(
   frontend:    true,
 )
 
+puts '== Setting: chat_agent_show_rating =='
+# Redesign sisi agent (Tahap 3/4) -- keputusan user: rating customer
+# "configurable, bisa disetting.. default true/tampil di agent".
+Setting.create_if_not_exists(
+  title:       'Live Chat: Show Customer Rating to Agents',
+  name:        'chat_agent_show_rating',
+  area:        'SISKA::LiveChat',
+  description: 'Tampilkan rating kepuasan (CSAT) & komentar customer ke agent di panel chat: riwayat chat sebelumnya dan kartu rating saat chat berakhir. Kalau dimatikan, rating tetap tersimpan di tiket & laporan, tetapi tidak pernah dikirim ke browser agent.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    true,
+        name:    'chat_agent_show_rating',
+        tag:     'boolean',
+        options: {
+          true  => 'yes',
+          false => 'no',
+        },
+        translate: true,
+      },
+    ],
+  },
+  state:       true,
+  preferences: { permission: ['admin.system'] },
+  frontend:    true,
+)
+
 puts 'Done.'
