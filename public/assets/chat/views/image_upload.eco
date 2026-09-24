@@ -1,0 +1,7 @@
+<!-- Fitur kirim gambar: placeholder SELAMA upload -- preview lokal (object
+URL) diburamkan + spinner kit + persentase. Diganti bubble gambar asli
+saat broadcast `chat_session_attachment` milik sendiri tiba
+(`addAttachmentMessage`), dihapus kalau upload gagal. -->
+<div class="zammad-chat-message zammad-chat-message--customer zammad-chat-message--uploading js-image-upload" data-upload-id="<%= @uploadId %>">
+  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><span class="zammad-chat-image-open zammad-chat-image-open--uploading"><img class="zammad-chat-image-thumb" src="<%= @previewUrl %>" alt=""><span class="zammad-chat-image-uploading" role="status"><span class="zammad-chat-image-spinner" aria-hidden="true"></span><span class="zammad-chat-sr-only"><%- @T('Uploading…') %></span></span></span><span class="zammad-chat-image-progress js-image-progress"><%- @T('Uploading…') %> 0%</span></span></span>
+</div>

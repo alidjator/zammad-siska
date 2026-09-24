@@ -3004,3 +3004,362 @@
 .zammad-chat-emoji-toggle.is-active .zammad-chat-icon-fill {
   opacity: 0.2;
 }
+
+.zammad-chat-message-body.zammad-chat-image {
+  padding: 4px;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.zammad-chat-image-open {
+  position: relative;
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  min-height: 120px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e7eaee;
+  cursor: -webkit-zoom-in;
+  cursor: zoom-in;
+  font-family: inherit;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.zammad-chat-image-open:hover .zammad-chat-image-thumb {
+  -webkit-filter: brightness(0.95);
+  filter: brightness(0.95);
+}
+
+.zammad-chat-image-thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  -o-object-fit: cover;
+  object-fit: cover;
+}
+
+.zammad-chat-image-meta {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 36px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: end;
+  -ms-flex-align: end;
+  align-items: flex-end;
+  -webkit-box-pack: end;
+  -ms-flex-pack: end;
+  justify-content: flex-end;
+  gap: 3px;
+  padding: 0 8px 6px;
+  font-size: 12px;
+  line-height: 1;
+  color: #ffffff;
+  background: -webkit-gradient(linear, left bottom, left top, from(rgba(19, 25, 32, 0.55)), to(rgba(19, 25, 32, 0)));
+  background: -o-linear-gradient(bottom, rgba(19, 25, 32, 0.55), rgba(19, 25, 32, 0));
+  background: linear-gradient(to top, rgba(19, 25, 32, 0.55), rgba(19, 25, 32, 0));
+  pointer-events: none;
+}
+.zammad-chat-image-meta .zammad-chat-message-status--sent {
+  color: rgba(255, 255, 255, 0.6);
+}
+.zammad-chat-image-meta .zammad-chat-message-status--read {
+  color: #ffffff;
+}
+
+.zammad-chat-image-fallback {
+  display: none;
+}
+
+.zammad-chat-image-open.is-broken {
+  min-height: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-thumb {
+  display: none;
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-fallback {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 4px;
+  color: #4680ff;
+  text-align: left;
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-fallback-name {
+  min-width: 0;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  color: #131920;
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-meta {
+  position: static;
+  height: auto;
+  padding: 4px 8px 4px;
+  background: none;
+  color: rgba(33, 37, 41, 0.75);
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-meta .zammad-chat-message-status--sent {
+  color: #5b6b79;
+}
+.zammad-chat-image-open.is-broken .zammad-chat-image-meta .zammad-chat-message-status--read {
+  color: #4680ff;
+}
+
+.zammad-chat-image-open--uploading {
+  cursor: default;
+}
+.zammad-chat-image-open--uploading .zammad-chat-image-thumb {
+  -webkit-filter: blur(6px);
+  filter: blur(6px);
+  opacity: 0.6;
+  -webkit-transform: scale(1.1);
+  -ms-transform: scale(1.1);
+  transform: scale(1.1);
+}
+.zammad-chat-image-open--uploading:hover .zammad-chat-image-thumb {
+  -webkit-filter: blur(6px);
+  filter: blur(6px);
+}
+
+.zammad-chat-image-uploading {
+  position: absolute;
+  inset: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  background: rgba(19, 25, 32, 0.25);
+}
+
+.zammad-chat-image-spinner {
+  width: 24px;
+  height: 24px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  border: 3px solid #ffffff;
+  border-left-color: transparent;
+  border-radius: 100%;
+  -webkit-animation: zammad-chat-spin 1s linear infinite;
+  animation: zammad-chat-spin 1s linear infinite;
+}
+
+.zammad-chat-image-progress {
+  display: block;
+  padding: 4px 4px 0;
+  font-size: 12px;
+  text-align: right;
+  color: rgba(33, 37, 41, 0.75);
+}
+
+.zammad-chat-image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  background: rgba(19, 25, 32, 0.92);
+  color: #ffffff;
+  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  -webkit-font-feature-settings: "salt";
+  font-feature-settings: "salt";
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+}
+.zammad-chat-image-viewer *,
+.zammad-chat-image-viewer *::before,
+.zammad-chat-image-viewer *::after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.zammad-chat-image-viewer-bar {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  height: 64px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+}
+
+.zammad-chat-image-viewer-icon {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  background: rgba(255, 255, 255, 0.14);
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.zammad-chat-image-viewer-info {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.zammad-chat-image-viewer-name,
+.zammad-chat-image-viewer-meta {
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zammad-chat-image-viewer-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.zammad-chat-image-viewer-meta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.zammad-chat-image-viewer-download {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 20px;
+  background: #4680ff;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.zammad-chat-image-viewer-download:hover, .zammad-chat-image-viewer-download:focus-visible {
+  background: #3f78ff;
+  color: #ffffff;
+}
+
+.zammad-chat-image-viewer-close {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #ffffff;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.zammad-chat-image-viewer-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.zammad-chat-image-viewer-download,
+.zammad-chat-image-viewer-close {
+  outline: none;
+}
+.zammad-chat-image-viewer-download:focus-visible,
+.zammad-chat-image-viewer-close:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.zammad-chat-image-viewer-stage {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  min-height: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 8px 80px 40px;
+}
+@media only screen and (max-width: 768px) {
+  .zammad-chat-image-viewer-stage {
+    padding: 8px 12px 16px;
+  }
+}
+
+.zammad-chat-image-viewer-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  -o-object-fit: contain;
+  object-fit: contain;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.zammad-chat-image-open:focus-visible {
+  outline: 2px solid #4680ff;
+  outline-offset: 2px;
+}

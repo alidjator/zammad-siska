@@ -33,6 +33,15 @@
         <button type="button" class="zammad-chat-emoji-toggle js-emoji-toggle" aria-label="<%- @T('Emoji') %>" aria-expanded="false">
           <%- @icon('smiley', 16, tone: 'active') %>
         </button>
+        <!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): tombol TERPISAH
+        dari Attach, pemilih file khusus gambar (di ponsel otomatis
+        menawarkan kamera/galeri). Tampil/sembunyi ikut flag
+        `attachment_enabled` yg sama dgn Attach. Upload lewat endpoint
+        lampiran yg SAMA (`uploadAttachment`). -->
+        <button type="button" class="zammad-chat-attach zammad-chat-attach-image js-chat-attach-image zammad-chat-is-hidden" aria-label="<%- @T('Add image') %>">
+          <%- @icon('image', 16) %>
+        </button>
+        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="js-chat-image-input zammad-chat-is-hidden">
         <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="<%- @T('Attach file') %>">
           <%- @icon('paperclip', 16) %>
         </button>

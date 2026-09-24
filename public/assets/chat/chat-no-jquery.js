@@ -149,7 +149,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push('?disposition=attachment" download="');
     
-      __out.push(this.filename);
+      __out.push(__sanitize(this.filename));
     
       __out.push('" class="zammad-chat-attachment-download js-attachment-download" target="_blank" rel="noopener" aria-label="');
     
@@ -296,7 +296,15 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         tone: 'active'
       }));
     
-      __out.push('\n        </button>\n        <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="');
+      __out.push('\n        </button>\n        <!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): tombol TERPISAH\n        dari Attach, pemilih file khusus gambar (di ponsel otomatis\n        menawarkan kamera/galeri). Tampil/sembunyi ikut flag\n        `attachment_enabled` yg sama dgn Attach. Upload lewat endpoint\n        lampiran yg SAMA (`uploadAttachment`). -->\n        <button type="button" class="zammad-chat-attach zammad-chat-attach-image js-chat-attach-image zammad-chat-is-hidden" aria-label="');
+    
+      __out.push(this.T('Add image'));
+    
+      __out.push('">\n          ');
+    
+      __out.push(this.icon('image', 16));
+    
+      __out.push('\n        </button>\n        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="js-chat-image-input zammad-chat-is-hidden">\n        <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="');
     
       __out.push(this.T('Attach file'));
     
@@ -924,6 +932,307 @@ window.zammadChatTemplates["home"] = function(__obj) {
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
       __out.push('</span>\n    </button>\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_message"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<div class="zammad-chat-message zammad-chat-message--');
+    
+      __out.push(__sanitize(this.from));
+    
+      __out.push(__sanitize(this.unreadClass));
+    
+      __out.push('"');
+    
+      if (this.id) {
+        __out.push(' data-message-id="');
+        __out.push(__sanitize(this.id));
+        __out.push('"');
+      }
+    
+      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><button type="button" class="zammad-chat-image-open js-image-open" aria-label="');
+    
+      __out.push(this.T('View image'));
+    
+      __out.push('" data-url="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('" data-filename="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" data-meta="');
+    
+      __out.push(__sanitize(this.metaLabel));
+    
+      __out.push('" data-sender="');
+    
+      __out.push(__sanitize(this.senderLabel));
+    
+      __out.push('" data-time="');
+    
+      __out.push(__sanitize(this.time));
+    
+      __out.push('"><img class="zammad-chat-image-thumb js-image-thumb" src="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?view=preview" alt="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" loading="lazy"><span class="zammad-chat-image-fallback">');
+    
+      __out.push(this.icon('image', 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('<span class="zammad-chat-image-fallback-name">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span></span><span class="zammad-chat-image-meta">');
+    
+      __out.push(__sanitize(this.time));
+    
+      if (this.from === 'customer') {
+        __out.push('<span class="zammad-chat-message-status zammad-chat-message-status--');
+        __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
+        __out.push('" aria-label="');
+        __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
+      }
+    
+      __out.push('</span></button></span>');
+    
+      if (this.from === 'agent' && this.id) {
+        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
+        __out.push(this.T('Reply'));
+        __out.push('">');
+        __out.push(this.icon('arrow-bend-up-left', 14));
+        __out.push('</button>');
+      }
+    
+      __out.push('</span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_upload"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar: placeholder SELAMA upload -- preview lokal (object\nURL) diburamkan + spinner kit + persentase. Diganti bubble gambar asli\nsaat broadcast `chat_session_attachment` milik sendiri tiba\n(`addAttachmentMessage`), dihapus kalau upload gagal. -->\n<div class="zammad-chat-message zammad-chat-message--customer zammad-chat-message--uploading js-image-upload" data-upload-id="');
+    
+      __out.push(__sanitize(this.uploadId));
+    
+      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><span class="zammad-chat-image-open zammad-chat-image-open--uploading"><img class="zammad-chat-image-thumb" src="');
+    
+      __out.push(__sanitize(this.previewUrl));
+    
+      __out.push('" alt=""><span class="zammad-chat-image-uploading" role="status"><span class="zammad-chat-image-spinner" aria-hidden="true"></span><span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push('</span></span></span><span class="zammad-chat-image-progress js-image-progress">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push(' 0%</span></span></span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_viewer"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar (mockup "Kirim gambar - layar penuh"): overlay\nmenutupi SELURUH halaman (ditempel ke <body>, bukan di dalam panel).\nTutup: tombol Close, Esc, klik area gelap. Fokus dikunci di dalam dialog\n(`openImageViewer` di chat-no-jquery.coffee). -->\n<div class="zammad-chat-image-viewer js-image-viewer" role="dialog" aria-modal="true" aria-label="');
+    
+      __out.push(this.T('Image preview'));
+    
+      __out.push('">\n  <div class="zammad-chat-image-viewer-bar">\n    <span class="zammad-chat-image-viewer-icon">');
+    
+      __out.push(this.icon('image', 18, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span>\n    <span class="zammad-chat-image-viewer-info">\n      <span class="zammad-chat-image-viewer-name">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span>\n      <span class="zammad-chat-image-viewer-meta">');
+    
+      __out.push(__sanitize([this.sender, this.time, this.meta].filter(function(part) {
+        return part;
+      }).join(' · ')));
+    
+      __out.push('</span>\n    </span>\n    <a class="zammad-chat-image-viewer-download js-image-viewer-download" href="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?disposition=attachment" download="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" target="_blank" rel="noopener">');
+    
+      __out.push(this.icon('download-simple', 18));
+    
+      __out.push('<span>');
+    
+      __out.push(this.T('Download'));
+    
+      __out.push('</span></a>\n    <button type="button" class="zammad-chat-image-viewer-close js-image-viewer-close" aria-label="');
+    
+      __out.push(this.T('Close'));
+    
+      __out.push('">');
+    
+      __out.push(this.icon('x', 20));
+    
+      __out.push('</button>\n  </div>\n  <div class="zammad-chat-image-viewer-stage js-image-viewer-stage">\n    <img class="zammad-chat-image-viewer-img" src="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('" alt="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">\n  </div>\n</div>\n');
     
     }).call(this);
     
@@ -2238,7 +2547,8 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
 var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-  slice = [].slice;
+  slice = [].slice,
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 (function(window) {
   var Base, Core, Io, Log, SISKA_ICONS, Timeout, ZammadChat, ensureViewportMeta, myScript, scriptHost, scriptProtocol, scripts, siskaIcon;
@@ -2596,7 +2906,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     'smiley': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM320 432c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0zM704 432c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM699.68 624c-41.16 71.16-109.56 112-187.68 112s-146.52-40.8-187.68-112c-3.133-4.86-4.995-10.796-4.995-17.167 0-17.673 14.327-32 32-32 12.25 0 22.893 6.884 28.271 16.994l0.084 0.173c29.88 51.64 76.84 80 132.32 80s102.44-28.4 132.32-80c5.462-10.283 16.104-17.167 28.355-17.167 17.673 0 32 14.327 32 32 0 6.371-1.862 12.307-5.071 17.294l0.076-0.127z"],
     'warning': ["M861.84 864h-699.68c-50.48 0-82.16-52.84-57.64-95.64l349.84-607.48c25.2-44 90.080-44 115.28 0l349.84 607.48c24.52 42.8-7.16 95.64-57.64 95.64z", "M947.2 752.36l-349.8-607.48c-17.525-29.455-49.194-48.883-85.4-48.883s-67.875 19.428-85.149 48.428l-0.251 0.455-349.8 607.48c-8.072 13.588-12.843 29.957-12.843 47.44s4.771 33.852 13.082 47.875l-0.239-0.435c17.146 29.356 48.5 48.765 84.389 48.765 0.356 0 0.711-0.002 1.066-0.006l-0.054 0h699.6c0.277 0.003 0.604 0.004 0.932 0.004 35.888 0 67.242-19.409 84.139-48.304l0.249-0.461c8.097-13.604 12.883-29.998 12.883-47.508 0-17.455-4.756-33.8-13.042-47.808l0.239 0.437zM891.72 815.2c-6.013 10.125-16.892 16.805-29.331 16.805-0.207 0-0.413-0.002-0.619-0.006l0.031 0h-699.6c-0.175 0.003-0.382 0.005-0.589 0.005-12.439 0-23.318-6.68-29.245-16.649l-0.086-0.157c-2.651-4.416-4.219-9.745-4.219-15.44s1.568-11.024 4.296-15.578l-0.077 0.138 349.8-607.48c6.23-10.239 17.329-16.972 30-16.972s23.77 6.734 29.913 16.818l0.087 0.154 349.8 607.48c2.602 4.384 4.14 9.665 4.14 15.305 0 5.75-1.599 11.127-4.376 15.711l0.076-0.135zM480 576v-160c0-17.673 14.327-32 32-32s32 14.327 32 32v0 160c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM560 720c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
     'x': ["M864 192v640c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-640c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M822.64 777.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-265.36-265.4-265.36 265.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l-0 0 265.4-265.36-265.4-265.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l265.36 265.4 265.36-265.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l-0 0-265.4 265.36z"],
-    'x-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M662.64 406.64l-105.4 105.36 105.4 105.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-105.36-105.4-105.36 105.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l105.4-105.36-105.4-105.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l105.36 105.4 105.36-105.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"]
+    'x-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M662.64 406.64l-105.4 105.36 105.4 105.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-105.36-105.4-105.36 105.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l105.4-105.36-105.4-105.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l105.36 105.4 105.36-105.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"],
+    'image': ["M896 224v488.24l-158.88-158.88c-5.79-5.786-13.787-9.365-22.62-9.365s-16.83 3.579-22.62 9.365l-102.64 102.64-198.6-198.64c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-217.36 217.4v-450.76c0-17.673 14.327-32 32-32v0h704c17.673 0 32 14.327 32 32v0z", "M864 160h-704c-35.346 0-64 28.654-64 64v0 576c0 35.346 28.654 64 64 64v0h704c35.346 0 64-28.654 64-64v0-576c0-35.346-28.654-64-64-64v0zM864 224v411l-104.28-104.24c-11.582-11.585-27.584-18.75-45.26-18.75s-33.678 7.166-45.26 18.75l-80 80-176-176c-11.58-11.573-27.574-18.73-45.24-18.73s-33.66 7.157-45.24 18.731l-162.72 162.72v-373.48zM160 688l208-208 320 320h-528zM864 800h-85.48l-144-144 80-80 149.48 149.52v74.48zM576 400c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0z"]
   };
   siskaIcon = function(name, size, opts) {
     var cls, fill, paths, tone;
@@ -3288,6 +3599,13 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.setButtonLoading = bind(this.setButtonLoading, this);
       this.showPrechatForm = bind(this.showPrechatForm, this);
       this.open = bind(this.open, this);
+      this.closeImageViewer = bind(this.closeImageViewer, this);
+      this.onImageViewerKeydown = bind(this.onImageViewerKeydown, this);
+      this.openImageViewer = bind(this.openImageViewer, this);
+      this.removeImageUpload = bind(this.removeImageUpload, this);
+      this.releaseImageUpload = bind(this.releaseImageUpload, this);
+      this.updateImageUpload = bind(this.updateImageUpload, this);
+      this.addImageUpload = bind(this.addImageUpload, this);
       this.addAttachmentMessage = bind(this.addAttachmentMessage, this);
       this.uploadAttachment = bind(this.uploadAttachment, this);
       this.triggerAttachmentInput = bind(this.triggerAttachmentInput, this);
@@ -3604,6 +3922,41 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       })(this));
       this.el.querySelector('.js-chat-attach').addEventListener('click', this.triggerAttachmentInput);
       this.el.querySelector('.js-chat-attachment-input').addEventListener('change', this.uploadAttachment);
+      this.el.querySelector('.js-chat-attach-image').addEventListener('click', (function(_this) {
+        return function(event) {
+          event.preventDefault();
+          return _this.el.querySelector('.js-chat-image-input').click();
+        };
+      })(this));
+      this.el.querySelector('.js-chat-image-input').addEventListener('change', this.uploadAttachment);
+      this.body.addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-image-open');
+          if (!target) {
+            return;
+          }
+          return _this.openImageViewer(target);
+        };
+      })(this));
+      this.body.addEventListener('error', (function(_this) {
+        return function(event) {
+          var ref, ref1;
+          if (!((ref = event.target.classList) != null ? ref.contains('js-image-thumb') : void 0)) {
+            return;
+          }
+          return (ref1 = event.target.closest('.js-image-open')) != null ? ref1.classList.add('is-broken') : void 0;
+        };
+      })(this), true);
+      this.body.addEventListener('load', (function(_this) {
+        return function(event) {
+          var ref;
+          if (!((ref = event.target.classList) != null ? ref.contains('js-image-thumb') : void 0)) {
+            return;
+          }
+          return _this.scrollToBottom();
+        };
+      })(this), true);
       this.el.querySelector('.zammad-chat-tab-body--home').innerHTML = this.view('home')();
       this.el.querySelector('.zammad-chat-tab-body--help').innerHTML = this.view('help')();
       this.el.querySelector('.zammad-chat-tabbar').innerHTML = this.view('tabbar')();
@@ -4220,11 +4573,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           time = this.formatTime(message.created_at);
           isRead = !!message.read_at;
           if (message.filename) {
-            this.body.insertAdjacentHTML('beforeend', this.view('attachment_message')({
+            this.body.insertAdjacentHTML('beforeend', this.view(this.attachmentView(message.content_type))({
               from: isAgentMessage ? 'agent' : 'customer',
               id: message.id,
               filename: message.filename,
               metaLabel: this.attachmentMeta(message.filename, message.size),
+              senderLabel: this.attachmentSender(isAgentMessage),
               url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments/" + message.id,
               unreadClass: '',
               time: time,
@@ -4427,20 +4781,34 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.uploadAttachment = function(event) {
-      var file, formData, ref, xhr;
+      var file, formData, ref, ref1, uploadId, xhr;
       file = (ref = event.target.files) != null ? ref[0] : void 0;
       if (!file) {
         return;
       }
       formData = new FormData();
       formData.append('File', file);
+      uploadId = (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : null;
       xhr = new XMLHttpRequest();
       xhr.open('POST', (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments");
+      if (uploadId) {
+        xhr.upload.onprogress = (function(_this) {
+          return function(progress) {
+            if (!progress.lengthComputable) {
+              return;
+            }
+            return _this.updateImageUpload(uploadId, Math.round(progress.loaded / progress.total * 100));
+          };
+        })(this);
+      }
       xhr.onload = (function(_this) {
         return function() {
           var message, parsed;
           if (xhr.status >= 200 && xhr.status < 300) {
             return;
+          }
+          if (uploadId) {
+            _this.removeImageUpload(uploadId);
           }
           message = _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
           try {
@@ -4452,28 +4820,187 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           return _this.addStatus(message);
         };
       })(this);
+      xhr.onerror = (function(_this) {
+        return function() {
+          if (uploadId) {
+            _this.removeImageUpload(uploadId);
+          }
+          return _this.addStatus(_this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.'));
+        };
+      })(this);
       xhr.send(formData);
       return event.target.value = '';
     };
 
     ZammadChat.prototype.addAttachmentMessage = function(data, from) {
-      this.maybeAddTimestamp();
-      this.lastAddedType = "message--" + from;
-      this.body.insertAdjacentHTML('beforeend', this.view('attachment_message')({
+      var html, placeholder, viewName;
+      viewName = this.attachmentView(data.content_type);
+      html = this.view(viewName)({
         from: from,
         id: data.id,
         filename: data.filename,
         metaLabel: this.attachmentMeta(data.filename, data.size),
+        senderLabel: this.attachmentSender(from === 'agent'),
         url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments/" + data.id,
         unreadClass: document.hidden ? ' zammad-chat-message--unread' : '',
         time: this.formatTime(data.created_at)
-      }));
+      });
       if (from === 'agent' && data.id) {
         this.agentMessagesById[data.id] = data;
       }
+      placeholder = from === 'customer' && viewName === 'image_message' ? this.body.querySelector('.js-image-upload') : null;
+      if (placeholder) {
+        this.releaseImageUpload(placeholder.dataset.uploadId);
+        placeholder.insertAdjacentHTML('beforebegin', html);
+        placeholder.remove();
+        this.lastAddedType = "message--" + from;
+        this.scrollToBottom({
+          showHint: true
+        });
+        return;
+      }
+      this.maybeAddTimestamp();
+      this.lastAddedType = "message--" + from;
+      this.body.insertAdjacentHTML('beforeend', html);
       return this.scrollToBottom({
         showHint: true
       });
+    };
+
+    ZammadChat.prototype.IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    ZammadChat.prototype.attachmentView = function(contentType) {
+      if (indexOf.call(this.IMAGE_TYPES, contentType) >= 0) {
+        return 'image_message';
+      } else {
+        return 'attachment_message';
+      }
+    };
+
+    ZammadChat.prototype.attachmentSender = function(isAgent) {
+      var ref;
+      if (isAgent) {
+        return ((ref = this.agent) != null ? ref.name : void 0) || this.T('Agent');
+      } else {
+        return this.T('You');
+      }
+    };
+
+    ZammadChat.prototype.addImageUpload = function(file) {
+      var uploadId;
+      this.imageUploadSeq = (this.imageUploadSeq || 0) + 1;
+      uploadId = String(this.imageUploadSeq);
+      this.imageUploadUrls || (this.imageUploadUrls = {});
+      this.imageUploadUrls[uploadId] = URL.createObjectURL(file);
+      this.maybeAddTimestamp();
+      this.lastAddedType = 'message--customer';
+      this.body.insertAdjacentHTML('beforeend', this.view('image_upload')({
+        uploadId: uploadId,
+        previewUrl: this.imageUploadUrls[uploadId]
+      }));
+      this.scrollToBottom({
+        showHint: true
+      });
+      return uploadId;
+    };
+
+    ZammadChat.prototype.updateImageUpload = function(uploadId, percent) {
+      var el;
+      el = this.body.querySelector(".js-image-upload[data-upload-id='" + uploadId + "'] .js-image-progress");
+      if (el) {
+        return el.textContent = (this.T('Uploading…')) + " " + percent + "%";
+      }
+    };
+
+    ZammadChat.prototype.releaseImageUpload = function(uploadId) {
+      var ref;
+      if (!((ref = this.imageUploadUrls) != null ? ref[uploadId] : void 0)) {
+        return;
+      }
+      URL.revokeObjectURL(this.imageUploadUrls[uploadId]);
+      return delete this.imageUploadUrls[uploadId];
+    };
+
+    ZammadChat.prototype.removeImageUpload = function(uploadId) {
+      var ref;
+      if ((ref = this.body.querySelector(".js-image-upload[data-upload-id='" + uploadId + "']")) != null) {
+        ref.remove();
+      }
+      return this.releaseImageUpload(uploadId);
+    };
+
+    ZammadChat.prototype.openImageViewer = function(trigger) {
+      var data, viewer, wrapper;
+      this.closeImageViewer();
+      data = trigger.dataset;
+      wrapper = document.createElement('div');
+      wrapper.innerHTML = this.view('image_viewer')({
+        url: data.url,
+        filename: data.filename,
+        meta: data.meta,
+        sender: data.sender,
+        time: data.time
+      });
+      viewer = wrapper.firstElementChild;
+      if (!(viewer != null ? viewer.classList.contains('js-image-viewer') : void 0)) {
+        viewer = wrapper.querySelector('.js-image-viewer');
+      }
+      this.imageViewer = {
+        el: viewer,
+        trigger: trigger,
+        overflow: document.documentElement.style.overflow
+      };
+      document.documentElement.style.overflow = 'hidden';
+      document.body.appendChild(viewer);
+      viewer.querySelector('.js-image-viewer-close').addEventListener('click', this.closeImageViewer);
+      viewer.addEventListener('click', (function(_this) {
+        return function(event) {
+          if (event.target === viewer || event.target.classList.contains('js-image-viewer-stage')) {
+            return _this.closeImageViewer();
+          }
+        };
+      })(this));
+      viewer.addEventListener('keydown', this.onImageViewerKeydown);
+      return viewer.querySelector('.js-image-viewer-close').focus();
+    };
+
+    ZammadChat.prototype.onImageViewerKeydown = function(event) {
+      var first, focusable, last, ref;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.closeImageViewer();
+        return;
+      }
+      if (event.key !== 'Tab') {
+        return;
+      }
+      focusable = (ref = this.imageViewer) != null ? ref.el.querySelectorAll('a[href], button') : void 0;
+      if (!(focusable != null ? focusable.length : void 0)) {
+        return;
+      }
+      first = focusable[0];
+      last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        return last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        return first.focus();
+      }
+    };
+
+    ZammadChat.prototype.closeImageViewer = function() {
+      var el, overflow, ref, trigger;
+      if (!this.imageViewer) {
+        return;
+      }
+      ref = this.imageViewer, el = ref.el, trigger = ref.trigger, overflow = ref.overflow;
+      this.imageViewer = null;
+      el.remove();
+      document.documentElement.style.overflow = overflow;
+      if (document.contains(trigger)) {
+        return trigger != null ? trigger.focus() : void 0;
+      }
     };
 
     ZammadChat.prototype.open = function() {
@@ -5576,7 +6103,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onConnectionEstablished = function(data, showGreeting) {
-      var base, ref;
+      var base, j, len, ref, ref1, ref2, selector;
       if (showGreeting == null) {
         showGreeting = true;
       }
@@ -5598,10 +6125,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (showGreeting) {
         this.showWelcomeGreeting();
       }
-      if (data.attachment_enabled) {
-        this.el.querySelector('.js-chat-attach').classList.remove('zammad-chat-is-hidden');
-      } else {
-        this.el.querySelector('.js-chat-attach').classList.add('zammad-chat-is-hidden');
+      ref1 = ['.js-chat-attach', '.js-chat-attach-image'];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        selector = ref1[j];
+        if ((ref2 = this.el.querySelector(selector)) != null) {
+          ref2.classList.toggle('zammad-chat-is-hidden', !data.attachment_enabled);
+        }
       }
       this.enableInput();
       this.hideModal();

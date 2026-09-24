@@ -455,6 +455,15 @@ class Chat::Session < ApplicationModel
       # komentar di atas). Tidak perlu backfill data apa pun, murni
       # menyalurkan kolom yg sudah ada.
       attrs['size'] = store.size
+      # Fitur kirim gambar (widget customer): jalur riwayat/reconnect
+      # WAJIB ikut membawa `content_type` spt broadcast real-time
+      # `chat_session_attachment` -- tanpa ini gambar tampil sbg kartu
+      # file biasa setelah reload. Nilai dari preferences (sejak
+      # perbaikan celah Content-Type, dideteksi dari ISI file saat
+      # upload); rekaman LAMA yg tipenya palsu paling jauh gagal dimuat
+      # sbg <img> (widget jatuh ke kartu file), server tetap menyajikan
+      # berdasarkan deteksi ulang isi (`ChatAttachmentsController#show`).
+      attrs['content_type'] = store.preferences['Content-Type']
     end
     attrs
   end

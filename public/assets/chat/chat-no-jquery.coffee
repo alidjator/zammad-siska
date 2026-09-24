@@ -232,6 +232,7 @@ do(window) ->
     'warning': ["M861.84 864h-699.68c-50.48 0-82.16-52.84-57.64-95.64l349.84-607.48c25.2-44 90.080-44 115.28 0l349.84 607.48c24.52 42.8-7.16 95.64-57.64 95.64z", "M947.2 752.36l-349.8-607.48c-17.525-29.455-49.194-48.883-85.4-48.883s-67.875 19.428-85.149 48.428l-0.251 0.455-349.8 607.48c-8.072 13.588-12.843 29.957-12.843 47.44s4.771 33.852 13.082 47.875l-0.239-0.435c17.146 29.356 48.5 48.765 84.389 48.765 0.356 0 0.711-0.002 1.066-0.006l-0.054 0h699.6c0.277 0.003 0.604 0.004 0.932 0.004 35.888 0 67.242-19.409 84.139-48.304l0.249-0.461c8.097-13.604 12.883-29.998 12.883-47.508 0-17.455-4.756-33.8-13.042-47.808l0.239 0.437zM891.72 815.2c-6.013 10.125-16.892 16.805-29.331 16.805-0.207 0-0.413-0.002-0.619-0.006l0.031 0h-699.6c-0.175 0.003-0.382 0.005-0.589 0.005-12.439 0-23.318-6.68-29.245-16.649l-0.086-0.157c-2.651-4.416-4.219-9.745-4.219-15.44s1.568-11.024 4.296-15.578l-0.077 0.138 349.8-607.48c6.23-10.239 17.329-16.972 30-16.972s23.77 6.734 29.913 16.818l0.087 0.154 349.8 607.48c2.602 4.384 4.14 9.665 4.14 15.305 0 5.75-1.599 11.127-4.376 15.711l0.076-0.135zM480 576v-160c0-17.673 14.327-32 32-32s32 14.327 32 32v0 160c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM560 720c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"]
     'x': ["M864 192v640c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-640c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M822.64 777.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-265.36-265.4-265.36 265.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l-0 0 265.4-265.36-265.4-265.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l265.36 265.4 265.36-265.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l-0 0-265.4 265.36z"]
     'x-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M662.64 406.64l-105.4 105.36 105.4 105.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-105.36-105.4-105.36 105.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l105.4-105.36-105.4-105.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l105.36 105.4 105.36-105.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"]
+    'image': ["M896 224v488.24l-158.88-158.88c-5.79-5.786-13.787-9.365-22.62-9.365s-16.83 3.579-22.62 9.365l-102.64 102.64-198.6-198.64c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-217.36 217.4v-450.76c0-17.673 14.327-32 32-32v0h704c17.673 0 32 14.327 32 32v0z", "M864 160h-704c-35.346 0-64 28.654-64 64v0 576c0 35.346 28.654 64 64 64v0h704c35.346 0 64-28.654 64-64v0-576c0-35.346-28.654-64-64-64v0zM864 224v411l-104.28-104.24c-11.582-11.585-27.584-18.75-45.26-18.75s-33.678 7.166-45.26 18.75l-80 80-176-176c-11.58-11.573-27.574-18.73-45.24-18.73s-33.66 7.157-45.24 18.731l-162.72 162.72v-373.48zM160 688l208-208 320 320h-528zM864 800h-85.48l-144-144 80-80 149.48 149.52v74.48zM576 400c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0z"]
 
   siskaIcon = (name, size = 16, opts = {}) ->
     paths = SISKA_ICONS[name]
@@ -1043,6 +1044,30 @@ do(window) ->
       @el.querySelector('.js-chat-attach').addEventListener('click', @triggerAttachmentInput)
       @el.querySelector('.js-chat-attachment-input').addEventListener('change', @uploadAttachment)
 
+      # Fitur kirim gambar (mockup "Fitur kirim gambar"): tombol & input
+      # file khusus gambar, upload lewat `uploadAttachment` yg SAMA.
+      @el.querySelector('.js-chat-attach-image').addEventListener 'click', (event) =>
+        event.preventDefault()
+        @el.querySelector('.js-chat-image-input').click()
+      @el.querySelector('.js-chat-image-input').addEventListener('change', @uploadAttachment)
+
+      # Klik thumbnail -> layar penuh (delegasi, bubble dirender dinamis).
+      @body.addEventListener 'click', (event) =>
+        target = event.target.closest('.js-image-open')
+        return if !target
+        @openImageViewer(target)
+
+      # `load`/`error` tidak bubbling -> fase CAPTURE di @body.
+      @body.addEventListener 'error', (event) =>
+        return if !event.target.classList?.contains('js-image-thumb')
+        event.target.closest('.js-image-open')?.classList.add('is-broken')
+      , true
+      @body.addEventListener 'load', (event) =>
+        return if !event.target.classList?.contains('js-image-thumb')
+        # Tinggi bubble baru diketahui setelah gambar termuat.
+        @scrollToBottom()
+      , true
+
       # Fase 7 -- Widget bergaya tab (Home/Messages/Help). Section 4.2/4.3.
       # Home & Help TIDAK PUNYA konten dinamis per-sesi -- cukup diisi
       # SEKALI di sini. Mirror persis dari chat.coffee (versi jQuery).
@@ -1651,11 +1676,14 @@ do(window) ->
           isRead = !!message.read_at
 
           if message.filename
-            @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
+            # Fitur kirim gambar: gambar -> bubble gambar (jalur riwayat
+            # kini membawa `content_type`, lihat Chat::Session).
+            @body.insertAdjacentHTML 'beforeend', @view(@attachmentView(message.content_type))(
               from: if isAgentMessage then 'agent' else 'customer'
               id: message.id
               filename: message.filename
               metaLabel: @attachmentMeta(message.filename, message.size)
+              senderLabel: @attachmentSender(isAgentMessage)
               url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{message.id}"
               unreadClass: ''
               time: time
@@ -1871,15 +1899,29 @@ do(window) ->
       formData = new FormData()
       formData.append('File', file)
 
+      # Fitur kirim gambar: gambar (lewat tombol Image MAUPUN Attach)
+      # langsung tampil sbg placeholder + persentase selama upload.
+      uploadId = if file.type in @IMAGE_TYPES then @addImageUpload(file) else null
+
       xhr = new XMLHttpRequest()
       xhr.open('POST', "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments")
+      if uploadId
+        xhr.upload.onprogress = (progress) =>
+          return if !progress.lengthComputable
+          @updateImageUpload(uploadId, Math.round(progress.loaded / progress.total * 100))
       xhr.onload = =>
+        # Sukses: placeholder diganti bubble asli oleh broadcast
+        # `chat_session_attachment` (addAttachmentMessage).
         return if xhr.status >= 200 and xhr.status < 300
+        @removeImageUpload(uploadId) if uploadId
         message = @T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.')
         try
           parsed = JSON.parse(xhr.responseText)
           message = parsed.error if parsed.error
         @addStatus(message)
+      xhr.onerror = =>
+        @removeImageUpload(uploadId) if uploadId
+        @addStatus(@T(@phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.'))
       xhr.send(formData)
 
       event.target.value = ''
@@ -1887,19 +1929,133 @@ do(window) ->
     # Bug ditemukan lewat laporan user ("kenapa pada attachment tidak
     # terdapat reply?") -- mirror persis dari chat.coffee.
     addAttachmentMessage: (data, from) =>
-      @maybeAddTimestamp()
-      @lastAddedType = "message--#{ from }"
-      @body.insertAdjacentHTML 'beforeend', @view('attachment_message')(
+      viewName = @attachmentView(data.content_type)
+      html = @view(viewName)(
         from: from
         id: data.id
         filename: data.filename
         metaLabel: @attachmentMeta(data.filename, data.size)
+        senderLabel: @attachmentSender(from is 'agent')
         url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{@sessionId}/attachments/#{data.id}"
         unreadClass: if document.hidden then ' zammad-chat-message--unread' else ''
         time: @formatTime(data.created_at)
       )
       @agentMessagesById[data.id] = data if from is 'agent' and data.id
+
+      # Fitur kirim gambar: gambar milik sendiri menggantikan placeholder
+      # upload tertua DI POSISINYA (urutan pesan tetap), bukan ditambah
+      # di bawah lalu placeholder hilang.
+      placeholder = if from is 'customer' and viewName is 'image_message' then @body.querySelector('.js-image-upload') else null
+      if placeholder
+        @releaseImageUpload(placeholder.dataset.uploadId)
+        placeholder.insertAdjacentHTML('beforebegin', html)
+        placeholder.remove()
+        @lastAddedType = "message--#{ from }"
+        @scrollToBottom showHint: true
+        return
+
+      @maybeAddTimestamp()
+      @lastAddedType = "message--#{ from }"
+      @body.insertAdjacentHTML 'beforeend', html
       @scrollToBottom showHint: true
+
+    # Fitur kirim gambar -- whitelist SAMA dgn backend
+    # (`ChatAttachmentsController::IMAGE_TYPES`): hanya ini yg dirender
+    # sbg bubble gambar, lainnya tetap kartu file.
+    IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+
+    attachmentView: (contentType) ->
+      if contentType in @IMAGE_TYPES then 'image_message' else 'attachment_message'
+
+    attachmentSender: (isAgent) ->
+      if isAgent then (@agent?.name || @T('Agent')) else @T('You')
+
+    # Placeholder upload gambar (preview lokal + persentase), lihat
+    # `views/image_upload.eco`.
+    addImageUpload: (file) =>
+      @imageUploadSeq = (@imageUploadSeq || 0) + 1
+      uploadId = String(@imageUploadSeq)
+      @imageUploadUrls ||= {}
+      @imageUploadUrls[uploadId] = URL.createObjectURL(file)
+      @maybeAddTimestamp()
+      @lastAddedType = 'message--customer'
+      @body.insertAdjacentHTML 'beforeend', @view('image_upload')(
+        uploadId: uploadId
+        previewUrl: @imageUploadUrls[uploadId]
+      )
+      @scrollToBottom showHint: true
+      uploadId
+
+    updateImageUpload: (uploadId, percent) =>
+      el = @body.querySelector(".js-image-upload[data-upload-id='#{uploadId}'] .js-image-progress")
+      el.textContent = "#{@T('Uploading…')} #{percent}%" if el
+
+    releaseImageUpload: (uploadId) =>
+      return if !@imageUploadUrls?[uploadId]
+      URL.revokeObjectURL(@imageUploadUrls[uploadId])
+      delete @imageUploadUrls[uploadId]
+
+    removeImageUpload: (uploadId) =>
+      @body.querySelector(".js-image-upload[data-upload-id='#{uploadId}']")?.remove()
+      @releaseImageUpload(uploadId)
+
+    # Tampilan layar penuh (mockup "Kirim gambar - layar penuh"): overlay
+    # ditempel ke <body> halaman host (menutupi SELURUH halaman, bukan
+    # cuma panel). Tutup lewat Close/Esc/klik area gelap; fokus dikunci
+    # di dalam dialog & dikembalikan ke thumbnail saat ditutup; scroll
+    # halaman host dikunci selama terbuka.
+    openImageViewer: (trigger) =>
+      @closeImageViewer()
+      data = trigger.dataset
+      wrapper = document.createElement('div')
+      wrapper.innerHTML = @view('image_viewer')(
+        url: data.url
+        filename: data.filename
+        meta: data.meta
+        sender: data.sender
+        time: data.time
+      )
+      viewer = wrapper.firstElementChild
+      viewer = wrapper.querySelector('.js-image-viewer') if !viewer?.classList.contains('js-image-viewer')
+      @imageViewer =
+        el: viewer
+        trigger: trigger
+        overflow: document.documentElement.style.overflow
+      document.documentElement.style.overflow = 'hidden'
+      document.body.appendChild(viewer)
+
+      viewer.querySelector('.js-image-viewer-close').addEventListener('click', @closeImageViewer)
+      viewer.addEventListener 'click', (event) =>
+        # Klik area gelap (bar kosong / stage di luar gambar) menutup.
+        if event.target is viewer or event.target.classList.contains('js-image-viewer-stage')
+          @closeImageViewer()
+      viewer.addEventListener('keydown', @onImageViewerKeydown)
+      viewer.querySelector('.js-image-viewer-close').focus()
+
+    onImageViewerKeydown: (event) =>
+      if event.key is 'Escape'
+        event.preventDefault()
+        @closeImageViewer()
+        return
+      return if event.key isnt 'Tab'
+      focusable = @imageViewer?.el.querySelectorAll('a[href], button')
+      return if !focusable?.length
+      first = focusable[0]
+      last = focusable[focusable.length - 1]
+      if event.shiftKey and document.activeElement is first
+        event.preventDefault()
+        last.focus()
+      else if !event.shiftKey and document.activeElement is last
+        event.preventDefault()
+        first.focus()
+
+    closeImageViewer: =>
+      return if !@imageViewer
+      { el, trigger, overflow } = @imageViewer
+      @imageViewer = null
+      el.remove()
+      document.documentElement.style.overflow = overflow
+      trigger?.focus() if document.contains(trigger)
 
     open: =>
       if @isOpen
@@ -2984,10 +3140,8 @@ do(window) ->
       # by default (views/chat.eco) -- server yang memutuskan boleh
       # tidaknya lewat flag ini, dikirim di payload chat_session_start
       # yang sama.
-      if data.attachment_enabled
-        @el.querySelector('.js-chat-attach').classList.remove('zammad-chat-is-hidden')
-      else
-        @el.querySelector('.js-chat-attach').classList.add('zammad-chat-is-hidden')
+      for selector in ['.js-chat-attach', '.js-chat-attach-image']
+        @el.querySelector(selector)?.classList.toggle('zammad-chat-is-hidden', !data.attachment_enabled)
 
       @enableInput()
 

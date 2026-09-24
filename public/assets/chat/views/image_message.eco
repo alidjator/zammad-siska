@@ -1,0 +1,8 @@
+<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya
+WhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &
+centang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh
+(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal
+dimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->
+<div class="zammad-chat-message zammad-chat-message--<%= @from %><%= @unreadClass %>"<% if @id: %> data-message-id="<%= @id %>"<% end %>>
+  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image"><button type="button" class="zammad-chat-image-open js-image-open" aria-label="<%- @T('View image') %>" data-url="<%= @url %>" data-filename="<%= @filename %>" data-meta="<%= @metaLabel %>" data-sender="<%= @senderLabel %>" data-time="<%= @time %>"><img class="zammad-chat-image-thumb js-image-thumb" src="<%= @url %>?view=preview" alt="<%= @filename %>" loading="lazy"><span class="zammad-chat-image-fallback"><%- @icon('image', 20, tone: 'full') %><span class="zammad-chat-image-fallback-name"><%= @filename %></span></span><span class="zammad-chat-image-meta"><%= @time %><% if @from is 'customer': %><span class="zammad-chat-message-status zammad-chat-message-status--<%= if @isRead then 'read' else 'sent' %>" aria-label="<%- if @isRead then @T('Read') else @T('Sent') %>"><%- @icon('checks', 16) %></span><% end %></span></button></span><% if @from is 'agent' and @id: %><button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="<%- @T('Reply') %>"><%- @icon('arrow-bend-up-left', 14) %></button><% end %></span>
+</div>

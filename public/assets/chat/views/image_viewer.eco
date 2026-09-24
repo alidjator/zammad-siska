@@ -1,0 +1,18 @@
+<!-- Fitur kirim gambar (mockup "Kirim gambar - layar penuh"): overlay
+menutupi SELURUH halaman (ditempel ke <body>, bukan di dalam panel).
+Tutup: tombol Close, Esc, klik area gelap. Fokus dikunci di dalam dialog
+(`openImageViewer` di chat-no-jquery.coffee). -->
+<div class="zammad-chat-image-viewer js-image-viewer" role="dialog" aria-modal="true" aria-label="<%- @T('Image preview') %>">
+  <div class="zammad-chat-image-viewer-bar">
+    <span class="zammad-chat-image-viewer-icon"><%- @icon('image', 18, tone: 'full') %></span>
+    <span class="zammad-chat-image-viewer-info">
+      <span class="zammad-chat-image-viewer-name"><%= @filename %></span>
+      <span class="zammad-chat-image-viewer-meta"><%= [@sender, @time, @meta].filter((part) -> part).join(' · ') %></span>
+    </span>
+    <a class="zammad-chat-image-viewer-download js-image-viewer-download" href="<%= @url %>?disposition=attachment" download="<%= @filename %>" target="_blank" rel="noopener"><%- @icon('download-simple', 18) %><span><%- @T('Download') %></span></a>
+    <button type="button" class="zammad-chat-image-viewer-close js-image-viewer-close" aria-label="<%- @T('Close') %>"><%- @icon('x', 20) %></button>
+  </div>
+  <div class="zammad-chat-image-viewer-stage js-image-viewer-stage">
+    <img class="zammad-chat-image-viewer-img" src="<%= @url %>" alt="<%= @filename %>">
+  </div>
+</div>

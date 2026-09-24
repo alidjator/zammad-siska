@@ -51,7 +51,8 @@ class ChatAttachmentsController < ApplicationController
   # Setting `chat_attachment_allowed_extensions` apa pun isinya.
   DENYLIST_EXTENSIONS = %w[exe bat cmd sh ps1 js html htm php jar msi com scr vbs].freeze
 
-  # Perbaikan celah Content-Type (permintaan user). SEBELUMNYA tipe file
+  # Fitur kirim gambar (widget customer, mockup "Fitur kirim gambar") +
+  # perbaikan celah Content-Type (permintaan user). SEBELUMNYA tipe file
   # yg disimpan & disajikan diambil MENTAH dari header browser pengunggah
   # (`file.content_type`) -- `foto.png` bisa diunggah dgn tipe
   # `text/html` lalu disajikan INLINE sbg halaman HTML di domain
@@ -62,6 +63,9 @@ class ChatAttachmentsController < ApplicationController
   IMAGE_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
   IMAGE_EXTENSIONS = %w[jpg jpeg png gif webp].freeze
   INLINE_TYPES = (IMAGE_TYPES + %w[application/pdf]).freeze
+  # Lebar thumbnail `?view=preview` -- bubble widget 220px, 2x utk layar
+  # retina.
+  PREVIEW_WIDTH = 480
 
   # GET /api/v1/chat_sessions/:session_id/attachments/:id
   # Dipakai widget customer & panel agent dua-duanya untuk menampilkan
@@ -103,6 +107,19 @@ class ChatAttachmentsController < ApplicationController
     # panel agent membuka PDF inline) menolak merender di bawah sandbox.
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Content-Security-Policy'] = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" if IMAGE_TYPES.include?(detected)
+
+    # Fitur kirim gambar: `?view=preview` -> thumbnail selebar
+    # PREVIEW_WIDTH (resize bawaan Zammad `Store#image_resize`, Rszr, di-
+    # cache). Gambar yg sudah kecil / gagal di-resize -> file asli.
+    if params[:view] == 'preview' && IMAGE_TYPES.include?(detected)
+      resized = begin
+        store.send(:image_resize, content, PREVIEW_WIDTH)
+      rescue => e
+        Rails.logger.info "Live Chat preview gambar gagal di-resize (#{store.id}): #{e.message}"
+        nil
+      end
+      content = resized if resized.present?
+    end
 
     send_data(
       content,
