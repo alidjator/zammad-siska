@@ -85,8 +85,24 @@ class WebsocketServer
     Sessions.destroy(client_id)
   end
 
+  # SISKA (perbaikan celah denial-of-service, 2026-09-24): SATU pesan
+  # WebSocket berupa JSON yg valid tapi BUKAN objek (mis. array
+  # `[{"event":...}]`, string, angka, null) sebelumnya lolos JSON.parse lalu
+  # meledak di `data['event']` (TypeError) -- exception di callback
+  # EventMachine yg tak tertangkap menghentikan SELURUH loop, jadi semua
+  # live chat (customer & agent) putus sampai container di-restart, dan
+  # siapa pun yg tahu URL /ws bisa mengulanginya. Kini payload non-objek
+  # ditolak per-pesan, dan isi onmessage dibungkus rescue sbg jaring
+  # pengaman: error tak terduga di satu pesan hanya menggagalkan pesan itu.
   def self.onmessage(websocket, msg)
     client_id = websocket.object_id.to_s
+    onmessage_process(client_id, msg)
+  rescue => e
+    log 'error', "failed to process message: #{e.inspect}", client_id
+    log 'error', e.backtrace&.first(5)&.join("\n").to_s, client_id
+  end
+
+  def self.onmessage_process(client_id, msg)
     log 'info', "receiving #{msg.to_s.bytesize} bytes", client_id
     log 'debug', "received: #{msg}", client_id
     begin
@@ -95,6 +111,11 @@ class WebsocketServer
       log 'info', 'end: parse message to JSON', client_id
     rescue => e
       log 'error', "can't parse message: #{msg}, #{e.inspect}", client_id
+      return
+    end
+
+    if !data.is_a?(Hash)
+      log 'error', "ignoring message, JSON object expected but got #{data.class}", client_id
       return
     end
 
