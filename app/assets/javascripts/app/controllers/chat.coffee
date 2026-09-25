@@ -59,7 +59,6 @@ class App.CustomerChat extends App.Controller
     # otomatis di-set offline. 0 = fitur mati.
     @awayTimeoutMinutes = parseInt(@Config.get('chat_agent_away_timeout') ? 10)
     @lastActivityAt = Date.now()
-    @startAwayWatch()
     @messageCounter = 0
     @meta =
       active: false
@@ -71,6 +70,10 @@ class App.CustomerChat extends App.Controller
       running_chat_session_list: []
       active_agent_count: 0
       active_agent_ids: []
+
+    # SETELAH `@meta` ada: `App.Interval.set` langsung memanggil callback
+    # sekali saat dipasang (bukan menunggu interval pertama).
+    @startAwayWatch()
 
     @render()
     @on('layout-has-changed', @propagateLayoutChange)
@@ -622,7 +625,7 @@ class App.CustomerChat extends App.Controller
     @interval(@checkAway, 30000, 'siska-away-check')
 
   checkAway: =>
-    return if !@meta.active
+    return if !@meta?.active
     return if @windowCount() > 0
     return if Date.now() - @lastActivityAt < @awayTimeoutMinutes * 60000
     @switch(false)
