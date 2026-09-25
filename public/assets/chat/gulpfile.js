@@ -27,7 +27,12 @@ function js(cb) {
 
   var purify = gulp.src('purify.min.js');
 
-  var js = gulp.src('chat.coffee')
+  // SISKA: varian jQuery (chat.coffee) tidak dikembangkan lagi.
+  // chat.js/chat.min.js dibangun dari sumber no-jquery yg sama supaya
+  // embed lama (`<script src=".../chat.min.js">`) tetap mendapat widget
+  // terbaru. Opsi `target` berupa objek jQuery tetap diterima (lihat
+  // constructor di chat-no-jquery.coffee).
+  var js = gulp.src('chat-no-jquery.coffee')
     .pipe(coffee({bare: true}).on('error', gutil.log));
 
   merge(templates, purify, js)
@@ -72,7 +77,7 @@ function no_jquery(cb) {
 
 exports.default = function() {
   gulp.watch(['chat.scss'], css);
-  gulp.watch(['chat.coffee', 'views/*.eco'], js);
+  gulp.watch(['chat-no-jquery.coffee', 'views/*.eco'], js);
   gulp.watch(['chat-no-jquery.coffee', 'views/*.eco'], no_jquery);
 }
 

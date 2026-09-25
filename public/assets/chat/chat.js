@@ -40,14 +40,14 @@ window.zammadChatTemplates["agent"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-agent-avatar-wrap">\n  ');
+      __out.push('<!-- Audit ulang kit (#12, aksesibilitas): nama agent SUDAH tertulis di\nsebelah avatar, jadi avatar dekoratif -- `alt=""` (bukan nama, supaya\npembaca layar tidak membacakan nama dua kali) & inisial `aria-hidden`. -->\n<div class="zammad-chat-agent-avatar-wrap">\n  ');
     
       if (this.agent.avatar) {
         __out.push('\n    <img class="zammad-chat-agent-avatar" src="');
         __out.push(__sanitize(this.agent.avatar));
-        __out.push('">\n  ');
+        __out.push('" alt="">\n  ');
       } else {
-        __out.push('\n    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials">');
+        __out.push('\n    <span class="zammad-chat-agent-avatar zammad-chat-agent-avatar--initials" aria-hidden="true">');
         __out.push(__sanitize(this.initials));
         __out.push('</span>\n  ');
       }
@@ -111,7 +111,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -125,7 +125,17 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push('"');
       }
     
-      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon"><svg width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg></span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
+      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon zammad-chat-attachment-icon--');
+    
+      __out.push(__sanitize(this.fileTone(this.filename)));
+    
+      __out.push('">');
+    
+      __out.push(this.icon(this.fileIcon(this.filename), 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
     
       __out.push(__sanitize(this.filename));
     
@@ -143,13 +153,17 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push('?disposition=attachment" download="');
     
-      __out.push(this.filename);
+      __out.push(__sanitize(this.filename));
     
       __out.push('" class="zammad-chat-attachment-download js-attachment-download" target="_blank" rel="noopener" aria-label="');
     
       __out.push(this.T('Download'));
     
-      __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M512 775C534.703 775 545.336 757.991 551 741C552 737 552 666 552 535V335L623 406C690 472 695 477 701 480S708 482 718 482C732.592 482 737.314 480.686 744 474C752.568 465.432 760 456.384 760 439C760 434 758 429 756 425C749.58 412.157 538.164 202.0989999999999 528 196C518.958 189.972 501.501 189.6660000000001 492 196C481.741 202.155 270.421 412.1570000000001 264 425C262 429 260 434 260 439C260 456.203 267.382 465.382 276 474C282.645 480.645 287.4700000000001 482 302 482C312 482 313 483 319 480S330 472 397 406L468 335V535C468 666 468 737 469 741C475.379 760.137 486.626 775 512 775zM178 233C163.43 233 157.889 230.889 151 224C145.679 218.679 139.234 212.935 137 204C135 197 135 195 135 143C135 79.298 135.24 95.038 142 68C147.162 47.35 161.751 30.249 175 17C187.27 4.73 204.18 -7.0360000000001 224 -11C229 -12 236 -14 240 -15C245 -16 301 -16 510 -16C729 -16 775 -16 781 -15C834.774 -1.557 869.578 29.313 883 83C884 89 885 97 885 143C885 195 885 197 883 204C880.768 212.932 874.33 218.67 869 224C862.522 230.478 858.063 232 844 232C817.815 232 811.505 218.634 802 202V152C801 103 801 100 799 95C794.441 81.323 784.04 72.68 770 68H250C235.754 72.749 225.655 81.035 221 95C219 100 219 103 218 152V202C209.756 216.427 200.435 233 178 233z"/></g></svg></a></span><span class="zammad-chat-message-time">');
+      __out.push('">');
+    
+      __out.push(this.icon('download-simple', 16));
+    
+      __out.push('</a></span><span class="zammad-chat-message-time">');
     
       __out.push(__sanitize(this.time));
     
@@ -158,18 +172,26 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M720 650C738.623 650 749.698 637.602 756 625C758 620 760 617 760 611C760 599.9100000000001 757.596 590.46 752 583C751.74 582.61 541.751 370.65 529 363C512.684 352.122 488.8 362.2000000000001 480 371C471.095 379.905 462.707 403.56 473 419C480.21 431.019 605.111 553.111 696 644C700.571 648.571 710.63 650 720 650zM927 650C942.425 650 951.324 641.6759999999999 959 634C965.36 627.64 968 621.76 968 608C968 598 968 597 965 591C957.456 575.9110000000001 536.13 159.087 533 157C527.059 153.04 518.734 150 510 150C501.297 150 492.928 153.048 487 157C474.262 165.492 270.288 372.567 266 379C262.755 385.49 260 391.09 260 402C260 431.84 288.96 448.014 319 438C324 436 334 426 417 343L510 251L706 447C867 607 904 643 908 645C911 646 915 649 917 649S924 650 927 650zM93 442C91 442 87 441 85 441C71.335 441 60.726 425.589 55 417C52 412 52 411 52 400S52 388 55 382C60.88 372.2000000000001 271.996 159.145 284 154C290 151 293 150 299 150C316.203 150 325.382 157.382 334 166C340.645 172.645 342 177.47 342 192C342 202 343 203 340 209C334.549 219.9020000000001 118.586 433.707 116 435C109.999 438.001 100.128 442 93 442z"/></g></svg></span>');
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
       }
     
-      __out.push('</span></span>');
+      __out.push('</span>');
     
-      if (this.from === 'agent' && this.id) {
-        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
-        __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M386 733C374.042 733 367.644 731.644 362 726C341.089 705.0889999999999 192.556 562.9259999999999 180 542C177 536 178 536 178 525S177 514 180 508C189.953 491.412 356.9410000000001 326.636 368 320C374 317 374 318 385 318C401.474 318 404.629 319.629 413 328C420.525 335.525 429.352 348.2430000000001 426 365L422 377C420 382 412 391 370 433L320 483H504C662 483 689 483 697 482C716.607 478.078 737.03 470.176 751 459C778.753 436.7970000000001 801 407.045 801 358C801 310.507 778.565 278.674 751 258C723.071 237.054 707.807 234.814 657 233L624 232C607.495 226.4980000000001 598.516 216.062 594 198C593 193 593 190 594 185L598 173C601.412 162.765 614.0360000000001 154.321 624 151C628 150 638 150 659 150C700.11 150 713.085 152.7380000000001 742 161C758.07 165.592 779.356 174.685 791 184C807.701 197.361 825.05 209.733 838 227C841 231 847 239 851 244C860.308 255.635 869.405 276.92 874 293C879.924 313.732 885 331.702 885 358C885 426.824 858.064 470.937 823 506C794.9 534.1 765.26 554.123 718 562C676.52 568.913 652.8199999999999 567 502 567H320L370 617C412 659 420 668 422 673L426 685C430.658 708.2909999999999 415.403 721.065 402 730C397 732 394 733 386 733z"/></g></svg></button>');
+      if (this.id) {
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="file" data-download="');
+        __out.push(__sanitize(this.url));
+        __out.push('?disposition=attachment" data-filename="');
+        __out.push(__sanitize(this.filename));
+        __out.push('">');
+        __out.push(this.icon('caret-down', 16));
+        __out.push('</button>');
       }
     
-      __out.push('</span>\n</div>\n');
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -220,43 +242,93 @@ window.zammadChatTemplates["chat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat');
+      __out.push('<!-- Audit widget (aksesibilitas): panel diumumkan sbg dialog non-modal\n(`aria-modal` sengaja tidak dipasang -- halaman situs tetap bisa\ndipakai), `tabindex="-1"` supaya `open()` bisa memindahkan fokus ke\nsini. Escape = minimize (`onPanelKeydown`). -->\n<div class="zammad-chat');
     
       if (this.flat) {
         __out.push(__sanitize(' zammad-chat--flat'));
       }
     
-      __out.push('"');
+      __out.push('" role="dialog" aria-label="');
+    
+      __out.push(__sanitize(this.T('Chat')));
+    
+      __out.push('" tabindex="-1"');
     
       if (this.fontSize) {
         __out.push(__sanitize(" style='font-size: " + this.fontSize + "'"));
       }
     
-      __out.push('>\n  <div class="zammad-chat-header">\n    <div class="zammad-chat-agent zammad-chat-is-hidden">\n    </div>\n    <div class="zammad-chat-welcome">\n      <span class="zammad-chat-welcome-title">');
+      __out.push('>\n  <div class="zammad-chat-header">\n    <div class="zammad-chat-agent zammad-chat-is-hidden">\n    </div>\n    <div class="zammad-chat-welcome">\n      <!-- Atas permintaan user ("lambaian tangan, ganti menggunakan logo\n      ini, `Hi There` ganti menjadi `Hi Simmers`") -- emoji 👋 diganti\n      logo SISKA (vektor inline, tanpa id). Teks sapaan dipisah ke\n      `.js-welcome-greeting` supaya `updatePhrases` cukup mengganti\n      teksnya tanpa menghapus logo. -->\n      <span class="zammad-chat-welcome-title"><span class="js-welcome-greeting">');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there'));
+      __out.push(__sanitize(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi Simmers')));
     
-      __out.push(' 👋</span>\n      <span class="zammad-chat-welcome-subtext">');
+      __out.push('</span><svg class="zammad-chat-welcome-logo" xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 118" focusable="false" aria-hidden="true"><path d="M-50 0 A50 50 0 0 1 50 0 Z" fill="#1ea5d0"/><path d="M-50 0 C-50 24 -28 42 0 64 C28 42 50 24 50 0 Z" fill="#d7a27b"/><circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="15.5" fill="#ffffff"/></svg></span>\n      <span class="zammad-chat-welcome-subtext">');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?'));
+      __out.push(__sanitize(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?')));
     
       __out.push('</span>\n    </div>\n    <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>\n    <div class="zammad-chat-header-controls">\n      <button type="button" class="zammad-chat-header-icon zammad-chat-header-icon-minimize js-chat-minimize" aria-label="');
     
       __out.push(this.T('Minimize'));
     
-      __out.push('">\n        <svg width="17" height="17" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 567C235.564 567 213.687 544.5640000000001 219 518C220 514 221 509 223 506C232.459 490.235 479.177 245.0940000000001 491 238C501.756 230.8300000000001 517.81 234.27 529 238C538.213 241.6860000000001 791.3009999999999 496.501 797 506C810.366 526.05 794.566 556.812 779 562C768.606 565.4649999999999 751.99 569.326 741 562C736 559 721 546 622 447L510 335L397 447C300 544 284 560 279 562C273.193 563.9359999999999 266.477 567 259 567z"/></g></svg>\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
+      __out.push('">\n        ');
+    
+      __out.push(this.icon('caret-down', 17));
+    
+      __out.push('\n      </button>\n      <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="');
     
       __out.push(this.T('End chat'));
     
-      __out.push('">\n        <svg class="zammad-chat-header-icon-close" width="17" height="17" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 692C235.564 692 213.687 669.564 219 643C220 639 221 634 223 631C226 626 239 611 338 512L450 400L338 288C239 189 226 174 223 169C217.037 160.0560000000001 216.766 140.352 223 131C230.87 119.1950000000001 245.002 104.6 267 109C271 110 276 112 279 113C284 115 300 131 397 228L510 340L622 228C721 129 736 116 741 113C755.69 103.207 780.28 111.28 789 120C798.387 129.387 808.02 152.47 797 169C794 174 781 189 682 288L570 400L682 512C781 611 794 626 797 631C810.366 651.05 794.566 681.812 779 687C768.606 690.465 751.99 694.326 741 687C736 684 721 671 622 572L510 460L397 572C300 669 284 685 279 687C273.193 688.936 266.477 692 259 692z"/></g></svg>\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      <svg class="zammad-scroll-hint-icon" width="20" height="18" viewBox="0 0 20 18"><path d="M0,2.00585866 C0,0.898053512 0.898212381,0 1.99079514,0 L18.0092049,0 C19.1086907,0 20,0.897060126 20,2.00585866 L20,11.9941413 C20,13.1019465 19.1017876,14 18.0092049,14 L1.99079514,14 C0.891309342,14 0,13.1029399 0,11.9941413 L0,2.00585866 Z M10,14 L16,18 L16,14 L10,14 Z" fill-rule="evenodd"/></svg>\n      ');
+      __out.push('">\n        ');
+    
+      __out.push(this.icon('x', 17, {
+        "class": 'zammad-chat-header-icon-close'
+      }));
+    
+      __out.push('\n      </button>\n    </div>\n    <!-- Atas permintaan user ("pindahkan posisi gambar pada header",\n    mockup HomeHeader.dc.html) -- ilustrasi vektor (agent CS & customer\n    terhubung percakapan) di bawah sapaan, HANYA terlihat saat header\n    mode Home (`.zammad-chat-header--tinted`, lihat `updateHeader`) --\n    disembunyikan lewat CSS di tab lain, tidak ada JS tambahan.\n    Gelombang putih paling depan dipisah ke SVG sendiri\n    (`preserveAspectRatio="none"`, selalu selebar panel) supaya header\n    tetap menyatu mulus ke isi Home walau adegan menyusut di panel\n    pendek. Ujung kiri/kanan gelombang biru di dalam adegan DIPUDARKAN\n    (mask gradien) supaya tidak terlihat terpotong tegak saat adegan\n    lebih sempit dari panel -- permintaan user: "kesan tidak terpotong,\n    tapi gelombang jangan ditarik ke samping". Id mask berprefix\n    `zammad-chat-header-ill-` supaya tidak bentrok dgn situs host.\n    Dekoratif murni (`aria-hidden`). -->\n    <div class="zammad-chat-header-illustration" aria-hidden="true">\n      <svg class="zammad-chat-header-illustration-scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 220" preserveAspectRatio="xMidYMax meet" focusable="false" aria-hidden="true">\n      <defs>\n      <linearGradient id="zammad-chat-header-ill-fade-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="380" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.16" stop-color="#fff"/><stop offset="0.84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>\n      <mask id="zammad-chat-header-ill-fade" maskUnits="userSpaceOnUse" x="0" y="0" width="380" height="220"><rect width="380" height="220" fill="url(#zammad-chat-header-ill-fade-grad)"/></mask>\n      </defs>\n      <circle cx="190" cy="118" r="96" fill="#ffffff" opacity="0.55"/>\n      <path d="M104 104 C146 34 238 34 282 100" fill="none" stroke="#a9c1ff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>\n      <path d="M150 22 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6z" fill="#ffc15e"/>\n      <path d="M244 52 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#a9c1ff"/>\n      <path d="M34 66 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#7fd3b3"/>\n      <path d="M346 70 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2z" fill="#ffc15e"/>\n      <circle cx="330" cy="32" r="3.5" fill="#ffb3c7"/>\n      <circle cx="58" cy="30" r="3" fill="#a9c1ff"/>\n      <path d="M124 61 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#d6e2ff"/>\n      <path d="M122 58 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#ffffff"/>\n      <rect x="134" y="58" width="52" height="7" rx="3.5" fill="#c9d7fb"/>\n      <rect x="134" y="71" width="34" height="7" rx="3.5" fill="#e3ebff"/>\n      <path d="M186 104 a12 12 0 0 1 12 -12 h50 a12 12 0 0 1 12 12 v18 a12 12 0 0 1 -12 12 h-4 v10 l-12 -10 h-34 a12 12 0 0 1 -12 -12 z" fill="#4680ff"/>\n      <circle cx="208" cy="113" r="3.6" fill="#ffffff"/>\n      <circle cx="222" cy="113" r="3.6" fill="#ffffff" opacity="0.8"/>\n      <circle cx="236" cy="113" r="3.6" fill="#ffffff" opacity="0.6"/>\n      <circle cx="190" cy="30" r="13" fill="#2aa77e"/>\n      <path d="M184 30 l4 4 8 -8" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>\n      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 168 C60 150 120 160 190 172 C260 184 320 170 380 150 L380 220 L0 220 Z" fill="#dbe6ff"/></g>\n      <g>\n      <path d="M40 206 C40 168 57 150 80 150 C103 150 120 168 120 206 Z" fill="#4680ff"/>\n      <path d="M80 150 C103 150 120 168 120 206 L80 206 Z" fill="#3a6ff0"/>\n      <path d="M70 151 L80 166 L90 151 Z" fill="#dbe6ff"/>\n      <rect x="74" y="136" width="12" height="18" rx="5" fill="#eeb08f"/>\n      <circle cx="80" cy="122" r="20" fill="#f7c9a8"/>\n      <path d="M59 125 C56 100 69 95 80 95 C97 95 105 106 101 125 C98 113 90 108 80 108 C70 108 63 114 61 129 Z" fill="#24325f"/>\n      <circle cx="98" cy="100" r="7" fill="#24325f"/>\n      <circle cx="73" cy="124" r="2" fill="#24325f"/>\n      <circle cx="87" cy="124" r="2" fill="#24325f"/>\n      <path d="M74 132 Q80 137 86 132" fill="none" stroke="#24325f" stroke-width="2" stroke-linecap="round"/>\n      <path d="M58 121 C58 93 102 93 102 121" fill="none" stroke="#1d2a55" stroke-width="4" stroke-linecap="round"/>\n      <rect x="53" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>\n      <rect x="98" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>\n      <path d="M58 127 C58 139 66 143 74 141" fill="none" stroke="#1d2a55" stroke-width="2.5" stroke-linecap="round"/>\n      <circle cx="75" cy="141" r="3" fill="#ffb454"/>\n      </g>\n      <g>\n      <path d="M262 206 C262 172 279 156 300 156 C321 156 338 172 338 206 Z" fill="#2aa77e"/>\n      <path d="M300 156 C321 156 338 172 338 206 L300 206 Z" fill="#229068"/>\n      <rect x="294" y="140" width="12" height="18" rx="5" fill="#c98d68"/>\n      <circle cx="300" cy="128" r="19" fill="#d9a07a"/>\n      <path d="M281 127 C279 107 290 100 300 100 C314 100 322 108 319 127 C316 117 309 113 300 113 C291 113 285 117 283 129 Z" fill="#3b2a24"/>\n      <circle cx="293" cy="130" r="2" fill="#3b2a24"/>\n      <circle cx="307" cy="130" r="2" fill="#3b2a24"/>\n      <path d="M294 138 Q300 143 306 138" fill="none" stroke="#3b2a24" stroke-width="2" stroke-linecap="round"/>\n      <rect x="289" y="158" width="22" height="34" rx="5" fill="#1d2a55"/>\n      <rect x="292" y="162" width="16" height="24" rx="2" fill="#dbe6ff"/>\n      <rect x="294" y="166" width="10" height="4" rx="2" fill="#4680ff"/>\n      <rect x="296" y="174" width="10" height="4" rx="2" fill="#ffffff"/>\n      <ellipse cx="300" cy="190" rx="12" ry="6" fill="#d9a07a"/>\n      </g>\n      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 192 C80 178 150 198 230 192 C300 186 340 178 380 182 L380 220 L0 220 Z" fill="#c7d8ff"/></g>\n      </svg>\n      <svg class="zammad-chat-header-illustration-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 22" preserveAspectRatio="none" focusable="false" aria-hidden="true"><path d="M0 8 C90 -1 180 16 270 7 C320 3 350 4 380 0 L380 22 L0 22 Z" fill="#ffffff"/></svg>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      ');
+    
+      __out.push(this.icon('arrow-circle-down', 20, {
+        "class": 'zammad-scroll-hint-icon'
+      }));
+    
+      __out.push('\n      ');
     
       __out.push(this.T(this.scrollHint));
     
-      __out.push('\n    </div>\n    <div class="zammad-chat-body"></div>\n    <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>\n    <form class="zammad-chat-controls">\n      <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>\n      <div class="zammad-chat-input" rows="1" placeholder="');
+      __out.push('\n    </div>\n    <!-- Audit widget (aksesibilitas): `role="log"` + `aria-live` supaya\n    pesan agent yg masuk diumumkan pembaca layar (hanya tambahan,\n    bukan seluruh isi ulang). -->\n    <div class="zammad-chat-body" role="log" aria-live="polite" aria-relevant="additions" aria-label="');
     
-      __out.push(this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
+      __out.push(__sanitize(this.T('Messages')));
     
-      __out.push('" contenteditable="true"></div>\n      <div class="zammad-chat-controls-icons">\n        <div class="zammad-chat-emoji-toggle js-emoji-toggle">\n          <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 295.901 893.852 224.779 852 162C841.594 146.39 829.555 130.555 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.224 9.414 602.538 -16 510 -16C456.467 -16 421.03 -7.723 380 4C329.755 18.355 287.91 46.922 250 74C233.797 85.574 217.93 103.0700000000001 204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C165.724 643.448 200.981 683.9839999999999 243 720C295.099 764.656 363.178 800.025 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C498 733 484 732 479 732C445.765 732 413.549 718.85 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.01 471.536 177 440.877 177 400C177 359.0800000000001 183.964 328.626 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C677.198 105.732 707.225 131.187 737 156C749.114 166.095 764.064 184.086 773 196C784.495 211.326 798.348 232.472 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM427 484C427 458.255 409.5710000000001 442 383 442C340.153 442 329.724 507.908 366 520C374.133 522.71 374.992 525 387 525C403.385 525 411.847 514.153 420 506C424.2080000000001 501.792 427 491.67 427 484zM677 484C677 458.255 659.571 442 633 442C590.153 442 579.724 507.908 616 520C624.133 522.71 624.992 525 637 525C653.385 525 661.847 514.153 670 506C674.208 501.792 677 491.67 677 484zM406 317C380.43 317 364 297.736 364 272C364 262.53 368.902 256.146 373 250C384.86 232.2100000000001 405.217 221.305 425 210C444.383 198.924 469.645 190 497 190H522C539.757 190 542.767 193.46 558 196C564 197 571 200 576 202C589.984 207.5940000000001 605.783 214.026 617 223C631.995 234.996 656 247.352 656 272C656 298.346 641.948 310.7630000000001 621 316C602.528 319.694 593.18 310.944 582 302C562.888 286.7100000000001 544.151 273 510 273C476.81 273 456.499 287.2000000000001 438 302C427.262 310.5900000000001 422.427 317 406 317z"/></g></svg>\n        </div>\n        <div class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden">\n          <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg>\n        </div>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
+      __out.push('"></div>\n    <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>\n    <form class="zammad-chat-controls">\n      <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>\n      <div class="zammad-chat-input" rows="1" placeholder="');
+    
+      __out.push(__sanitize(this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…')));
+    
+      __out.push('" contenteditable="true"></div>\n      <div class="zammad-chat-controls-icons">\n        <button type="button" class="zammad-chat-emoji-toggle js-emoji-toggle" aria-label="');
+    
+      __out.push(this.T('Emoji'));
+    
+      __out.push('" aria-expanded="false">\n          ');
+    
+      __out.push(this.icon('smiley', 16, {
+        tone: 'active'
+      }));
+    
+      __out.push('\n        </button>\n        <!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): tombol TERPISAH\n        dari Attach, pemilih file khusus gambar (di ponsel otomatis\n        menawarkan kamera/galeri). Tampil/sembunyi ikut flag\n        `attachment_enabled` yg sama dgn Attach. Upload lewat endpoint\n        lampiran yg SAMA (`uploadAttachment`). -->\n        <button type="button" class="zammad-chat-attach zammad-chat-attach-image js-chat-attach-image zammad-chat-is-hidden" aria-label="');
+    
+      __out.push(this.T('Add image'));
+    
+      __out.push('">\n          ');
+    
+      __out.push(this.icon('image', 16));
+    
+      __out.push('\n        </button>\n        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="js-chat-image-input zammad-chat-is-hidden">\n        <button type="button" class="zammad-chat-attach js-chat-attach zammad-chat-is-hidden" aria-label="');
+    
+      __out.push(this.T('Attach file'));
+    
+      __out.push('">\n          ');
+    
+      __out.push(this.icon('paperclip', 16));
+    
+      __out.push('\n        </button>\n        <input type="file" class="js-chat-attachment-input zammad-chat-is-hidden">\n        <button type="submit" class="zammad-chat-send" aria-label="');
     
       __out.push(this.T('Send'));
     
@@ -266,7 +338,11 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         __out.push(__sanitize(" style='background: " + this.background + "'"));
       }
     
-      __out.push('>\n          <svg width="15" height="15" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M887 817C905.39 817 920.353 802.938 925 789C926 785 926 780 926 774V766L789 386C714 178 651 6 650 4C640.814 -14.371 621.332 -30 594 -30C572.757 -30 551.768 -19.15 543 -6C540 -3 515 48 468 142L396 286L252 358C158 405 107 430 104 433C90.687 441.876 80 462.057 80 484C80 512.133 95.208 530.605 114 540C135.429 550.7139999999999 853.955 807.582 865 812C870 814 876 816 877 816S883 817 887 817zM720 671C719.662 671 713.743 668.74 194 481C194 481 244 455 306 424L418 368L570 519C653 602 721 671 720 671zM782 612L478 308L534 195C579 105 590 82 591 84C591 84.321 591.312 84.0940000000001 782 612z"/></g></svg>\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n\n  <!-- Atas permintaan user (mockup "SISKA Widget Mockup" -- board\n  IndicatorReconnecting/Restored/Lost): indikator fullpage\n  semi-transparan status koneksi WebSocket widget sendiri, menutupi\n  seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,\n  lihat `connection_overlay.eco`). -->\n  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden"></div>\n\n  <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit\n  feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,\n  lihat `showFeedback`) tetap fullpage -- container TERPISAH dari\n  overlay koneksi di atas (semantik beda, sengaja tidak dicampur),\n  gaya visual scrim sama (lihat `chat.scss`). Isi disuntik dinamis\n  oleh `showFeedbackThanks()`. -->\n  <div class="zammad-chat-feedback-thanks-overlay js-feedback-thanks-overlay zammad-chat-is-hidden"></div>\n</div>');
+      __out.push('>\n          ');
+    
+      __out.push(this.icon('paper-plane-right', 15));
+    
+      __out.push('\n        </button>\n      </div>\n    </form>\n  </div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--help"></div>\n\n  <div class="zammad-chat-tabbar"></div>\n\n  <!-- Atas permintaan user (mockup "SISKA Widget Mockup" -- board\n  IndicatorReconnecting/Restored/Lost): indikator fullpage\n  semi-transparan status koneksi WebSocket widget sendiri, menutupi\n  seluruh panel (isi disuntik dinamis oleh `showConnectionOverlay()`,\n  lihat `connection_overlay.eco`). -->\n  <!-- Audit kit Tailwind: `aria-live` -- perubahan status koneksi\n  (Reconnecting -> restored/lost) dibacakan pembaca layar. -->\n  <div class="zammad-chat-connection-overlay js-connection-overlay zammad-chat-is-hidden" aria-live="polite"></div>\n\n  <!-- Atas permintaan user: layar "Terima kasih" SETELAH submit\n  feedback (rating-nya sendiri sekarang inline di `.zammad-chat-body`,\n  lihat `showFeedback`) tetap fullpage -- container TERPISAH dari\n  overlay koneksi di atas (semantik beda, sengaja tidak dicampur),\n  gaya visual scrim sama (lihat `chat.scss`). Isi disuntik dinamis\n  oleh `showFeedbackThanks()`. -->\n  <div class="zammad-chat-feedback-thanks-overlay js-feedback-thanks-overlay zammad-chat-is-hidden"></div>\n</div>');
     
     }).call(this);
     
@@ -318,22 +394,32 @@ window.zammadChatTemplates["connection_overlay"] = function(__obj) {
   (function() {
     (function() {
       if (this.state === 'reconnecting') {
-        __out.push('\n  <div class="zammad-chat-connection-overlay-spinner">\n    <svg viewBox="0 0 44 44" width="56" height="56" xmlns="http://www.w3.org/2000/svg">\n      <circle class="zammad-chat-pc-track" cx="22" cy="22" r="20" fill="none" stroke-width="4"></circle>\n      <circle class="zammad-chat-pc-arc" cx="22" cy="22" r="20" fill="none" stroke-width="4" stroke-dasharray="125.6" stroke-dashoffset="0"></circle>\n    </svg>\n  </div>\n');
+        __out.push('\n  <!-- Audit kit Tailwind: spinner satu elemen (lihat chat.scss) +\n  `role="status"`/`sr-only` spt spinner Waiting/EndingChat. -->\n  <div class="zammad-chat-connection-overlay-spinner" role="status">\n    <span class="zammad-chat-sr-only">');
+        __out.push(this.T('Loading...'));
+        __out.push('</span>\n  </div>\n');
       } else if (this.state === 'restored') {
-        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    <svg width="56" height="56" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n');
+        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    ');
+        __out.push(this.icon('check-circle', 56, {
+          tone: 'full'
+        }));
+        __out.push('\n  </div>\n');
       } else {
-        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    <svg width="56" height="56" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 295.901 893.852 224.779 852 162C841.594 146.39 829.555 130.555 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.224 9.414 602.538 -16 510 -16C456.467 -16 421.03 -7.723 380 4C329.755 18.355 287.91 46.922 250 74C233.797 85.574 217.93 103.0700000000001 204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C165.724 643.448 200.981 683.9839999999999 243 720C295.099 764.656 363.178 800.025 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C498 733 484 732 479 732C445.765 732 413.549 718.85 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.01 471.536 177 440.877 177 400C177 359.0800000000001 183.964 328.626 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C677.198 105.732 707.225 131.187 737 156C749.114 166.095 764.064 184.086 773 196C784.495 211.326 798.348 232.472 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM427 525C406.52 525 396.173 514.345 389 500C387 495 385 492 385 486C385 473.867 387.463 469.074 391 462C392 460 406 445 422 429L450 400L422 371C406 355 392 340 391 338C387.487 330.9740000000001 385 326.1 385 314C385 293.8 404.072 275 424 275C436.133 275 440.926 277.463 448 281C450 282 465 296 481 312L510 340L539 312C555 296 570 282 572 281C579.026 277.487 583.9 275 596 275C615.8 275 635 294.531 635 314C635 326.1330000000001 632.537 330.9260000000001 629 338C628 340 614 355 598 371L570 400L598 429C614 445 628 460 629 462C632.513 469.026 635 473.9 635 486C635 505.8 615.469 525 596 525C583.867 525 579.074 522.537 572 519C570 518 555 504 539 488L510 460L481 488C457.76 511.24 454.002 517.6659999999999 438 523C435 524 430 525 427 525z"/></g></svg>\n  </div>\n');
+        __out.push('\n  <div class="zammad-chat-connection-overlay-icon">\n    ');
+        __out.push(this.icon('x-circle', 56, {
+          tone: 'full'
+        }));
+        __out.push('\n  </div>\n');
       }
     
       __out.push('\n\n<div class="zammad-chat-connection-overlay-title">');
     
-      __out.push(this.title);
+      __out.push(__sanitize(this.title));
     
       __out.push('</div>\n');
     
       if (this.subtitle) {
         __out.push('\n  <div class="zammad-chat-connection-overlay-subtitle">');
-        __out.push(this.subtitle);
+        __out.push(__sanitize(this.subtitle));
         __out.push('</div>\n');
       }
     
@@ -469,11 +555,15 @@ window.zammadChatTemplates["emoji_picker"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-emoji-picker-title">');
+      __out.push('<!-- Audit ulang kit Tailwind: tiap emoji <button type="button"> (bukan <span>)\nsupaya bisa dipilih lewat Tab + Enter; `type="button"` WAJIB karena picker\nberada di dalam <form class="zammad-chat-controls"> (default submit). -->\n<div class="zammad-chat-emoji-picker-title">');
     
       __out.push(this.T('Emoji'));
     
-      __out.push('</div>\n<div class="zammad-chat-emoji-picker-grid">\n  <span class="js-emoji-item" data-emoji="😀">😀</span>\n  <span class="js-emoji-item" data-emoji="😂">😂</span>\n  <span class="js-emoji-item" data-emoji="😍">😍</span>\n  <span class="js-emoji-item" data-emoji="😊">😊</span>\n  <span class="js-emoji-item" data-emoji="🙏">🙏</span>\n  <span class="js-emoji-item" data-emoji="👍">👍</span>\n  <span class="js-emoji-item" data-emoji="👋">👋</span>\n  <span class="js-emoji-item" data-emoji="❤️">❤️</span>\n  <span class="js-emoji-item" data-emoji="😢">😢</span>\n  <span class="js-emoji-item" data-emoji="😮">😮</span>\n  <span class="js-emoji-item" data-emoji="🎉">🎉</span>\n  <span class="js-emoji-item" data-emoji="🔥">🔥</span>\n  <span class="js-emoji-item" data-emoji="✅">✅</span>\n  <span class="js-emoji-item" data-emoji="💡">💡</span>\n  <span class="js-emoji-item" data-emoji="🤔">🤔</span>\n  <span class="js-emoji-item" data-emoji="👌">👌</span>\n  <span class="js-emoji-item" data-emoji="🙌">🙌</span>\n  <span class="js-emoji-item" data-emoji="😎">😎</span>\n</div>\n');
+      __out.push('</div>\n<div class="zammad-chat-emoji-picker-grid" role="group" aria-label="');
+    
+      __out.push(this.T('Emoji'));
+    
+      __out.push('">\n  <button type="button" class="js-emoji-item" data-emoji="😀" aria-label="Grinning">😀</button>\n  <button type="button" class="js-emoji-item" data-emoji="😂" aria-label="Joy">😂</button>\n  <button type="button" class="js-emoji-item" data-emoji="😍" aria-label="Heart eyes">😍</button>\n  <button type="button" class="js-emoji-item" data-emoji="😊" aria-label="Smile">😊</button>\n  <button type="button" class="js-emoji-item" data-emoji="🙏" aria-label="Thanks">🙏</button>\n  <button type="button" class="js-emoji-item" data-emoji="👍" aria-label="Thumbs up">👍</button>\n  <button type="button" class="js-emoji-item" data-emoji="👋" aria-label="Wave">👋</button>\n  <button type="button" class="js-emoji-item" data-emoji="❤️" aria-label="Heart">❤️</button>\n  <button type="button" class="js-emoji-item" data-emoji="😢" aria-label="Sad">😢</button>\n  <button type="button" class="js-emoji-item" data-emoji="😮" aria-label="Surprised">😮</button>\n  <button type="button" class="js-emoji-item" data-emoji="🎉" aria-label="Party">🎉</button>\n  <button type="button" class="js-emoji-item" data-emoji="🔥" aria-label="Fire">🔥</button>\n  <button type="button" class="js-emoji-item" data-emoji="✅" aria-label="Check">✅</button>\n  <button type="button" class="js-emoji-item" data-emoji="💡" aria-label="Idea">💡</button>\n  <button type="button" class="js-emoji-item" data-emoji="🤔" aria-label="Thinking">🤔</button>\n  <button type="button" class="js-emoji-item" data-emoji="👌" aria-label="OK">👌</button>\n  <button type="button" class="js-emoji-item" data-emoji="🙌" aria-label="Raised hands">🙌</button>\n  <button type="button" class="js-emoji-item" data-emoji="😎" aria-label="Cool">😎</button>\n</div>\n');
     
     }).call(this);
     
@@ -524,7 +614,11 @@ window.zammadChatTemplates["ending_chat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco, modifier warna via `--danger` (chat.scss). -->\n  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco, modifier warna via `--danger` (chat.scss). -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner zammad-chat-waiting-spinner--danger" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_ending_title'] || 'Ending conversation…'));
     
@@ -583,7 +677,13 @@ window.zammadChatTemplates["feedback_thanks"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    <svg width="30" height="30" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
+      __out.push('<div class="zammad-chat-feedback-thanks">\n  <div class="zammad-chat-feedback-thanks-icon">\n    ');
+    
+      __out.push(this.icon('check-circle', 30, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-feedback-thanks-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_thanks_title'] || 'Thank you for your feedback!'));
     
@@ -650,7 +750,42 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_subtitle'] || 'Your feedback helps us improve.'));
     
-      __out.push('</div>\n\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1"><svg class="zammad-chat-feedback-star-empty" width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M511 858C522.855 858 532.638 852.362 539 846C546.965 838.035 577.894 772.657 666 595C705.593 588.813 819.664 571.905 868 565C903 560 934 555 938 554C954.651 549.837 967 535.123 967 514C967 502.832 964.252 498.504 961 492C960 490 921 452 876 408S787 320 778 312L762 296L785 164C805 47 808 32 808 24C808 -7.2670000000001 777.367 -22.456 749 -13C746 -12 691 18 627 52L510 113L448 80C414 62 359 34 327 17C277 -9 267 -15 261 -16C241.212 -19.958 220.92 -8.76 216 6C213.893 12.323 211 16.3440000000001 211 24C211 26 221 89 234 163L257 297L237 316C226 327 182 370 140 411S62 487 60 490C55.817 496.273 52 504.913 52 515C52 536.315 64.667 545.8340000000001 79 553C91.395 557.1320000000001 269.559 582.639 353 595L408 705C438 765 465 820 468 827C476.474 846.065 485.528 858 511 858zM510 722L484 670C464.71 631.419 429.491 552.654 411 528C394.57 511.57 385.685 514.577 338 508C309 504 263 497 236 493S187 485 186 485C184.23 483.23 309.432 362.568 315 357C341.255 330.745 337.2200000000001 340.115 343 317C344.267 308.134 340.447 294.385 309 102C338.99 116.995 486.999 196.333 498 200C502 201 505 202 512 202C520 202 521 201 533 195C537.576 193.04 706.355 104.462 711 102C710.604 104.28 676 301.934 676 312C676 321.451 678.96 327.942 683 334C685.501 337.752 684.173 335.173 834 485C799.27 490.788 676.892 508.587 639 514C623.096 515.5899999999999 614.936 518.751 608 528C604 533 600 539 591 558C584.513 572.0550000000001 516.872 708.059 510 722z"/></g></svg><svg class="zammad-chat-feedback-star-filled" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2"><svg class="zammad-chat-feedback-star-empty" width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M511 858C522.855 858 532.638 852.362 539 846C546.965 838.035 577.894 772.657 666 595C705.593 588.813 819.664 571.905 868 565C903 560 934 555 938 554C954.651 549.837 967 535.123 967 514C967 502.832 964.252 498.504 961 492C960 490 921 452 876 408S787 320 778 312L762 296L785 164C805 47 808 32 808 24C808 -7.2670000000001 777.367 -22.456 749 -13C746 -12 691 18 627 52L510 113L448 80C414 62 359 34 327 17C277 -9 267 -15 261 -16C241.212 -19.958 220.92 -8.76 216 6C213.893 12.323 211 16.3440000000001 211 24C211 26 221 89 234 163L257 297L237 316C226 327 182 370 140 411S62 487 60 490C55.817 496.273 52 504.913 52 515C52 536.315 64.667 545.8340000000001 79 553C91.395 557.1320000000001 269.559 582.639 353 595L408 705C438 765 465 820 468 827C476.474 846.065 485.528 858 511 858zM510 722L484 670C464.71 631.419 429.491 552.654 411 528C394.57 511.57 385.685 514.577 338 508C309 504 263 497 236 493S187 485 186 485C184.23 483.23 309.432 362.568 315 357C341.255 330.745 337.2200000000001 340.115 343 317C344.267 308.134 340.447 294.385 309 102C338.99 116.995 486.999 196.333 498 200C502 201 505 202 512 202C520 202 521 201 533 195C537.576 193.04 706.355 104.462 711 102C710.604 104.28 676 301.934 676 312C676 321.451 678.96 327.942 683 334C685.501 337.752 684.173 335.173 834 485C799.27 490.788 676.892 508.587 639 514C623.096 515.5899999999999 614.936 518.751 608 528C604 533 600 539 591 558C584.513 572.0550000000001 516.872 708.059 510 722z"/></g></svg><svg class="zammad-chat-feedback-star-filled" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3"><svg class="zammad-chat-feedback-star-empty" width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M511 858C522.855 858 532.638 852.362 539 846C546.965 838.035 577.894 772.657 666 595C705.593 588.813 819.664 571.905 868 565C903 560 934 555 938 554C954.651 549.837 967 535.123 967 514C967 502.832 964.252 498.504 961 492C960 490 921 452 876 408S787 320 778 312L762 296L785 164C805 47 808 32 808 24C808 -7.2670000000001 777.367 -22.456 749 -13C746 -12 691 18 627 52L510 113L448 80C414 62 359 34 327 17C277 -9 267 -15 261 -16C241.212 -19.958 220.92 -8.76 216 6C213.893 12.323 211 16.3440000000001 211 24C211 26 221 89 234 163L257 297L237 316C226 327 182 370 140 411S62 487 60 490C55.817 496.273 52 504.913 52 515C52 536.315 64.667 545.8340000000001 79 553C91.395 557.1320000000001 269.559 582.639 353 595L408 705C438 765 465 820 468 827C476.474 846.065 485.528 858 511 858zM510 722L484 670C464.71 631.419 429.491 552.654 411 528C394.57 511.57 385.685 514.577 338 508C309 504 263 497 236 493S187 485 186 485C184.23 483.23 309.432 362.568 315 357C341.255 330.745 337.2200000000001 340.115 343 317C344.267 308.134 340.447 294.385 309 102C338.99 116.995 486.999 196.333 498 200C502 201 505 202 512 202C520 202 521 201 533 195C537.576 193.04 706.355 104.462 711 102C710.604 104.28 676 301.934 676 312C676 321.451 678.96 327.942 683 334C685.501 337.752 684.173 335.173 834 485C799.27 490.788 676.892 508.587 639 514C623.096 515.5899999999999 614.936 518.751 608 528C604 533 600 539 591 558C584.513 572.0550000000001 516.872 708.059 510 722z"/></g></svg><svg class="zammad-chat-feedback-star-filled" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4"><svg class="zammad-chat-feedback-star-empty" width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M511 858C522.855 858 532.638 852.362 539 846C546.965 838.035 577.894 772.657 666 595C705.593 588.813 819.664 571.905 868 565C903 560 934 555 938 554C954.651 549.837 967 535.123 967 514C967 502.832 964.252 498.504 961 492C960 490 921 452 876 408S787 320 778 312L762 296L785 164C805 47 808 32 808 24C808 -7.2670000000001 777.367 -22.456 749 -13C746 -12 691 18 627 52L510 113L448 80C414 62 359 34 327 17C277 -9 267 -15 261 -16C241.212 -19.958 220.92 -8.76 216 6C213.893 12.323 211 16.3440000000001 211 24C211 26 221 89 234 163L257 297L237 316C226 327 182 370 140 411S62 487 60 490C55.817 496.273 52 504.913 52 515C52 536.315 64.667 545.8340000000001 79 553C91.395 557.1320000000001 269.559 582.639 353 595L408 705C438 765 465 820 468 827C476.474 846.065 485.528 858 511 858zM510 722L484 670C464.71 631.419 429.491 552.654 411 528C394.57 511.57 385.685 514.577 338 508C309 504 263 497 236 493S187 485 186 485C184.23 483.23 309.432 362.568 315 357C341.255 330.745 337.2200000000001 340.115 343 317C344.267 308.134 340.447 294.385 309 102C338.99 116.995 486.999 196.333 498 200C502 201 505 202 512 202C520 202 521 201 533 195C537.576 193.04 706.355 104.462 711 102C710.604 104.28 676 301.934 676 312C676 321.451 678.96 327.942 683 334C685.501 337.752 684.173 335.173 834 485C799.27 490.788 676.892 508.587 639 514C623.096 515.5899999999999 614.936 518.751 608 528C604 533 600 539 591 558C584.513 572.0550000000001 516.872 708.059 510 722z"/></g></svg><svg class="zammad-chat-feedback-star-filled" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg></button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5"><svg class="zammad-chat-feedback-star-empty" width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M511 858C522.855 858 532.638 852.362 539 846C546.965 838.035 577.894 772.657 666 595C705.593 588.813 819.664 571.905 868 565C903 560 934 555 938 554C954.651 549.837 967 535.123 967 514C967 502.832 964.252 498.504 961 492C960 490 921 452 876 408S787 320 778 312L762 296L785 164C805 47 808 32 808 24C808 -7.2670000000001 777.367 -22.456 749 -13C746 -12 691 18 627 52L510 113L448 80C414 62 359 34 327 17C277 -9 267 -15 261 -16C241.212 -19.958 220.92 -8.76 216 6C213.893 12.323 211 16.3440000000001 211 24C211 26 221 89 234 163L257 297L237 316C226 327 182 370 140 411S62 487 60 490C55.817 496.273 52 504.913 52 515C52 536.315 64.667 545.8340000000001 79 553C91.395 557.1320000000001 269.559 582.639 353 595L408 705C438 765 465 820 468 827C476.474 846.065 485.528 858 511 858zM510 722L484 670C464.71 631.419 429.491 552.654 411 528C394.57 511.57 385.685 514.577 338 508C309 504 263 497 236 493S187 485 186 485C184.23 483.23 309.432 362.568 315 357C341.255 330.745 337.2200000000001 340.115 343 317C344.267 308.134 340.447 294.385 309 102C338.99 116.995 486.999 196.333 498 200C502 201 505 202 512 202C520 202 521 201 533 195C537.576 193.04 706.355 104.462 711 102C710.604 104.28 676 301.934 676 312C676 321.451 678.96 327.942 683 334C685.501 337.752 684.173 335.173 834 485C799.27 490.788 676.892 508.587 639 514C623.096 515.5899999999999 614.936 518.751 608 528C604 533 600 539 591 558C584.513 572.0550000000001 516.872 708.059 510 722z"/></g></svg><svg class="zammad-chat-feedback-star-filled" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"/></svg></button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
+      __out.push('</div>\n\n  <!-- Atas permintaan user (audit kit Tailwind, mockup "Feedback - ikuti\n  kit"): bintang DIGANTI hati -- preseden rating "Heart" kit\n  (`forms/form2_rating.html`, ikon `feather-heart`). Class `-star` &\n  `js-feedback-star` SENGAJA dipertahankan (dipakai logic skor di\n  chat-no-jquery.coffee), cuma ikonnya yg berubah. -->\n  <div class="zammad-chat-feedback-stars">\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="1" aria-label="1">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="2" aria-label="2">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="3" aria-label="3">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="4" aria-label="4">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n    <button type="button" class="zammad-chat-feedback-star js-feedback-star" data-score="5" aria-label="5">');
+    
+      __out.push(this.icon('heart', 26, {
+        tone: 'active',
+        "class": 'zammad-chat-feedback-heart'
+      }));
+    
+      __out.push('</button>\n  </div>\n\n  <textarea class="zammad-chat-feedback-textarea js-feedback-comment" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_feedback_comment_placeholder'] || 'Add a comment (optional)'));
     
@@ -663,6 +798,83 @@ window.zammadChatTemplates["feedback"] = function(__obj) {
       __out.push(this.T(this.phrases['chat_phrase_feedback_submit_button'] || 'Submit'));
     
       __out.push('</button>\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["file_upload"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Permintaan user ("upload file attachment ada progressnya juga seperti\nupload gambar"): placeholder kartu file SELAMA upload -- nama file,\npersentase, progress bar tipis gaya `bc_progress.html` kit (track\nbodybg, bar primary-500 rounded-lg, role="progressbar"). Diganti kartu\nfile asli DI POSISINYA saat broadcast `chat_session_attachment` milik\nsendiri tiba (`addAttachmentMessage`), dihapus kalau upload gagal. -->\n<div class="zammad-chat-message zammad-chat-message--customer zammad-chat-message--uploading js-file-upload" data-upload-id="');
+    
+      __out.push(__sanitize(this.uploadId));
+    
+      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-attachment"><span class="zammad-chat-attachment-row"><span class="zammad-chat-attachment-icon zammad-chat-attachment-icon--');
+    
+      __out.push(__sanitize(this.fileTone(this.filename)));
+    
+      __out.push('">');
+    
+      __out.push(this.icon(this.fileIcon(this.filename), 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span><span class="zammad-chat-attachment-info"><span class="zammad-chat-attachment-filename">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-attachment-meta js-upload-progress-text">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push(' 0%</span></span></span><span class="zammad-chat-upload-progress"><span class="zammad-chat-upload-progress-bar js-upload-progress-bar" role="progressbar" aria-label="');
+    
+      __out.push(this.T('Upload progress'));
+    
+      __out.push('" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></span></span></span></span>\n</div>\n');
     
     }).call(this);
     
@@ -713,7 +925,13 @@ window.zammadChatTemplates["help"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    <svg class="zammad-chat-help-search-icon" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M424 817C482.908 817 531.409 804.295 572 784C614.98 762.51 650.403 735.517 680 700C698.662 677.605 714.264 656.656 727 628C735.18 609.595 739.768 598.698 746 580C752.974 559.078 755.026 533.844 759 510C760 504 760 493 760 484C760 409.04 737.148 352.9120000000001 709 306C706 301 700 294 697 289L691 279L805 165C905 64 919 49 922 44C935.366 23.95 919.566 -6.812 904 -12C893.606 -15.465 876.99 -19.326 866 -12C861 -9 846 5 745 105L631 219C588.481 192.4260000000001 544.012 162.751 482 155C462.927 152.616 448.493 150 426 150C368.317 150 321.973 163.514 283 183C240.335 204.333 205.194 228.967 176 264C171 270 163 279 158 285C125.036 324.557 104.987 381.088 96 444C95 451 93 464 93 472C93 500.213 96.071 527.4300000000001 100 551C101 557 105 568 107 576C128.058 660.23 180.935 717.667 243 762C250 767 260 773 266 776L288 787C314.697 800.349 346.014 807.336 380 813C386 814 396 816 402 816S418 817 424 817zM431 732H405C385.508 732 360.958 724.3199999999999 345 719C319.692 710.564 298.389 697.592 278 684C264.698 675.133 251.656 663.071 242 651C207.226 607.5319999999999 178 563.142 178 484C178 389.584 216.855 331.516 270 289C280.756 280.396 293.998 271.001 306 265L324 256C353.0590000000001 241.4700000000001 383.603 234 426 234C474.144 234 513.147 244.487 544 263C549 266 558 270 565 275C599.877 299.9120000000001 625.376 329.293 648 367C662.986 391.977 669.4 422.4 675 456C676 462 676 474 676 484C676 516.895 670.264 537.577 663 563C661 570 657 580 654 586L645 604C635.787 622.425 621.957 641.043 608 655C604 659 596 668 590 673C565.077 693.77 535.951 708.22 504 721C499 723 490 725 484 726S470 730 464 731S445 732 431 732z"/></g></svg>\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
+      __out.push('<div class="zammad-chat-help">\n  <div class="zammad-chat-help-search-wrap">\n    ');
+    
+      __out.push(this.icon('magnifying-glass', 16, {
+        "class": 'zammad-chat-help-search-icon'
+      }));
+    
+      __out.push('\n    <input type="text" class="zammad-chat-help-search js-kb-search" placeholder="');
     
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
@@ -722,6 +940,266 @@ window.zammadChatTemplates["help"] = function(__obj) {
       __out.push(this.T(this.phrases['chat_phrase_help_no_results'] || 'No results found.'));
     
       __out.push('</p>\n  <!-- Atas permintaan user: daftar artikel dimuat lewat scroll\n  (bukan tombol/nomor halaman) -- indikator ini muncul di dasar\n  daftar SELAMA halaman berikutnya sedang diambil. Pola animasi\n  SAMA persis dgn indikator "agent sedang mengetik"\n  (`views/typingIndicator.eco`), dipakai ulang bukan dibuat baru. -->\n  <div class="zammad-chat-kb-loading zammad-chat-is-hidden">\n    <span class="zammad-chat-loading-animation"><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span></span>\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["history_card"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      var i, j;
+    
+      __out.push('<!-- Riwayat chat di widget (mockup "Riwayat chat di widget -- email sama +\n     verifikasi OTP"): kartu di atas percakapan saat ini. state \'locked\' =\n     tombol View; \'otp\' = kotak kode 6 digit di dalam percakapan (kelas\n     js-history-otp-digit, TERPISAH dari OTP pesan offline). -->\n');
+    
+      if (this.state === 'locked') {
+        __out.push('\n  <div class="zammad-chat-history-card">\n    <span class="zammad-chat-history-card-icon">');
+        __out.push(this.icon('clock-counter-clockwise', 18, {
+          tone: 'full'
+        }));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-text">\n      <span class="zammad-chat-history-card-title">');
+        __out.push(this.T('Previous conversations'));
+        __out.push('</span>\n      <span class="zammad-chat-history-card-sub">');
+        __out.push(this.T('Verify your email to see earlier chats from'));
+        __out.push(' <strong>');
+        __out.push(__sanitize(this.email));
+        __out.push('</strong>.</span>\n    </span>\n    <button type="button" class="zammad-chat-history-card-action js-history-view"');
+        if (this.busy) {
+          __out.push(__sanitize(' disabled'));
+        }
+        __out.push('>');
+        __out.push(this.T('View'));
+        __out.push('</button>\n  </div>\n');
+      } else {
+        __out.push('\n  <div class="zammad-chat-history-card zammad-chat-history-card--otp">\n    <span class="zammad-chat-history-card-icon">');
+        __out.push(this.icon('lock', 18, {
+          tone: 'full'
+        }));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-title">');
+        __out.push(this.T('Enter verification code'));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-sub">');
+        __out.push(this.T('We sent a 6-digit code to'));
+        __out.push(' <strong>');
+        __out.push(__sanitize(this.email));
+        __out.push('</strong>.</span>\n    <div class="zammad-chat-offline-otp-boxes zammad-chat-history-otp-boxes" role="group" aria-label="');
+        __out.push(this.T('Verification code'));
+        __out.push('">\n      ');
+        for (i = j = 0; j <= 5; i = ++j) {
+          __out.push('<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" placeholder="0" class="zammad-chat-offline-otp-digit js-history-otp-digit" data-index="');
+          __out.push(__sanitize(i));
+          __out.push('" aria-label="');
+          __out.push(this.T('Digit'));
+          __out.push(' ');
+          __out.push(__sanitize(i + 1));
+          __out.push('">');
+        }
+        __out.push('\n    </div>\n    ');
+        if (this.error) {
+          __out.push('<span class="zammad-chat-history-card-error" role="alert">');
+          __out.push(__sanitize(this.error));
+          __out.push('</span>');
+        }
+        __out.push('\n    <button type="button" class="zammad-chat-history-card-verify js-history-verify"');
+        if (this.busy) {
+          __out.push(__sanitize(' disabled'));
+        }
+        __out.push('>');
+        __out.push(this.T('Verify'));
+        __out.push('</button>\n    <span class="zammad-chat-history-card-links">');
+        __out.push(this.T("Didn't receive the code?"));
+        __out.push(' <button type="button" class="zammad-chat-history-card-link js-history-resend">');
+        __out.push(this.T('Resend'));
+        __out.push('</button> · <button type="button" class="zammad-chat-history-card-link js-history-cancel">');
+        __out.push(this.T('Cancel'));
+        __out.push('</button></span>\n  </div>\n');
+      }
+    
+      __out.push('\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["history_thread"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      var i, item, j, len, n, ref;
+    
+      __out.push('<!-- Thread riwayat (setelah OTP), pola sama dgn panel agent: pil status\n     paging, pil tanggal, kapsul sesi, bubble (tanpa menu), penutup sesi +\n     rating, pemisah "Current conversation". Bubble sudah dirender lebih dulu. -->\n<div class="zammad-chat-history-status">\n  ');
+    
+      if (this.state === 'loading') {
+        __out.push('\n    <span class="zammad-chat-history-pill" role="status"><span class="zammad-chat-history-spin">');
+        __out.push(this.icon('spinner-gap', 13));
+        __out.push('</span>');
+        __out.push(this.T('Loading %s earlier messages…', this.pageSize));
+        __out.push('</span>\n  ');
+      } else if (this.state === 'ready') {
+        __out.push('\n    <button type="button" class="zammad-chat-history-pill zammad-chat-history-pill--action js-history-more">');
+        __out.push(this.icon('arrow-down', 12, {
+          "class": 'zammad-chat-history-up'
+        }));
+        __out.push(this.T('Scroll up for earlier messages'));
+        __out.push('</button>\n  ');
+      } else if (this.state === 'end') {
+        __out.push('\n    <span class="zammad-chat-history-pill">');
+        __out.push(this.icon('check-circle', 12));
+        __out.push(this.T('Beginning of your chat history'));
+        __out.push('</span>\n  ');
+      } else if (this.state === 'empty') {
+        __out.push('\n    <span class="zammad-chat-history-pill">');
+        __out.push(this.icon('check-circle', 12));
+        __out.push(this.T('No earlier conversations'));
+        __out.push('</span>\n  ');
+      }
+    
+      __out.push('\n</div>\n');
+    
+      ref = this.items;
+      for (i = 0, len = ref.length; i < len; i++) {
+        item = ref[i];
+        __out.push('\n  ');
+        if (item.type === 'date') {
+          __out.push('\n    <div class="zammad-chat-history-date"><span>');
+          __out.push(__sanitize(item.label));
+          __out.push('</span></div>\n  ');
+        } else if (item.type === 'session') {
+          __out.push('\n    <div class="zammad-chat-history-session">');
+          __out.push(this.icon('clock-counter-clockwise', 12));
+          __out.push('<span><strong>');
+          __out.push(this.T('Chat #%s', item.id));
+          __out.push('</strong>');
+          if (item.meta) {
+            __out.push(' · ');
+            __out.push(__sanitize(item.meta));
+          }
+          __out.push('</span></div>\n  ');
+        } else if (item.type === 'author') {
+          __out.push('\n    <div class="zammad-chat-history-author">');
+          __out.push(__sanitize(item.name));
+          __out.push('</div>\n  ');
+        } else if (item.type === 'end') {
+          __out.push('\n    <div class="zammad-chat-history-line"><span>');
+          __out.push(__sanitize(item.text));
+          if (item.score) {
+            __out.push(' · <span class="zammad-chat-history-rating" role="img" aria-label="');
+            __out.push(this.T('Rating %s of 5', item.score));
+            __out.push('">');
+            for (n = j = 1; j <= 5; n = ++j) {
+              __out.push('<span class="zammad-chat-history-heart');
+              if (n <= item.score) {
+                __out.push(__sanitize(' is-on'));
+              }
+              __out.push('">');
+              __out.push(this.icon('heart', 11, {
+                tone: 'full'
+              }));
+              __out.push('</span>');
+            }
+            __out.push('</span>');
+          }
+          __out.push('</span></div>\n  ');
+        } else {
+          __out.push('\n    ');
+          __out.push(item.html);
+          __out.push('\n  ');
+        }
+        __out.push('\n');
+      }
+    
+      __out.push('\n');
+    
+      if (this.items.length) {
+        __out.push('\n  <div class="zammad-chat-history-line zammad-chat-history-current"><span>');
+        __out.push(this.icon('chats', 12));
+        __out.push(this.T('Current conversation'));
+        __out.push('</span></div>\n');
+      }
+    
+      __out.push('\n');
     
     }).call(this);
     
@@ -772,27 +1250,387 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --\n  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,\n  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri\n  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --\n  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1\n  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan\n  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit\n  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),\n  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius\n  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit\n  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,\n  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang\n  terverifikasi identik, ukuran 52px & background SOLID (bukan tint\n  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-\n  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu\n  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-offline-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 818C563.386 818 598.068 788.886 619 754C634.577 728.04 904.693 261.6120000000001 918 235C924.652 221.694 925 214.2000000000001 925 192C925 141.04 903.451 112.088 874 90C860.403 79.803 842.976 72.995 823 69C815 68 780 67 509 67C236 67 203 68 196 69C135.622 81.0750000000001 93 123.586 93 196C93 219.963 99.464 232.928 108 250C108.083 250.165 406.993 763.988 407 764C413.665 775.107 427.904 789.343 439 796C457.02 806.813 478.581 818 508 818zM515 734H504C496.24 734 484.625 726.625 480 722C472.12 714.12 184.16 212.24 180 206C177 201 177 199 177 190C177 168.735 191.042 157.3200000000001 207 152C212 151 245 150 509 150C705 150 807 150 810 151C825.843 158.92 848.593 171.63 842 198C839.872 210.7670000000001 544.6890000000001 716.311 539 722C534.01 726.99 523.65 734 515 734zM509 567C532.466 567 544.995 551.015 551 533C552 530 552 513 552 484C552 444.207 552.282 438.848 547 423C542.719 410.155 526.815 400 510 400C485.452 400 475.161 415.517 469 434C468 437 468 458 468 484C468 513 468 530 469 533C474.66 549.981 486.697 567 509 567zM509 317C485.564 317 463.687 294.564 469 268C473.813 248.751 485.473 234 510 234C534.6 234 546.07 248.28 551 268C556.251 294.257 537.382 309.54 518 316C515 317 511 317 509 317z"/></g></svg>\n    <span class="zammad-chat-home-offline-notice-text">');
+      __out.push('<div class="zammad-chat-home">\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    ');
     
-      __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || 'All agents are currently unavailable'));
+      __out.push(this.icon('warning', 20, {
+        tone: 'full',
+        "class": 'zammad-chat-home-offline-notice-icon'
+      }));
     
-      __out.push(' ');
+      __out.push('\n    <!-- Atas permintaan user ("buat notice notice ini hanya 1 baris,\n    dibuat ringkas kalimatnya") -- cuma 1 frase (judul); frase\n    deskripsi `chat_phrase_offline_notice` tidak dipakai lagi di sini\n    (status offline sudah tertulis di header). -->\n    <span class="zammad-chat-home-offline-notice-text">');
     
-      __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || "We're offline — leave us a message"));
     
-      __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    <svg class="zammad-chat-home-online-notice-icon" width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 322.915 909.682 261.192 881 211C877 204 872 192 868 186C852.258 162.387 836.235 137.235 816 117L793 94C772.79 73.79 747.842 57.895 724 42C718 38 706 33 699 29C656.655 4.803 606.866 -6.59 548 -15C541 -16 525 -16 510 -16C366.081 -16 276.3590000000001 44.64 204 117C190.573 130.427 177.435 148.348 167 164C124.516 227.727 93 304.861 93 412C93 442.781 96.97 460.87 103 488C125.691 590.112 175.576 662.208 243 720C265.945 739.667 288.82 755.91 317 770C357.559 790.28 404.55 806.364 458 814C465 815 476 816 483 816H518zM508 733C498 733 486 732 480 732C445.876 732 414.148 719.05 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.175 472.112 177 440.455 177 400C177 358.895 182.469 326.749 194 296C206.502 262.6620000000001 218.494 231.6320000000001 239 206C249.21 193.237 254.906 186.312 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C660.179 100.06 685.883 114.506 704 129C727.81 148.049 753.273 169.031 772 194C789.798 217.73 810.505 254.8450000000001 823 284C826 291 828 303 830 309C840.242 339.727 842 356.197 842 400C842 444.112 840.332 460.005 830 491C828 497 826 509 823 516C809.96 546.428 790.923 580.1030000000001 773 604C749.98 634.694 718.523 661.318 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM512 608C535.563 608 552 590.338 552 567C552 542.79 534.867 526 510 526C485.4 526 473.93 540.28 469 560C466.16 574.2 471.856 586.856 479 594C487.697 602.697 493.958 608 512 608zM488 442C451.182 442 443.8160000000001 437.724 430 417C427 412 428 411 428 400C428 383.526 429.629 380.371 438 372C446.073 363.927 454.126 360.312 468 358V294C468 225.2100000000001 466.814 234.558 474 213C476.994 204.018 490.36 196.584 498 192H562C577.974 201.1280000000001 592 208.35 592 234C592 248.135 590.523 252.477 584 259C577.47 265.53 567.875 275 555 275H552V339C552 383 552 404 551 408C541.555 436.336 528.73 442 488 442z"/></g></svg>\n    <span class="zammad-chat-home-online-notice-text">');
+      __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    ');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online now — start a conversation and we'll respond right away."));
+      __out.push(this.icon('info', 20, {
+        tone: 'full',
+        "class": 'zammad-chat-home-online-notice-icon'
+      }));
     
-      __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <!-- Atas permintaan user ("hilangkan icon pada button Leave\n    us.../Send us..."): KEDUA ikon (online & offline) dihapus dari\n    markup -- toggle visibilitasnya di `applyOfflineHomeState`\n    (chat.coffee/chat-no-jquery.coffee) ikut dihapus, TIDAK cuma\n    disembunyikan CSS. Pergantian LABEL teks ("Send us a\n    message"/"Leave us a message") TETAP jalan, itu bukan ikon. -->\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
+      __out.push('\n    <span class="zammad-chat-home-online-notice-text">');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_start_button'] || 'Send us a message'));
+      __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online — chat with us now"));
+    
+      __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <!-- Atas permintaan user ("hilangkan icon pada button Leave\n    us.../Send us..."): KEDUA ikon (online & offline) dihapus dari\n    markup -- toggle visibilitasnya di `applyOfflineHomeState`\n    (chat.coffee/chat-no-jquery.coffee) ikut dihapus, TIDAK cuma\n    disembunyikan CSS. Pergantian LABEL teks ("Send us a\n    message"/"Leave us a message") TETAP jalan, itu bukan ikon.\n    Atas permintaan user: label saat agent online "Chat with us"\n    (sebelumnya "Send us a message"); saat offline tetap diganti\n    `applyOfflineHomeState` ke "Leave us a message". -->\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
+    
+      __out.push(__sanitize(this.T(this.phrases['chat_phrase_home_start_button'] || 'Chat with us')));
     
       __out.push('</span>\n    </button>\n    <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">\n      <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_home_search_button'] || 'Search for help'));
     
       __out.push('</span>\n    </button>\n  </div>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_message"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar (mockup "Fitur kirim gambar"): bubble gambar gaya\nWhatsApp -- thumbnail `?view=preview` (lebar ~480px dari server), jam &\ncentang ditumpuk di pojok kanan bawah gambar. Klik -> tampilan layar penuh\n(`openImageViewer`, data diambil dari atribut `data-*` tombol). Gagal\ndimuat -> class `is-broken`, tampil fallback nama file (kartu file). -->\n<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<!-- G5 (keputusan user: kartu): gambar sebagai KARTU, sama dgn panel agent --\n     pratinjau 240x180 crop penuh di atas, kaki kartu berisi nama file,\n     "tipe · ukuran · jam" (+ centang utk pesan sendiri) dan tombol unduh.\n     Jam & centang dipindah dari atas gambar ke kaki kartu. -->\n<div class="zammad-chat-message zammad-chat-message--');
+    
+      __out.push(__sanitize(this.from));
+    
+      __out.push(__sanitize(this.unreadClass));
+    
+      __out.push('"');
+    
+      if (this.id) {
+        __out.push(' data-message-id="');
+        __out.push(__sanitize(this.id));
+        __out.push('"');
+      }
+    
+      __out.push('>\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image zammad-chat-image-card"><button type="button" class="zammad-chat-image-open js-image-open" aria-label="');
+    
+      __out.push(this.T('View image'));
+    
+      __out.push('" data-url="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('" data-filename="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" data-meta="');
+    
+      __out.push(__sanitize(this.metaLabel));
+    
+      __out.push('" data-sender="');
+    
+      __out.push(__sanitize(this.senderLabel));
+    
+      __out.push('" data-time="');
+    
+      __out.push(__sanitize(this.time));
+    
+      __out.push('"><img class="zammad-chat-image-thumb js-image-thumb" src="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?view=preview" alt="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" loading="lazy"><span class="zammad-chat-image-fallback">');
+    
+      __out.push(this.icon('image', 20, {
+        tone: 'full'
+      }));
+    
+      __out.push('<span class="zammad-chat-image-fallback-name">');
+    
+      __out.push(this.T('Image unavailable'));
+    
+      __out.push('</span></span></button><span class="zammad-chat-image-card-foot"><span class="zammad-chat-image-card-text"><span class="zammad-chat-image-card-name" title="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-image-card-meta">');
+    
+      if (this.metaLabel) {
+        __out.push(__sanitize(this.metaLabel));
+        __out.push(' · ');
+      }
+    
+      __out.push('<span class="zammad-chat-message-time">');
+    
+      __out.push(__sanitize(this.time));
+    
+      __out.push('</span>');
+    
+      if (this.from === 'customer') {
+        __out.push('<span class="zammad-chat-message-status zammad-chat-message-status--');
+        __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
+        __out.push('" aria-label="');
+        __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
+      }
+    
+      __out.push('</span></span><a class="zammad-chat-image-card-download" href="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?disposition=attachment" download="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" target="_blank" rel="noopener" aria-label="');
+    
+      __out.push(this.T('Download'));
+    
+      __out.push(' ');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">');
+    
+      __out.push(this.icon('download-simple', 18));
+    
+      __out.push('</a></span>');
+    
+      if (this.id) {
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="image" data-download="');
+        __out.push(__sanitize(this.url));
+        __out.push('?disposition=attachment" data-filename="');
+        __out.push(__sanitize(this.filename));
+        __out.push('">');
+        __out.push(this.icon('caret-down', 16));
+        __out.push('</button>');
+      }
+    
+      __out.push('</span></span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_upload"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar: placeholder SELAMA upload -- preview lokal (object\nURL) diburamkan + spinner kit + persentase. Diganti bubble gambar asli\nsaat broadcast `chat_session_attachment` milik sendiri tiba\n(`addAttachmentMessage`), dihapus kalau upload gagal. -->\n<div class="zammad-chat-message zammad-chat-message--customer zammad-chat-message--uploading js-image-upload" data-upload-id="');
+    
+      __out.push(__sanitize(this.uploadId));
+    
+      __out.push('">\n  <span class="zammad-chat-message-row"><span class="zammad-chat-message-body zammad-chat-image zammad-chat-image-card"><span class="zammad-chat-image-open zammad-chat-image-open--uploading"><img class="zammad-chat-image-thumb" src="');
+    
+      __out.push(__sanitize(this.previewUrl));
+    
+      __out.push('" alt=""><span class="zammad-chat-image-uploading" role="status"><span class="zammad-chat-image-spinner" aria-hidden="true"></span><span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push('</span></span></span><span class="zammad-chat-image-card-foot"><span class="zammad-chat-image-card-text"><span class="zammad-chat-image-card-name" title="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span><span class="zammad-chat-image-card-meta js-image-progress">');
+    
+      __out.push(this.T('Uploading…'));
+    
+      __out.push(' 0%</span></span></span></span></span>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["image_viewer"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      __out.push('<!-- Fitur kirim gambar (mockup "Kirim gambar - layar penuh"): overlay\nmenutupi SELURUH halaman (ditempel ke <body>, bukan di dalam panel).\nTutup: tombol Close, Esc, klik area gelap. Fokus dikunci di dalam dialog\n(`openImageViewer` di chat-no-jquery.coffee). -->\n<div class="zammad-chat-image-viewer js-image-viewer" role="dialog" aria-modal="true" aria-label="');
+    
+      __out.push(this.T('Image preview'));
+    
+      __out.push('">\n  <div class="zammad-chat-image-viewer-bar">\n    <span class="zammad-chat-image-viewer-icon">');
+    
+      __out.push(this.icon('image', 18, {
+        tone: 'full'
+      }));
+    
+      __out.push('</span>\n    <span class="zammad-chat-image-viewer-info">\n      <span class="zammad-chat-image-viewer-name">');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('</span>\n      <span class="zammad-chat-image-viewer-meta">');
+    
+      __out.push(__sanitize([this.sender, this.time, this.meta].filter(function(part) {
+        return part;
+      }).join(' · ')));
+    
+      __out.push('</span>\n    </span>\n    <a class="zammad-chat-image-viewer-download js-image-viewer-download" href="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('?disposition=attachment" download="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('" target="_blank" rel="noopener">');
+    
+      __out.push(this.icon('download-simple', 18));
+    
+      __out.push('<span>');
+    
+      __out.push(this.T('Download'));
+    
+      __out.push('</span></a>\n    <button type="button" class="zammad-chat-image-viewer-close js-image-viewer-close" aria-label="');
+    
+      __out.push(this.T('Close'));
+    
+      __out.push('">');
+    
+      __out.push(this.icon('x', 20));
+    
+      __out.push('</button>\n  </div>\n  <div class="zammad-chat-image-viewer-stage js-image-viewer-stage">\n    <img class="zammad-chat-image-viewer-img" src="');
+    
+      __out.push(__sanitize(this.url));
+    
+      __out.push('" alt="');
+    
+      __out.push(__sanitize(this.filename));
+    
+      __out.push('">\n  </div>\n</div>\n');
     
     }).call(this);
     
@@ -847,7 +1685,13 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(__sanitize(this.url));
     
-      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      <svg width="18" height="18" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M926 98C916.799 79.597 908.505 67 881 67C870.58 67 868.266 70.867 858 76C811.917 99.0410000000001 766.724 116 698 116C631.463 116 588.188 101.0940000000001 544 79C530.372 72.187 523.249 67 506 67C495.58 67 493.266 70.867 483 76C436.581 99.209 391.347 116 322 116C275.048 116 247.291 109.43 213 98C207 96 196 92 190 89L170 79C158.379 73.1900000000001 152.146 70.716 141 67C115.432 60.608 102.254 81.4930000000001 94 98L93 376C93 624 94 655 95 660C100.854 677.56 106.553 683.2760000000001 124 692C160.972 713.127 205.186 729.773 255 736C267.8330000000001 737.604 285.564 741 298 741H329C400.373 741 446.438 725.24 496 704L510 698L526 705C576.25 727.333 625.472 741 698 741C762.8199999999999 741 806.097 732.673 852 713C863.715 707.98 898.39 691.406 908 685C915.252 681.374 922.376 671.871 925 664C927 659 926 647 926 378V98zM321 658C286.234 658 268.773 652.462 242 648C225.754 645.292 204.117 637.05 190 631L178 626L177 400V174L190 179C215.981 186.423 244.727 194.34 274 198C285 199 295 199 323 199C377.058 199 393.58 195.105 434 185C447.727 181.568 458.12 178.3920000000001 468 174V625L457 630C418.944 649.028 376.725 658 321 658zM696 658C641.347 658 603.325 647.854 564 631L552 626V174L565 179C609.694 191.77 637.048 199 698 199C752.058 199 768.58 195.105 809 185C822.727 181.568 833.12 178.3920000000001 843 174V400L842 625L832 630C794.014 648.9929999999999 751.545 658 696 658z"/></g></svg>\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
+      __out.push('" target="_blank" rel="noopener noreferrer" class="zammad-chat-kb-result-link">\n    <span class="zammad-chat-kb-result-icon">\n      ');
+    
+      __out.push(this.icon('book-open-text', 18, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n    </span>\n    <span class="zammad-chat-kb-result-text">\n      <span class="zammad-chat-kb-result-title">');
     
       __out.push(this.title);
     
@@ -855,7 +1699,13 @@ window.zammadChatTemplates["kb_result"] = function(__obj) {
     
       __out.push(this.body);
     
-      __out.push('</span>\n    </span>\n    <svg class="zammad-chat-kb-result-chevron" width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M384 692C360.67 692 338.697 669.512 344 643C345 639 346 634 348 631C351 626 364 611 463 512L575 400L463 288C364 189 351 174 348 169C342.037 160.0560000000001 341.766 140.352 348 131C355.87 119.1950000000001 370.002 104.6 392 109C396 110 401 112 404 113C413.213 116.686 666.3009999999999 371.501 672 381C677.963 389.944 678.234 409.648 672 419C666.3 428.499 413.213 683.3140000000001 404 687C398.193 688.936 391.477 692 384 692z"/></g></svg>\n  </a>\n</li>\n');
+      __out.push('</span>\n    </span>\n    ');
+    
+      __out.push(this.icon('caret-right', 14, {
+        "class": 'zammad-chat-kb-result-chevron'
+      }));
+    
+      __out.push('\n  </a>\n</li>\n');
     
     }).call(this);
     
@@ -906,7 +1756,25 @@ window.zammadChatTemplates["launcher"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-launcher">\n  <svg class="zammad-chat-launcher-icon-open" width="24" height="24" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 734C622 734 722 733 729 733C774.723 733 809.074 710.9259999999999 833 687C859.828 660.172 876.365 631.81 884 586C885 578 885 538 885 435C885 295 884 294 882 284C879.283 267.697 875.055 256.0950000000001 867 242C863 235 859 225 855 220S845 208 841 204L826 189C811.787 174.787 790.124 166.05 770 158C765 156 756 154 750 153L740 150H360L280 70C216 6 199 -10 195 -12C188.312 -14.23 179.812 -17.963 170 -16L158 -12C147.402 -8.468 140.902 4.196 136 14V588L138 599C144.428 637.565 164.03 665.03 187 688C202.605 703.605 218.262 713.754 240 721C256.766 726.5889999999999 268.4700000000001 733 290 733C296 733 394 734 508 734zM514 650C394 650 294 649 293 649C278.984 649 266.013 642.76 257 636C248.29 629.4680000000001 239.776 624.664 234 616C227.679 606.519 224.068 596.204 220 584L219 355V127L269 177C312 220 320 227 325 229C328 230 334 232 338 233S416 234 537 234C725 234 730 234 738 236C754.136 239.228 767.266 248.266 777 258C786.451 267.451 795.835 281.1760000000001 799 297C801 305 801 309 801 445L800 584C788.876 617.373 771.835 636.722 738 648C732 650 717 650 514 650zM509 567C630 567 681 567 685 566C694.374 562.875 700.423 559.577 707 553C710 550 714 546 715 543C718.89 531.328 719.071 519.213 715 507C711.268 495.802 696.382 487.794 685 484C681 483 631 483 510 483S339 483 335 484C325.626 487.125 319.577 490.423 313 497C310 500 306 504 305 507C301.11 518.672 300.929 530.787 305 543C308.71 554.134 322.7440000000001 562.248 334 566C338 567 379 567 509 567zM468 400C342 400 337 400 331 398C317.32 393.44 302 381.472 302 364C301 360 301 356 302 352L306 340C310.293 327.121 324.266 320.434 338 317C342 316 392 316 468 316C536 316 596 317 599 317C619.693 317 635 337.231 635 358C635 380.3160000000001 621.969 392.344 605 398C600 399 586 400 468 400z"/></g></svg>\n  <svg class="zammad-chat-launcher-icon-close" width="24" height="24" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 567C235.564 567 213.687 544.5640000000001 219 518C220 514 221 509 223 506C232.459 490.235 479.177 245.0940000000001 491 238C501.756 230.8300000000001 517.81 234.27 529 238C538.213 241.6860000000001 791.3009999999999 496.501 797 506C810.366 526.05 794.566 556.812 779 562C768.606 565.4649999999999 751.99 569.326 741 562C736 559 721 546 622 447L510 335L397 447C300 544 284 560 279 562C273.193 563.9359999999999 266.477 567 259 567z"/></g></svg>\n</div>\n');
+      __out.push('<!-- Audit kit Tailwind (mockup "Launcher - ikuti kit" disetujui): <div>\n-> <button> spt preseden `.btn` kit -- bisa difokus lewat Tab & dibaca\npembaca layar. `aria-expanded` disinkronkan di open()/close()\n(chat-no-jquery.coffee).\nIkon seragam Phosphor Duotone kit (helper `@icon`): chat-circle-dots\n(tertutup) & caret-down (terbuka), tone \'full\' -- tombol utama. -->\n<button type="button" class="zammad-chat-launcher" aria-label="');
+    
+      __out.push(this.T('Chat'));
+    
+      __out.push('" aria-expanded="false">\n  ');
+    
+      __out.push(this.icon('chat-circle-dots', 24, {
+        tone: 'full',
+        "class": 'zammad-chat-launcher-icon-open'
+      }));
+    
+      __out.push('\n  ');
+    
+      __out.push(this.icon('caret-down', 24, {
+        tone: 'full',
+        "class": 'zammad-chat-launcher-icon-close'
+      }));
+    
+      __out.push('\n</button>\n');
     
     }).call(this);
     
@@ -957,7 +1825,11 @@ window.zammadChatTemplates["loader"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Audit kit Able Pro TAILWIND baru -- lihat catatan sama di\n  waiting.eco. -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -966,6 +1838,117 @@ window.zammadChatTemplates["loader"] = function(__obj) {
       __out.push(this.T(this.phrases['chat_phrase_waiting_cancel_button'] || 'Cancel'));
     
       __out.push('</button>\n</div>\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["message_menu"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      var i, len, reaction, ref;
+    
+      __out.push('<!-- Menu bubble ala WhatsApp: gaya `.dropdown-menu` kit (radius 8,\nbayangan kit, p-2), item `.dropdown-item` (ikon 18px, 14px). Isi per\njenis pesan: teks -> Reply + Copy; file/gambar -> Reply + Download.\nReply memakai `.js-message-reply` (handler `startReply` yg sudah ada). -->\n<div class="zammad-chat-message-menu js-message-menu-list" role="menu" aria-label="');
+    
+      __out.push(this.T('Message options'));
+    
+      __out.push('">\n  <!-- Reaksi emoji (mockup "Reaksi emoji bubble"): tepat 5 emoji, reaksi\n  aktif ditandai; klik emoji yg sama = hapus. -->\n  ');
+    
+      if (!this.own) {
+        __out.push('\n  <div class="zammad-chat-message-reactions" role="group" aria-label="');
+        __out.push(this.T('React'));
+        __out.push('">\n    ');
+        ref = this.reactions;
+        for (i = 0, len = ref.length; i < len; i++) {
+          reaction = ref[i];
+          __out.push('\n    <button type="button" class="zammad-chat-message-reaction js-message-react');
+          if (reaction.emoji === this.current) {
+            __out.push(__sanitize(' is-active'));
+          }
+          __out.push('" role="menuitemradio" aria-checked="');
+          __out.push(__sanitize(reaction.emoji === this.current ? 'true' : 'false'));
+          __out.push('" aria-label="');
+          __out.push(this.T(reaction.label));
+          __out.push('" data-reaction="');
+          __out.push(__sanitize(reaction.emoji));
+          __out.push('">');
+          __out.push(__sanitize(reaction.emoji));
+          __out.push('</button>\n    ');
+        }
+        __out.push('\n  </div>\n  ');
+      }
+    
+      __out.push('\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
+    
+      __out.push(this.icon('arrow-bend-up-left', 18));
+    
+      __out.push('<span>');
+    
+      __out.push(this.T('Reply'));
+    
+      __out.push('</span></button>\n  ');
+    
+      if (this.kind === 'text') {
+        __out.push('\n  <button type="button" class="zammad-chat-message-menu-item js-message-copy" role="menuitem">');
+        __out.push(this.icon('copy', 18));
+        __out.push('<span>');
+        __out.push(this.T('Copy'));
+        __out.push('</span></button>\n  ');
+      } else {
+        __out.push('\n  <a class="zammad-chat-message-menu-item js-message-download" role="menuitem" href="');
+        __out.push(__sanitize(this.download));
+        __out.push('" download="');
+        __out.push(__sanitize(this.filename));
+        __out.push('" target="_blank" rel="noopener">');
+        __out.push(this.icon('download-simple', 18));
+        __out.push('<span>');
+        __out.push(this.T('Download'));
+        __out.push('</span></a>\n  ');
+      }
+    
+      __out.push('\n</div>\n');
     
     }).call(this);
     
@@ -1016,7 +1999,7 @@ window.zammadChatTemplates["message"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-message zammad-chat-message--');
+      __out.push('<!-- Menu bubble ala WhatsApp (mockup "Menu bubble ala WhatsApp"): ikon reply\nsamping bubble diganti tombol panah DI DALAM bubble (pesan agent ber-id)\nyg membuka dropdown (views/message_menu.eco, `openMessageMenu`). -->\n<div class="zammad-chat-message zammad-chat-message--');
     
       __out.push(__sanitize(this.from));
     
@@ -1055,18 +2038,22 @@ window.zammadChatTemplates["message"] = function(__obj) {
         __out.push(__sanitize(this.isRead ? 'read' : 'sent'));
         __out.push('" aria-label="');
         __out.push(this.isRead ? this.T('Read') : this.T('Sent'));
-        __out.push('"><svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M720 650C738.623 650 749.698 637.602 756 625C758 620 760 617 760 611C760 599.9100000000001 757.596 590.46 752 583C751.74 582.61 541.751 370.65 529 363C512.684 352.122 488.8 362.2000000000001 480 371C471.095 379.905 462.707 403.56 473 419C480.21 431.019 605.111 553.111 696 644C700.571 648.571 710.63 650 720 650zM927 650C942.425 650 951.324 641.6759999999999 959 634C965.36 627.64 968 621.76 968 608C968 598 968 597 965 591C957.456 575.9110000000001 536.13 159.087 533 157C527.059 153.04 518.734 150 510 150C501.297 150 492.928 153.048 487 157C474.262 165.492 270.288 372.567 266 379C262.755 385.49 260 391.09 260 402C260 431.84 288.96 448.014 319 438C324 436 334 426 417 343L510 251L706 447C867 607 904 643 908 645C911 646 915 649 917 649S924 650 927 650zM93 442C91 442 87 441 85 441C71.335 441 60.726 425.589 55 417C52 412 52 411 52 400S52 388 55 382C60.88 372.2000000000001 271.996 159.145 284 154C290 151 293 150 299 150C316.203 150 325.382 157.382 334 166C340.645 172.645 342 177.47 342 192C342 202 343 203 340 209C334.549 219.9020000000001 118.586 433.707 116 435C109.999 438.001 100.128 442 93 442z"/></g></svg></span>');
+        __out.push('">');
+        __out.push(this.icon('checks', 16));
+        __out.push('</span>');
       }
     
-      __out.push('</span></span>');
+      __out.push('</span>');
     
-      if (this.from === 'agent' && this.id) {
-        __out.push('<button type="button" class="zammad-chat-message-reply js-message-reply" aria-label="');
-        __out.push(this.T('Reply'));
-        __out.push('"><svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M386 733C374.042 733 367.644 731.644 362 726C341.089 705.0889999999999 192.556 562.9259999999999 180 542C177 536 178 536 178 525S177 514 180 508C189.953 491.412 356.9410000000001 326.636 368 320C374 317 374 318 385 318C401.474 318 404.629 319.629 413 328C420.525 335.525 429.352 348.2430000000001 426 365L422 377C420 382 412 391 370 433L320 483H504C662 483 689 483 697 482C716.607 478.078 737.03 470.176 751 459C778.753 436.7970000000001 801 407.045 801 358C801 310.507 778.565 278.674 751 258C723.071 237.054 707.807 234.814 657 233L624 232C607.495 226.4980000000001 598.516 216.062 594 198C593 193 593 190 594 185L598 173C601.412 162.765 614.0360000000001 154.321 624 151C628 150 638 150 659 150C700.11 150 713.085 152.7380000000001 742 161C758.07 165.592 779.356 174.685 791 184C807.701 197.361 825.05 209.733 838 227C841 231 847 239 851 244C860.308 255.635 869.405 276.92 874 293C879.924 313.732 885 331.702 885 358C885 426.824 858.064 470.937 823 506C794.9 534.1 765.26 554.123 718 562C676.52 568.913 652.8199999999999 567 502 567H320L370 617C412 659 420 668 422 673L426 685C430.658 708.2909999999999 415.403 721.065 402 730C397 732 394 733 386 733z"/></g></svg></button>');
+      if (this.id) {
+        __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
+        __out.push(this.T('Message options'));
+        __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="text">');
+        __out.push(this.icon('caret-down', 16));
+        __out.push('</button>');
       }
     
-      __out.push('</span>\n</div>\n');
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -1117,7 +2104,11 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    <svg width="15" height="15" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M845 650C832.237 650 825.686 646.124 818 641C815 639 726 550 620 444L427 251L335 343C256 422 242 435 237 437C226.703 440.433 210.034 444.356 199 437C190.706 432.854 184.839 424.259 180 417C177 412 178 411 178 400S177 388 180 382C185.88 372.2000000000001 396.996 159.145 409 154C415 151 418 150 424 150C436.133 150 440.926 152.463 448 156C451.27 158.18 872.944 576.9159999999999 877 583C882.59 590.453 885 599.9300000000001 885 611C885 631.797 865.878 650 845 650z"/></g></svg>\n    <span><strong>');
+      __out.push('<div class="zammad-chat-offline-compose">\n  <div class="zammad-chat-offline-compose-verified">\n    ');
+    
+      __out.push(this.icon('check', 15));
+    
+      __out.push('\n    <span><strong>');
     
       __out.push(__sanitize(this.email));
     
@@ -1125,15 +2116,7 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified'));
     
-      __out.push('</span>\n  </div>\n\n  <!-- Atas permintaan user ("saya mau menambahkan subject, dan subject\n  ini mandatory") -- subject WAJIB diisi (divalidasi frontend & backend,\n  lihat `submitOfflineMessage`/`chat_offline_message_send.rb`), dipakai\n  jadi JUDUL tiket yang dibuat otomatis (bukan lagi "Live Chat -\n  [nama]" generik, lihat `Chat::Session#create_ticket_for_chat!`). -->\n  <label class="zammad-chat-offline-compose-label">');
-    
-      __out.push(this.T(this.phrases['chat_phrase_offline_compose_subject_label'] || 'Subject'));
-    
-      __out.push('</label>\n  <input type="text" class="zammad-chat-offline-compose-subject-input js-offline-subject" placeholder="');
-    
-      __out.push(this.T(this.phrases['chat_phrase_offline_compose_subject_placeholder'] || "What's this about?"));
-    
-      __out.push('">\n\n  <label class="zammad-chat-offline-compose-label zammad-chat-offline-compose-label--spaced">');
+      __out.push('</span>\n  </div>\n\n  <!-- Subject DIPINDAH ke prechat (views/prechat.eco) atas permintaan\n  user -- form ini tinggal isi pesan (deskripsi) saja. -->\n  <label class="zammad-chat-offline-compose-label">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_message_label'] || 'Your message'));
     
@@ -1141,7 +2124,11 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_placeholder'] || 'Tell us how we can help…'));
     
-      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).\n  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong\n  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di\n  manapun di codebase ini, konsisten dgn attachment chat biasa yang\n  juga fire-and-forget/tidak bisa dibatalkan). -->\n  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">\n    <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M640 826C612.498 826 594.654 824.885 574 818C552.419 810.807 530.815 803.452 514 790C509 786 499 780 494 775S420 702 341 623S195 476 191 472S181 460 177 454L163 433C149.85 413.276 141.325 394.302 135 369C126.589 335.355 121 320.855 121 275C121 198.2480000000001 141.429 149.857 172 104C194.018 70.975 222.565 44.168 255 21C300.382 -11.4159999999999 358.4220000000001 -32 436 -32C464.633 -32 482.888 -27.604 506 -21C552.83 -7.62 591.358 12.799 624 40C637.804 51.503 920.221 334.051 923 341C932.803 370.41 916.606 400 885 400C877.677 400 868.98 396.49 864 394C853.687 387.124 590.779 119.3340000000001 561 97C525.085 73.057 486.773 52 426 52C385.586 52 357.105 61.526 328 74C321 77 311 85 304 89C275.162 105.479 252.745 131.092 236 159C216.305 191.826 199.567 236.809 204 290C210.6 342.794 227.922 382.563 253 416C256 420 322 487 399 564S543 708 548 712C572.413 731.53 597.17 743 640 743C672.355 743 691.9 731.66 713 719C718 716 725 708 730 703C744.986 688.014 752.255 673.491 762 654C768.402 641.194 769 628.6700000000001 769 608C769 571.506 760.835 556.059 747 533C736.34 515.946 456.91 239.273 452 236C444.903 231.27 438.116 229 427 229C393.809 229 368.386 262.7720000000001 385 296C393.507 313.0130000000001 668.4069999999999 579.519 673 591C682.803 620.4100000000001 666.606 650 635 650C626.297 650 617.928 646.952 612 643C607.125 639.75 329.587 364.9390000000001 319 348C306.352 326.92 297 308.968 297 275C297 213.865 329.454 182.1280000000001 368 159C383.642 149.615 399.041 145 422 145C452.82 145 471.474 151.736 492 162C496 164 502 170 506 173S579 243 658 322S803 469 806 473C831.542 507.056 853 548.49 853 608C853 688.4970000000001 817.528 744.104 771 779C767 782 759 789 754 792C722.71 810.773 689.264 826 640 826z"/></g></svg>\n    <span>');
+      __out.push('"></textarea>\n\n  <div class="zammad-chat-offline-compose-error js-offline-compose-error zammad-chat-is-hidden"></div>\n\n  <!-- Item lampiran (follow-up terpisah dari Enhancement 4 awal).\n  Diisi dinamis lewat JS (`onOfflineAttachmentUploaded`) -- kosong\n  by default, TIDAK ADA tombol hapus (endpoint DELETE tidak ada di\n  manapun di codebase ini, konsisten dgn attachment chat biasa yang\n  juga fire-and-forget/tidak bisa dibatalkan). -->\n  <div class="zammad-chat-offline-compose-attachments js-offline-compose-attachments"></div>\n\n  <button type="button" class="zammad-chat-offline-compose-attach js-offline-compose-attach">\n    ');
+    
+      __out.push(this.icon('paperclip', 16));
+    
+      __out.push('\n    <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_attach_button'] || 'Add attachment'));
     
@@ -1200,7 +2187,13 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    <svg width="26" height="26" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M509 817C516.443 817 523.208 813.9300000000001 529 812C540.163 807.534 914.566 431.39 922 419C935.366 398.95 919.566 368.188 904 363C891.435 358.812 888.744 358 865 358H843V227C843 113 842 94 841 86C830.28 32.4 794.4 -4.3199999999999 741 -15C733 -17 719 -16 510 -16C327 -16 287 -16 281 -15C252.905 -7.977 226.912 2.11 211 22C196.094 40.633 184.648 57.756 179 86C178 94 177 113 177 227V358H155C120.048 358 111.506 360.742 98 381C92.037 389.944 91.766 409.648 98 419C104.226 429.376 483.618 809.447 490 812C494.872 815.248 502.124 817 509 817zM760 410C766.214 422.468 772.665 434.052 786 439L510 715L234 439C247.328 434.044 253.792 422.475 260 410V255C260 133.673 258.715 101.5699999999999 265 89C269.27 80.46 279.176 72.274 289 69C295 67 297 67 319 67H343V179C343 313.539 340.974 276.8970000000001 351 317C353.9 328.5990000000001 363.167 340.2770000000001 369 350C375.763 361.271 387.94 370.4550000000001 398 378C410.945 387.709 427.844 393.46 446 398C451 399 465 400 510 400S569 399 574 398C625.651 385.087 663.353 353.23 674 300C676 291 677 289 677 179V67H701C723 67 725 67 731 69C740.192 72.064 750.981 79.963 755 88C763.426 104.852 760 101.002 760 255V410zM509 317C486 317 465 316 462 316C444.277 316 434.186 298.372 428 286L427 176V67H593V176L592 286C576.017 317.968 563.42 317 509 317z"/></g></svg>\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
+      __out.push('<div class="zammad-chat-offline-otp">\n  <div class="zammad-chat-offline-otp-icon">\n    ');
+    
+      __out.push(this.icon('lock', 26, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-offline-otp-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_title'] || 'Enter verification code'));
     
@@ -1212,7 +2205,11 @@ window.zammadChatTemplates["offline_otp"] = function(__obj) {
     
       __out.push(__sanitize(this.email));
     
-      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">\n    <svg width="14" height="14" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C572.269 816 607.844 805.045 650 793C676.847 785.33 706.197 769.535 728 755C734 751 745 745 752 740C780.122 719.913 807.295 693.49 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 322.915 909.682 261.192 881 211C877 204 872 192 868 186C852.258 162.387 836.235 137.235 816 117L793 94C772.79 73.79 747.842 57.895 724 42C718 38 706 33 699 29C656.655 4.803 606.866 -6.59 548 -15C541 -16 525 -16 510 -16C366.081 -16 276.3590000000001 44.64 204 117C190.573 130.427 177.435 148.348 167 164C124.516 227.727 93 304.861 93 412C93 442.781 96.97 460.87 103 488C125.691 590.112 175.576 662.208 243 720C265.945 739.667 288.82 755.91 317 770C357.559 790.28 404.55 806.364 458 814C465 815 476 816 483 816H518zM508 733C498 733 486 732 480 732C445.876 732 414.148 719.05 387 710C359.568 700.856 326.9220000000001 678.691 306 663C275.306 639.98 248.682 608.523 227 576C218.048 562.571 207.325 541.976 202 526C200 520 195 510 193 503C184.175 472.112 177 440.455 177 400C177 358.895 182.469 326.749 194 296C206.502 262.6620000000001 218.494 231.6320000000001 239 206C249.21 193.237 254.906 186.312 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.615 119.29 364.361 99.702 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C535.335 67 560.567 68.162 588 76C595 78 606 81 613 83S630 90 636 92C660.179 100.06 685.883 114.506 704 129C727.81 148.049 753.273 169.031 772 194C789.798 217.73 810.505 254.8450000000001 823 284C826 291 828 303 830 309C840.242 339.727 842 356.197 842 400C842 444.112 840.332 460.005 830 491C828 497 826 509 823 516C809.96 546.428 790.923 580.1030000000001 773 604C749.98 634.694 718.523 661.318 686 683C672.571 691.952 651.976 702.675 636 708C630 710 620 715 613 717C581.318 726.052 549.749 733 508 733zM512 650C493.784 650 477.57 640.7090000000001 473 627C472 624 470 619 469 616S468 572 468 504C468 429 468 396 469 392C470 389 471 383 473 380C477.998 371.669 605.414 244.352 616 238C630.69 228.207 655.28 236.28 664 245C673.387 254.387 683.02 277.4700000000001 672 294C669 299 660 308 610 359L552 418V514C552 575 552 613 551 616C545.53 632.412 534.014 650 512 650z"/></g></svg>\n    <span class="js-otp-error-text"></span>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
+      __out.push('</strong>.</div>\n\n  <div class="zammad-chat-offline-otp-boxes">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="0">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="1">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="2">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="3">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="4">\n    <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" placeholder="0" class="zammad-chat-offline-otp-digit js-otp-digit" data-index="5">\n  </div>\n\n  <div class="zammad-chat-offline-otp-error js-otp-error zammad-chat-is-hidden">\n    ');
+    
+      __out.push(this.icon('clock', 14));
+    
+      __out.push('\n    <span class="js-otp-error-text"></span>\n  </div>\n\n  <button type="button" class="zammad-chat-offline-otp-submit js-otp-submit">');
     
       __out.push(this.T(this.phrases['chat_phrase_otp_verify_button'] || 'Verify'));
     
@@ -1279,7 +2276,13 @@ window.zammadChatTemplates["offline_sent"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    <svg width="30" height="30" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
+      __out.push('<div class="zammad-chat-offline-sent">\n  <div class="zammad-chat-offline-sent-icon">\n    ');
+    
+      __out.push(this.icon('check-circle', 30, {
+        tone: 'full'
+      }));
+    
+      __out.push('\n  </div>\n  <div class="zammad-chat-offline-sent-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_sent_title'] || 'Your message has been sent!'));
     
@@ -1358,13 +2361,19 @@ window.zammadChatTemplates["prechat_category_option"] = function(__obj) {
     
       __out.push('" data-value="');
     
-      __out.push(this.value);
+      __out.push(__sanitize(this.value));
     
       __out.push('">\n  <span>');
     
-      __out.push(this.label);
+      __out.push(__sanitize(this.label));
     
-      __out.push('</span>\n  <svg class="zammad-chat-prechat-category-check" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M845 650C832.237 650 825.686 646.124 818 641C815 639 726 550 620 444L427 251L335 343C256 422 242 435 237 437C226.703 440.433 210.034 444.356 199 437C190.706 432.854 184.839 424.259 180 417C177 412 178 411 178 400S177 388 180 382C185.88 372.2000000000001 396.996 159.145 409 154C415 151 418 150 424 150C436.133 150 440.926 152.463 448 156C451.27 158.18 872.944 576.9159999999999 877 583C882.59 590.453 885 599.9300000000001 885 611C885 631.797 865.878 650 845 650z"/></g></svg>\n</div>\n');
+      __out.push('</span>\n  ');
+    
+      __out.push(this.icon('check', 16, {
+        "class": 'zammad-chat-prechat-category-check'
+      }));
+    
+      __out.push('\n</div>\n');
     
     }).call(this);
     
@@ -1415,7 +2424,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    <svg width="24" height="24" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 734C622 734 722 733 729 733C774.723 733 809.074 710.9259999999999 833 687C859.828 660.172 876.365 631.81 884 586C885 578 885 538 885 435C885 295 884 294 882 284C879.283 267.697 875.055 256.0950000000001 867 242C863 235 859 225 855 220S845 208 841 204L826 189C811.787 174.787 790.124 166.05 770 158C765 156 756 154 750 153L740 150H360L280 70C216 6 199 -10 195 -12C188.312 -14.23 179.812 -17.963 170 -16L158 -12C147.402 -8.468 140.902 4.196 136 14V588L138 599C144.428 637.565 164.03 665.03 187 688C202.605 703.605 218.262 713.754 240 721C256.766 726.5889999999999 268.4700000000001 733 290 733C296 733 394 734 508 734zM514 650C394 650 294 649 293 649C278.984 649 266.013 642.76 257 636C248.29 629.4680000000001 239.776 624.664 234 616C227.679 606.519 224.068 596.204 220 584L219 355V127L269 177C312 220 320 227 325 229C328 230 334 232 338 233S416 234 537 234C725 234 730 234 738 236C754.136 239.228 767.266 248.266 777 258C786.451 267.451 795.835 281.1760000000001 799 297C801 305 801 309 801 445L800 584C788.876 617.373 771.835 636.722 738 648C732 650 717 650 514 650zM509 567C630 567 681 567 685 566C694.374 562.875 700.423 559.577 707 553C710 550 714 546 715 543C718.89 531.328 719.071 519.213 715 507C711.268 495.802 696.382 487.794 685 484C681 483 631 483 510 483S339 483 335 484C325.626 487.125 319.577 490.423 313 497C310 500 306 504 305 507C301.11 518.672 300.929 530.787 305 543C308.71 554.134 322.7440000000001 562.248 334 566C338 567 379 567 509 567zM468 400C342 400 337 400 331 398C317.32 393.44 302 381.472 302 364C301 360 301 356 302 352L306 340C310.293 327.121 324.266 320.434 338 317C342 316 392 316 468 316C536 316 596 317 599 317C619.693 317 635 337.231 635 358C635 380.3160000000001 621.969 392.344 605 398C600 399 586 400 468 400z"/></g></svg>\n  </div>\n  <div class="zammad-chat-prechat-title">');
+      __out.push('<div class="zammad-chat-prechat">\n  <!-- Logo/ikon di atas judul DIHAPUS atas permintaan user ("pada\n  halaman ini, hapus logo", screenshot form prechat). -->\n  <div class="zammad-chat-prechat-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_title'] || 'Let\'s get started'));
     
@@ -1427,15 +2436,19 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       if (this.error) {
         __out.push('\n      <div class="zammad-chat-prechat-error">');
-        __out.push(this.error);
+        __out.push(__sanitize(this.error));
         __out.push('</div>\n    ');
       }
     
       __out.push('\n    <!-- Notice BUKAN error (kabar baik, mis. "agent sekarang\n    tersedia"), TERPISAH dari `.zammad-chat-prechat-error` (tetap\n    merah, dipakai pesan gagal validasi sungguhan). Atas permintaan\n    user (audit kit Able Pro TAILWIND baru): pola alert diganti ke\n    `.alert-success` GENUINE kit baru (lihat chat.scss, sama dgn\n    notice Home). Ikon centang stroke lama diganti Tabler\n    `circle-check` (diekstrak+diverifikasi dgn cara sama spt ikon\n    Home). -->\n    ');
     
       if (this.notice) {
-        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        <svg width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M518 816C530 816 545 816 553 815C677.367 799.454 765.015 742.816 830 667C875.205 614.26 904.582 551.09 921 469C926.277 442.611 926 432.576 926 400C926 324.03 909.781 267.562 884 216C864.868 177.736 844.6610000000001 145.6610000000001 816 117L793 94C772.933 73.933 750.076 57.33 725 43C666.595 9.625 602.028 -16 510 -16C471.821 -16 449.486 -15.425 420 -7C384.66 3.098 357.568 10.216 326 26C287.736 45.132 255.661 65.3389999999999 227 94L204 117C190.573 130.427 177.435 148.348 167 164C125.575 226.137 94 296.337 94 400C94 460.342 104.183 499.549 119 544C121 550 124 560 127 566L140 592C170.252 652.504 214.535 700.812 268 739C316.793 773.852 374.601 801.657 447 812C459.05 813.722 477.947 816 490 816H518zM508 733C497 733 484 732 479 732C445.765 732 413.549 718.85 387 710C360 701 326.705 678.528 306 663C275.306 639.98 248.682 608.523 227 576C208.395 548.094 197.195 515.685 187 480C179.855 454.994 177 431.92 177 400C177 358.342 183.768 329.314 193 297C195 290 200 280 202 274C215.732 232.802 241.187 202.775 266 173C276.0950000000001 160.886 294.086 145.936 306 137C329.264 119.552 364.57 99.612 394 87C401 84 413 82 419 80C432.854 75.382 451.407 72.5990000000001 467 70C473 69 488 67 500 67C556.137 67 597.623 75.85 638 92C716.753 123.501 770.0889999999999 180.664 809 252C814 262 820 277 823 284S828 303 830 309C834.618 322.8540000000001 837.401 341.4070000000001 840 357C841 363 843 378 843 390C843 436.9 838.86 469.707 826 504C811.55 542.533 797.363 573.796 774 603C749.429 633.7139999999999 719.59 660.606 686 683C657.835 701.7760000000001 626.066 712.6949999999999 590 723C564.121 730.395 541.37 733 508 733zM634 525C625.33 525 620.683 522.842 615 520C612 518 590 497 540 447L468 376L440 405C416 429 409 434 404 437C395.056 442.963 375.352 443.234 366 437C352.93 428.287 332.651 404.023 348 381C351 376 358 368 397 329C424 302 444 283 447 281C454.026 277.487 458.9 275 471 275C476 275 481 277 485 279C495.528 284.265 665.924 453.873 672 464C690.61 491.915 661.99 525 634 525z"/></g></svg>\n        <span>');
-        __out.push(this.notice);
+        __out.push('\n      <div class="zammad-chat-prechat-notice">\n        ');
+        __out.push(this.icon('check-circle', 16, {
+          tone: 'full'
+        }));
+        __out.push('\n        <span>');
+        __out.push(__sanitize(this.notice));
         __out.push('</span>\n      </div>\n    ');
       }
     
@@ -1459,25 +2472,59 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_category_placeholder'] || 'Select a category'));
     
-      __out.push('</span>\n        <svg class="zammad-chat-prechat-category-chevron" width="16" height="16" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M259 567C235.564 567 213.687 544.5640000000001 219 518C220 514 221 509 223 506C232.459 490.235 479.177 245.0940000000001 491 238C501.756 230.8300000000001 517.81 234.27 529 238C538.213 241.6860000000001 791.3009999999999 496.501 797 506C810.366 526.05 794.566 556.812 779 562C768.606 565.4649999999999 751.99 569.326 741 562C736 559 721 546 622 447L510 335L397 447C300 544 284 560 279 562C273.193 563.9359999999999 266.477 567 259 567z"/></g></svg>\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
+      __out.push('</span>\n        ');
     
-      __out.push(this.category || '');
+      __out.push(this.icon('caret-down', 16, {
+        "class": 'zammad-chat-prechat-category-chevron'
+      }));
     
-      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('\n      </button>\n      <input type="hidden" class="js-prechat-category-input" value="');
     
-      __out.push(this.T(this.phrases['chat_phrase_prechat_name_label'] || 'Your name'));
+      __out.push(__sanitize(this.category || ''));
     
-      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-name');
+      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <!-- Atas permintaan user ("untuk live chat judul diambil dari\n    subject, tambahkan input subject dibawah kategori") -- WAJIB, maks.\n    100 karakter, dipakai jadi JUDUL tiket saat agent Accept (lihat\n    `Chat::Session#create_ticket_for_chat!`). Dipakai JUGA di mode\n    offline (atas permintaan user: Subject pesan offline dipindah ke\n    sini, form compose offline tinggal isi pesan saja). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
-      if (this.error && !this.name) {
+      __out.push(this.T(this.phrases['chat_phrase_prechat_subject_label'] || 'Subject'));
+    
+      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-subject');
+    
+      if (this.error && !this.subject) {
         __out.push(__sanitize(' zammad-chat-field-invalid'));
       }
     
       __out.push('" value="');
     
-      __out.push(this.name || '');
+      __out.push(__sanitize(this.subject || ''));
     
-      __out.push('" required>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('" maxlength="');
+    
+      __out.push(__sanitize(this.subjectMax));
+    
+      __out.push('" placeholder="');
+    
+      __out.push(this.T(this.phrases['chat_phrase_prechat_subject_placeholder'] || "What's this about?"));
+    
+      __out.push('" required>\n      <div class="zammad-chat-prechat-field-meta');
+    
+      if (this.error && !this.subject) {
+        __out.push(__sanitize(' is-invalid'));
+      }
+    
+      __out.push('">\n        <span>');
+    
+      if (this.error && !this.subject) {
+        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_required'] || 'Please enter a subject.'));
+      }
+    
+      __out.push('</span>\n        <span class="js-prechat-subject-count">');
+    
+      __out.push(__sanitize((this.subject || '').length));
+    
+      __out.push('/');
+    
+      __out.push(__sanitize(this.subjectMax));
+    
+      __out.push('</span>\n      </div>\n    </div>\n    <!-- Field "Your name" DIHAPUS atas permintaan user -- nama diisi\n    sistem dari bagian depan email (lihat `nameFromEmail` di\n    chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_email_label'] || 'Your email'));
     
@@ -1489,11 +2536,15 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push('" value="');
     
-      __out.push(this.email || '');
+      __out.push(__sanitize(this.email || ''));
     
-      __out.push('" required>\n    </div>\n    <!-- Atas permintaan user ("hilangkan icon pada button Start\n    Chat"): ikon paper-plane dihapus, teks polos saja. -->\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <span>');
+      __out.push('" placeholder="');
     
-      __out.push(this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat'));
+      __out.push(this.T(this.phrases['chat_phrase_prechat_email_placeholder'] || 'name@example.com'));
+    
+      __out.push('" autocomplete="email" required>\n    </div>\n    <!-- Atas permintaan user ("hilangkan icon pada button Start\n    Chat"): ikon paper-plane dihapus, teks polos saja. -->\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <!-- Atas permintaan user: label "Leave message" saat agent offline.\n      Diisi & diperbarui `updatePrechatSubmitLabel()` (status bisa\n      berubah selagi form terbuka); nilai di sini = keadaan online. -->\n      <span class="js-prechat-submit-label">');
+    
+      __out.push(__sanitize(this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat')));
     
       __out.push('</span>\n    </button>\n  </form>\n</div>\n');
     
@@ -1546,7 +2597,11 @@ window.zammadChatTemplates["preload"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-preload" style="box-sizing:border-box;position:fixed;right:24px;bottom:92px;width:380px;max-width:calc(100vw - 48px);height:640px;max-height:calc(100vh - 116px);background:#ffffff;border:1px solid #e8ebee;border-radius:8px;box-shadow:0 12px 32px rgba(20,20,20,0.12);display:flex;align-items:center;justify-content:center;z-index:999;">\n  <style>@keyframes zammad-chat-preload-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>\n  <div style="position:relative;width:56px;height:56px;">\n    <span style="position:absolute;inset:0;border-radius:50%;border:4px solid #e8ebee;"></span>\n    <span style="position:absolute;inset:0;border-radius:50%;border:4px solid transparent;border-top-color:#4680FF;border-right-color:#4680FF;animation:zammad-chat-preload-spin 900ms linear infinite;"></span>\n    <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#4680FF;">\n      <svg width="24" height="24" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 734C622 734 722 733 729 733C774.723 733 809.074 710.9259999999999 833 687C859.828 660.172 876.365 631.81 884 586C885 578 885 538 885 435C885 295 884 294 882 284C879.283 267.697 875.055 256.0950000000001 867 242C863 235 859 225 855 220S845 208 841 204L826 189C811.787 174.787 790.124 166.05 770 158C765 156 756 154 750 153L740 150H360L280 70C216 6 199 -10 195 -12C188.312 -14.23 179.812 -17.963 170 -16L158 -12C147.402 -8.468 140.902 4.196 136 14V588L138 599C144.428 637.565 164.03 665.03 187 688C202.605 703.605 218.262 713.754 240 721C256.766 726.5889999999999 268.4700000000001 733 290 733C296 733 394 734 508 734zM514 650C394 650 294 649 293 649C278.984 649 266.013 642.76 257 636C248.29 629.4680000000001 239.776 624.664 234 616C227.679 606.519 224.068 596.204 220 584L219 355V127L269 177C312 220 320 227 325 229C328 230 334 232 338 233S416 234 537 234C725 234 730 234 738 236C754.136 239.228 767.266 248.266 777 258C786.451 267.451 795.835 281.1760000000001 799 297C801 305 801 309 801 445L800 584C788.876 617.373 771.835 636.722 738 648C732 650 717 650 514 650zM509 567C630 567 681 567 685 566C694.374 562.875 700.423 559.577 707 553C710 550 714 546 715 543C718.89 531.328 719.071 519.213 715 507C711.268 495.802 696.382 487.794 685 484C681 483 631 483 510 483S339 483 335 484C325.626 487.125 319.577 490.423 313 497C310 500 306 504 305 507C301.11 518.672 300.929 530.787 305 543C308.71 554.134 322.7440000000001 562.248 334 566C338 567 379 567 509 567zM468 400C342 400 337 400 331 398C317.32 393.44 302 381.472 302 364C301 360 301 356 302 352L306 340C310.293 327.121 324.266 320.434 338 317C342 316 392 316 468 316C536 316 596 317 599 317C619.693 317 635 337.231 635 358C635 380.3160000000001 621.969 392.344 605 398C600 399 586 400 468 400z"/></g></svg>\n    </span>\n  </div>\n</div>\n');
+      __out.push('<div class="zammad-chat-preload" style="box-sizing:border-box;position:fixed;right:24px;bottom:92px;width:380px;max-width:calc(100vw - 48px);height:640px;max-height:calc(100vh - 116px);background:#ffffff;border:1px solid #e8ebee;border-radius:8px;box-shadow:0 12px 32px rgba(19,25,32,0.12);display:flex;align-items:center;justify-content:center;z-index:999;">\n  <!-- Audit kit Tailwind: spinner SAMA dgn `.zammad-chat-waiting-spinner`\n  (preseden `bc_spinner.html` kit: satu elemen, sisi kiri transparan,\n  1s, tanpa ikon) -- inline style krn chat.css belum termuat saat\n  preload tampil. `role="status"` + teks sr-only (inline) spt spinner\n  lain. -->\n  <style>@keyframes zammad-chat-preload-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>\n  <div role="status" style="box-sizing:border-box;width:48px;height:48px;border-radius:50%;border:4px solid #4680FF;border-left-color:transparent;animation:zammad-chat-preload-spin 1s linear infinite;">\n    <span style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0;">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n</div>\n');
     
     }).call(this);
     
@@ -1605,7 +2660,15 @@ window.zammadChatTemplates["reply_indicator"] = function(__obj) {
     
       __out.push(__sanitize(this.snippet));
     
-      __out.push('</span>\n<span class="zammad-chat-reply-indicator-cancel js-reply-cancel">&times;</span>\n');
+      __out.push('</span>\n<!-- Audit ulang kit Tailwind: karakter teks `&times;` di <span> diganti\n<button> + ikon Tabler `ti ti-x` (glyph asli kit, pola btn-link-secondary)\nsupaya bisa difokus & dipakai lewat keyboard. -->\n<button type="button" class="zammad-chat-reply-indicator-cancel js-reply-cancel" aria-label="');
+    
+      __out.push(this.T('Cancel reply'));
+    
+      __out.push('">');
+    
+      __out.push(this.icon('x', 14));
+    
+      __out.push('</button>\n');
     
     }).call(this);
     
@@ -1658,7 +2721,7 @@ window.zammadChatTemplates["status"] = function(__obj) {
     (function() {
       __out.push('<div class="zammad-chat-status">\n  <div class="zammad-chat-status-inner">\n    ');
     
-      __out.push(this.status);
+      __out.push(__sanitize(this.status));
     
       __out.push('\n  </div>\n</div>');
     
@@ -1711,15 +2774,33 @@ window.zammadChatTemplates["tabbar"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home">\n  <svg width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M509 817C516.443 817 523.208 813.9300000000001 529 812C540.163 807.534 914.566 431.39 922 419C935.366 398.95 919.566 368.188 904 363C891.435 358.812 888.744 358 865 358H843V227C843 113 842 94 841 86C830.28 32.4 794.4 -4.3199999999999 741 -15C733 -17 719 -16 510 -16C327 -16 287 -16 281 -15C252.905 -7.977 226.912 2.11 211 22C196.094 40.633 184.648 57.756 179 86C178 94 177 113 177 227V358H155C120.048 358 111.506 360.742 98 381C92.037 389.944 91.766 409.648 98 419C104.226 429.376 483.618 809.447 490 812C494.872 815.248 502.124 817 509 817zM760 410C766.214 422.468 772.665 434.052 786 439L510 715L234 439C247.328 434.044 253.792 422.475 260 410V255C260 133.673 258.715 101.5699999999999 265 89C269.27 80.46 279.176 72.274 289 69C295 67 297 67 319 67H343V179C343 313.539 340.974 276.8970000000001 351 317C353.9 328.5990000000001 363.167 340.2770000000001 369 350C375.763 361.271 387.94 370.4550000000001 398 378C410.945 387.709 427.844 393.46 446 398C451 399 465 400 510 400S569 399 574 398C625.651 385.087 663.353 353.23 674 300C676 291 677 289 677 179V67H701C723 67 725 67 731 69C740.192 72.064 750.981 79.963 755 88C763.426 104.852 760 101.002 760 255V410zM509 317C486 317 465 316 462 316C444.277 316 434.186 298.372 428 286L427 176V67H593V176L592 286C576.017 317.968 563.42 317 509 317z"/></g></svg>\n  <span>');
+      __out.push('<!-- Ikon seragam Phosphor Duotone kit (lewat helper `@icon`, lihat\n`siskaIcon` di chat-no-jquery.coffee): house, chat-circle-dots,\nbook-open-text, tone \'active\' -- lapisan isi hanya tampil di tab aktif.\nAudit kit Tailwind (mockup "Tabbar - ikuti kit" disetujui): ikon\ndibungkus `.zammad-chat-tabbar-icon` (wadah latar penanda aktif/hover,\npreseden `nav-link` sidebar layout "tab" kit), 20px -> 22px.\n`aria-current` disinkronkan di switchTab() (chat-no-jquery.coffee). -->\n<button type="button" class="zammad-chat-tabbar-item is-active" data-tab="home" aria-current="page">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('house', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Home'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <svg width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M508 734C622 734 722 733 729 733C774.723 733 809.074 710.9259999999999 833 687C859.828 660.172 876.365 631.81 884 586C885 578 885 538 885 435C885 295 884 294 882 284C879.283 267.697 875.055 256.0950000000001 867 242C863 235 859 225 855 220S845 208 841 204L826 189C811.787 174.787 790.124 166.05 770 158C765 156 756 154 750 153L740 150H360L280 70C216 6 199 -10 195 -12C188.312 -14.23 179.812 -17.963 170 -16L158 -12C147.402 -8.468 140.902 4.196 136 14V588L138 599C144.428 637.565 164.03 665.03 187 688C202.605 703.605 218.262 713.754 240 721C256.766 726.5889999999999 268.4700000000001 733 290 733C296 733 394 734 508 734zM514 650C394 650 294 649 293 649C278.984 649 266.013 642.76 257 636C248.29 629.4680000000001 239.776 624.664 234 616C227.679 606.519 224.068 596.204 220 584L219 355V127L269 177C312 220 320 227 325 229C328 230 334 232 338 233S416 234 537 234C725 234 730 234 738 236C754.136 239.228 767.266 248.266 777 258C786.451 267.451 795.835 281.1760000000001 799 297C801 305 801 309 801 445L800 584C788.876 617.373 771.835 636.722 738 648C732 650 717 650 514 650zM509 567C630 567 681 567 685 566C694.374 562.875 700.423 559.577 707 553C710 550 714 546 715 543C718.89 531.328 719.071 519.213 715 507C711.268 495.802 696.382 487.794 685 484C681 483 631 483 510 483S339 483 335 484C325.626 487.125 319.577 490.423 313 497C310 500 306 504 305 507C301.11 518.672 300.929 530.787 305 543C308.71 554.134 322.7440000000001 562.248 334 566C338 567 379 567 509 567zM468 400C342 400 337 400 331 398C317.32 393.44 302 381.472 302 364C301 360 301 356 302 352L306 340C310.293 327.121 324.266 320.434 338 317C342 316 392 316 468 316C536 316 596 317 599 317C619.693 317 635 337.231 635 358C635 380.3160000000001 621.969 392.344 605 398C600 399 586 400 468 400z"/></g></svg>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="messages">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('chat-circle-dots', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Messages'));
     
-      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <svg width="20" height="20" viewBox="0 0 1010 986.5" fill="currentColor"><g transform="scale(1,-1) translate(0,-986.5)"><path d="M926 98C916.799 79.597 908.505 67 881 67C870.58 67 868.266 70.867 858 76C811.917 99.0410000000001 766.724 116 698 116C631.463 116 588.188 101.0940000000001 544 79C530.372 72.187 523.249 67 506 67C495.58 67 493.266 70.867 483 76C436.581 99.209 391.347 116 322 116C275.048 116 247.291 109.43 213 98C207 96 196 92 190 89L170 79C158.379 73.1900000000001 152.146 70.716 141 67C115.432 60.608 102.254 81.4930000000001 94 98L93 376C93 624 94 655 95 660C100.854 677.56 106.553 683.2760000000001 124 692C160.972 713.127 205.186 729.773 255 736C267.8330000000001 737.604 285.564 741 298 741H329C400.373 741 446.438 725.24 496 704L510 698L526 705C576.25 727.333 625.472 741 698 741C762.8199999999999 741 806.097 732.673 852 713C863.715 707.98 898.39 691.406 908 685C915.252 681.374 922.376 671.871 925 664C927 659 926 647 926 378V98zM321 658C286.234 658 268.773 652.462 242 648C225.754 645.292 204.117 637.05 190 631L178 626L177 400V174L190 179C215.981 186.423 244.727 194.34 274 198C285 199 295 199 323 199C377.058 199 393.58 195.105 434 185C447.727 181.568 458.12 178.3920000000001 468 174V625L457 630C418.944 649.028 376.725 658 321 658zM696 658C641.347 658 603.325 647.854 564 631L552 626V174L565 179C609.694 191.77 637.048 199 698 199C752.058 199 768.58 195.105 809 185C822.727 181.568 833.12 178.3920000000001 843 174V400L842 625L832 630C794.014 648.9929999999999 751.545 658 696 658z"/></g></svg>\n  <span>');
+      __out.push('</span>\n</button>\n<button type="button" class="zammad-chat-tabbar-item" data-tab="help">\n  <span class="zammad-chat-tabbar-icon">');
+    
+      __out.push(this.icon('book-open-text', 22, {
+        tone: 'active'
+      }));
+    
+      __out.push('</span>\n  <span>');
     
       __out.push(this.T('Help'));
     
@@ -1833,7 +2914,11 @@ window.zammadChatTemplates["typingIndicator"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-message zammad-chat-message--typing zammad-chat-message--agent">\n  <span class="zammad-chat-message-body"><span class="zammad-chat-loading-animation"><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span></span></span>\n</div>\n');
+      __out.push('<!-- Audit ulang kit Tailwind (mockup "Messages detail - ikuti kit"): tampilan\ntetap (kit tidak punya komponen typing); ditambah `role="status"` + teks\n`sr-only` (pola sama dgn spinner Waiting/EndingChat) supaya pembaca layar\ntahu agent sedang mengetik. Titik-titik disembunyikan dari pembaca layar. -->\n<div class="zammad-chat-message zammad-chat-message--typing zammad-chat-message--agent" role="status">\n  <span class="zammad-chat-message-body"><span class="zammad-chat-loading-animation" aria-hidden="true"><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span><span class="zammad-chat-loading-circle"></span></span><span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Agent is typing…'));
+    
+      __out.push('</span></span>\n</div>\n');
     
     }).call(this);
     
@@ -1949,7 +3034,11 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-waiting">\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, mockup\n  "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen\n  polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada\n  padanannya di preseden kit baru. -->\n  <div class="zammad-chat-waiting-spinner"></div>\n  <div class="zammad-chat-waiting-title">');
+      __out.push('<div class="zammad-chat-waiting">\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, mockup\n  "Waiting.dc.html" opsi 1 disetujui) -- spinner SEKARANG satu elemen\n  polos (lihat chat.scss), track/ikon di tengah DIHAPUS, tidak ada\n  padanannya di preseden kit baru. -->\n  <!-- Audit kit Tailwind (EndingChat): preseden `bc_spinner.html` kit\n  selalu memberi spinner `role="status"` + teks `sr-only` "Loading..."\n  -- supaya pembaca layar mengumumkan status memuat (tidak terlihat\n  secara visual, lihat `.zammad-chat-sr-only` di chat.scss). -->\n  <div class="zammad-chat-waiting-spinner" role="status">\n    <span class="zammad-chat-sr-only">');
+    
+      __out.push(this.T('Loading...'));
+    
+      __out.push('</span>\n  </div>\n  <div class="zammad-chat-waiting-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_waiting_title'] || 'Connecting you to an agent…'));
     
@@ -1982,13 +3071,14 @@ window.zammadChatTemplates["waiting"] = function(__obj) {
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e=e||self).DOMPurify=t()}(this,(function(){"use strict";var e=Object.hasOwnProperty,t=Object.setPrototypeOf,n=Object.isFrozen,r=Object.getPrototypeOf,o=Object.getOwnPropertyDescriptor,i=Object.freeze,a=Object.seal,l=Object.create,c="undefined"!=typeof Reflect&&Reflect,s=c.apply,u=c.construct;s||(s=function(e,t,n){return e.apply(t,n)}),i||(i=function(e){return e}),a||(a=function(e){return e}),u||(u=function(e,t){return new(Function.prototype.bind.apply(e,[null].concat(function(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}(t))))});var f,m=x(Array.prototype.forEach),d=x(Array.prototype.pop),p=x(Array.prototype.push),g=x(String.prototype.toLowerCase),h=x(String.prototype.match),y=x(String.prototype.replace),v=x(String.prototype.indexOf),b=x(String.prototype.trim),T=x(RegExp.prototype.test),A=(f=TypeError,function(){for(var e=arguments.length,t=Array(e),n=0;n<e;n++)t[n]=arguments[n];return u(f,t)});function x(e){return function(t){for(var n=arguments.length,r=Array(n>1?n-1:0),o=1;o<n;o++)r[o-1]=arguments[o];return s(e,t,r)}}function S(e,r){t&&t(e,null);for(var o=r.length;o--;){var i=r[o];if("string"==typeof i){var a=g(i);a!==i&&(n(r)||(r[o]=a),i=a)}e[i]=!0}return e}function w(t){var n=l(null),r=void 0;for(r in t)s(e,t,[r])&&(n[r]=t[r]);return n}function N(e,t){for(;null!==e;){var n=o(e,t);if(n){if(n.get)return x(n.get);if("function"==typeof n.value)return x(n.value)}e=r(e)}return function(e){return console.warn("fallback value for",e),null}}var k=i(["a","abbr","acronym","address","area","article","aside","audio","b","bdi","bdo","big","blink","blockquote","body","br","button","canvas","caption","center","cite","code","col","colgroup","content","data","datalist","dd","decorator","del","details","dfn","dialog","dir","div","dl","dt","element","em","fieldset","figcaption","figure","font","footer","form","h1","h2","h3","h4","h5","h6","head","header","hgroup","hr","html","i","img","input","ins","kbd","label","legend","li","main","map","mark","marquee","menu","menuitem","meter","nav","nobr","ol","optgroup","option","output","p","picture","pre","progress","q","rp","rt","ruby","s","samp","section","select","shadow","small","source","spacer","span","strike","strong","style","sub","summary","sup","table","tbody","td","template","textarea","tfoot","th","thead","time","tr","track","tt","u","ul","var","video","wbr"]),E=i(["svg","a","altglyph","altglyphdef","altglyphitem","animatecolor","animatemotion","animatetransform","circle","clippath","defs","desc","ellipse","filter","font","g","glyph","glyphref","hkern","image","line","lineargradient","marker","mask","metadata","mpath","path","pattern","polygon","polyline","radialgradient","rect","stop","style","switch","symbol","text","textpath","title","tref","tspan","view","vkern"]),D=i(["feBlend","feColorMatrix","feComponentTransfer","feComposite","feConvolveMatrix","feDiffuseLighting","feDisplacementMap","feDistantLight","feFlood","feFuncA","feFuncB","feFuncG","feFuncR","feGaussianBlur","feMerge","feMergeNode","feMorphology","feOffset","fePointLight","feSpecularLighting","feSpotLight","feTile","feTurbulence"]),O=i(["animate","color-profile","cursor","discard","fedropshadow","feimage","font-face","font-face-format","font-face-name","font-face-src","font-face-uri","foreignobject","hatch","hatchpath","mesh","meshgradient","meshpatch","meshrow","missing-glyph","script","set","solidcolor","unknown","use"]),R=i(["math","menclose","merror","mfenced","mfrac","mglyph","mi","mlabeledtr","mmultiscripts","mn","mo","mover","mpadded","mphantom","mroot","mrow","ms","mspace","msqrt","mstyle","msub","msup","msubsup","mtable","mtd","mtext","mtr","munder","munderover"]),_=i(["maction","maligngroup","malignmark","mlongdiv","mscarries","mscarry","msgroup","mstack","msline","msrow","semantics","annotation","annotation-xml","mprescripts","none"]),M=i(["#text"]),L=i(["accept","action","align","alt","autocapitalize","autocomplete","autopictureinpicture","autoplay","background","bgcolor","border","capture","cellpadding","cellspacing","checked","cite","class","clear","color","cols","colspan","controls","controlslist","coords","crossorigin","datetime","decoding","default","dir","disabled","disablepictureinpicture","disableremoteplayback","download","draggable","enctype","enterkeyhint","face","for","headers","height","hidden","high","href","hreflang","id","inputmode","integrity","ismap","kind","label","lang","list","loading","loop","low","max","maxlength","media","method","min","minlength","multiple","muted","name","noshade","novalidate","nowrap","open","optimum","pattern","placeholder","playsinline","poster","preload","pubdate","radiogroup","readonly","rel","required","rev","reversed","role","rows","rowspan","spellcheck","scope","selected","shape","size","sizes","span","srclang","start","src","srcset","step","style","summary","tabindex","title","translate","type","usemap","valign","value","width","xmlns","slot"]),F=i(["accent-height","accumulate","additive","alignment-baseline","ascent","attributename","attributetype","azimuth","basefrequency","baseline-shift","begin","bias","by","class","clip","clippathunits","clip-path","clip-rule","color","color-interpolation","color-interpolation-filters","color-profile","color-rendering","cx","cy","d","dx","dy","diffuseconstant","direction","display","divisor","dur","edgemode","elevation","end","fill","fill-opacity","fill-rule","filter","filterunits","flood-color","flood-opacity","font-family","font-size","font-size-adjust","font-stretch","font-style","font-variant","font-weight","fx","fy","g1","g2","glyph-name","glyphref","gradientunits","gradienttransform","height","href","id","image-rendering","in","in2","k","k1","k2","k3","k4","kerning","keypoints","keysplines","keytimes","lang","lengthadjust","letter-spacing","kernelmatrix","kernelunitlength","lighting-color","local","marker-end","marker-mid","marker-start","markerheight","markerunits","markerwidth","maskcontentunits","maskunits","max","mask","media","method","mode","min","name","numoctaves","offset","operator","opacity","order","orient","orientation","origin","overflow","paint-order","path","pathlength","patterncontentunits","patterntransform","patternunits","points","preservealpha","preserveaspectratio","primitiveunits","r","rx","ry","radius","refx","refy","repeatcount","repeatdur","restart","result","rotate","scale","seed","shape-rendering","specularconstant","specularexponent","spreadmethod","startoffset","stddeviation","stitchtiles","stop-color","stop-opacity","stroke-dasharray","stroke-dashoffset","stroke-linecap","stroke-linejoin","stroke-miterlimit","stroke-opacity","stroke","stroke-width","style","surfacescale","systemlanguage","tabindex","targetx","targety","transform","text-anchor","text-decoration","text-rendering","textlength","type","u1","u2","unicode","values","viewbox","visibility","version","vert-adv-y","vert-origin-x","vert-origin-y","width","word-spacing","wrap","writing-mode","xchannelselector","ychannelselector","x","x1","x2","xmlns","y","y1","y2","z","zoomandpan"]),I=i(["accent","accentunder","align","bevelled","close","columnsalign","columnlines","columnspan","denomalign","depth","dir","display","displaystyle","encoding","fence","frame","height","href","id","largeop","length","linethickness","lspace","lquote","mathbackground","mathcolor","mathsize","mathvariant","maxsize","minsize","movablelimits","notation","numalign","open","rowalign","rowlines","rowspacing","rowspan","rspace","rquote","scriptlevel","scriptminsize","scriptsizemultiplier","selection","separator","separators","stretchy","subscriptshift","supscriptshift","symmetric","voffset","width","xmlns"]),C=i(["xlink:href","xml:id","xlink:title","xml:space","xmlns:xlink"]),z=a(/\{\{[\s\S]*|[\s\S]*\}\}/gm),H=a(/<%[\s\S]*|[\s\S]*%>/gm),U=a(/^data-[\-\w.\u00B7-\uFFFF]/),j=a(/^aria-[\-\w]+$/),B=a(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i),P=a(/^(?:\w+script|data):/i),W=a(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g),G="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e};function q(e){if(Array.isArray(e)){for(var t=0,n=Array(e.length);t<e.length;t++)n[t]=e[t];return n}return Array.from(e)}var K=function(){return"undefined"==typeof window?null:window},V=function(e,t){if("object"!==(void 0===e?"undefined":G(e))||"function"!=typeof e.createPolicy)return null;var n=null,r="data-tt-policy-suffix";t.currentScript&&t.currentScript.hasAttribute(r)&&(n=t.currentScript.getAttribute(r));var o="dompurify"+(n?"#"+n:"");try{return e.createPolicy(o,{createHTML:function(e){return e}})}catch(e){return console.warn("TrustedTypes policy "+o+" could not be created."),null}};return function e(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:K(),n=function(t){return e(t)};if(n.version="2.3.1",n.removed=[],!t||!t.document||9!==t.document.nodeType)return n.isSupported=!1,n;var r=t.document,o=t.document,a=t.DocumentFragment,l=t.HTMLTemplateElement,c=t.Node,s=t.Element,u=t.NodeFilter,f=t.NamedNodeMap,x=void 0===f?t.NamedNodeMap||t.MozNamedAttrMap:f,Y=t.Text,X=t.Comment,$=t.DOMParser,Z=t.trustedTypes,J=s.prototype,Q=N(J,"cloneNode"),ee=N(J,"nextSibling"),te=N(J,"childNodes"),ne=N(J,"parentNode");if("function"==typeof l){var re=o.createElement("template");re.content&&re.content.ownerDocument&&(o=re.content.ownerDocument)}var oe=V(Z,r),ie=oe&&ze?oe.createHTML(""):"",ae=o,le=ae.implementation,ce=ae.createNodeIterator,se=ae.createDocumentFragment,ue=ae.getElementsByTagName,fe=r.importNode,me={};try{me=w(o).documentMode?o.documentMode:{}}catch(e){}var de={};n.isSupported="function"==typeof ne&&le&&void 0!==le.createHTMLDocument&&9!==me;var pe=z,ge=H,he=U,ye=j,ve=P,be=W,Te=B,Ae=null,xe=S({},[].concat(q(k),q(E),q(D),q(R),q(M))),Se=null,we=S({},[].concat(q(L),q(F),q(I),q(C))),Ne=null,ke=null,Ee=!0,De=!0,Oe=!1,Re=!1,_e=!1,Me=!1,Le=!1,Fe=!1,Ie=!1,Ce=!0,ze=!1,He=!0,Ue=!0,je=!1,Be={},Pe=null,We=S({},["annotation-xml","audio","colgroup","desc","foreignobject","head","iframe","math","mi","mn","mo","ms","mtext","noembed","noframes","noscript","plaintext","script","style","svg","template","thead","title","video","xmp"]),Ge=null,qe=S({},["audio","video","img","source","image","track"]),Ke=null,Ve=S({},["alt","class","for","id","label","name","pattern","placeholder","role","summary","title","value","style","xmlns"]),Ye="http://www.w3.org/1998/Math/MathML",Xe="http://www.w3.org/2000/svg",$e="http://www.w3.org/1999/xhtml",Ze=$e,Je=!1,Qe=null,et=o.createElement("form"),tt=function(e){Qe&&Qe===e||(e&&"object"===(void 0===e?"undefined":G(e))||(e={}),e=w(e),Ae="ALLOWED_TAGS"in e?S({},e.ALLOWED_TAGS):xe,Se="ALLOWED_ATTR"in e?S({},e.ALLOWED_ATTR):we,Ke="ADD_URI_SAFE_ATTR"in e?S(w(Ve),e.ADD_URI_SAFE_ATTR):Ve,Ge="ADD_DATA_URI_TAGS"in e?S(w(qe),e.ADD_DATA_URI_TAGS):qe,Pe="FORBID_CONTENTS"in e?S({},e.FORBID_CONTENTS):We,Ne="FORBID_TAGS"in e?S({},e.FORBID_TAGS):{},ke="FORBID_ATTR"in e?S({},e.FORBID_ATTR):{},Be="USE_PROFILES"in e&&e.USE_PROFILES,Ee=!1!==e.ALLOW_ARIA_ATTR,De=!1!==e.ALLOW_DATA_ATTR,Oe=e.ALLOW_UNKNOWN_PROTOCOLS||!1,Re=e.SAFE_FOR_TEMPLATES||!1,_e=e.WHOLE_DOCUMENT||!1,Fe=e.RETURN_DOM||!1,Ie=e.RETURN_DOM_FRAGMENT||!1,Ce=!1!==e.RETURN_DOM_IMPORT,ze=e.RETURN_TRUSTED_TYPE||!1,Le=e.FORCE_BODY||!1,He=!1!==e.SANITIZE_DOM,Ue=!1!==e.KEEP_CONTENT,je=e.IN_PLACE||!1,Te=e.ALLOWED_URI_REGEXP||Te,Ze=e.NAMESPACE||$e,Re&&(De=!1),Ie&&(Fe=!0),Be&&(Ae=S({},[].concat(q(M))),Se=[],!0===Be.html&&(S(Ae,k),S(Se,L)),!0===Be.svg&&(S(Ae,E),S(Se,F),S(Se,C)),!0===Be.svgFilters&&(S(Ae,D),S(Se,F),S(Se,C)),!0===Be.mathMl&&(S(Ae,R),S(Se,I),S(Se,C))),e.ADD_TAGS&&(Ae===xe&&(Ae=w(Ae)),S(Ae,e.ADD_TAGS)),e.ADD_ATTR&&(Se===we&&(Se=w(Se)),S(Se,e.ADD_ATTR)),e.ADD_URI_SAFE_ATTR&&S(Ke,e.ADD_URI_SAFE_ATTR),e.FORBID_CONTENTS&&(Pe===We&&(Pe=w(Pe)),S(Pe,e.FORBID_CONTENTS)),Ue&&(Ae["#text"]=!0),_e&&S(Ae,["html","head","body"]),Ae.table&&(S(Ae,["tbody"]),delete Ne.tbody),i&&i(e),Qe=e)},nt=S({},["mi","mo","mn","ms","mtext"]),rt=S({},["foreignobject","desc","title","annotation-xml"]),ot=S({},E);S(ot,D),S(ot,O);var it=S({},R);S(it,_);var at=function(e){var t=ne(e);t&&t.tagName||(t={namespaceURI:$e,tagName:"template"});var n=g(e.tagName),r=g(t.tagName);if(e.namespaceURI===Xe)return t.namespaceURI===$e?"svg"===n:t.namespaceURI===Ye?"svg"===n&&("annotation-xml"===r||nt[r]):Boolean(ot[n]);if(e.namespaceURI===Ye)return t.namespaceURI===$e?"math"===n:t.namespaceURI===Xe?"math"===n&&rt[r]:Boolean(it[n]);if(e.namespaceURI===$e){if(t.namespaceURI===Xe&&!rt[r])return!1;if(t.namespaceURI===Ye&&!nt[r])return!1;var o=S({},["title","style","font","a","script"]);return!it[n]&&(o[n]||!ot[n])}return!1},lt=function(e){p(n.removed,{element:e});try{e.parentNode.removeChild(e)}catch(t){try{e.outerHTML=ie}catch(t){e.remove()}}},ct=function(e,t){try{p(n.removed,{attribute:t.getAttributeNode(e),from:t})}catch(e){p(n.removed,{attribute:null,from:t})}if(t.removeAttribute(e),"is"===e&&!Se[e])if(Fe||Ie)try{lt(t)}catch(e){}else try{t.setAttribute(e,"")}catch(e){}},st=function(e){var t=void 0,n=void 0;if(Le)e="<remove></remove>"+e;else{var r=h(e,/^[\r\n\t ]+/);n=r&&r[0]}var i=oe?oe.createHTML(e):e;if(Ze===$e)try{t=(new $).parseFromString(i,"text/html")}catch(e){}if(!t||!t.documentElement){t=le.createDocument(Ze,"template",null);try{t.documentElement.innerHTML=Je?"":i}catch(e){}}var a=t.body||t.documentElement;return e&&n&&a.insertBefore(o.createTextNode(n),a.childNodes[0]||null),Ze===$e?ue.call(t,_e?"html":"body")[0]:_e?t.documentElement:a},ut=function(e){return ce.call(e.ownerDocument||e,e,u.SHOW_ELEMENT|u.SHOW_COMMENT|u.SHOW_TEXT,null,!1)},ft=function(e){return!(e instanceof Y||e instanceof X)&&!("string"==typeof e.nodeName&&"string"==typeof e.textContent&&"function"==typeof e.removeChild&&e.attributes instanceof x&&"function"==typeof e.removeAttribute&&"function"==typeof e.setAttribute&&"string"==typeof e.namespaceURI&&"function"==typeof e.insertBefore)},mt=function(e){return"object"===(void 0===c?"undefined":G(c))?e instanceof c:e&&"object"===(void 0===e?"undefined":G(e))&&"number"==typeof e.nodeType&&"string"==typeof e.nodeName},dt=function(e,t,r){de[e]&&m(de[e],(function(e){e.call(n,t,r,Qe)}))},pt=function(e){var t=void 0;if(dt("beforeSanitizeElements",e,null),ft(e))return lt(e),!0;if(h(e.nodeName,/[\u0080-\uFFFF]/))return lt(e),!0;var r=g(e.nodeName);if(dt("uponSanitizeElement",e,{tagName:r,allowedTags:Ae}),!mt(e.firstElementChild)&&(!mt(e.content)||!mt(e.content.firstElementChild))&&T(/<[/\w]/g,e.innerHTML)&&T(/<[/\w]/g,e.textContent))return lt(e),!0;if("select"===r&&T(/<template/i,e.innerHTML))return lt(e),!0;if(!Ae[r]||Ne[r]){if(Ue&&!Pe[r]){var o=ne(e)||e.parentNode,i=te(e)||e.childNodes;if(i&&o)for(var a=i.length-1;a>=0;--a)o.insertBefore(Q(i[a],!0),ee(e))}return lt(e),!0}return e instanceof s&&!at(e)?(lt(e),!0):"noscript"!==r&&"noembed"!==r||!T(/<\/no(script|embed)/i,e.innerHTML)?(Re&&3===e.nodeType&&(t=e.textContent,t=y(t,pe," "),t=y(t,ge," "),e.textContent!==t&&(p(n.removed,{element:e.cloneNode()}),e.textContent=t)),dt("afterSanitizeElements",e,null),!1):(lt(e),!0)},gt=function(e,t,n){if(He&&("id"===t||"name"===t)&&(n in o||n in et))return!1;if(De&&!ke[t]&&T(he,t));else if(Ee&&T(ye,t));else{if(!Se[t]||ke[t])return!1;if(Ke[t]);else if(T(Te,y(n,be,"")));else if("src"!==t&&"xlink:href"!==t&&"href"!==t||"script"===e||0!==v(n,"data:")||!Ge[e]){if(Oe&&!T(ve,y(n,be,"")));else if(n)return!1}else;}return!0},ht=function(e){var t=void 0,r=void 0,o=void 0,i=void 0;dt("beforeSanitizeAttributes",e,null);var a=e.attributes;if(a){var l={attrName:"",attrValue:"",keepAttr:!0,allowedAttributes:Se};for(i=a.length;i--;){var c=t=a[i],s=c.name,u=c.namespaceURI;if(r=b(t.value),o=g(s),l.attrName=o,l.attrValue=r,l.keepAttr=!0,l.forceKeepAttr=void 0,dt("uponSanitizeAttribute",e,l),r=l.attrValue,!l.forceKeepAttr&&(ct(s,e),l.keepAttr))if(T(/\/>/i,r))ct(s,e);else{Re&&(r=y(r,pe," "),r=y(r,ge," "));var f=e.nodeName.toLowerCase();if(gt(f,o,r))try{u?e.setAttributeNS(u,s,r):e.setAttribute(s,r),d(n.removed)}catch(e){}}}dt("afterSanitizeAttributes",e,null)}},yt=function e(t){var n=void 0,r=ut(t);for(dt("beforeSanitizeShadowDOM",t,null);n=r.nextNode();)dt("uponSanitizeShadowNode",n,null),pt(n)||(n.content instanceof a&&e(n.content),ht(n));dt("afterSanitizeShadowDOM",t,null)};return n.sanitize=function(e,o){var i=void 0,l=void 0,s=void 0,u=void 0,f=void 0;if((Je=!e)&&(e="\x3c!--\x3e"),"string"!=typeof e&&!mt(e)){if("function"!=typeof e.toString)throw A("toString is not a function");if("string"!=typeof(e=e.toString()))throw A("dirty is not a string, aborting")}if(!n.isSupported){if("object"===G(t.toStaticHTML)||"function"==typeof t.toStaticHTML){if("string"==typeof e)return t.toStaticHTML(e);if(mt(e))return t.toStaticHTML(e.outerHTML)}return e}if(Me||tt(o),n.removed=[],"string"==typeof e&&(je=!1),je);else if(e instanceof c)1===(l=(i=st("\x3c!----\x3e")).ownerDocument.importNode(e,!0)).nodeType&&"BODY"===l.nodeName||"HTML"===l.nodeName?i=l:i.appendChild(l);else{if(!Fe&&!Re&&!_e&&-1===e.indexOf("<"))return oe&&ze?oe.createHTML(e):e;if(!(i=st(e)))return Fe?null:ie}i&&Le&&lt(i.firstChild);for(var m=ut(je?e:i);s=m.nextNode();)3===s.nodeType&&s===u||pt(s)||(s.content instanceof a&&yt(s.content),ht(s),u=s);if(u=null,je)return e;if(Fe){if(Ie)for(f=se.call(i.ownerDocument);i.firstChild;)f.appendChild(i.firstChild);else f=i;return Ce&&(f=fe.call(r,f,!0)),f}var d=_e?i.outerHTML:i.innerHTML;return Re&&(d=y(d,pe," "),d=y(d,ge," ")),oe&&ze?oe.createHTML(d):d},n.setConfig=function(e){tt(e),Me=!0},n.clearConfig=function(){Qe=null,Me=!1},n.isValidAttribute=function(e,t,n){Qe||tt({});var r=g(e),o=g(t);return gt(r,o,n)},n.addHook=function(e,t){"function"==typeof t&&(de[e]=de[e]||[],p(de[e],t))},n.removeHook=function(e){de[e]&&d(de[e])},n.removeHooks=function(e){de[e]&&(de[e]=[])},n.removeAllHooks=function(){de={}},n}()}));
 //# sourceMappingURL=purify.min.js.map
 
-var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   slice = [].slice,
-  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  hasProp = {}.hasOwnProperty;
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-(function($, window) {
-  var Base, Io, Log, Timeout, ZammadChat, ensureViewportMeta, myScript, scriptHost, scriptProtocol, scripts;
+(function(window) {
+  var Base, Core, Io, Log, SISKA_FILE_ICONS, SISKA_FILE_TONES, SISKA_ICONS, Timeout, ZammadChat, ensureViewportMeta, myScript, scriptHost, scriptProtocol, scripts, siskaFileIcon, siskaFileTone, siskaIcon;
   scripts = document.getElementsByTagName('script');
   myScript = scripts[scripts.length - 1];
   scriptProtocol = window.location.protocol.replace(':', '');
@@ -2010,13 +3100,33 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     return document.head.appendChild(meta);
   };
   ensureViewportMeta();
-  Base = (function() {
-    Base.prototype.defaults = {
+  Core = (function() {
+    Core.prototype.defaults = {
       debug: false
     };
 
+    function Core(options) {
+      var key, ref, value;
+      this.options = {};
+      ref = this.defaults;
+      for (key in ref) {
+        value = ref[key];
+        this.options[key] = value;
+      }
+      for (key in options) {
+        value = options[key];
+        this.options[key] = value;
+      }
+    }
+
+    return Core;
+
+  })();
+  Base = (function(superClass) {
+    extend(Base, superClass);
+
     function Base(options) {
-      this.options = $.extend({}, this.defaults, options);
+      Base.__super__.constructor.call(this, options);
       this.log = new Log({
         debug: this.options.debug,
         logPrefix: this.options.logPrefix || this.logPrefix
@@ -2025,18 +3135,16 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     return Base;
 
-  })();
-  Log = (function() {
-    Log.prototype.defaults = {
-      debug: false
-    };
+  })(Core);
+  Log = (function(superClass) {
+    extend(Log, superClass);
 
-    function Log(options) {
+    function Log() {
       this.log = bind(this.log, this);
       this.error = bind(this.error, this);
       this.notice = bind(this.notice, this);
       this.debug = bind(this.debug, this);
-      this.options = $.extend({}, this.defaults, options);
+      return Log.__super__.constructor.apply(this, arguments);
     }
 
     Log.prototype.debug = function() {
@@ -2061,7 +3169,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     Log.prototype.log = function(level, items) {
-      var item, j, len, logString;
+      var element, item, j, len, logString;
       items.unshift('||');
       items.unshift(level);
       items.unshift(this.options.logPrefix);
@@ -2081,14 +3189,23 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           logString += item;
         }
       }
-      return $('.js-chatLogDisplay').prepend('<div>' + logString + '</div>');
+      element = document.querySelector('.js-chatLogDisplay');
+      if (element) {
+        return element.innerHTML = '<div>' + logString + '</div>' + element.innerHTML;
+      }
     };
 
     return Log;
 
-  })();
+  })(Core);
   Timeout = (function(superClass) {
     extend(Timeout, superClass);
+
+    function Timeout() {
+      this.stop = bind(this.stop, this);
+      this.start = bind(this.start, this);
+      return Timeout.__super__.constructor.apply(this, arguments);
+    }
 
     Timeout.prototype.timeoutStartedAt = null;
 
@@ -2099,12 +3216,6 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       timeout: 4,
       timeoutIntervallCheck: 0.5
     };
-
-    function Timeout(options) {
-      this.stop = bind(this.stop, this);
-      this.start = bind(this.start, this);
-      Timeout.__super__.constructor.call(this, options);
-    }
 
     Timeout.prototype.start = function() {
       var check, timeoutStartedAt;
@@ -2140,6 +3251,17 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
   Io = (function(superClass) {
     extend(Io, superClass);
 
+    function Io() {
+      this.ping = bind(this.ping, this);
+      this.send = bind(this.send, this);
+      this.reconnect = bind(this.reconnect, this);
+      this.close = bind(this.close, this);
+      this.attemptReconnect = bind(this.attemptReconnect, this);
+      this.connect = bind(this.connect, this);
+      this.set = bind(this.set, this);
+      return Io.__super__.constructor.apply(this, arguments);
+    }
+
     Io.prototype.logPrefix = 'io';
 
     Io.prototype.reconnectAttempts = 0;
@@ -2149,17 +3271,6 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     Io.prototype.reconnectBaseDelay = 1000;
 
     Io.prototype.reconnectMaxDelay = 30000;
-
-    function Io(options) {
-      this.ping = bind(this.ping, this);
-      this.send = bind(this.send, this);
-      this.reconnect = bind(this.reconnect, this);
-      this.close = bind(this.close, this);
-      this.attemptReconnect = bind(this.attemptReconnect, this);
-      this.connect = bind(this.connect, this);
-      this.set = bind(this.set, this);
-      Io.__super__.constructor.call(this, options);
-    }
 
     Io.prototype.set = function(params) {
       var key, results1, value;
@@ -2300,13 +3411,116 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     return Io;
 
   })(Base);
+  SISKA_ICONS = {
+    'arrow-bend-up-left': ["M320 224v384l-192-192z", "M512 384h-160v-160c0-0.007 0-0.016 0-0.025 0-17.673-14.327-32-32-32-8.843 0-16.848 3.587-22.64 9.385l-0 0-192 192c-5.798 5.792-9.385 13.797-9.385 22.64s3.587 16.848 9.385 22.64l0 0 192 192c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32 0-0.009-0-0.018-0-0.027l0 0.001v-160h160c194.313 0.228 351.772 157.687 352 351.978l0 0.022c0 17.673 14.327 32 32 32s32-14.327 32-32v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM288 530.76l-114.76-114.76 114.76-114.76z"],
+    'arrow-circle-down': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM662.64 521.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-128 128c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-128-128c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4v-242.76c0-17.673 14.327-32 32-32s32 14.327 32 32v0 242.76l73.36-73.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0z"],
+    'book-open-text': ["M928 256v512c0 17.673-14.327 32-32 32v0h-256c-70.692 0-128 57.308-128 128v0-576c0-70.692 57.308-128 128-128v0h256c17.673 0 32 14.327 32 32v0z", "M896 192h-256c-52.165 0-98.5 24.964-127.708 63.598l-0.292 0.402c-29.5-39.036-75.835-64-128-64v0h-256c-35.346 0-64 28.654-64 64v0 512c0 35.346 28.654 64 64 64v0h256c53.019 0 96 42.981 96 96v0c0 17.673 14.327 32 32 32s32-14.327 32-32v0c0-53.019 42.981-96 96-96v0h256c35.346 0 64-28.654 64-64v0-512c0-35.346-28.654-64-64-64v0zM384 768h-256v-512h256c53.019 0 96 42.981 96 96v0 448c-26.32-19.976-59.629-32-95.747-32-0.089 0-0.178 0-0.267 0l0.014-0zM896 768h-256c-0.075-0-0.164-0-0.253-0-36.117 0-69.426 12.024-96.142 32.288l0.396-0.288v-448c0-53.019 42.981-96 96-96v0h256zM640 352h160c17.673 0 32 14.327 32 32s-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0zM832 512c0 17.673-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h160c17.673 0 32 14.327 32 32v0zM832 640c0 17.673-14.327 32-32 32v0h-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h160c17.673 0 32 14.327 32 32v0z"],
+    'caret-down': ["M832 384l-320 320-320-320z", "M861.56 371.76c-4.934-11.696-16.306-19.757-29.56-19.76l-640-0c-0.007-0-0.016-0-0.025-0-17.673 0-32 14.327-32 32 0 8.843 3.587 16.848 9.385 22.64l0 0 320 320c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 320-320c5.785-5.79 9.363-13.786 9.363-22.618 0-4.425-0.898-8.639-2.522-12.472l0.079 0.21zM512 658.76l-242.76-242.76h485.52z"],
+    'caret-right': ["M704 512l-320 320v-640z", "M726.64 489.36l-320-320c-5.792-5.798-13.797-9.385-22.64-9.385-17.673 0-32 14.327-32 32 0 0.009 0 0.018 0 0.027l-0-0.001v640c-0 0.007-0 0.016-0 0.025 0 17.673 14.327 32 32 32 8.843 0 16.848-3.587 22.64-9.385l0-0 320-320c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0zM416 754.76v-485.52l242.76 242.76z"],
+    'chat-circle-dots': ["M896 512c0 0.014 0 0.031 0 0.048 0 212.077-171.923 384-384 384-70.806 0-137.136-19.164-194.086-52.588l1.806 0.98-149.56 49.88c-3.021 1.042-6.502 1.644-10.124 1.644-17.673 0-32-14.327-32-32 0-3.622 0.602-7.103 1.71-10.349l-0.067 0.225 49.88-149.56c-32.414-55.124-51.56-121.425-51.56-192.197 0-212.077 171.923-384 384-384 212.048 0 383.953 171.875 384 383.912l0 0.005z", "M512 96c-0.027-0-0.059-0-0.091-0-229.75 0-416 186.25-416 416 0 71.565 18.071 138.91 49.9 197.72l-1.089-2.2-45.4 136.2c-2.084 6.042-3.287 13.004-3.287 20.247 0 35.346 28.654 64 64 64 7.243 0 14.205-1.203 20.698-3.421l-0.45 0.134 136.2-45.4c56.567 30.683 123.852 48.72 195.349 48.72 229.75 0 416-186.25 416-416 0-229.69-186.152-415.903-415.82-416l-0.009-0zM512 864c-0.071 0-0.155 0-0.239 0-64.812 0-125.526-17.542-177.654-48.137l1.654 0.897c-4.587-2.706-10.105-4.309-15.997-4.32l-0.003-0c-3.623 0.002-7.103 0.617-10.34 1.747l0.22-0.067-149.64 49.88 49.88-149.6c1.048-3.029 1.653-6.519 1.653-10.151 0-5.895-1.594-11.417-4.374-16.16l0.082 0.151c-29.734-50.544-47.298-111.341-47.298-176.24 0-194.404 157.596-352 352-352s352 157.596 352 352c0 194.384-157.563 351.967-351.939 352l-0.003 0zM560 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM384 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM736 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'check': ["M928 224v576c0 35.346-28.654 64-64 64v0h-704c-35.346 0-64-28.654-64-64v0-576c0-35.346 28.654-64 64-64v0h704c35.346 0 64 28.654 64 64v0z", "M822.64 342.64l-384 384c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-160-160c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l137.36 137.4 361.36-361.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0z"],
+    'arrow-down': ["M800 576l-288 288-288-288z", "M829.56 563.76c-4.934-11.696-16.306-19.757-29.56-19.76l-256-0v-384c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 384h-256c-0.007-0-0.016-0-0.025-0-17.673 0-32 14.327-32 32 0 8.843 3.587 16.848 9.385 22.64l0 0 288 288c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 288-288c5.785-5.79 9.363-13.786 9.363-22.618 0-4.425-0.898-8.639-2.522-12.472l0.079 0.21zM512 818.76l-210.76-210.76h421.52z"],
+    'chats': ["M896 384v512l-158.32-128h-385.68c-17.673 0-32-14.327-32-32v0-160h352c17.673 0 32-14.327 32-32v0-192h160c17.673 0 32 14.327 32 32v0z", "M864 320h-128v-128c0-35.346-28.654-64-64-64v0h-512c-35.346 0-64 28.654-64 64v0 512c0.057 17.63 14.362 31.9 32 31.9 7.596 0 14.574-2.647 20.062-7.068l-0.062 0.048 140-112.88v120c0 35.346 28.654 64 64 64v0h374.36l149.64 120.88c5.416 4.409 12.392 7.089 19.993 7.12l0.007 0c17.673 0 32-14.327 32-32v0-512c0-35.346-28.654-64-64-64v0zM266.2 551.12l-106.2 85.88v-445h512v352h-385.68c-7.65 0.001-14.674 2.687-20.179 7.166l0.059-0.046zM864 829l-106.2-85.88c-5.416-4.409-12.392-7.089-19.993-7.12l-0.007-0h-385.8v-128h320c35.346 0 64-28.654 64-64v0-160h128z"],
+    'clock-counter-clockwise': ["M864 512c0 194.404-157.596 352-352 352s-352-157.596-352-352c0-194.404 157.596-352 352-352v0c194.404 0 352 157.596 352 352v0z", "M544 320v173.88l144.48 86.68c9.367 5.697 15.528 15.849 15.528 27.44 0 17.678-14.331 32.008-32.008 32.008-6.087 0-11.777-1.699-16.621-4.648l0.141 0.080-160-96c-9.362-5.696-15.52-15.844-15.52-27.43 0-0.003 0-0.007 0-0.010l-0 0.001v-192c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM512 128c-0.282-0.001-0.617-0.001-0.951-0.001-105.811 0-201.567 43.047-270.712 112.584l-0.017 0.017c-29.080 29.44-54.92 57.76-80.32 87.4v-72c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h160c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-92c28.6-33.68 57.080-65.4 89.56-98.28 57.908-57.908 137.908-93.725 226.274-93.725 176.731 0 320 143.269 320 320s-143.269 320-320 320c-85.11 0-162.46-33.227-219.785-87.416l0.151 0.142c-5.725-5.419-13.473-8.751-22-8.751-17.69 0-32.031 14.341-32.031 32.031 0 9.163 3.848 17.428 10.016 23.266l0.015 0.014c68.607 64.851 161.423 104.72 263.55 104.72 212.077 0 384-171.923 384-384 0-211.989-171.78-383.857-383.736-384l-0.014-0z"],
+    'spinner-gap': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M544 128v128c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-128c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM896 480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32s-14.327-32-32-32v0zM715.64 670.4c-5.727-5.449-13.492-8.801-22.041-8.801-17.673 0-32 14.327-32 32 0 8.548 3.352 16.314 8.813 22.054l-0.013-0.013 90.48 90.52c5.794 5.794 13.799 9.378 22.64 9.378 17.683 0 32.018-14.335 32.018-32.018 0-8.841-3.584-16.846-9.378-22.64l0 0zM512 736c-17.673 0-32 14.327-32 32v0 128c0 17.673 14.327 32 32 32s32-14.327 32-32v0-128c0-17.673-14.327-32-32-32v0zM308.36 670.4l-90.52 90.48c-5.794 5.794-9.378 13.799-9.378 22.64 0 17.683 14.335 32.018 32.018 32.018 8.841 0 16.846-3.584 22.64-9.378v-0l90.48-90.52c5.449-5.727 8.801-13.492 8.801-22.041 0-17.673-14.327-32-32-32-8.548 0-16.314 3.352-22.054 8.813l0.013-0.013zM288 512c0-17.673-14.327-32-32-32v0h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32v0zM263.12 217.84c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l90.52 90.48c5.727 5.449 13.492 8.801 22.041 8.801 17.673 0 32-14.327 32-32 0-8.548-3.352-16.314-8.813-22.054l0.013 0.013z"],
+    'check-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M694.64 393.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4 201.36-201.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"],
+    'checks': ["M960 256v512c0 35.346-28.654 64-64 64v0h-768c-35.346 0-64-28.654-64-64v0-512c0-35.346 28.654-64 64-64v0h768c35.346 0 64 28.654 64 64v0z", "M566.64 406.64l-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378h0l73.36 73.4 201.36-201.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM854.64 361.36c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-201.36 201.4-41.36-41.4c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l64 64c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 224-224c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0z"],
+    'clock': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM768 512c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 192h192c17.673 0 32 14.327 32 32v0z"],
+    'download-simple': ["M672 448l-160 160-160-160z", "M896 608v224c0 35.346-28.654 64-64 64v0h-640c-35.346 0-64-28.654-64-64v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 224h640v-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM329.36 470.64c-5.798-5.792-9.385-13.797-9.385-22.64 0-17.673 14.327-32 32-32 0.009 0 0.018 0 0.027 0l127.999-0v-256c0-17.673 14.327-32 32-32s32 14.327 32 32v0 256h128c0.007-0 0.016-0 0.025-0 17.673 0 32 14.327 32 32 0 8.843-3.587 16.848-9.385 22.64l-0 0-160 160c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0zM429.36 480l82.64 82.76 82.76-82.76z"],
+    'heart': ["M928 376c0 264-416 488-416 488s-416-224-416-488c0-119.294 96.706-216 216-216v0c90.36 0 167.76 49.24 200 128 32.24-78.76 109.64-128 200-128 119.294 0 216 96.706 216 216v0z", "M712 128c-82.6 0-154.92 35.52-200 95.56-45.080-60.040-117.4-95.56-200-95.56-136.903 0.159-247.841 111.097-248 247.985l-0 0.015c0 280 415.16 506.64 432.84 516 4.385 2.405 9.607 3.819 15.16 3.819s10.775-1.414 15.327-3.903l-0.167 0.084c17.68-9.36 432.84-236 432.84-516-0.159-136.903-111.097-247.841-247.985-248l-0.015-0zM512 827.2c-73.040-42.56-384-236.44-384-451.2 0.136-101.565 82.435-183.864 183.987-184l0.013-0c77.8 0 143.12 41.44 170.4 108 4.916 11.742 16.312 19.841 29.6 19.841s24.684-8.099 29.521-19.63l0.079-0.211c27.28-66.68 92.6-108 170.4-108 101.565 0.136 183.864 82.435 184 183.987l0 0.013c0 214.44-311.040 408.6-384 451.2z"],
+    'house': ["M864 462.16v369.84c0 17.673-14.327 32-32 32v0h-192c-17.673 0-32-14.327-32-32v0-192c0-17.673-14.327-32-32-32v0h-128c-17.673 0-32 14.327-32 32v0 192c0 17.673-14.327 32-32 32v0h-192c-17.673 0-32-14.327-32-32v0-369.84c0.001-9.373 4.032-17.805 10.455-23.657l0.025-0.023 320-302.16c5.663-5.169 13.232-8.335 21.54-8.335s15.877 3.166 21.565 8.358l-0.025-0.023 320 302.16c6.425 5.873 10.44 14.291 10.44 23.647 0 0.012-0 0.023-0 0.035l0-0.002z", "M875.32 415.080l-320-301.92c-0.158-0.138-0.302-0.282-0.435-0.435l-0.005-0.005c-11.324-10.327-26.453-16.652-43.060-16.652s-31.736 6.325-43.11 16.697l0.050-0.045-0.44 0.44-319.64 301.92c-12.732 11.735-20.68 28.495-20.68 47.11 0 0.003 0 0.007 0 0.010l-0-0.001v369.8c0 35.346 28.654 64 64 64v0h192c35.346 0 64-28.654 64-64v0-192h128v192c0 35.346 28.654 64 64 64v0h192c35.346 0 64-28.654 64-64v0-369.8c0-0.003 0-0.006 0-0.010 0-18.616-7.948-35.375-20.636-47.070l-0.044-0.040zM832 832h-192v-192c0-35.346-28.654-64-64-64v0h-128c-35.346 0-64 28.654-64 64v0 192h-192v-369.8l0.44-0.4 319.56-301.8 320.040 302.12z"],
+    'info': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M576 704c0 17.673-14.327 32-32 32v0c-35.346 0-64-28.654-64-64v0-160c-17.673 0-32-14.327-32-32s14.327-32 32-32v0c35.346 0 64 28.654 64 64v0 160c17.673 0 32 14.327 32 32v0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022zM496 384c26.51 0 48-21.49 48-48s-21.49-48-48-48c-26.51 0-48 21.49-48 48v0c0 26.51 21.49 48 48 48v0z"],
+    'lock': ["M864 384v448c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-448c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M832 320h-128v-96c0-106.039-85.961-192-192-192s-192 85.961-192 192v0 96h-128c-35.346 0-64 28.654-64 64v0 448c0 35.346 28.654 64 64 64v0h640c35.346 0 64-28.654 64-64v0-448c0-35.346-28.654-64-64-64v0zM384 224c0-70.692 57.308-128 128-128s128 57.308 128 128v0 96h-256zM832 832h-640v-448h640v448zM560 608c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'magnifying-glass': ["M768 448c0 176.731-143.269 320-320 320s-320-143.269-320-320c0-176.731 143.269-320 320-320v0c176.731 0 320 143.269 320 320v0z", "M918.64 873.36l-200.24-200.24c50.917-60.738 81.843-139.736 81.843-225.957 0-194.868-157.972-352.84-352.84-352.84s-352.84 157.972-352.84 352.84c0 194.868 157.972 352.84 352.84 352.84 86.111 0 165.018-30.847 226.272-82.095l-0.555 0.452 200.24 200.28c5.794 5.794 13.799 9.378 22.64 9.378 17.683 0 32.018-14.335 32.018-32.018 0-8.841-3.584-16.846-9.378-22.64l0 0zM160 448c0-159.058 128.942-288 288-288s288 128.942 288 288c0 159.058-128.942 288-288 288v0c-158.985-0.182-287.818-129.015-288-287.983l-0-0.017z"],
+    'paper-plane-right': ["M879.64 539.44l-671.92 384.56c-4.498 2.561-9.883 4.071-15.62 4.071-17.673 0-32-14.327-32-32 0-3.855 0.682-7.551 1.931-10.974l-0.071 0.222 124-362.84c1.198-3.201 1.891-6.899 1.891-10.76s-0.693-7.559-1.962-10.978l0.071 0.218-124-361.88c-1.178-3.2-1.86-6.896-1.86-10.751 0-17.673 14.327-32 32-32 5.737 0 11.122 1.51 15.779 4.154l-0.158-0.083 672 383.4c9.715 5.616 16.147 15.956 16.147 27.797 0 11.874-6.467 22.238-16.072 27.76l-0.155 0.082z", "M895.48 456l-672-383.56c-9.013-5.147-19.808-8.182-31.311-8.182-35.346 0-64 28.654-64 64 0 7.531 1.301 14.759 3.69 21.47l-0.139-0.447 124 361.88c-0.008 0.060-0.012 0.13-0.012 0.2s0.004 0.14 0.013 0.208l-0.001-0.008c-0.011 0.060-0.017 0.129-0.017 0.2s0.006 0.14 0.018 0.207l-0.001-0.007-124 362.68c-2.325 6.36-3.67 13.703-3.67 21.36 0 35.329 28.625 63.971 63.947 64l0.003 0c11.653-0.031 22.572-3.144 31.993-8.566l-0.313 0.166 671.64-384.2c19.669-11.172 32.722-31.98 32.722-55.836 0-23.776-12.965-44.523-32.21-55.559l-0.312-0.165zM192 896v-0.36l120.56-351.64h231.44c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-231.12l-120.64-351.52-0.24-0.48 672 383.32z"],
+    'paperclip': ["M723 419l93 93-328.24 327.76c-34.631 34.087-82.185 55.134-134.654 55.134-106.039 0-192-85.961-192-192 0-52.47 21.047-100.023 55.159-134.679l-0.025 0.025 397.24-402.76c23.166-23.166 55.17-37.495 90.52-37.495 70.701 0 128.015 57.314 128.015 128.015 0 35.35-14.329 67.354-37.495 90.52v0z", "M838.64 489.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-328.2 328c-40.54 40.535-96.542 65.606-158.4 65.606-123.726 0-224.026-100.3-224.026-224.026 0-61.868 25.079-117.878 65.625-158.42l0-0 397.040-402.88c28.966-28.996 68.998-46.932 113.22-46.932 88.383 0 160.032 71.649 160.032 160.032 0 44.162-17.888 84.146-46.814 113.101l0.001-0.001-397.12 402.88c-17.403 17.403-41.444 28.167-68 28.167-53.111 0-96.167-43.055-96.167-96.167 0-26.556 10.764-50.597 28.167-68l0-0 333.2-338.48c5.853-6.233 14.146-10.115 23.346-10.115 17.673 0 32 14.327 32 32 0 9.021-3.733 17.17-9.738 22.987l-0.008 0.008-333.24 338.84c-5.845 5.8-9.464 13.838-9.464 22.72 0 17.675 14.329 32.004 32.004 32.004 8.793 0 16.758-3.546 22.542-9.286l-0.002 0.002 397.080-402.68c17.427-17.392 28.208-41.437 28.208-68 0-53.057-43.011-96.068-96.068-96.068-26.494 0-50.482 10.725-67.862 28.069l0.002-0.002-396.96 402.72c-29.011 28.967-46.958 69.007-46.958 113.24 0 88.376 71.643 160.018 160.018 160.018 44.143 0 84.111-17.874 113.062-46.78l-0.002 0.002 328.24-328c5.782-5.739 13.747-9.285 22.54-9.285 8.873 0 16.902 3.611 22.698 9.444l0.002 0.002z"],
+    'smiley': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM320 432c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0zM704 432c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM699.68 624c-41.16 71.16-109.56 112-187.68 112s-146.52-40.8-187.68-112c-3.133-4.86-4.995-10.796-4.995-17.167 0-17.673 14.327-32 32-32 12.25 0 22.893 6.884 28.271 16.994l0.084 0.173c29.88 51.64 76.84 80 132.32 80s102.44-28.4 132.32-80c5.462-10.283 16.104-17.167 28.355-17.167 17.673 0 32 14.327 32 32 0 6.371-1.862 12.307-5.071 17.294l0.076-0.127z"],
+    'warning': ["M861.84 864h-699.68c-50.48 0-82.16-52.84-57.64-95.64l349.84-607.48c25.2-44 90.080-44 115.28 0l349.84 607.48c24.52 42.8-7.16 95.64-57.64 95.64z", "M947.2 752.36l-349.8-607.48c-17.525-29.455-49.194-48.883-85.4-48.883s-67.875 19.428-85.149 48.428l-0.251 0.455-349.8 607.48c-8.072 13.588-12.843 29.957-12.843 47.44s4.771 33.852 13.082 47.875l-0.239-0.435c17.146 29.356 48.5 48.765 84.389 48.765 0.356 0 0.711-0.002 1.066-0.006l-0.054 0h699.6c0.277 0.003 0.604 0.004 0.932 0.004 35.888 0 67.242-19.409 84.139-48.304l0.249-0.461c8.097-13.604 12.883-29.998 12.883-47.508 0-17.455-4.756-33.8-13.042-47.808l0.239 0.437zM891.72 815.2c-6.013 10.125-16.892 16.805-29.331 16.805-0.207 0-0.413-0.002-0.619-0.006l0.031 0h-699.6c-0.175 0.003-0.382 0.005-0.589 0.005-12.439 0-23.318-6.68-29.245-16.649l-0.086-0.157c-2.651-4.416-4.219-9.745-4.219-15.44s1.568-11.024 4.296-15.578l-0.077 0.138 349.8-607.48c6.23-10.239 17.329-16.972 30-16.972s23.77 6.734 29.913 16.818l0.087 0.154 349.8 607.48c2.602 4.384 4.14 9.665 4.14 15.305 0 5.75-1.599 11.127-4.376 15.711l0.076-0.135zM480 576v-160c0-17.673 14.327-32 32-32s32 14.327 32 32v0 160c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM560 720c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
+    'x': ["M864 192v640c0 17.673-14.327 32-32 32v0h-640c-17.673 0-32-14.327-32-32v0-640c0-17.673 14.327-32 32-32v0h640c17.673 0 32 14.327 32 32v0z", "M822.64 777.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-265.36-265.4-265.36 265.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l-0 0 265.4-265.36-265.4-265.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l265.36 265.4 265.36-265.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l-0 0-265.4 265.36z"],
+    'x-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M662.64 406.64l-105.4 105.36 105.4 105.36c5.794 5.794 9.378 13.799 9.378 22.64 0 17.683-14.335 32.018-32.018 32.018-8.841 0-16.846-3.584-22.64-9.378l-105.36-105.4-105.36 105.4c-5.794 5.794-13.799 9.378-22.64 9.378-17.683 0-32.018-14.335-32.018-32.018 0-8.841 3.584-16.846 9.378-22.64l105.4-105.36-105.4-105.36c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l105.36 105.4 105.36-105.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"],
+    'image': ["M896 224v488.24l-158.88-158.88c-5.79-5.786-13.787-9.365-22.62-9.365s-16.83 3.579-22.62 9.365l-102.64 102.64-198.6-198.64c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-217.36 217.4v-450.76c0-17.673 14.327-32 32-32v0h704c17.673 0 32 14.327 32 32v0z", "M864 160h-704c-35.346 0-64 28.654-64 64v0 576c0 35.346 28.654 64 64 64v0h704c35.346 0 64-28.654 64-64v0-576c0-35.346-28.654-64-64-64v0zM864 224v411l-104.28-104.24c-11.582-11.585-27.584-18.75-45.26-18.75s-33.678 7.166-45.26 18.75l-80 80-176-176c-11.58-11.573-27.574-18.73-45.24-18.73s-33.66 7.157-45.24 18.731l-162.72 162.72v-373.48zM160 688l208-208 320 320h-528zM864 800h-85.48l-144-144 80-80 149.48 149.52v74.48zM576 400c0-26.51 21.49-48 48-48s48 21.49 48 48c0 26.51-21.49 48-48 48v0c-26.51 0-48-21.49-48-48v0z"],
+    'file-pdf': ["M832 352h-224v-224z", "M896 608c0 17.673-14.327 32-32 32v0h-96v64h64c17.673 0 32 14.327 32 32s-14.327 32-32 32v0h-64v64c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32v0h128c17.673 0 32 14.327 32 32v0zM368 688c0 61.856-50.144 112-112 112v0h-32v32c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32v0h64c61.856 0 112 50.144 112 112v0zM304 688c0-26.51-21.49-48-48-48v0h-32v96h32c26.51 0 48-21.49 48-48v0zM656 720c0 79.529-64.471 144-144 144v0h-64c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32v0h64c79.529 0 144 64.471 144 144v0zM592 720c0-44.183-35.817-80-80-80v0h-32v160h32c44.183 0 80-35.817 80-80v0zM160 448v-288c0-35.346 28.654-64 64-64v0h384c0.007-0 0.016-0 0.025-0 8.83 0 16.825 3.577 22.615 9.36l-0-0 224 224c5.783 5.79 9.36 13.785 9.36 22.615 0 0.009-0 0.018-0 0.027l0-0.001v96c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-64h-192c-17.673 0-32-14.327-32-32v0-192h-352v288c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM640 320h114.76l-114.76-114.76z"],
+    'file-doc': ["M832 352h-224v-224z", "M208 576h-64c-17.673 0-32 14.327-32 32v0 224c0 17.673 14.327 32 32 32v0h64c79.529 0 144-64.471 144-144s-64.471-144-144-144v0zM208 800h-32v-160h32c44.183 0 80 35.817 80 80s-35.817 80-80 80v0zM886.12 780.36c6.091 5.836 9.876 14.036 9.876 23.12 0 8.587-3.382 16.384-8.887 22.131l0.011-0.012c-21.803 23.422-52.718 38.113-87.068 38.4l-0.052 0c-70.6 0-128-64.6-128-144s57.4-144 128-144c34.402 0.287 65.317 14.978 87.053 38.327l0.067 0.073c5.325 5.7 8.594 13.379 8.594 21.821 0 17.673-14.327 32-32 32-8.94 0-17.023-3.666-22.829-9.576l-0.005-0.005c-10.178-11.172-24.665-18.265-40.814-18.639l-0.066-0.001c-35.28 0-64 36-64 80s28.72 80 64 80c16.221-0.344 30.717-7.446 40.838-18.593l0.042-0.047c5.836-6.091 14.036-9.876 23.12-9.876 8.587 0 16.384 3.382 22.131 8.887l-0.012-0.011zM512 576c-70.56 0-128 64.6-128 144s57.44 144 128 144 128-64.6 128-144-57.44-144-128-144zM512 800c-35.28 0-64-36-64-80s28.72-80 64-80 64 36 64 80-28.72 80-64 80zM192 480c17.673 0 32-14.327 32-32v0-288h352v192c0 17.673 14.327 32 32 32v0h192v64c0 17.673 14.327 32 32 32s32-14.327 32-32v0-96c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 288c0 17.673 14.327 32 32 32v0zM640 205.24l114.76 114.76h-114.76z"],
+    'file-xls': ["M832 352h-224v-224z", "M624 832c0 17.673-14.327 32-32 32v0h-112c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 192h80c17.673 0 32 14.327 32 32v0zM370.6 581.96c-5.165-3.727-11.621-5.961-18.6-5.961-10.695 0-20.164 5.247-25.975 13.306l-0.065 0.095-53.96 75.56-53.96-75.56c-5.795-8.819-15.642-14.562-26.831-14.562-17.673 0-32 14.327-32 32 0 7.489 2.573 14.377 6.882 19.829l-0.051-0.067 66.64 93.4-66.72 93.4c-3.24 4.92-5.169 10.954-5.169 17.438 0 17.673 14.327 32 32 32 10.184 0 19.257-4.757 25.118-12.171l0.051-0.067 54.040-75.56 53.96 75.56c5.912 7.481 14.985 12.238 25.169 12.238 17.673 0 32-14.327 32-32 0-6.484-1.929-12.518-5.244-17.559l0.075 0.121-66.64-93.4 66.72-93.4c3.727-5.165 5.961-11.621 5.961-18.6 0-10.695-5.247-20.164-13.306-25.975l-0.095-0.065zM766.36 685.24c-16-4.64-32.56-9.4-41.8-15.36-5-3.28-4.92-4-4.48-7.6 0.13-6.097 3.245-11.44 7.937-14.64l0.063-0.040c18.4-12.48 61.36-6.92 79.28-2.24 2.442 0.668 5.246 1.052 8.14 1.052 17.68 0 32.012-14.332 32.012-32.012 0-14.786-10.025-27.231-23.648-30.908l-0.224-0.052c-8.44-2.2-84-20.88-131.32 11.040-19.703 13.445-33.152 34.804-35.769 59.4l-0.031 0.36c-8 63.56 54.6 81.68 92 92.48 48.24 13.96 52.48 19.68 51.12 30.36-1.24 9.64-5.040 13.32-8.6 15.72-18.4 12.24-60.64 6.24-78.16 1.4-2.572-0.742-5.526-1.169-8.58-1.169-17.711 0-32.069 14.358-32.069 32.069 0 14.657 9.833 27.018 23.263 30.845l0.226 0.055c18.204 4.992 39.122 7.906 60.705 8l0.055 0c23.28 0 49.2-4 69.96-17.84 20.241-13.601 34.063-35.416 36.69-60.561l0.030-0.359c8.84-69.24-57.24-88.56-96.8-100zM160 448v-288c0-35.346 28.654-64 64-64v0h384c0.007-0 0.016-0 0.025-0 8.83 0 16.825 3.577 22.615 9.36l-0-0 224 224c5.783 5.79 9.36 13.785 9.36 22.615 0 0.009-0 0.018-0 0.027l0-0.001v96c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-64h-192c-17.673 0-32-14.327-32-32v0-192h-352v288c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM640 320h114.72l-114.72-114.76z"],
+    'file-csv': ["M832 352h-224v-224z", "M192 720c0 44 28.72 80 64 80 16.215-0.375 30.702-7.468 40.839-18.595l0.041-0.045c5.811-5.915 13.894-9.581 22.834-9.581 17.673 0 32 14.327 32 32 0 8.442-3.269 16.121-8.611 21.839l0.017-0.018c-21.803 23.422-52.718 38.113-87.068 38.4l-0.052 0c-70.6 0-128-64.6-128-144s57.4-144 128-144c34.402 0.287 65.317 14.978 87.053 38.327l0.067 0.073c5.325 5.7 8.594 13.379 8.594 21.821 0 17.673-14.327 32-32 32-8.94 0-17.023-3.666-22.829-9.576l-0.005-0.005c-10.178-11.172-24.665-18.265-40.814-18.639l-0.066-0.001c-35.28 0-64 36-64 80zM510.4 685.24c-16-4.64-32.56-9.4-41.8-15.36-5-3.24-4.92-4-4.48-7.6 0.151-6.092 3.259-11.426 7.938-14.64l0.062-0.040c18.4-12.48 61.36-6.92 79.32-2.24 2.484 0.691 5.335 1.088 8.28 1.088 17.7 0 32.048-14.348 32.048-32.048 0-14.755-9.971-27.181-23.543-30.907l-0.225-0.053c-8.48-2.2-84-20.88-131.36 11.040-19.79 13.417-33.315 34.798-35.968 59.437l-0.032 0.363c-8 63.52 54.6 81.64 92 92.44 48.24 13.96 52.48 19.68 51.12 30.36-1.24 9.64-5.040 13.36-8.56 15.72-18.4 12.24-60.68 6.24-78.2 1.44-2.584-0.749-5.551-1.181-8.62-1.181-17.707 0-32.061 14.354-32.061 32.061 0 14.638 9.81 26.985 23.214 30.825l0.226 0.055c18.197 4.962 39.111 7.873 60.685 8l0.075 0c23.28 0 49.2-4 69.96-17.84 20.253-13.597 34.087-35.411 36.729-60.559l0.031-0.361c8.76-69.24-57.28-88.56-96.84-100zM842.76 577.88c-3.21-1.186-6.918-1.873-10.786-1.873-13.812 0-25.58 8.751-30.063 21.010l-0.071 0.222-49.84 139.6-49.88-139.6c-4.552-12.488-16.324-21.243-30.14-21.243-17.675 0-32.003 14.328-32.003 32.003 0 3.858 0.683 7.557 1.934 10.982l-0.071-0.222 80 224c4.549 12.491 16.322 21.249 30.14 21.249s25.591-8.758 30.069-21.027l0.071-0.222 80-224c1.178-3.2 1.86-6.896 1.86-10.75 0-13.807-8.745-25.572-20.998-30.058l-0.222-0.071zM864 352v96c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-64h-192c-17.673 0-32-14.327-32-32v0-192h-352v288c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-288c0-35.346 28.654-64 64-64v0h384c0.007-0 0.016-0 0.025-0 8.83 0 16.825 3.577 22.615 9.36l-0-0 224 224c5.783 5.79 9.36 13.785 9.36 22.615 0 0.009-0 0.018-0 0.027l0-0.001zM754.76 320l-114.76-114.76v114.76z"],
+    'file-ppt': ["M832 352h-224v-224z", "M896 608c0 17.673-14.327 32-32 32v0h-48v192c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-192h-48c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h160c17.673 0 32 14.327 32 32v0zM368 688c0 61.856-50.144 112-112 112v0h-32v32c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32v0h64c61.856 0 112 50.144 112 112v0zM304 688c0-26.51-21.49-48-48-48v0h-32v96h32c26.51 0 48-21.49 48-48v0zM640 688c0 61.856-50.144 112-112 112v0h-32v32c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32v0h64c61.856 0 112 50.144 112 112v0zM576 688c0-26.51-21.49-48-48-48v0h-32v96h32c26.51 0 48-21.49 48-48v0zM160 448v-288c0-35.346 28.654-64 64-64v0h384c0.007-0 0.016-0 0.025-0 8.83 0 16.825 3.577 22.615 9.36l-0-0 224 224c5.783 5.79 9.36 13.785 9.36 22.615 0 0.009-0 0.018-0 0.027l0-0.001v96c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-64h-192c-17.673 0-32-14.327-32-32v0-192h-352v288c0 17.673-14.327 32-32 32s-32-14.327-32-32v0zM640 320h114.76l-114.76-114.76z"],
+    'file-jpg': ["M832 352h-224v-224z", "M480 576h-64c-17.673 0-32 14.327-32 32v0 224c0 17.673 14.327 32 32 32s32-14.327 32-32v0-32h32c61.856 0 112-50.144 112-112s-50.144-112-112-112v0zM480 736h-32v-96h32c26.51 0 48 21.49 48 48s-21.49 48-48 48v0zM864 736v67.48c-0.001 8.587-3.385 16.384-8.891 22.131l0.011-0.011c-21.803 23.422-52.718 38.113-87.068 38.4l-0.052 0c-70.56 0-128-64.6-128-144s57.44-144 128-144c24.635 0.080 47.467 7.727 66.313 20.737l-0.393-0.257c8.529 5.847 14.052 15.538 14.052 26.52 0 17.702-14.35 32.052-32.052 32.052-6.72 0-12.957-2.068-18.109-5.602l0.109 0.071c-8.345-5.893-18.711-9.446-29.902-9.52l-0.018-0c-35.28 0-64 36-64 80s28.72 80 64 80c12.077-0.144 23.182-4.193 32.139-10.94l-0.139 0.1v-21.16c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h32c17.673 0 32 14.327 32 32v0zM320 608v152c0 57.438-46.562 104-104 104s-104-46.562-104-104v0c0-17.673 14.327-32 32-32s32 14.327 32 32v0c0 22.091 17.909 40 40 40s40-17.909 40-40v0-152c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 288c0 17.673 14.327 32 32 32s32-14.327 32-32v0-288h352v192c0 17.673 14.327 32 32 32v0h192v64c0 17.673 14.327 32 32 32s32-14.327 32-32v0-96c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 320v-114.76l114.76 114.76z"],
+    'file-png': ["M832 352h-224v-224z", "M240 576h-64c-17.673 0-32 14.327-32 32v0 224c0 17.673 14.327 32 32 32s32-14.327 32-32v0-32h32c61.856 0 112-50.144 112-112s-50.144-112-112-112v0zM240 736h-32v-96h32c26.51 0 48 21.49 48 48s-21.49 48-48 48v0zM896 803.48c-0.001 8.587-3.385 16.384-8.891 22.131l0.011-0.011c-21.803 23.422-52.718 38.113-87.068 38.4l-0.052 0c-70.56 0-128-64.6-128-144s57.44-144 128-144c24.628 0.086 47.458 7.716 66.317 20.699l-0.397-0.259c8.539 5.849 14.068 15.549 14.068 26.54 0 17.711-14.357 32.068-32.068 32.068-6.719 0-12.956-2.067-18.109-5.599l0.109 0.071c-8.345-5.893-18.711-9.446-29.902-9.52l-0.018-0c-35.28 0-64 36-64 80s28.72 80 64 80c12.084-0.139 23.192-4.205 32.136-10.979l-0.136 0.099v-21.12c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h32c17.673 0 32 14.327 32 32v0zM624 608v224c0 0.001 0 0.003 0 0.005 0 14.186-9.231 26.216-22.014 30.411l-0.226 0.064c-2.894 0.964-6.227 1.52-9.689 1.52-0.025 0-0.050-0-0.075-0l0.004 0c-0 0-0.001 0-0.001 0-10.694 0-20.164-5.246-25.974-13.305l-0.065-0.095-101.96-142.6v124c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c-0-0-0-0.001-0-0.001 0-17.673 14.327-32 32-32 10.695 0 20.165 5.247 25.975 13.307l0.065 0.095 101.96 142.6v-124c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM192 480c17.673 0 32-14.327 32-32v0-288h352v192c0 17.673 14.327 32 32 32v0h192v64c0 17.673 14.327 32 32 32s32-14.327 32-32v0-96c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 288c0 17.673 14.327 32 32 32v0zM640 205.24l114.76 114.76h-114.76z"],
+    'file-image': ["M416 608l192 288h-512l144-224 65.44 101.8zM608 128v224h224z", "M442.64 590.24c-5.819-8.654-15.573-14.271-26.64-14.271s-20.821 5.618-26.567 14.157l-0.073 0.114-83.4 125.16-39.040-60.72c-5.782-8.898-15.674-14.699-26.92-14.699s-21.138 5.802-26.844 14.575l-0.076 0.124-144 224c-3.193 4.894-5.092 10.885-5.092 17.32 0 17.673 14.327 32 32 32 0.004 0 0.009-0 0.013-0l511.999 0c0.006 0 0.013 0 0.021 0 17.673 0 32-14.327 32-32 0-6.62-2.010-12.77-5.453-17.874l0.072 0.114zM154.6 864l85.4-132.84 38.52 60c5.743 8.825 15.528 14.598 26.668 14.68l0.012 0c0.103 0.001 0.225 0.002 0.347 0.002 11.014 0 20.714-5.628 26.381-14.165l0.073-0.117 84-125.88 132.2 198.32zM854.6 329.36l-224-224c-5.786-5.78-13.775-9.356-22.599-9.36l-384.001-0c-35.346 0-64 28.654-64 64v0 384c0 17.673 14.327 32 32 32s32-14.327 32-32v0-384h352v192c0 17.673 14.327 32 32 32v0h192v480h-32c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h32c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"],
+    'file-zip': ["M832 352h-224v-224z", "M736 576h-64c-17.673 0-32 14.327-32 32v0 224c0 17.673 14.327 32 32 32s32-14.327 32-32v0-32h32c61.856 0 112-50.144 112-112s-50.144-112-112-112v0zM736 736h-32v-96h32c26.51 0 48 21.49 48 48s-21.49 48-48 48v0zM544 608v224c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM384 832c0 17.673-14.327 32-32 32v0h-128c-0.086 0.001-0.187 0.001-0.288 0.001-17.673 0-32-14.327-32-32 0-5.892 1.592-11.411 4.37-16.152l-0.082 0.151 100.64-176h-72.64c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h128c0.086-0.001 0.187-0.001 0.288-0.001 17.673 0 32 14.327 32 32 0 5.892-1.592 11.411-4.37 16.152l0.082-0.151-100.84 176h72.84c17.673 0 32 14.327 32 32v0zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 288c0 17.673 14.327 32 32 32s32-14.327 32-32v0-288h352v192c0 17.673 14.327 32 32 32v0h192v64c0 17.673 14.327 32 32 32s32-14.327 32-32v0-96c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 320v-114.76l114.76 114.76z"],
+    'file-text': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480zM672 544c0 17.673-14.327 32-32 32v0h-256c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h256c17.673 0 32 14.327 32 32v0zM672 672c0 17.673-14.327 32-32 32v0h-256c-17.673 0-32-14.327-32-32s14.327-32 32-32v0h256c17.673 0 32 14.327 32 32v0z"],
+    'file-audio': ["M288 640l96-96v352l-96-96h-96v-160zM608 128v224h224z", "M396.24 514.44c-3.623-1.545-7.838-2.443-12.262-2.443-8.832 0-16.828 3.578-22.618 9.363l0-0-86.6 86.64h-82.76c-17.673 0-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h82.76l86.6 86.64c5.792 5.798 13.797 9.385 22.64 9.385 17.673 0 32-14.327 32-32 0-0.009-0-0.018-0-0.027l0 0.001v-352c-0.003-13.254-8.064-24.626-19.55-29.481l-0.21-0.079zM352 818.76l-41.36-41.4c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-63.999-0v-96h64c0.007 0 0.016 0 0.025 0 8.83 0 16.825-3.577 22.615-9.36l-0 0 41.36-41.4zM608 720c-0.071 59.2-31.846 110.963-79.256 139.229l-0.744 0.411c-4.157 2.115-9.065 3.354-14.263 3.354-17.673 0-32-14.327-32-32 0-11.063 5.614-20.815 14.148-26.562l0.114-0.072c29.029-17.357 48.165-48.624 48.165-84.36s-19.135-67.003-47.719-84.113l-0.446-0.247c-8.649-5.82-14.263-15.571-14.263-26.634 0-17.673 14.327-32 32-32 5.198 0 10.106 1.239 14.445 3.438l-0.182-0.084c48.154 28.677 79.929 80.44 80 139.63l0 0.010zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 320c0 17.673 14.327 32 32 32s32-14.327 32-32v0-320h352v192c0 17.673 14.327 32 32 32v0h192v480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"],
+    'file-video': ["M448 702.68l128-62.68v224l-128-67.28v35.28c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-160c0-17.673 14.327-32 32-32v0h224c17.673 0 32 14.327 32 32v0zM608 128v224h224z", "M592.92 612.84c-4.801-3.032-10.644-4.831-16.906-4.831-5.131 0-9.98 1.208-14.279 3.354l0.185-0.084-84.88 41.56c-8.405-26.197-32.545-44.829-61.039-44.84l-224.001-0c-35.346 0-64 28.654-64 64v0 160c0 35.346 28.654 64 64 64v0h224c29.442-0.034 54.225-19.943 61.655-47.031l0.105-0.449 83.36 44c4.315 2.312 9.439 3.67 14.881 3.67 17.673 0 32-14.327 32-32 0-0.067-0-0.134-0.001-0.201l0 0.010v-224c-0-11.405-5.967-21.415-14.948-27.082l-0.132-0.078zM416 832h-224v-160h224v124c0 0.52 0 1 0 1.52v34.48zM544 811.040l-64-33.68v-54.72l64-31.32zM854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 352c0 17.673 14.327 32 32 32s32-14.327 32-32v0-352h352v192c0 17.673 14.327 32 32 32v0h192v480h-96c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h96c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76z"],
+    'file': ["M832 352h-224v-224z", "M854.64 329.36l-224-224c-5.79-5.783-13.785-9.36-22.615-9.36-0.009 0-0.018 0-0.027 0l-383.999-0c-35.346 0-64 28.654-64 64v0 704c0 35.346 28.654 64 64 64v0h576c35.346 0 64-28.654 64-64v0-512c0-0.007 0-0.016 0-0.025 0-8.83-3.577-16.825-9.36-22.615l0 0zM640 205.24l114.76 114.76h-114.76zM800 864h-576v-704h352v192c0 17.673 14.327 32 32 32v0h192v480z"],
+    'copy': ["M864 160v512h-192v-320h-320v-192z", "M864 128h-512c-17.673 0-32 14.327-32 32v0 160h-160c-17.673 0-32 14.327-32 32v0 512c0 17.673 14.327 32 32 32v0h512c17.673 0 32-14.327 32-32v0-160h160c17.673 0 32-14.327 32-32v0-512c0-17.673-14.327-32-32-32v0zM640 832h-448v-448h448zM832 640h-128v-288c0-17.673-14.327-32-32-32v0h-288v-128h448z"]
+  };
+  siskaIcon = function(name, size, opts) {
+    var cls, fill, paths, tone;
+    if (size == null) {
+      size = 16;
+    }
+    if (opts == null) {
+      opts = {};
+    }
+    paths = SISKA_ICONS[name];
+    if (!paths) {
+      return '';
+    }
+    tone = opts.tone || 'single';
+    cls = opts["class"] ? " class=\"" + opts["class"] + "\"" : '';
+    fill = '';
+    if (tone === 'full') {
+      fill = "<path opacity=\"0.2\" d=\"" + paths[0] + "\"/>";
+    } else if (tone === 'active') {
+      fill = "<path class=\"zammad-chat-icon-fill\" d=\"" + paths[0] + "\"/>";
+    }
+    return "<svg" + cls + " width=\"" + size + "\" height=\"" + size + "\" viewBox=\"0 0 1024 1024\" fill=\"currentColor\" aria-hidden=\"true\">" + fill + "<path d=\"" + paths[1] + "\"/></svg>";
+  };
+  SISKA_FILE_ICONS = {
+    'file-pdf': 'pdf',
+    'file-doc': 'doc docx odt rtf',
+    'file-xls': 'xls xlsx ods',
+    'file-csv': 'csv',
+    'file-ppt': 'ppt pptx odp',
+    'file-jpg': 'jpg jpeg',
+    'file-png': 'png',
+    'file-image': 'gif webp bmp heic tif tiff',
+    'file-zip': 'zip rar 7z tar gz',
+    'file-text': 'txt log md',
+    'file-audio': 'mp3 wav ogg m4a',
+    'file-video': 'mp4 mov avi webm mkv'
+  };
+  SISKA_FILE_TONES = {
+    'file-pdf': 'danger',
+    'file-doc': 'primary',
+    'file-xls': 'success',
+    'file-csv': 'success',
+    'file-ppt': 'warning',
+    'file-jpg': 'primary',
+    'file-png': 'primary',
+    'file-image': 'primary'
+  };
+  siskaFileTone = function(filename) {
+    return SISKA_FILE_TONES[siskaFileIcon(filename)] || 'secondary';
+  };
+  siskaFileIcon = function(filename) {
+    var ext, exts, icon;
+    ext = String(filename || '').split('.').pop().toLowerCase();
+    for (icon in SISKA_FILE_ICONS) {
+      exts = SISKA_FILE_ICONS[icon];
+      if (indexOf.call(exts.split(' '), ext) >= 0) {
+        return icon;
+      }
+    }
+    return 'file';
+  };
   ZammadChat = (function(superClass) {
     extend(ZammadChat, superClass);
 
     ZammadChat.prototype.defaults = {
       chatId: void 0,
       show: true,
-      target: $('body'),
+      target: document.querySelector('body'),
       host: '',
       debug: false,
       flat: false,
@@ -2889,6 +4103,9 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
             options = {};
           }
           options.T = _this.T;
+          options.icon = siskaIcon;
+          options.fileIcon = siskaFileIcon;
+          options.fileTone = siskaFileTone;
           options.background = _this.options.background;
           options.flat = _this.options.flat;
           options.fontSize = _this.options.fontSize;
@@ -2905,11 +4122,27 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.apiBaseUrl = bind(this.apiBaseUrl, this);
       this.setAgentOnlineState = bind(this.setAgentOnlineState, this);
       this.updatePhrases = bind(this.updatePhrases, this);
-      this.updateHomeLogo = bind(this.updateHomeLogo, this);
+      this.showClosingGreeting = bind(this.showClosingGreeting, this);
       this.showWelcomeGreeting = bind(this.showWelcomeGreeting, this);
+      this.historyMessageHtml = bind(this.historyMessageHtml, this);
+      this.renderCustomerHistory = bind(this.renderCustomerHistory, this);
+      this.onHistoryOtpPaste = bind(this.onHistoryOtpPaste, this);
+      this.onHistoryOtpKeydown = bind(this.onHistoryOtpKeydown, this);
+      this.onHistoryOtpInput = bind(this.onHistoryOtpInput, this);
+      this.renderHistoryCard = bind(this.renderHistoryCard, this);
+      this.onCustomerHistoryOtpVerify = bind(this.onCustomerHistoryOtpVerify, this);
+      this.submitHistoryOtp = bind(this.submitHistoryOtp, this);
+      this.onCustomerHistoryOtpRequest = bind(this.onCustomerHistoryOtpRequest, this);
+      this.onHistoryClick = bind(this.onHistoryClick, this);
+      this.onHistoryScroll = bind(this.onHistoryScroll, this);
+      this.onCustomerHistory = bind(this.onCustomerHistory, this);
+      this.requestCustomerHistory = bind(this.requestCustomerHistory, this);
+      this.initCustomerHistory = bind(this.initCustomerHistory, this);
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
       this.markMessagesRead = bind(this.markMessagesRead, this);
+      this.maybeSendRead = bind(this.maybeSendRead, this);
+      this.noteAgentMessage = bind(this.noteAgentMessage, this);
       this.onSessionClosed = bind(this.onSessionClosed, this);
       this.onReconnectFailed = bind(this.onReconnectFailed, this);
       this.onIoReconnected = bind(this.onIoReconnected, this);
@@ -2932,6 +4165,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.exitChat = bind(this.exitChat, this);
       this.close = bind(this.close, this);
       this.toggle = bind(this.toggle, this);
+      this.onPanelKeydown = bind(this.onPanelKeydown, this);
       this.cancelQueue = bind(this.cancelQueue, this);
       this.sessionClose = bind(this.sessionClose, this);
       this.onOpenAnimationEnd = bind(this.onOpenAnimationEnd, this);
@@ -2954,35 +4188,58 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.onOfflineOtpVerifyResult = bind(this.onOfflineOtpVerifyResult, this);
       this.showOtpError = bind(this.showOtpError, this);
       this.submitOfflineOtp = bind(this.submitOfflineOtp, this);
+      this.autoSubmitOfflineOtp = bind(this.autoSubmitOfflineOtp, this);
       this.onOtpDigitPaste = bind(this.onOtpDigitPaste, this);
       this.onOtpDigitKeydown = bind(this.onOtpDigitKeydown, this);
       this.onOtpDigitInput = bind(this.onOtpDigitInput, this);
       this.showOfflineOtp = bind(this.showOfflineOtp, this);
       this.onOfflineSessionInitResult = bind(this.onOfflineSessionInitResult, this);
+      this.applyOnlineHomeState = bind(this.applyOnlineHomeState, this);
       this.applyOfflineHomeState = bind(this.applyOfflineHomeState, this);
       this.enterOfflineMode = bind(this.enterOfflineMode, this);
       this.submitPrechatForm = bind(this.submitPrechatForm, this);
+      this.updatePrechatSubmitLabel = bind(this.updatePrechatSubmitLabel, this);
       this.setButtonLoading = bind(this.setButtonLoading, this);
       this.showPrechatForm = bind(this.showPrechatForm, this);
       this.open = bind(this.open, this);
+      this.closeImageViewer = bind(this.closeImageViewer, this);
+      this.onImageViewerKeydown = bind(this.onImageViewerKeydown, this);
+      this.openImageViewer = bind(this.openImageViewer, this);
+      this.removeImageUpload = bind(this.removeImageUpload, this);
+      this.releaseImageUpload = bind(this.releaseImageUpload, this);
+      this.updateImageUpload = bind(this.updateImageUpload, this);
+      this.addFileUpload = bind(this.addFileUpload, this);
+      this.addImageUpload = bind(this.addImageUpload, this);
       this.addAttachmentMessage = bind(this.addAttachmentMessage, this);
       this.uploadAttachment = bind(this.uploadAttachment, this);
       this.triggerAttachmentInput = bind(this.triggerAttachmentInput, this);
       this.renderReplyIndicator = bind(this.renderReplyIndicator, this);
       this.cancelReply = bind(this.cancelReply, this);
       this.startReply = bind(this.startReply, this);
+      this.showToast = bind(this.showToast, this);
+      this.copyTextFallback = bind(this.copyTextFallback, this);
+      this.copyMessage = bind(this.copyMessage, this);
+      this.applyAgentReaction = bind(this.applyAgentReaction, this);
+      this.confirmOwnMessage = bind(this.confirmOwnMessage, this);
+      this.applyReaction = bind(this.applyReaction, this);
+      this.setReaction = bind(this.setReaction, this);
+      this.closeMessageMenu = bind(this.closeMessageMenu, this);
+      this.onMessageMenuKeydown = bind(this.onMessageMenuKeydown, this);
+      this.openMessageMenu = bind(this.openMessageMenu, this);
       this.renderMessage = bind(this.renderMessage, this);
       this.playMessageSound = bind(this.playMessageSound, this);
       this.receiveMessage = bind(this.receiveMessage, this);
       this.onSubmit = bind(this.onSubmit, this);
-      this.onFocus = bind(this.onFocus, this);
       this.onInput = bind(this.onInput, this);
       this.onReopenSession = bind(this.onReopenSession, this);
       this.onError = bind(this.onError, this);
       this.onWebSocketMessage = bind(this.onWebSocketMessage, this);
       this.send = bind(this.send, this);
-      this.checkForEnter = bind(this.checkForEnter, this);
+      this.onKeydown = bind(this.onKeydown, this);
+      this.onPaste = bind(this.onPaste, this);
+      this.onDrop = bind(this.onDrop, this);
       this.onKbResultsScroll = bind(this.onKbResultsScroll, this);
+      this.fillKbResults = bind(this.fillKbResults, this);
       this.onKnowledgeBaseSearchResult = bind(this.onKnowledgeBaseSearchResult, this);
       this.loadKnowledgeBase = bind(this.loadKnowledgeBase, this);
       this.onKbSearchInput = bind(this.onKbSearchInput, this);
@@ -2991,18 +4248,23 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.updateHeader = bind(this.updateHeader, this);
       this.switchTab = bind(this.switchTab, this);
       this.hidePreload = bind(this.hidePreload, this);
+      this.onAvailabilityChanged = bind(this.onAvailabilityChanged, this);
+      this.refreshAvailabilityIfStale = bind(this.refreshAvailabilityIfStale, this);
+      this.pollAvailability = bind(this.pollAvailability, this);
+      this.refreshAvailability = bind(this.refreshAvailability, this);
+      this.canRefreshAvailability = bind(this.canRefreshAvailability, this);
+      this.stopAvailabilityPolling = bind(this.stopAvailabilityPolling, this);
+      this.startAvailabilityPolling = bind(this.startAvailabilityPolling, this);
       this.render = bind(this.render, this);
       this.view = bind(this.view, this);
       this.T = bind(this.T, this);
-      this.options = $.extend({}, this.defaults, options);
-      ZammadChat.__super__.constructor.call(this, this.options);
-      this.isFullscreen = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-      this.scrollRoot = $(this.getScrollRoot());
-      if (!$) {
-        this.state = 'unsupported';
-        this.log.notice('Chat: no jquery found!');
-        return;
+      ZammadChat.__super__.constructor.call(this, options);
+      if (typeof jQuery !== 'undefined' && this.options.target instanceof jQuery) {
+        this.log.notice('Chat: target option is a jQuery object. jQuery is not a requirement for the chat any more.');
+        this.options.target = this.options.target.get(0);
       }
+      this.isFullscreen = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+      this.scrollRoot = this.getScrollRoot();
       if (!window.WebSocket || !sessionStorage) {
         this.state = 'unsupported';
         this.log.notice('Chat: Browser not supported!');
@@ -3014,7 +4276,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         return;
       }
       if (!this.options.lang) {
-        this.options.lang = $('html').attr('lang');
+        this.options.lang = document.documentElement.getAttribute('lang');
       }
       if (this.options.lang) {
         if (!this.translations[this.options.lang]) {
@@ -3048,10 +4310,10 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         return document.scrollingElement;
       }
       html = document.documentElement;
-      start = html.scrollTop;
-      html.scrollTop = start + 1;
-      end = html.scrollTop;
-      html.scrollTop = start;
+      start = parseInt(html.pageYOffset, 10);
+      html.pageYOffset = start + 1;
+      end = parseInt(html.pageYOffset, 10);
+      html.pageYOffset = start;
       if (end > start) {
         return html;
       } else {
@@ -3060,28 +4322,108 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.render = function() {
-      if (!this.el || !$('.zammad-chat').get(0)) {
+      var btn;
+      if (!this.el || !document.querySelector('.zammad-chat')) {
         this.renderBase();
       }
-      $("." + this.options.buttonClass).addClass(this.options.inactiveClass);
+      btn = document.querySelector("." + this.options.buttonClass);
+      if (btn) {
+        btn.classList.add(this.options.inactiveClass);
+      }
       this.setAgentOnlineState('online');
       this.log.debug('widget rendered');
       this.startTimeoutObservers();
       this.idleTimeout.start();
       this.sessionId = sessionStorage.getItem('sessionId');
       this.customerName = sessionStorage.getItem('customerName');
+      this.send('chat_status_customer', {
+        session_id: this.sessionId,
+        url: window.location.href
+      });
+      return this.startAvailabilityPolling();
+    };
+
+    ZammadChat.prototype.AVAILABILITY_POLL_MS = 60000;
+
+    ZammadChat.prototype.AVAILABILITY_STALE_MS = 30000;
+
+    ZammadChat.prototype.AVAILABILITY_JITTER_MS = 3000;
+
+    ZammadChat.prototype.startAvailabilityPolling = function() {
+      if (this.availabilityIntervalId) {
+        return;
+      }
+      this.availabilityIntervalId = setInterval(this.pollAvailability, this.AVAILABILITY_POLL_MS);
+      this.onVisibilityChangeAvailability = (function(_this) {
+        return function() {
+          if (!document.hidden && _this.isOpen) {
+            return _this.refreshAvailabilityIfStale();
+          }
+        };
+      })(this);
+      return document.addEventListener('visibilitychange', this.onVisibilityChangeAvailability);
+    };
+
+    ZammadChat.prototype.stopAvailabilityPolling = function() {
+      if (this.availabilityIntervalId) {
+        clearInterval(this.availabilityIntervalId);
+      }
+      this.availabilityIntervalId = void 0;
+      if (this.availabilityJitterId) {
+        clearTimeout(this.availabilityJitterId);
+      }
+      this.availabilityJitterId = void 0;
+      if (this.onVisibilityChangeAvailability) {
+        document.removeEventListener('visibilitychange', this.onVisibilityChangeAvailability);
+      }
+      return this.onVisibilityChangeAvailability = void 0;
+    };
+
+    ZammadChat.prototype.canRefreshAvailability = function() {
+      return !!this.statusReceived && !this.sessionId;
+    };
+
+    ZammadChat.prototype.refreshAvailability = function() {
+      this.availabilityJitterId = void 0;
+      if (!this.canRefreshAvailability()) {
+        return;
+      }
       return this.send('chat_status_customer', {
         session_id: this.sessionId,
         url: window.location.href
       });
     };
 
+    ZammadChat.prototype.pollAvailability = function() {
+      if (!this.isOpen || document.hidden) {
+        return;
+      }
+      return this.refreshAvailability();
+    };
+
+    ZammadChat.prototype.refreshAvailabilityIfStale = function() {
+      if (this.lastStatusAt && Date.now() - this.lastStatusAt < this.AVAILABILITY_STALE_MS) {
+        return;
+      }
+      return this.refreshAvailability();
+    };
+
+    ZammadChat.prototype.onAvailabilityChanged = function() {
+      if (!this.canRefreshAvailability()) {
+        return;
+      }
+      if (this.availabilityJitterId) {
+        return;
+      }
+      return this.availabilityJitterId = setTimeout(this.refreshAvailability, Math.floor(Math.random() * this.AVAILABILITY_JITTER_MS));
+    };
+
     ZammadChat.prototype.showPreload = function() {
       if (this.preloadEl) {
         return;
       }
-      this.preloadEl = $(this.view('preload')());
-      return this.options.target.append(this.preloadEl);
+      this.options.target.insertAdjacentHTML('beforeend', this.view('preload')());
+      return this.preloadEl = this.options.target.querySelector('.zammad-chat-preload');
     };
 
     ZammadChat.prototype.hidePreload = function() {
@@ -3094,291 +4436,326 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.renderBase = function() {
       this.showPreload();
-      this.el = $(this.view('chat')({
+      if (this.el) {
+        this.el.remove();
+      }
+      if (this.launcherEl) {
+        this.launcherEl.remove();
+      }
+      this.options.target.insertAdjacentHTML('beforeend', this.view('chat')({
         title: this.options.title,
         scrollHint: this.options.scrollHint
       }));
+      this.el = this.options.target.querySelector('.zammad-chat');
       if (!this.cssLoaded) {
-        this.el.css('display', 'none');
+        this.el.style.display = 'none';
       }
-      this.options.target.append(this.el);
-      this.launcherEl = $(this.view('launcher')());
+      this.options.target.insertAdjacentHTML('beforeend', this.view('launcher')());
+      this.launcherEl = this.options.target.querySelector('.zammad-chat-launcher');
       if (!this.cssLoaded) {
-        this.launcherEl.css('display', 'none');
+        this.launcherEl.style.display = 'none';
       }
-      this.options.target.append(this.launcherEl);
-      this.launcherEl.on('click', this.toggle);
-      this.input = this.el.find('.zammad-chat-input');
-      this.el.find('.js-chat-close').on('click', this.exitChat);
-      this.el.find('.js-chat-minimize').on('click', this.close);
-      this.el.find('.zammad-chat-agent').on('click', '.js-chat-status', this.stopPropagation);
-      this.el.find('.zammad-chat-controls').on('submit', this.onSubmit);
-      this.el.find('.zammad-chat-body').on('scroll', this.detectScrolledtoBottom);
-      this.el.find('.zammad-scroll-hint').on('click', this.onScrollHintClick);
-      this.el.find('.zammad-chat-body').on('click', '.js-message-reply', this.startReply);
-      this.el.find('.js-reply-indicator').on('click', '.js-reply-cancel', this.cancelReply);
-      this.el.find('.zammad-chat-modal').on('click', '.js-waiting-cancel', this.cancelQueue);
-      this.el.find('.zammad-chat-modal').on('click', '.js-otp-submit', this.submitOfflineOtp);
-      this.el.find('.zammad-chat-modal').on('click', '.js-otp-resend', this.resendOfflineOtp);
-      this.el.find('.zammad-chat-modal').on('click', '.js-otp-change-email', (function(_this) {
-        return function() {
+      this.launcherEl.addEventListener('click', this.toggle);
+      this.input = this.el.querySelector('.zammad-chat-input');
+      this.body = this.el.querySelector('.zammad-chat-body');
+      this.el.querySelector('.js-chat-close').addEventListener('click', this.exitChat);
+      this.el.querySelector('.js-chat-minimize').addEventListener('click', this.close);
+      this.el.addEventListener('keydown', this.onPanelKeydown);
+      this.el.querySelector('.zammad-chat-agent').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-chat-status');
+          if (!target) {
+            return;
+          }
+          return _this.stopPropagation(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-controls').addEventListener('submit', this.onSubmit);
+      this.body.addEventListener('scroll', this.detectScrolledtoBottom);
+      this.el.querySelector('.zammad-scroll-hint').addEventListener('click', this.onScrollHintClick);
+      this.input.addEventListener('keydown', this.onKeydown);
+      this.input.addEventListener('input', this.onInput);
+      this.input.addEventListener('paste', this.onPaste);
+      this.input.addEventListener('drop', this.onDrop);
+      this.body.addEventListener('click', this.startReply);
+      this.body.addEventListener('click', (function(_this) {
+        return function(event) {
+          var react, ref, toggle;
+          toggle = event.target.closest('.js-message-menu');
+          if (toggle) {
+            event.preventDefault();
+            if (((ref = _this.messageMenu) != null ? ref.toggle : void 0) === toggle) {
+              _this.closeMessageMenu();
+            } else {
+              _this.openMessageMenu(toggle);
+            }
+            return;
+          }
+          react = event.target.closest('.js-message-react');
+          if (react) {
+            event.preventDefault();
+            _this.setReaction(react.closest('.zammad-chat-message'), react.dataset.reaction);
+            _this.closeMessageMenu(true);
+            return;
+          }
+          if (event.target.closest('.js-reaction-badge')) {
+            event.preventDefault();
+            _this.setReaction(event.target.closest('.zammad-chat-message'), null);
+            return;
+          }
+          if (event.target.closest('.js-message-copy')) {
+            event.preventDefault();
+            _this.copyMessage(event.target.closest('.zammad-chat-message'));
+            _this.closeMessageMenu(true);
+            return;
+          }
+          if (event.target.closest('.js-message-reply, .js-message-download')) {
+            return _this.closeMessageMenu();
+          }
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-waiting-cancel');
+          if (!target) {
+            return;
+          }
+          return _this.cancelQueue(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitOfflineOtp(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-resend');
+          if (!target) {
+            return;
+          }
+          return _this.resendOfflineOtp(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-change-email');
+          if (!target) {
+            return;
+          }
           return _this.showPrechatForm();
         };
       })(this));
-      this.el.find('.zammad-chat-modal').on('input', '.js-otp-digit', this.onOtpDigitInput);
-      this.el.find('.zammad-chat-modal').on('keydown', '.js-otp-digit', this.onOtpDigitKeydown);
-      this.el.find('.zammad-chat-modal').on('paste', '.js-otp-digit', this.onOtpDigitPaste);
-      this.el.find('.zammad-chat-modal').on('click', '.js-offline-compose-submit', this.submitOfflineMessage);
-      this.el.find('.zammad-chat-modal').on('click', '.js-offline-sent-done', this.finishOfflineFlow);
-      this.el.find('.zammad-chat-modal').on('click', '.js-offline-compose-attach', this.triggerOfflineAttachmentInput);
-      this.el.find('.zammad-chat-modal').on('change', '.js-offline-compose-attachment-input', this.uploadOfflineAttachment);
-      this.el.on('click', '.js-feedback-star', this.selectFeedbackScore);
-      this.el.on('click', '.js-feedback-submit', this.submitFeedback);
-      this.el.on('click', '.js-feedback-skip', this.skipFeedback);
-      this.el.find('.js-chat-attach').on('click', this.triggerAttachmentInput);
-      this.el.find('.js-chat-attachment-input').on('change', this.uploadAttachment);
-      this.el.find('.zammad-chat-tab-body--home').html(this.view('home')());
-      this.el.find('.zammad-chat-tab-body--help').html(this.view('help')());
-      this.el.find('.zammad-chat-tabbar').html(this.view('tabbar')());
-      this.el.find('.js-emoji-picker').html(this.view('emoji_picker')());
+      this.el.querySelector('.zammad-chat-modal').addEventListener('input', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitInput(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('keydown', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitKeydown(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('paste', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-otp-digit');
+          if (!target) {
+            return;
+          }
+          return _this.onOtpDigitPaste(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-compose-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitOfflineMessage(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-sent-done');
+          if (!target) {
+            return;
+          }
+          return _this.finishOfflineFlow(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-compose-attach');
+          if (!target) {
+            return;
+          }
+          return _this.triggerOfflineAttachmentInput(event);
+        };
+      })(this));
+      this.el.querySelector('.zammad-chat-modal').addEventListener('change', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-offline-compose-attachment-input');
+          if (!target) {
+            return;
+          }
+          return _this.uploadOfflineAttachment(event);
+        };
+      })(this));
+      this.el.addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-star');
+          if (!target) {
+            return;
+          }
+          return _this.selectFeedbackScore(event, target.dataset.score);
+        };
+      })(this));
+      this.el.addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-submit');
+          if (!target) {
+            return;
+          }
+          return _this.submitFeedback(event);
+        };
+      })(this));
+      this.el.addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-feedback-skip');
+          if (!target) {
+            return;
+          }
+          return _this.skipFeedback(event);
+        };
+      })(this));
+      this.el.querySelector('.js-chat-attach').addEventListener('click', this.triggerAttachmentInput);
+      this.el.querySelector('.js-chat-attachment-input').addEventListener('change', this.uploadAttachment);
+      this.el.querySelector('.js-chat-attach-image').addEventListener('click', (function(_this) {
+        return function(event) {
+          event.preventDefault();
+          return _this.el.querySelector('.js-chat-image-input').click();
+        };
+      })(this));
+      this.el.querySelector('.js-chat-image-input').addEventListener('change', this.uploadAttachment);
+      this.body.addEventListener('click', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-image-open');
+          if (!target) {
+            return;
+          }
+          return _this.openImageViewer(target);
+        };
+      })(this));
+      this.body.addEventListener('error', (function(_this) {
+        return function(event) {
+          var ref, ref1;
+          if (!((ref = event.target.classList) != null ? ref.contains('js-image-thumb') : void 0)) {
+            return;
+          }
+          return (ref1 = event.target.closest('.js-image-open')) != null ? ref1.classList.add('is-broken') : void 0;
+        };
+      })(this), true);
+      this.body.addEventListener('load', (function(_this) {
+        return function(event) {
+          var ref;
+          if (!((ref = event.target.classList) != null ? ref.contains('js-image-thumb') : void 0)) {
+            return;
+          }
+          return _this.scrollToBottom();
+        };
+      })(this), true);
+      this.el.querySelector('.zammad-chat-tab-body--home').innerHTML = this.view('home')();
+      this.el.querySelector('.zammad-chat-tab-body--help').innerHTML = this.view('help')();
+      this.el.querySelector('.zammad-chat-tabbar').innerHTML = this.view('tabbar')();
+      this.el.querySelector('.js-emoji-picker').innerHTML = this.view('emoji_picker')();
       this.activeTab = 'home';
       this.updateHeader('home');
-      this.el.on('click', '[data-tab]', (function(_this) {
+      this.el.addEventListener('click', (function(_this) {
         return function(event) {
           var isHomeAction, target;
-          target = $(event.currentTarget);
-          isHomeAction = target.closest('.zammad-chat-home-actions').length > 0;
+          target = event.target.closest('[data-tab]');
+          if (!target) {
+            return;
+          }
+          isHomeAction = !!target.closest('.zammad-chat-home-actions');
           if (isHomeAction) {
             _this.setButtonLoading(target, true);
           }
-          _this.switchTab(target.data('tab'));
+          _this.switchTab(target.dataset.tab);
           if (isHomeAction) {
             return _this.setButtonLoading(target, false);
           }
         };
       })(this));
-      this.el.on('click', '.js-connection-reload', (function(_this) {
+      this.el.addEventListener('click', (function(_this) {
         return function(event) {
+          var target;
+          target = event.target.closest('.js-connection-reload');
+          if (!target) {
+            return;
+          }
           return window.location.reload();
         };
       })(this));
-      this.el.find('.js-emoji-toggle').on('click', this.toggleEmojiPicker);
-      this.el.find('.js-emoji-picker').on('click', '.js-emoji-item', (function(_this) {
+      this.el.querySelector('.js-emoji-toggle').addEventListener('click', this.toggleEmojiPicker);
+      this.el.querySelector('.js-emoji-picker').addEventListener('click', (function(_this) {
         return function(event) {
-          return _this.insertEmoji($(event.currentTarget).data('emoji'));
-        };
-      })(this));
-      this.el.on('input', '.js-kb-search', this.onKbSearchInput);
-      this.el[0].addEventListener('scroll', this.onKbResultsScroll, true);
-      this.input.on({
-        keydown: this.checkForEnter,
-        input: this.onInput
-      });
-      this.input.on('keydown', (function(_this) {
-        return function(e) {
-          var richtTextControl;
-          richtTextControl = false;
-          if (!e.altKey && !e.ctrlKey && e.metaKey) {
-            richtTextControl = true;
-          } else if (!e.altKey && e.ctrlKey && !e.metaKey) {
-            richtTextControl = true;
-          }
-          if (richtTextControl && _this.richTextFormatKey[e.keyCode]) {
-            e.preventDefault();
-            if (e.keyCode === 66) {
-              document.execCommand('bold');
-              return true;
-            }
-            if (e.keyCode === 73) {
-              document.execCommand('italic');
-              return true;
-            }
-            if (e.keyCode === 85) {
-              document.execCommand('underline');
-              return true;
-            }
-            if (e.keyCode === 83) {
-              document.execCommand('strikeThrough');
-              return true;
-            }
-          }
-        };
-      })(this));
-      this.input.on('paste', (function(_this) {
-        return function(e) {
-          var clipboardData, docType, html, htmlTmp, imageFile, imageInserted, item, match, reader, regex, replacementTag, sanitized, text;
-          e.stopPropagation();
-          e.preventDefault();
-          clipboardData;
-          if (e.clipboardData) {
-            clipboardData = e.clipboardData;
-          } else if (window.clipboardData) {
-            clipboardData = window.clipboardData;
-          } else if (e.originalEvent.clipboardData) {
-            clipboardData = e.originalEvent.clipboardData;
-          } else {
-            throw 'No clipboardData support';
-          }
-          imageInserted = false;
-          if (clipboardData && clipboardData.items && clipboardData.items[0]) {
-            item = clipboardData.items[0];
-            if (item.kind === 'file' && (item.type === 'image/png' || item.type === 'image/jpeg')) {
-              imageFile = item.getAsFile();
-              reader = new FileReader();
-              reader.onload = function(e) {
-                var img, insert, result;
-                result = e.target.result;
-                img = document.createElement('img');
-                img.src = result;
-                insert = function(dataUrl, width, height, isRetina) {
-                  if (_this.isRetina()) {
-                    width = width / 2;
-                    height = height / 2;
-                  }
-                  result = dataUrl;
-                  img = "<img style=\"width: 100%; max-width: " + width + "px;\" src=\"" + result + "\">";
-                  return document.execCommand('insertHTML', false, img);
-                };
-                return _this.resizeImage(img.src, 460, 'auto', 2, 'image/jpeg', 'auto', insert);
-              };
-              reader.readAsDataURL(imageFile);
-              imageInserted = true;
-            }
-          }
-          if (imageInserted) {
+          var item;
+          item = event.target.closest('.js-emoji-item');
+          if (!item) {
             return;
           }
-          text = void 0;
-          docType = void 0;
-          try {
-            text = clipboardData.getData('text/html');
-            docType = 'html';
-            if (!text || text.length === 0) {
-              docType = 'text';
-              text = clipboardData.getData('text/plain');
-            }
-            if (!text || text.length === 0) {
-              docType = 'text2';
-              text = clipboardData.getData('text');
-            }
-          } catch (error) {
-            e = error;
-            console.log('Sorry, can\'t insert markup because browser is not supporting it.');
-            docType = 'text3';
-            text = clipboardData.getData('text');
-          }
-          if (docType === 'text' || docType === 'text2' || docType === 'text3') {
-            text = '<div>' + text.replace(/\n/g, '</div><div>') + '</div>';
-            text = text.replace(/<div><\/div>/g, '<div><br></div>');
-          }
-          console.log('p', docType, text);
-          if (docType === 'html') {
-            sanitized = DOMPurify.sanitize(text);
-            _this.log.debug('sanitized HTML clipboard', sanitized);
-            html = $("<div>" + sanitized + "</div>");
-            match = false;
-            htmlTmp = text;
-            regex = new RegExp('<(/w|w)\:[A-Za-z]');
-            if (htmlTmp.match(regex)) {
-              match = true;
-              htmlTmp = htmlTmp.replace(regex, '');
-            }
-            regex = new RegExp('<(/o|o)\:[A-Za-z]');
-            if (htmlTmp.match(regex)) {
-              match = true;
-              htmlTmp = htmlTmp.replace(regex, '');
-            }
-            if (match) {
-              html = _this.wordFilter(html);
-            }
-            html = $(html);
-            html.contents().each(function() {
-              if (this.nodeType === 8) {
-                return $(this).remove();
-              }
-            });
-            html.find('a, font, small, time, form, label').replaceWith(function() {
-              return $(this).contents();
-            });
-            replacementTag = 'div';
-            html.find('textarea').each(function() {
-              var newTag, outer;
-              outer = this.outerHTML;
-              regex = new RegExp('<' + this.tagName, 'i');
-              newTag = outer.replace(regex, '<' + replacementTag);
-              regex = new RegExp('</' + this.tagName, 'i');
-              newTag = newTag.replace(regex, '</' + replacementTag);
-              return $(this).replaceWith(newTag);
-            });
-            html.find('font, img, svg, input, select, button, style, applet, embed, noframes, canvas, script, frame, iframe, meta, link, title, head, fieldset').remove();
-            _this.removeAttributes(html);
-            text = html.html();
-          }
-          if (docType === 'text3') {
-            _this.pasteHtmlAtCaret(text);
-          } else {
-            document.execCommand('insertHTML', false, text);
-          }
-          return true;
+          return _this.insertEmoji(item.dataset.emoji);
         };
       })(this));
-      this.input.on('drop', (function(_this) {
-        return function(e) {
-          var dataTransfer, file, reader, x, y;
-          e.stopPropagation();
-          e.preventDefault();
-          dataTransfer;
-          if (window.dataTransfer) {
-            dataTransfer = window.dataTransfer;
-          } else if (e.originalEvent.dataTransfer) {
-            dataTransfer = e.originalEvent.dataTransfer;
-          } else {
-            throw 'No clipboardData support';
+      this.el.addEventListener('input', (function(_this) {
+        return function(event) {
+          var target;
+          target = event.target.closest('.js-kb-search');
+          if (!target) {
+            return;
           }
-          x = e.clientX;
-          y = e.clientY;
-          file = dataTransfer.files[0];
-          if (file.type.match('image.*')) {
-            reader = new FileReader();
-            reader.onload = function(e) {
-              var img, insert, result;
-              result = e.target.result;
-              img = document.createElement('img');
-              img.src = result;
-              insert = function(dataUrl, width, height, isRetina) {
-                var pos, range;
-                if (_this.isRetina()) {
-                  width = width / 2;
-                  height = height / 2;
-                }
-                result = dataUrl;
-                img = $("<img style=\"width: 100%; max-width: " + width + "px;\" src=\"" + result + "\">");
-                img = img.get(0);
-                if (document.caretPositionFromPoint) {
-                  pos = document.caretPositionFromPoint(x, y);
-                  range = document.createRange();
-                  range.setStart(pos.offsetNode, pos.offset);
-                  range.collapse();
-                  return range.insertNode(img);
-                } else if (document.caretRangeFromPoint) {
-                  range = document.caretRangeFromPoint(x, y);
-                  return range.insertNode(img);
-                } else {
-                  return console.log('could not find carat');
-                }
-              };
-              return _this.resizeImage(img.src, 460, 'auto', 2, 'image/jpeg', 'auto', insert);
-            };
-            return reader.readAsDataURL(file);
-          }
+          return _this.onKbSearchInput(event);
         };
       })(this));
-      $(window).on('beforeunload', (function(_this) {
+      this.el.addEventListener('scroll', this.onKbResultsScroll, true);
+      window.addEventListener('beforeunload', this.onLeaveTemporary);
+      document.addEventListener('visibilitychange', (function(_this) {
         return function() {
-          return _this.onLeaveTemporary();
+          if (!document.hidden) {
+            return _this.maybeSendRead();
+          }
         };
       })(this));
-      $(window).on('hashchange', (function(_this) {
+      return window.addEventListener('hashchange', (function(_this) {
         return function() {
           if (_this.isOpen) {
             if (_this.sessionId) {
@@ -3392,27 +4769,45 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           return _this.idleTimeout.start();
         };
       })(this));
-      if (this.isFullscreen) {
-        return this.input.on({
-          focus: this.onFocus,
-          focusout: this.onFocusOut
-        });
-      }
     };
 
     ZammadChat.prototype.switchTab = function(tabName) {
+      var activeBody, activeItem, body, item, j, k, len, len1, ref, ref1;
       if (this.activeTab === tabName) {
         return;
       }
       this.activeTab = tabName;
-      this.el.find('.zammad-chat-tab-body').removeClass('is-active');
-      this.el.find(".zammad-chat-tab-body--" + tabName).addClass('is-active');
-      this.el.find('.zammad-chat-tabbar-item').removeClass('is-active');
-      this.el.find(".zammad-chat-tabbar-item[data-tab='" + tabName + "']").addClass('is-active');
+      ref = this.el.querySelectorAll('.zammad-chat-tab-body');
+      for (j = 0, len = ref.length; j < len; j++) {
+        body = ref[j];
+        body.classList.remove('is-active');
+      }
+      activeBody = this.el.querySelector(".zammad-chat-tab-body--" + tabName);
+      if (activeBody != null) {
+        activeBody.classList.add('is-active');
+      }
+      ref1 = this.el.querySelectorAll('.zammad-chat-tabbar-item');
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        item = ref1[k];
+        item.classList.remove('is-active');
+        item.removeAttribute('aria-current');
+      }
+      activeItem = this.el.querySelector(".zammad-chat-tabbar-item[data-tab='" + tabName + "']");
+      if (activeItem != null) {
+        activeItem.classList.add('is-active');
+      }
+      if (activeItem != null) {
+        activeItem.setAttribute('aria-current', 'page');
+      }
       this.updateHeader(tabName);
+      if (tabName === 'messages') {
+        this.maybeSendRead();
+      }
       if (tabName === 'help' && !this.kbLoaded) {
         this.kbLoaded = true;
         return this.loadKnowledgeBase(true);
+      } else if (tabName === 'help') {
+        return this.fillKbResults();
       }
     };
 
@@ -3424,35 +4819,38 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       showAgent = tabName === 'messages' && (this.agent != null);
       showWelcome = tabName === 'home' && !showAgent;
       showTitle = !showWelcome && !showAgent;
-      this.el.find('.zammad-chat-header').toggleClass('zammad-chat-header--tinted', showWelcome);
-      this.el.find('.zammad-chat-welcome').toggleClass('zammad-chat-is-hidden', !showWelcome);
-      this.el.find('.zammad-chat-agent').toggleClass('zammad-chat-is-hidden', !showAgent);
-      this.el.find('.zammad-chat-header-title').toggleClass('zammad-chat-is-hidden', !showTitle);
+      this.el.querySelector('.zammad-chat-header').classList.toggle('zammad-chat-header--tinted', showWelcome);
+      this.el.querySelector('.zammad-chat-welcome').classList.toggle('zammad-chat-is-hidden', !showWelcome);
+      this.el.querySelector('.zammad-chat-agent').classList.toggle('zammad-chat-is-hidden', !showAgent);
+      this.el.querySelector('.zammad-chat-header-title').classList.toggle('zammad-chat-is-hidden', !showTitle);
       if (showTitle) {
         title = tabName === 'help' ? this.T('Help') : this.T('Messages');
-        return this.el.find('.js-header-title-text').text(title);
+        return this.el.querySelector('.js-header-title-text').textContent = title;
       }
     };
 
     ZammadChat.prototype.toggleEmojiPicker = function(event) {
+      var isOpen;
       if (event != null) {
         event.preventDefault();
       }
-      this.el.find('.js-emoji-picker').toggleClass('zammad-chat-is-hidden');
-      return this.el.find('.js-emoji-toggle').toggleClass('is-active');
+      this.el.querySelector('.js-emoji-picker').classList.toggle('zammad-chat-is-hidden');
+      isOpen = this.el.querySelector('.js-emoji-toggle').classList.toggle('is-active');
+      return this.el.querySelector('.js-emoji-toggle').setAttribute('aria-expanded', String(isOpen));
     };
 
     ZammadChat.prototype.insertEmoji = function(emoji) {
-      this.input.trigger('focus');
+      this.input.focus();
       document.execCommand('insertText', false, emoji);
-      this.el.find('.js-emoji-picker').addClass('zammad-chat-is-hidden');
-      this.el.find('.js-emoji-toggle').removeClass('is-active');
+      this.el.querySelector('.js-emoji-picker').classList.add('zammad-chat-is-hidden');
+      this.el.querySelector('.js-emoji-toggle').classList.remove('is-active');
+      this.el.querySelector('.js-emoji-toggle').setAttribute('aria-expanded', 'false');
       return this.onInput();
     };
 
     ZammadChat.prototype.onKbSearchInput = function(event) {
       var ref;
-      this.kbQuery = ((ref = $(event.currentTarget).val()) != null ? ref.trim() : void 0) || '';
+      this.kbQuery = ((ref = event.target.value) != null ? ref.trim() : void 0) || '';
       if (this.kbSearchDelayId) {
         clearTimeout(this.kbSearchDelayId);
       }
@@ -3464,6 +4862,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.loadKnowledgeBase = function(reset) {
+      var ref;
       if (this.kbLoading) {
         return;
       }
@@ -3474,7 +4873,9 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         this.kbOffset = 0;
       }
       this.kbLoading = true;
-      this.el.find('.zammad-chat-kb-loading').removeClass('zammad-chat-is-hidden');
+      if ((ref = this.el.querySelector('.zammad-chat-kb-loading')) != null) {
+        ref.classList.remove('zammad-chat-is-hidden');
+      }
       return this.send('chat_knowledge_base_search', {
         query: this.kbQuery || '',
         offset: this.kbOffset || 0
@@ -3482,31 +4883,72 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onKnowledgeBaseSearchResult = function(data) {
-      var isFirstPage, item, j, len, ref, ref1, results, results1;
+      var emptyMessage, isFirstPage, item, j, len, ref, ref1, ref2, results;
       this.kbLoading = false;
-      this.el.find('.zammad-chat-kb-loading').addClass('zammad-chat-is-hidden');
+      if ((ref = this.el.querySelector('.zammad-chat-kb-loading')) != null) {
+        ref.classList.add('zammad-chat-is-hidden');
+      }
       if ((data.query || '') !== (this.kbQuery || '')) {
         return;
       }
-      results = this.el.find('.zammad-chat-kb-results');
+      results = this.el.querySelector('.zammad-chat-kb-results');
+      emptyMessage = this.el.querySelector('.zammad-chat-kb-empty');
       isFirstPage = (data.offset || 0) === 0;
       if (isFirstPage) {
-        results.empty();
+        results.innerHTML = '';
       }
       this.kbHasMore = !!data.has_more;
-      this.kbOffset = (data.offset || 0) + (((ref = data.result) != null ? ref.length : void 0) || 0);
+      this.kbOffset = (data.offset || 0) + (((ref1 = data.result) != null ? ref1.length : void 0) || 0);
       if (isFirstPage && (!data.result || data.result.length === 0)) {
-        this.el.find('.zammad-chat-kb-empty').removeClass('zammad-chat-is-hidden');
+        if (emptyMessage != null) {
+          emptyMessage.classList.remove('zammad-chat-is-hidden');
+        }
         return;
       }
-      this.el.find('.zammad-chat-kb-empty').addClass('zammad-chat-is-hidden');
-      ref1 = data.result || [];
-      results1 = [];
-      for (j = 0, len = ref1.length; j < len; j++) {
-        item = ref1[j];
-        results1.push(results.append(this.view('kb_result')(item)));
+      if (emptyMessage != null) {
+        emptyMessage.classList.add('zammad-chat-is-hidden');
       }
-      return results1;
+      ref2 = data.result || [];
+      for (j = 0, len = ref2.length; j < len; j++) {
+        item = ref2[j];
+        results.insertAdjacentHTML('beforeend', this.view('kb_result')({
+          id: item.id,
+          url: item.url,
+          title: this.sanitizeHighlight(item.title),
+          body: this.sanitizeHighlight(item.body)
+        }));
+      }
+      return this.fillKbResults();
+    };
+
+    ZammadChat.prototype.fillKbResults = function() {
+      return window.requestAnimationFrame((function(_this) {
+        return function() {
+          var results;
+          results = _this.el.querySelector('.zammad-chat-kb-results');
+          if (!results || results.clientHeight === 0) {
+            return;
+          }
+          if (results.scrollHeight > results.clientHeight + 200) {
+            return;
+          }
+          return _this.loadKnowledgeBase(false);
+        };
+      })(this));
+    };
+
+    ZammadChat.prototype.escapeHtml = function(value) {
+      return String(value != null ? value : '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+
+    ZammadChat.prototype.sanitizeHighlight = function(value) {
+      if (!value) {
+        return '';
+      }
+      return window.DOMPurify.sanitize(String(value), {
+        ALLOWED_TAGS: ['em'],
+        ALLOWED_ATTR: []
+      });
     };
 
     ZammadChat.prototype.onKbResultsScroll = function(event) {
@@ -3525,10 +4967,211 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       return event.stopPropagation();
     };
 
-    ZammadChat.prototype.checkForEnter = function(event) {
-      if (!this.inputDisabled && !event.shiftKey && event.keyCode === 13) {
-        event.preventDefault();
-        return this.sendMessage();
+    ZammadChat.prototype.onDrop = function(e) {
+      var dataTransfer, file, reader, x, y;
+      e.stopPropagation();
+      e.preventDefault();
+      if (window.dataTransfer) {
+        dataTransfer = window.dataTransfer;
+      } else if (e.dataTransfer) {
+        dataTransfer = e.dataTransfer;
+      } else {
+        throw 'No clipboardData support';
+      }
+      x = e.clientX;
+      y = e.clientY;
+      file = dataTransfer.files[0];
+      if (file.type.match('image.*')) {
+        reader = new FileReader();
+        reader.onload = (function(_this) {
+          return function(e) {
+            var insert;
+            insert = function(dataUrl, width) {
+              var img, pos, range, result;
+              if (_this.isRetina()) {
+                width = width / 2;
+              }
+              result = dataUrl;
+              img = new Image();
+              img.style.width = '100%';
+              img.style.maxWidth = width + 'px';
+              img.src = result;
+              if (document.caretPositionFromPoint) {
+                pos = document.caretPositionFromPoint(x, y);
+                range = document.createRange();
+                range.setStart(pos.offsetNode, pos.offset);
+                range.collapse();
+                return range.insertNode(img);
+              } else if (document.caretRangeFromPoint) {
+                range = document.caretRangeFromPoint(x, y);
+                return range.insertNode(img);
+              } else {
+                return console.log('could not find carat');
+              }
+            };
+            return _this.resizeImage(e.target.result, 460, 'auto', 2, 'image/jpeg', 'auto', insert);
+          };
+        })(this);
+        return reader.readAsDataURL(file);
+      }
+    };
+
+    ZammadChat.prototype.onPaste = function(e) {
+      var clipboardData, docType, html, htmlTmp, imageFile, imageInserted, item, j, k, l, len, len1, len2, len3, match, n, newTag, node, outer, reader, ref, ref1, ref2, ref3, regex, replacementTag, sanitized, text;
+      e.stopPropagation();
+      e.preventDefault();
+      if (e.clipboardData) {
+        clipboardData = e.clipboardData;
+      } else if (window.clipboardData) {
+        clipboardData = window.clipboardData;
+      } else if (e.clipboardData) {
+        clipboardData = e.clipboardData;
+      } else {
+        throw 'No clipboardData support';
+      }
+      imageInserted = false;
+      if (clipboardData && clipboardData.items && clipboardData.items[0]) {
+        item = clipboardData.items[0];
+        if (item.kind === 'file' && (item.type === 'image/png' || item.type === 'image/jpeg')) {
+          imageFile = item.getAsFile();
+          reader = new FileReader();
+          reader.onload = (function(_this) {
+            return function(e) {
+              var insert;
+              insert = function(dataUrl, width) {
+                var img;
+                if (_this.isRetina()) {
+                  width = width / 2;
+                }
+                img = new Image();
+                img.style.width = '100%';
+                img.style.maxWidth = width + 'px';
+                img.src = dataUrl;
+                return document.execCommand('insertHTML', false, img);
+              };
+              return _this.resizeImage(e.target.result, 460, 'auto', 2, 'image/jpeg', 'auto', insert);
+            };
+          })(this);
+          reader.readAsDataURL(imageFile);
+          imageInserted = true;
+        }
+      }
+      if (imageInserted) {
+        return;
+      }
+      text = void 0;
+      docType = void 0;
+      try {
+        text = clipboardData.getData('text/html');
+        docType = 'html';
+        if (!text || text.length === 0) {
+          docType = 'text';
+          text = clipboardData.getData('text/plain');
+        }
+        if (!text || text.length === 0) {
+          docType = 'text2';
+          text = clipboardData.getData('text');
+        }
+      } catch (error1) {
+        e = error1;
+        console.log('Sorry, can\'t insert markup because browser is not supporting it.');
+        docType = 'text3';
+        text = clipboardData.getData('text');
+      }
+      if (docType === 'text' || docType === 'text2' || docType === 'text3') {
+        text = '<div>' + text.replace(/\n/g, '</div><div>') + '</div>';
+        text = text.replace(/<div><\/div>/g, '<div><br></div>');
+      }
+      console.log('p', docType, text);
+      if (docType === 'html') {
+        html = document.createElement('div');
+        sanitized = DOMPurify.sanitize(text);
+        this.log.debug('sanitized HTML clipboard', sanitized);
+        html.innerHTML = sanitized;
+        match = false;
+        htmlTmp = text;
+        regex = new RegExp('<(/w|w)\:[A-Za-z]');
+        if (htmlTmp.match(regex)) {
+          match = true;
+          htmlTmp = htmlTmp.replace(regex, '');
+        }
+        regex = new RegExp('<(/o|o)\:[A-Za-z]');
+        if (htmlTmp.match(regex)) {
+          match = true;
+          htmlTmp = htmlTmp.replace(regex, '');
+        }
+        if (match) {
+          html = this.wordFilter(html);
+        }
+        ref = html.childNodes;
+        for (j = 0, len = ref.length; j < len; j++) {
+          node = ref[j];
+          if (node.nodeType === 8) {
+            node.remove();
+          }
+        }
+        ref1 = html.querySelectorAll('a, font, small, time, form, label');
+        for (k = 0, len1 = ref1.length; k < len1; k++) {
+          node = ref1[k];
+          node.outerHTML = node.innerHTML;
+        }
+        replacementTag = 'div';
+        ref2 = html.querySelectorAll('textarea');
+        for (l = 0, len2 = ref2.length; l < len2; l++) {
+          node = ref2[l];
+          outer = node.outerHTML;
+          regex = new RegExp('<' + node.tagName, 'i');
+          newTag = outer.replace(regex, '<' + replacementTag);
+          regex = new RegExp('</' + node.tagName, 'i');
+          newTag = newTag.replace(regex, '</' + replacementTag);
+          node.outerHTML = newTag;
+        }
+        ref3 = html.querySelectorAll('font, img, svg, input, select, button, style, applet, embed, noframes, canvas, script, frame, iframe, meta, link, title, head, fieldset');
+        for (n = 0, len3 = ref3.length; n < len3; n++) {
+          node = ref3[n];
+          node.remove();
+        }
+        this.removeAttributes(html);
+        text = html.innerHTML;
+      }
+      if (docType === 'text3') {
+        this.pasteHtmlAtCaret(text);
+      } else {
+        document.execCommand('insertHTML', false, text);
+      }
+      return true;
+    };
+
+    ZammadChat.prototype.onKeydown = function(e) {
+      var richtTextControl;
+      if (!this.inputDisabled && !e.shiftKey && e.keyCode === 13) {
+        e.preventDefault();
+        this.sendMessage();
+      }
+      richtTextControl = false;
+      if (!e.altKey && !e.ctrlKey && e.metaKey) {
+        richtTextControl = true;
+      } else if (!e.altKey && e.ctrlKey && !e.metaKey) {
+        richtTextControl = true;
+      }
+      if (richtTextControl && this.richTextFormatKey[e.keyCode]) {
+        e.preventDefault();
+        if (e.keyCode === 66) {
+          document.execCommand('bold');
+          return true;
+        }
+        if (e.keyCode === 73) {
+          document.execCommand('italic');
+          return true;
+        }
+        if (e.keyCode === 85) {
+          document.execCommand('underline');
+          return true;
+        }
+        if (e.keyCode === 83) {
+          document.execCommand('strikeThrough');
+          return true;
+        }
       }
     };
 
@@ -3541,7 +5184,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onWebSocketMessage = function(pipes) {
-      var from, j, len, pipe, ref;
+      var from, isRefresh, j, len, phrasesChanged, pipe, ref, wasOffline;
       for (j = 0, len = pipes.length; j < len; j++) {
         pipe = pipes[j];
         this.log.debug('ws:onmessage', pipe);
@@ -3556,9 +5199,10 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
             break;
           case 'chat_session_message':
             if (pipe.data.self_written) {
-              return;
+              this.confirmOwnMessage(pipe.data.message);
+            } else {
+              this.receiveMessage(pipe.data);
             }
-            this.receiveMessage(pipe.data);
             break;
           case 'chat_session_attachment':
             from = pipe.data.message.created_by_id ? 'agent' : 'customer';
@@ -3589,11 +5233,17 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           case 'chat_session_left':
             this.onSessionClosed(pipe.data);
             break;
-          case 'chat_session_notice':
-            this.addStatus(this.T(pipe.data.message));
-            break;
           case 'chat_session_message_read':
-            this.markMessagesRead();
+            if (pipe.data.reader !== 'customer') {
+              this.markMessagesRead();
+            }
+            break;
+          case 'chat_session_reaction':
+            if (pipe.data.reactor === 'agent') {
+              this.applyAgentReaction(pipe.data.message_id, pipe.data.reaction);
+            } else {
+              this.applyReaction(pipe.data.message_id, pipe.data.reaction);
+            }
             break;
           case 'chat_knowledge_base_search':
             this.onKnowledgeBaseSearchResult(pipe.data);
@@ -3610,22 +5260,38 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           case 'chat_offline_message_send':
             this.onOfflineMessageSendResult(pipe.data);
             break;
+          case 'chat_customer_history':
+            this.onCustomerHistory(pipe.data);
+            break;
+          case 'chat_customer_history_otp_request':
+            this.onCustomerHistoryOtpRequest(pipe.data);
+            break;
+          case 'chat_customer_history_otp_verify':
+            this.onCustomerHistoryOtpVerify(pipe.data);
+            break;
           case 'chat_session_feedback_submit':
             this.onFeedbackSubmitResult(pipe.data);
             break;
+          case 'chat_availability_changed':
+            this.onAvailabilityChanged();
+            break;
           case 'chat_status_customer':
-            if (pipe.data.logo_url) {
-              this.logoUrl = pipe.data.logo_url;
-            }
-            if (this.logoUrl) {
-              this.updateHomeLogo(this.logoUrl);
-            }
+            isRefresh = !!this.statusReceived;
+            wasOffline = this.offlineMode;
+            this.lastStatusAt = Date.now();
             this.offlineMode = pipe.data.state === 'offline';
             if ((ref = this.launcherEl) != null) {
-              ref.toggleClass('zammad-chat-launcher--offline', this.offlineMode);
+              ref.classList.toggle('zammad-chat-launcher--offline', this.offlineMode);
             }
+            this.updatePrechatSubmitLabel();
             if (pipe.data.phrases) {
-              this.updatePhrases(pipe.data.phrases);
+              phrasesChanged = JSON.stringify(pipe.data.phrases) !== JSON.stringify(this.phrases || {});
+              if (!isRefresh || phrasesChanged || wasOffline !== this.offlineMode) {
+                this.updatePhrases(pipe.data.phrases);
+              }
+            }
+            if (pipe.data.category_options) {
+              this.categoryOptions = pipe.data.category_options;
             }
             this.statusReceived = true;
             if (this.cssLoaded) {
@@ -3634,7 +5300,9 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
             switch (pipe.data.state) {
               case 'online':
                 this.setSessionId(void 0);
-                if (!this.options.cssAutoload || this.cssLoaded) {
+                if (this.readyDone) {
+                  this.show();
+                } else if (!this.options.cssAutoload || this.cssLoaded) {
                   this.onReady();
                 } else {
                   this.socketReady = true;
@@ -3648,7 +5316,11 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
                 this.onError('Zammad Chat: Chat is disabled');
                 break;
               case 'no_seats_available':
-                this.onError("Zammad Chat: Too many clients in queue. Clients in queue: " + pipe.data.queue);
+                if (isRefresh) {
+                  this.log.notice("Zammad Chat: Too many clients in queue. Clients in queue: " + pipe.data.queue);
+                } else {
+                  this.onError("Zammad Chat: Too many clients in queue. Clients in queue: " + pipe.data.queue);
+                }
                 break;
               case 'reconnect':
                 this.onReopenSession(pipe.data);
@@ -3658,10 +5330,15 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onReady = function() {
-      var base;
+      var base, btn;
+      this.readyDone = true;
       this.log.debug('widget ready for use');
       this.hidePreload();
-      $("." + this.options.buttonClass).on('click', this.open).removeClass(this.options.inactiveClass);
+      btn = document.querySelector("." + this.options.buttonClass);
+      if (btn) {
+        btn.addEventListener('click', this.open);
+        btn.classList.remove(this.options.inactiveClass);
+      }
       if (typeof (base = this.options).onReady === "function") {
         base.onReady();
       }
@@ -3671,11 +5348,14 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onError = function(message) {
-      var base;
+      var base, btn;
       this.log.debug(message);
       this.hidePreload();
       this.addStatus(message);
-      $("." + this.options.buttonClass).hide();
+      btn = document.querySelector("." + this.options.buttonClass);
+      if (btn) {
+        btn.classList.add('zammad-chat-is-hidden');
+      }
       if (this.isOpen) {
         this.disableInput();
         this.destroy({
@@ -3690,25 +5370,27 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onReopenSession = function(data) {
-      var isAgentMessage, isRead, j, len, message, ref, ref1, time, unfinishedMessage;
+      var isAgentMessage, isRead, j, len, message, ref, ref1, ref2, ref3, time, unfinishedMessage;
       this.hidePreload();
       this.log.debug('old messages', data.session);
       this.inactiveTimeout.start();
       unfinishedMessage = sessionStorage.getItem('unfinished_message');
       if (data.agent) {
         this.onConnectionEstablished(data, false);
-        ref = data.session;
-        for (j = 0, len = ref.length; j < len; j++) {
-          message = ref[j];
+        this.showWelcomeGreeting((ref = data.session) != null ? (ref1 = ref[0]) != null ? ref1.created_at : void 0 : void 0);
+        ref2 = data.session;
+        for (j = 0, len = ref2.length; j < len; j++) {
+          message = ref2[j];
           isAgentMessage = !!message.created_by_id;
           time = this.formatTime(message.created_at);
           isRead = !!message.read_at;
           if (message.filename) {
-            this.el.find('.zammad-chat-body').append(this.view('attachment_message')({
+            this.body.insertAdjacentHTML('beforeend', this.view(this.attachmentView(message.content_type, message.display))({
               from: isAgentMessage ? 'agent' : 'customer',
               id: message.id,
               filename: message.filename,
               metaLabel: this.attachmentMeta(message.filename, message.size),
+              senderLabel: this.attachmentSender(isAgentMessage),
               url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments/" + message.id,
               unreadClass: '',
               time: time,
@@ -3721,15 +5403,27 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
               from: isAgentMessage ? 'agent' : 'customer',
               time: time,
               isRead: isRead,
-              replyTo: (ref1 = message.reply_to) != null ? ref1.content : void 0
+              replyTo: (ref3 = message.reply_to) != null ? ref3.content : void 0
             });
           }
           if (isAgentMessage && message.id) {
             this.agentMessagesById[message.id] = message;
           }
+          if (!isAgentMessage && message.id) {
+            (this.ownMessagesById || (this.ownMessagesById = {}))[message.id] = message;
+          }
+          if (isAgentMessage && !message.read_at) {
+            this.unreadAgentMessages = true;
+          }
+          if (!isAgentMessage && message.agent_reaction) {
+            this.applyAgentReaction(message.id, message.agent_reaction);
+          }
+          if (isAgentMessage && message.customer_reaction) {
+            this.applyReaction(message.id, message.customer_reaction);
+          }
         }
         if (unfinishedMessage) {
-          this.input.html(unfinishedMessage);
+          this.input.innerHTML = unfinishedMessage;
         }
       }
       if (data.position) {
@@ -3741,27 +5435,21 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         this.scrollToBottom();
       }
       if (unfinishedMessage) {
-        return this.input.trigger('focus');
+        this.input.focus();
       }
+      return this.maybeSendRead();
     };
 
     ZammadChat.prototype.onInput = function() {
-      this.el.find('.zammad-chat-message--unread').removeClass('zammad-chat-message--unread');
-      sessionStorage.setItem('unfinished_message', this.input.html());
+      var j, len, message, ref;
+      ref = this.el.querySelectorAll('.zammad-chat-message--unread');
+      for (j = 0, len = ref.length; j < len; j++) {
+        message = ref[j];
+        message.classList.remove('zammad-chat-message--unread');
+      }
+      sessionStorage.setItem('unfinished_message', this.input.innerHTML);
       return this.onTyping();
     };
-
-    ZammadChat.prototype.onFocus = function() {
-      var keyboardShown;
-      $(window).scrollTop(10);
-      keyboardShown = $(window).scrollTop() > 0;
-      $(window).scrollTop(0);
-      if (keyboardShown) {
-        return this.log.notice('virtual keyboard shown');
-      }
-    };
-
-    ZammadChat.prototype.onFocusOut = function() {};
 
     ZammadChat.prototype.onTyping = function() {
       if (this.isTyping && this.isTyping > new Date(new Date().getTime() - 1500)) {
@@ -3780,8 +5468,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.sendMessage = function() {
-      var data, message, messageElement, ref, ref1, replyToId, replyToSnippet;
-      message = this.input.html();
+      var data, localId, message, messageElement, ref, ref1, replyToId, replyToSnippet;
+      message = this.input.innerHTML;
       if (!message) {
         return;
       }
@@ -3789,23 +5477,25 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       sessionStorage.removeItem('unfinished_message');
       replyToId = (ref = this.replyTo) != null ? ref.id : void 0;
       replyToSnippet = (ref1 = this.replyTo) != null ? ref1.content : void 0;
+      localId = "local-" + (this._messageCount++);
+      (this.pendingOwnMessages || (this.pendingOwnMessages = [])).push(localId);
       messageElement = this.view('message')({
         message: message,
         from: 'customer',
-        id: this._messageCount++,
+        id: localId,
         unreadClass: '',
         replyTo: replyToSnippet,
         time: this.formatTime()
       });
       this.maybeAddTimestamp();
-      if (this.el.find('.zammad-chat-message--typing').get(0)) {
+      if (this.el.querySelector('.zammad-chat-message--typing')) {
         this.lastAddedType = 'typing-placeholder';
-        this.el.find('.zammad-chat-message--typing').before(messageElement);
+        this.el.querySelector('.zammad-chat-message--typing').insertAdjacentHTML('beforebegin', messageElement);
       } else {
         this.lastAddedType = 'message--customer';
-        this.el.find('.zammad-chat-body').append(messageElement);
+        this.body.insertAdjacentHTML('beforeend', messageElement);
       }
-      this.input.html('');
+      this.input.innerHTML = '';
       this.scrollToBottom();
       data = {
         content: message,
@@ -3837,6 +5527,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.scrollToBottom({
         showHint: true
       });
+      this.noteAgentMessage();
       return this.playMessageSound();
     };
 
@@ -3859,17 +5550,316 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     ZammadChat.prototype.renderMessage = function(data) {
       this.lastAddedType = "message--" + data.from;
       data.unreadClass = document.hidden ? ' zammad-chat-message--unread' : '';
-      return this.el.find('.zammad-chat-body').append(this.view('message')(data));
+      return this.body.insertAdjacentHTML('beforeend', this.view('message')(data));
     };
 
-    ZammadChat.prototype.startReply = function(event) {
-      var message, messageId;
-      event.preventDefault();
-      messageId = $(event.currentTarget).closest('.zammad-chat-message').data('message-id');
+    ZammadChat.prototype.openMessageMenu = function(toggle) {
+      var body, bodyRect, menu, menuRect, onDocClick, onKeydown, ref, ref1, ref2, wrapper;
+      this.closeMessageMenu();
+      body = toggle.closest('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      wrapper = document.createElement('div');
+      wrapper.innerHTML = this.view('message_menu')({
+        kind: toggle.dataset.kind,
+        download: toggle.dataset.download,
+        filename: toggle.dataset.filename,
+        reactions: this.REACTIONS,
+        current: ((ref = toggle.closest('.zammad-chat-message')) != null ? ref.dataset.reaction : void 0) || null,
+        own: !!toggle.closest('.zammad-chat-message--customer')
+      });
+      menu = wrapper.querySelector('.js-message-menu-list');
+      body.appendChild(menu);
+      toggle.setAttribute('aria-expanded', 'true');
+      if ((ref1 = body.closest('.zammad-chat-message')) != null) {
+        ref1.classList.add('is-menu-open');
+      }
+      bodyRect = this.body.getBoundingClientRect();
+      menuRect = menu.getBoundingClientRect();
+      if (menuRect.bottom > bodyRect.bottom && menuRect.height < toggle.getBoundingClientRect().top - bodyRect.top) {
+        menu.classList.add('is-up');
+      }
+      onDocClick = (function(_this) {
+        return function(event) {
+          if (event.target.closest('.js-message-menu-list') || event.target.closest('.js-message-menu') === toggle) {
+            return;
+          }
+          return _this.closeMessageMenu();
+        };
+      })(this);
+      onKeydown = (function(_this) {
+        return function(event) {
+          return _this.onMessageMenuKeydown(event);
+        };
+      })(this);
+      document.addEventListener('click', onDocClick, true);
+      menu.addEventListener('keydown', onKeydown);
+      this.messageMenu = {
+        menu: menu,
+        toggle: toggle,
+        onDocClick: onDocClick
+      };
+      return (ref2 = menu.querySelector('[role=menuitem]')) != null ? ref2.focus() : void 0;
+    };
+
+    ZammadChat.prototype.onMessageMenuKeydown = function(event) {
+      var index, items, ref, ref1;
+      if (!this.messageMenu) {
+        return;
+      }
+      items = Array.from(this.messageMenu.menu.querySelectorAll('[role=menuitem]'));
+      index = items.indexOf(document.activeElement);
+      switch (event.key) {
+        case 'Escape':
+          event.preventDefault();
+          return this.closeMessageMenu(true);
+        case 'ArrowDown':
+          event.preventDefault();
+          return (ref = items[(index + 1) % items.length]) != null ? ref.focus() : void 0;
+        case 'ArrowUp':
+          event.preventDefault();
+          return (ref1 = items[(index - 1 + items.length) % items.length]) != null ? ref1.focus() : void 0;
+        case 'Tab':
+          return this.closeMessageMenu();
+      }
+    };
+
+    ZammadChat.prototype.closeMessageMenu = function(restoreFocus) {
+      var menu, onDocClick, ref, ref1, toggle;
+      if (restoreFocus == null) {
+        restoreFocus = false;
+      }
+      if (!this.messageMenu) {
+        return;
+      }
+      ref = this.messageMenu, menu = ref.menu, toggle = ref.toggle, onDocClick = ref.onDocClick;
+      this.messageMenu = null;
+      document.removeEventListener('click', onDocClick, true);
+      menu.remove();
+      toggle.setAttribute('aria-expanded', 'false');
+      if ((ref1 = toggle.closest('.zammad-chat-message')) != null) {
+        ref1.classList.remove('is-menu-open');
+      }
+      if (restoreFocus) {
+        return toggle.focus();
+      }
+    };
+
+    ZammadChat.prototype.REACTIONS = [
+      {
+        emoji: '😀',
+        label: 'Grinning'
+      }, {
+        emoji: '😊',
+        label: 'Smile'
+      }, {
+        emoji: '🙏',
+        label: 'Thanks'
+      }, {
+        emoji: '👍',
+        label: 'Thumbs up'
+      }, {
+        emoji: '❤️',
+        label: 'Heart'
+      }
+    ];
+
+    ZammadChat.prototype.setReaction = function(messageEl, emoji) {
+      var current, messageId, next;
+      messageId = messageEl != null ? messageEl.dataset.messageId : void 0;
       if (!messageId) {
         return;
       }
-      message = this.agentMessagesById[messageId];
+      current = messageEl.dataset.reaction || null;
+      next = emoji && emoji !== current ? emoji : null;
+      this.applyReaction(messageId, next);
+      return this.send('chat_session_reaction', {
+        session_id: this.sessionId,
+        message_id: messageId,
+        reaction: next
+      });
+    };
+
+    ZammadChat.prototype.applyReaction = function(messageId, reaction) {
+      var badge, body, item, label, messageEl, ref, ref1;
+      if (!messageId) {
+        return;
+      }
+      messageEl = (ref = this.body) != null ? ref.querySelector(".zammad-chat-message[data-message-id='" + messageId + "']") : void 0;
+      if (!messageEl) {
+        return;
+      }
+      body = messageEl.querySelector('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      if ((ref1 = body.querySelector('.js-reaction-badge')) != null) {
+        ref1.remove();
+      }
+      if (!reaction) {
+        delete messageEl.dataset.reaction;
+        messageEl.classList.remove('has-reaction');
+        return;
+      }
+      label = ((function() {
+        var j, len, ref2, results1;
+        ref2 = this.REACTIONS;
+        results1 = [];
+        for (j = 0, len = ref2.length; j < len; j++) {
+          item = ref2[j];
+          if (item.emoji === reaction) {
+            results1.push(item.label);
+          }
+        }
+        return results1;
+      }).call(this))[0] || '';
+      messageEl.dataset.reaction = reaction;
+      messageEl.classList.add('has-reaction');
+      badge = document.createElement('button');
+      badge.type = 'button';
+      badge.className = 'zammad-chat-reaction-badge js-reaction-badge';
+      badge.setAttribute('aria-label', (this.T('Your reaction')) + ": " + (this.T(label)) + ". " + (this.T('Remove')));
+      badge.textContent = reaction;
+      return body.appendChild(badge);
+    };
+
+    ZammadChat.prototype.confirmOwnMessage = function(message) {
+      var el, localId, ref, ref1;
+      if (!(message != null ? message.id : void 0)) {
+        return;
+      }
+      localId = (ref = this.pendingOwnMessages) != null ? ref.shift() : void 0;
+      if (!localId) {
+        return;
+      }
+      el = (ref1 = this.body) != null ? ref1.querySelector(".zammad-chat-message[data-message-id='" + localId + "']") : void 0;
+      if (el) {
+        el.dataset.messageId = message.id;
+      }
+      return (this.ownMessagesById || (this.ownMessagesById = {}))[message.id] = message;
+    };
+
+    ZammadChat.prototype.applyAgentReaction = function(messageId, reaction) {
+      var badge, body, item, label, messageEl, ref, ref1;
+      if (!messageId) {
+        return;
+      }
+      messageEl = (ref = this.body) != null ? ref.querySelector(".zammad-chat-message[data-message-id='" + messageId + "']") : void 0;
+      if (!messageEl) {
+        return;
+      }
+      body = messageEl.querySelector('.zammad-chat-message-body');
+      if (!body) {
+        return;
+      }
+      if ((ref1 = body.querySelector('.js-agent-reaction-badge')) != null) {
+        ref1.remove();
+      }
+      if (!reaction) {
+        messageEl.classList.remove('has-reaction');
+        return;
+      }
+      label = ((function() {
+        var j, len, ref2, results1;
+        ref2 = this.REACTIONS;
+        results1 = [];
+        for (j = 0, len = ref2.length; j < len; j++) {
+          item = ref2[j];
+          if (item.emoji === reaction) {
+            results1.push(item.label);
+          }
+        }
+        return results1;
+      }).call(this))[0] || '';
+      messageEl.classList.add('has-reaction');
+      badge = document.createElement('span');
+      badge.className = 'zammad-chat-reaction-badge zammad-chat-reaction-badge--agent js-agent-reaction-badge';
+      badge.setAttribute('role', 'img');
+      badge.setAttribute('aria-label', (this.T('Agent reaction')) + ": " + (this.T(label)));
+      badge.textContent = reaction;
+      return body.appendChild(badge);
+    };
+
+    ZammadChat.prototype.copyMessage = function(messageEl) {
+      var body, clone, done, ref, text;
+      body = messageEl != null ? messageEl.querySelector('.zammad-chat-message-body') : void 0;
+      if (!body) {
+        return;
+      }
+      clone = body.cloneNode(true);
+      clone.querySelectorAll('.zammad-chat-message-time, .zammad-chat-message-quote, .js-message-menu, .js-message-menu-list, .js-reaction-badge, .js-agent-reaction-badge').forEach(function(el) {
+        return el.remove();
+      });
+      text = clone.textContent.trim();
+      done = (function(_this) {
+        return function() {
+          return _this.showToast(_this.T('Copied'));
+        };
+      })(this);
+      if ((ref = navigator.clipboard) != null ? ref.writeText : void 0) {
+        return navigator.clipboard.writeText(text).then(done)["catch"]((function(_this) {
+          return function() {
+            return _this.copyTextFallback(text, done);
+          };
+        })(this));
+      } else {
+        return this.copyTextFallback(text, done);
+      }
+    };
+
+    ZammadChat.prototype.copyTextFallback = function(text, done) {
+      var area;
+      area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        if (document.execCommand('copy')) {
+          done();
+        }
+      } catch (error1) {}
+      return area.remove();
+    };
+
+    ZammadChat.prototype.showToast = function(message) {
+      var toast;
+      toast = this.el.querySelector('.js-chat-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'zammad-chat-toast js-chat-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        this.el.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      if (this.toastTimer) {
+        clearTimeout(this.toastTimer);
+      }
+      return this.toastTimer = setTimeout((function() {
+        return toast.classList.remove('is-visible');
+      }), 1600);
+    };
+
+    ZammadChat.prototype.startReply = function(event) {
+      var message, messageId, ref, target;
+      if (!event.target.closest('.js-message-reply')) {
+        return;
+      }
+      event.preventDefault();
+      target = event.target.closest('.zammad-chat-message');
+      if (!target) {
+        return;
+      }
+      messageId = target.dataset.messageId;
+      if (!messageId) {
+        return;
+      }
+      message = this.agentMessagesById[messageId] || ((ref = this.ownMessagesById) != null ? ref[messageId] : void 0);
       if (!message) {
         return;
       }
@@ -3878,7 +5868,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         content: message.filename || message.content
       };
       this.renderReplyIndicator();
-      return this.input.trigger('focus');
+      return this.input.focus();
     };
 
     ZammadChat.prototype.cancelReply = function(event) {
@@ -3891,69 +5881,290 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.renderReplyIndicator = function() {
       var indicator, snippet;
-      indicator = this.el.find('.js-reply-indicator');
+      indicator = this.el.querySelector('.js-reply-indicator');
       if (!this.replyTo) {
-        indicator.addClass('zammad-chat-is-hidden').html('');
+        indicator.classList.add('zammad-chat-is-hidden');
+        indicator.innerHTML = '';
         return;
       }
       snippet = this.replyTo.content.replace(/<[^>]*>/g, '').substr(0, 80);
-      return indicator.removeClass('zammad-chat-is-hidden').html(this.view('reply_indicator')({
+      indicator.classList.remove('zammad-chat-is-hidden');
+      indicator.innerHTML = this.view('reply_indicator')({
         snippet: snippet
-      }));
+      });
+      return indicator.querySelector('.js-reply-cancel').addEventListener('click', this.cancelReply);
     };
 
     ZammadChat.prototype.triggerAttachmentInput = function(event) {
       event.preventDefault();
-      return this.el.find('.js-chat-attachment-input').trigger('click');
+      return this.el.querySelector('.js-chat-attachment-input').click();
     };
 
     ZammadChat.prototype.uploadAttachment = function(event) {
-      var file, formData, ref;
-      file = (ref = event.currentTarget.files) != null ? ref[0] : void 0;
+      var asFile, file, formData, ref, ref1, uploadId, xhr;
+      file = (ref = event.target.files) != null ? ref[0] : void 0;
       if (!file) {
         return;
       }
       formData = new FormData();
       formData.append('File', file);
-      $.ajax({
-        type: 'POST',
-        url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments",
-        data: formData,
-        processData: false,
-        contentType: false,
-        cache: false,
-        error: (function(_this) {
-          return function(xhr) {
-            var message, ref1;
-            message = ((ref1 = xhr.responseJSON) != null ? ref1.error : void 0) || _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
-            return _this.addStatus(message);
+      asFile = event.target.classList.contains('js-chat-attachment-input');
+      if (asFile) {
+        formData.append('display', 'file');
+      }
+      uploadId = !asFile && (ref1 = file.type, indexOf.call(this.IMAGE_TYPES, ref1) >= 0) ? this.addImageUpload(file) : this.addFileUpload(file);
+      xhr = new XMLHttpRequest();
+      xhr.open('POST', (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments");
+      if (uploadId) {
+        xhr.upload.onprogress = (function(_this) {
+          return function(progress) {
+            if (!progress.lengthComputable) {
+              return;
+            }
+            return _this.updateImageUpload(uploadId, Math.round(progress.loaded / progress.total * 100));
           };
-        })(this)
-      });
-      return this.el.find('.js-chat-attachment-input').val('');
+        })(this);
+      }
+      xhr.onload = (function(_this) {
+        return function() {
+          var message, parsed;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            return;
+          }
+          if (uploadId) {
+            _this.removeImageUpload(uploadId);
+          }
+          message = _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
+          try {
+            parsed = JSON.parse(xhr.responseText);
+            if (parsed.error) {
+              message = parsed.error;
+            }
+          } catch (error1) {}
+          return _this.addStatus(message);
+        };
+      })(this);
+      xhr.onerror = (function(_this) {
+        return function() {
+          if (uploadId) {
+            _this.removeImageUpload(uploadId);
+          }
+          return _this.addStatus(_this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.'));
+        };
+      })(this);
+      xhr.send(formData);
+      return event.target.value = '';
     };
 
     ZammadChat.prototype.addAttachmentMessage = function(data, from) {
-      this.maybeAddTimestamp();
-      this.lastAddedType = "message--" + from;
-      this.el.find('.zammad-chat-body').append(this.view('attachment_message')({
+      var html, placeholder, placeholderSelector, viewName;
+      viewName = this.attachmentView(data.content_type, data.display);
+      html = this.view(viewName)({
         from: from,
         id: data.id,
         filename: data.filename,
         metaLabel: this.attachmentMeta(data.filename, data.size),
+        senderLabel: this.attachmentSender(from === 'agent'),
         url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments/" + data.id,
         unreadClass: document.hidden ? ' zammad-chat-message--unread' : '',
         time: this.formatTime(data.created_at)
-      }));
+      });
       if (from === 'agent' && data.id) {
         this.agentMessagesById[data.id] = data;
       }
+      if (from === 'customer' && data.id) {
+        (this.ownMessagesById || (this.ownMessagesById = {}))[data.id] = data;
+      }
+      if (from === 'agent') {
+        this.noteAgentMessage();
+      }
+      placeholderSelector = viewName === 'image_message' ? '.js-image-upload' : '.js-file-upload';
+      placeholder = from === 'customer' ? this.body.querySelector(placeholderSelector) : null;
+      if (placeholder) {
+        this.releaseImageUpload(placeholder.dataset.uploadId);
+        placeholder.insertAdjacentHTML('beforebegin', html);
+        placeholder.remove();
+        this.lastAddedType = "message--" + from;
+        this.scrollToBottom({
+          showHint: true
+        });
+        return;
+      }
+      this.maybeAddTimestamp();
+      this.lastAddedType = "message--" + from;
+      this.body.insertAdjacentHTML('beforeend', html);
       return this.scrollToBottom({
         showHint: true
       });
     };
 
-    ZammadChat.prototype.open = function() {
+    ZammadChat.prototype.IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    ZammadChat.prototype.attachmentView = function(contentType, display) {
+      if (display === 'file') {
+        return 'attachment_message';
+      }
+      if (indexOf.call(this.IMAGE_TYPES, contentType) >= 0) {
+        return 'image_message';
+      } else {
+        return 'attachment_message';
+      }
+    };
+
+    ZammadChat.prototype.attachmentSender = function(isAgent) {
+      var ref;
+      if (isAgent) {
+        return ((ref = this.agent) != null ? ref.name : void 0) || this.T('Agent');
+      } else {
+        return this.T('You');
+      }
+    };
+
+    ZammadChat.prototype.addImageUpload = function(file) {
+      var uploadId;
+      this.imageUploadSeq = (this.imageUploadSeq || 0) + 1;
+      uploadId = String(this.imageUploadSeq);
+      this.imageUploadUrls || (this.imageUploadUrls = {});
+      this.imageUploadUrls[uploadId] = URL.createObjectURL(file);
+      this.maybeAddTimestamp();
+      this.lastAddedType = 'message--customer';
+      this.body.insertAdjacentHTML('beforeend', this.view('image_upload')({
+        uploadId: uploadId,
+        previewUrl: this.imageUploadUrls[uploadId],
+        filename: file.name
+      }));
+      this.scrollToBottom({
+        showHint: true
+      });
+      return uploadId;
+    };
+
+    ZammadChat.prototype.addFileUpload = function(file) {
+      var uploadId;
+      this.imageUploadSeq = (this.imageUploadSeq || 0) + 1;
+      uploadId = String(this.imageUploadSeq);
+      this.maybeAddTimestamp();
+      this.lastAddedType = 'message--customer';
+      this.body.insertAdjacentHTML('beforeend', this.view('file_upload')({
+        uploadId: uploadId,
+        filename: file.name
+      }));
+      this.scrollToBottom({
+        showHint: true
+      });
+      return uploadId;
+    };
+
+    ZammadChat.prototype.updateImageUpload = function(uploadId, percent) {
+      var bar, el, label, text;
+      el = this.body.querySelector("[data-upload-id='" + uploadId + "']");
+      if (!el) {
+        return;
+      }
+      label = percent >= 100 ? this.T('Processing…') : (this.T('Uploading…')) + " " + percent + "%";
+      text = el.querySelector('.js-image-progress, .js-upload-progress-text');
+      if (text) {
+        text.textContent = label;
+      }
+      bar = el.querySelector('.js-upload-progress-bar');
+      if (bar) {
+        bar.style.width = percent + "%";
+        return bar.setAttribute('aria-valuenow', percent);
+      }
+    };
+
+    ZammadChat.prototype.releaseImageUpload = function(uploadId) {
+      var ref;
+      if (!((ref = this.imageUploadUrls) != null ? ref[uploadId] : void 0)) {
+        return;
+      }
+      URL.revokeObjectURL(this.imageUploadUrls[uploadId]);
+      return delete this.imageUploadUrls[uploadId];
+    };
+
+    ZammadChat.prototype.removeImageUpload = function(uploadId) {
+      var ref;
+      if ((ref = this.body.querySelector("[data-upload-id='" + uploadId + "']")) != null) {
+        ref.remove();
+      }
+      return this.releaseImageUpload(uploadId);
+    };
+
+    ZammadChat.prototype.openImageViewer = function(trigger) {
+      var data, viewer, wrapper;
+      this.closeImageViewer();
+      data = trigger.dataset;
+      wrapper = document.createElement('div');
+      wrapper.innerHTML = this.view('image_viewer')({
+        url: data.url,
+        filename: data.filename,
+        meta: data.meta,
+        sender: data.sender,
+        time: data.time
+      });
+      viewer = wrapper.firstElementChild;
+      if (!(viewer != null ? viewer.classList.contains('js-image-viewer') : void 0)) {
+        viewer = wrapper.querySelector('.js-image-viewer');
+      }
+      this.imageViewer = {
+        el: viewer,
+        trigger: trigger,
+        overflow: document.documentElement.style.overflow
+      };
+      document.documentElement.style.overflow = 'hidden';
+      document.body.appendChild(viewer);
+      viewer.querySelector('.js-image-viewer-close').addEventListener('click', this.closeImageViewer);
+      viewer.addEventListener('click', (function(_this) {
+        return function(event) {
+          if (event.target === viewer || event.target.classList.contains('js-image-viewer-stage')) {
+            return _this.closeImageViewer();
+          }
+        };
+      })(this));
+      viewer.addEventListener('keydown', this.onImageViewerKeydown);
+      return viewer.querySelector('.js-image-viewer-close').focus();
+    };
+
+    ZammadChat.prototype.onImageViewerKeydown = function(event) {
+      var first, focusable, last, ref;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.closeImageViewer();
+        return;
+      }
+      if (event.key !== 'Tab') {
+        return;
+      }
+      focusable = (ref = this.imageViewer) != null ? ref.el.querySelectorAll('a[href], button') : void 0;
+      if (!(focusable != null ? focusable.length : void 0)) {
+        return;
+      }
+      first = focusable[0];
+      last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        return last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        return first.focus();
+      }
+    };
+
+    ZammadChat.prototype.closeImageViewer = function() {
+      var el, overflow, ref, trigger;
+      if (!this.imageViewer) {
+        return;
+      }
+      ref = this.imageViewer, el = ref.el, trigger = ref.trigger, overflow = ref.overflow;
+      this.imageViewer = null;
+      el.remove();
+      document.documentElement.style.overflow = overflow;
+      if (document.contains(trigger)) {
+        return trigger != null ? trigger.focus() : void 0;
+      }
+    };
+
+    ZammadChat.prototype.open = function(event) {
       if (this.isOpen) {
         this.log.debug('widget already open, block');
         return;
@@ -3962,77 +6173,181 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       this.isOpen = true;
       this.log.debug('open widget');
       this.show();
+      if (this.canRefreshAvailability()) {
+        this.refreshAvailabilityIfStale();
+      }
       if (this.sessionId) {
         this.switchTab('messages');
       } else {
         this.showPrechatForm();
       }
-      this.launcherEl.addClass('zammad-chat-is-open');
-      this.el.addClass('zammad-chat-is-open');
-      return this.el.one('transitionend', this.onOpenAnimationEnd);
+      this.launcherEl.classList.add('zammad-chat-is-open');
+      this.launcherEl.setAttribute('aria-expanded', 'true');
+      this.el.addEventListener('transitionend', this.onOpenAnimationEnd);
+      this.el.classList.add('zammad-chat-is-open');
+      if (event) {
+        return this.el.focus({
+          preventScroll: true
+        });
+      }
     };
 
     ZammadChat.prototype.showPrechatForm = function(params) {
+      var j, len, menu, opt, ref, selectedValue, subjectInput, toggleBtn;
       if (params == null) {
         params = {};
       }
-      this.el.find('.zammad-chat-modal').html(this.view('prechat')({
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('prechat')({
         error: params.error,
         notice: params.notice,
         name: params.name,
-        email: params.email
-      }));
-      this.el.find('.zammad-chat-prechat-form').on('submit', this.submitPrechatForm);
-      if (this.logoUrl) {
-        return this.updateHomeLogo(this.logoUrl);
+        email: params.email,
+        category: params.category,
+        subject: params.subject,
+        subjectMax: this.PRECHAT_SUBJECT_MAX
+      });
+      this.updatePrechatSubmitLabel();
+      this.el.querySelector('.zammad-chat-prechat-form').addEventListener('submit', this.submitPrechatForm);
+      subjectInput = this.el.querySelector('.zammad-chat-prechat-subject');
+      if (subjectInput) {
+        subjectInput.addEventListener('input', (function(_this) {
+          return function() {
+            var counter;
+            counter = _this.el.querySelector('.js-prechat-subject-count');
+            if (counter) {
+              return counter.textContent = subjectInput.value.length + "/" + _this.PRECHAT_SUBJECT_MAX;
+            }
+          };
+        })(this));
       }
+      menu = this.el.querySelector('.js-prechat-category-menu');
+      selectedValue = params.category;
+      ref = this.categoryOptions || [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        opt = ref[j];
+        menu.insertAdjacentHTML('beforeend', this.view('prechat_category_option')({
+          value: opt.value,
+          label: opt.label,
+          selected: opt.value === selectedValue
+        }));
+      }
+      toggleBtn = this.el.querySelector('.js-prechat-category-toggle');
+      toggleBtn.addEventListener('click', (function(_this) {
+        return function(event) {
+          var isOpen;
+          event.preventDefault();
+          isOpen = !menu.classList.contains('zammad-chat-is-hidden');
+          menu.classList.toggle('zammad-chat-is-hidden', isOpen);
+          toggleBtn.classList.toggle('is-open', !isOpen);
+          return toggleBtn.setAttribute('aria-expanded', (!isOpen).toString());
+        };
+      })(this));
+      return menu.addEventListener('click', (function(_this) {
+        return function(event) {
+          var k, label, len1, option, other, ref1, value, valueEl;
+          option = event.target.closest('.js-prechat-category-option');
+          if (!option) {
+            return;
+          }
+          value = option.dataset.value;
+          label = option.querySelector('span').textContent;
+          _this.el.querySelector('.js-prechat-category-input').value = value;
+          valueEl = _this.el.querySelector('.js-prechat-category-value');
+          valueEl.textContent = label;
+          valueEl.classList.remove('is-placeholder');
+          ref1 = menu.querySelectorAll('.js-prechat-category-option');
+          for (k = 0, len1 = ref1.length; k < len1; k++) {
+            other = ref1[k];
+            other.classList.toggle('is-selected', other === option);
+          }
+          menu.classList.add('zammad-chat-is-hidden');
+          toggleBtn.classList.remove('is-open');
+          return toggleBtn.setAttribute('aria-expanded', 'false');
+        };
+      })(this));
     };
 
     ZammadChat.prototype.setButtonLoading = function(button, loading) {
-      if ((button == null) || !button.length) {
+      var label, loader;
+      if (!button) {
         return;
       }
       if (loading) {
-        if (!button.find('.zammad-chat-btn-label').length) {
-          button.wrapInner('<span class="zammad-chat-btn-label"></span>');
-          button.append('<span class="zammad-chat-btn-loader" aria-hidden="true"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"/></svg></span>');
+        if (!button.querySelector('.zammad-chat-btn-label')) {
+          label = document.createElement('span');
+          label.className = 'zammad-chat-btn-label';
+          while (button.firstChild) {
+            label.appendChild(button.firstChild);
+          }
+          button.appendChild(label);
+          loader = document.createElement('span');
+          loader.className = 'zammad-chat-btn-loader';
+          loader.setAttribute('aria-hidden', 'true');
+          loader.innerHTML = '<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20"></circle></svg>';
+          button.appendChild(loader);
         }
-        return button.addClass('is-loading').prop('disabled', true);
+        button.classList.add('is-loading');
+        return button.disabled = true;
       } else {
-        return button.removeClass('is-loading').prop('disabled', false);
+        button.classList.remove('is-loading');
+        return button.disabled = false;
       }
     };
 
+    ZammadChat.prototype.nameFromEmail = function(email) {
+      var local;
+      local = String(email || '').split('@')[0];
+      return local.replace(/[^A-Za-z0-9]+/g, ' ').trim() || email;
+    };
+
+    ZammadChat.prototype.PRECHAT_SUBJECT_MAX = 100;
+
+    ZammadChat.prototype.updatePrechatSubmitLabel = function() {
+      var label, ref;
+      label = (ref = this.el) != null ? ref.querySelector('.js-prechat-submit-label') : void 0;
+      if (!label) {
+        return;
+      }
+      return label.textContent = this.offlineMode ? this.T(this.phrases['chat_phrase_prechat_offline_submit_button'] || 'Leave message') : this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat');
+    };
+
     ZammadChat.prototype.submitPrechatForm = function(event) {
-      var email, emailFormat, name, ref, ref1;
+      var category, email, emailFormat, name, ref, ref1, ref2, ref3, ref4, ref5, subject;
       event.preventDefault();
-      name = (ref = this.el.find('.zammad-chat-prechat-name').val()) != null ? ref.trim() : void 0;
-      email = (ref1 = this.el.find('.zammad-chat-prechat-email').val()) != null ? ref1.trim() : void 0;
+      email = (ref = this.el.querySelector('.zammad-chat-prechat-email')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
+      category = (ref2 = this.el.querySelector('.js-prechat-category-input')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
+      subject = (ref4 = this.el.querySelector('.zammad-chat-prechat-subject')) != null ? (ref5 = ref4.value) != null ? ref5.trim() : void 0 : void 0;
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-      if (!name || !email || !emailFormat.test(email)) {
+      if (!email || !emailFormat.test(email) || !category || !subject) {
         this.showPrechatForm({
-          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name and email address.'),
-          name: name,
-          email: email
+          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.'),
+          email: email,
+          category: category,
+          subject: subject
         });
         return;
       }
-      this.setButtonLoading(this.el.find('.zammad-chat-prechat-submit'), true);
+      name = this.nameFromEmail(email);
       this.customerName = name;
       sessionStorage.setItem('customerName', name);
       this.customerEmail = email;
+      this.setButtonLoading(this.el.querySelector('.zammad-chat-prechat-submit'), true);
       if (this.offlineMode) {
         return this.send('chat_offline_session_init', {
           url: window.location.href,
           name: name,
-          email: email
+          email: email,
+          category: category,
+          subject: subject
         });
       } else {
         this.showLoader();
         return this.send('chat_session_init', {
           url: window.location.href,
           name: name,
-          email: email
+          email: email,
+          category: category,
+          subject: subject
         });
       }
     };
@@ -4044,17 +6359,44 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.applyOfflineHomeState = function() {
-      var startAction;
+      var dot, notice, startAction, status, subtext;
       if (!this.offlineMode) {
         return;
       }
       if (!this.el) {
         return;
       }
-      this.el.find('.zammad-chat-welcome-subtext').html($('<span>').addClass('zammad-chat-welcome-offline-status').append($('<span>').addClass('zammad-chat-welcome-offline-dot')).append(document.createTextNode(this.T(this.phrases['chat_phrase_offline_status'] || "We're offline right now"))));
-      this.el.find('.zammad-chat-home-offline-notice').removeClass('zammad-chat-is-hidden');
-      startAction = this.el.find('.js-home-start-action');
-      return startAction.find('.js-home-start-label').text(this.T(this.phrases['chat_phrase_offline_start_button'] || 'Leave us a message'));
+      subtext = this.el.querySelector('.zammad-chat-welcome-subtext');
+      if (subtext) {
+        status = document.createElement('span');
+        status.className = 'zammad-chat-welcome-offline-status';
+        dot = document.createElement('span');
+        dot.className = 'zammad-chat-welcome-offline-dot';
+        status.appendChild(dot);
+        status.appendChild(document.createTextNode(this.T(this.phrases['chat_phrase_offline_status'] || "We're offline right now")));
+        subtext.innerHTML = '';
+        subtext.appendChild(status);
+      }
+      notice = this.el.querySelector('.zammad-chat-home-offline-notice');
+      if (notice != null) {
+        notice.classList.remove('zammad-chat-is-hidden');
+      }
+      startAction = this.el.querySelector('.js-home-start-action');
+      if (startAction) {
+        return startAction.querySelector('.js-home-start-label').textContent = this.T(this.phrases['chat_phrase_offline_start_button'] || 'Leave us a message');
+      }
+    };
+
+    ZammadChat.prototype.applyOnlineHomeState = function() {
+      var notice;
+      if (this.offlineMode) {
+        return;
+      }
+      if (!this.el) {
+        return;
+      }
+      notice = this.el.querySelector('.zammad-chat-home-online-notice');
+      return notice != null ? notice.classList.remove('zammad-chat-is-hidden') : void 0;
     };
 
     ZammadChat.prototype.onOfflineSessionInitResult = function(data) {
@@ -4075,22 +6417,25 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showOfflineOtp = function() {
-      this.el.find('.zammad-chat-modal').html(this.view('offline_otp')({
+      var ref;
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_otp')({
         email: this.customerEmail
-      }));
-      return this.el.find('.js-otp-digit').first().trigger('focus');
+      });
+      return (ref = this.el.querySelector('.js-otp-digit')) != null ? ref.focus() : void 0;
     };
 
     ZammadChat.prototype.onOtpDigitInput = function(event) {
-      var input, next, value;
-      input = $(event.currentTarget);
-      value = input.val().replace(/[^0-9]/g, '');
-      input.val(value.slice(-1));
+      var input, next, nextIndex, value;
+      input = event.target;
+      value = input.value.replace(/[^0-9]/g, '');
+      input.value = value.slice(-1);
       if (value) {
-        next = input.closest('.zammad-chat-offline-otp-boxes').find(".js-otp-digit[data-index='" + (parseInt(input.data('index'), 10) + 1) + "']");
-        if (next.length) {
-          return next.trigger('focus');
+        nextIndex = parseInt(input.dataset.index, 10) + 1;
+        next = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='" + nextIndex + "']");
+        if (next != null) {
+          next.focus();
         }
+        return this.autoSubmitOfflineOtp();
       }
     };
 
@@ -4099,34 +6444,55 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (event.keyCode !== 8) {
         return;
       }
-      input = $(event.currentTarget);
-      if (input.val()) {
+      input = event.target;
+      if (input.value) {
         return;
       }
-      prevIndex = parseInt(input.data('index'), 10) - 1;
+      prevIndex = parseInt(input.dataset.index, 10) - 1;
       if (prevIndex < 0) {
         return;
       }
-      prev = input.closest('.zammad-chat-offline-otp-boxes').find(".js-otp-digit[data-index='" + prevIndex + "']");
-      if (prev.length) {
-        return prev.val('').trigger('focus');
+      prev = input.closest('.zammad-chat-offline-otp-boxes').querySelector(".js-otp-digit[data-index='" + prevIndex + "']");
+      if (prev) {
+        prev.value = '';
+        return prev.focus();
       }
     };
 
     ZammadChat.prototype.onOtpDigitPaste = function(event) {
-      var boxes, clipboard, lastFilled, pasted, ref, ref1;
+      var boxes, lastFilled, pasted, ref, ref1, ref2;
       event.preventDefault();
-      clipboard = ((ref = event.originalEvent) != null ? ref.clipboardData : void 0) || event.clipboardData;
-      pasted = (clipboard != null ? (ref1 = clipboard.getData('text')) != null ? ref1.replace(/[^0-9]/g, '') : void 0 : void 0) || '';
+      pasted = ((ref = event.clipboardData) != null ? (ref1 = ref.getData('text')) != null ? ref1.replace(/[^0-9]/g, '') : void 0 : void 0) || '';
       if (!pasted) {
         return;
       }
-      boxes = $(event.currentTarget).closest('.zammad-chat-offline-otp-boxes').find('.js-otp-digit');
-      boxes.each(function(i, el) {
-        return $(el).val(pasted.charAt(i) || '');
+      boxes = event.target.closest('.zammad-chat-offline-otp-boxes').querySelectorAll('.js-otp-digit');
+      boxes.forEach(function(el, i) {
+        return el.value = pasted.charAt(i) || '';
       });
       lastFilled = Math.min(pasted.length, boxes.length) - 1;
-      return boxes.eq(Math.max(lastFilled, 0)).trigger('focus');
+      if ((ref2 = boxes[Math.max(lastFilled, 0)]) != null) {
+        ref2.focus();
+      }
+      return this.autoSubmitOfflineOtp();
+    };
+
+    ZammadChat.prototype.autoSubmitOfflineOtp = function() {
+      var boxes, el, j, len, ref;
+      boxes = this.el.querySelectorAll('.js-otp-digit');
+      if (!boxes.length) {
+        return;
+      }
+      for (j = 0, len = boxes.length; j < len; j++) {
+        el = boxes[j];
+        if (!el.value) {
+          return;
+        }
+      }
+      if ((ref = this.el.querySelector('.js-otp-submit')) != null ? ref.disabled : void 0) {
+        return;
+      }
+      return this.submitOfflineOtp();
     };
 
     ZammadChat.prototype.submitOfflineOtp = function(event) {
@@ -4135,14 +6501,14 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         event.preventDefault();
       }
       code = '';
-      this.el.find('.js-otp-digit').each(function(i, el) {
-        return code += $(el).val() || '';
+      this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+        return code += el.value || '';
       });
       if (code.length !== 6) {
         this.showOtpError(this.T(this.phrases['chat_phrase_otp_incomplete_error'] || 'Please enter the full 6-digit code.'));
         return;
       }
-      this.setButtonLoading(this.el.find('.js-otp-submit'), true);
+      this.setButtonLoading(this.el.querySelector('.js-otp-submit'), true);
       return this.send('chat_offline_otp_verify', {
         session_id: this.sessionId,
         code: code
@@ -4150,19 +6516,30 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showOtpError = function(message) {
-      this.el.find('.js-otp-error').removeClass('zammad-chat-is-hidden');
-      return this.el.find('.js-otp-error-text').text(message);
+      var error, textEl;
+      error = this.el.querySelector('.js-otp-error');
+      if (!error) {
+        return;
+      }
+      error.classList.remove('zammad-chat-is-hidden');
+      textEl = error.querySelector('.js-otp-error-text');
+      if (textEl) {
+        return textEl.textContent = message;
+      }
     };
 
     ZammadChat.prototype.onOfflineOtpVerifyResult = function(data) {
+      var ref;
       if (data.state === 'ok') {
         this.showOfflineCompose();
         return;
       }
-      this.setButtonLoading(this.el.find('.js-otp-submit'), false);
+      this.setButtonLoading(this.el.querySelector('.js-otp-submit'), false);
       this.showOtpError(data.message);
-      this.el.find('.js-otp-digit').val('');
-      return this.el.find('.js-otp-digit').first().trigger('focus');
+      this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+        return el.value = '';
+      });
+      return (ref = this.el.querySelector('.js-otp-digit')) != null ? ref.focus() : void 0;
     };
 
     ZammadChat.prototype.resendOfflineOtp = function(event) {
@@ -4175,9 +6552,14 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onOfflineOtpResendResult = function(data) {
+      var ref;
       if (data.state === 'ok') {
-        this.el.find('.js-otp-digit').val('');
-        this.el.find('.js-otp-digit').first().trigger('focus');
+        this.el.querySelectorAll('.js-otp-digit').forEach(function(el) {
+          return el.value = '';
+        });
+        if ((ref = this.el.querySelector('.js-otp-digit')) != null) {
+          ref.focus();
+        }
         this.showOtpError(this.T(this.phrases['chat_phrase_otp_resend_success'] || 'A new code has been sent.'));
         return;
       }
@@ -4185,31 +6567,31 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showOfflineCompose = function() {
-      return this.el.find('.zammad-chat-modal').html(this.view('offline_compose')({
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_compose')({
         email: this.customerEmail
-      }));
+      });
     };
 
     ZammadChat.prototype.submitOfflineMessage = function(event) {
-      var content, ref, ref1, subject;
+      var content, errorEl, ref, ref1;
       if (event != null) {
         event.preventDefault();
       }
-      subject = (ref = this.el.find('.js-offline-subject').val()) != null ? ref.trim() : void 0;
-      if (!subject) {
-        this.el.find('.js-offline-compose-error').text(this.T(this.phrases['chat_phrase_offline_compose_subject_empty_error'] || 'Please enter a subject.')).removeClass('zammad-chat-is-hidden');
-        return;
-      }
-      content = (ref1 = this.el.find('.js-offline-message').val()) != null ? ref1.trim() : void 0;
+      content = (ref = this.el.querySelector('.js-offline-message')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
+      errorEl = this.el.querySelector('.js-offline-compose-error');
       if (!content) {
-        this.el.find('.js-offline-compose-error').text(this.T(this.phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.')).removeClass('zammad-chat-is-hidden');
+        if (errorEl) {
+          errorEl.textContent = this.T(this.phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
         return;
       }
-      this.el.find('.js-offline-compose-error').addClass('zammad-chat-is-hidden');
-      this.setButtonLoading(this.el.find('.js-offline-compose-submit'), true);
+      if (errorEl != null) {
+        errorEl.classList.add('zammad-chat-is-hidden');
+      }
+      this.setButtonLoading(this.el.querySelector('.js-offline-compose-submit'), true);
       return this.send('chat_offline_message_send', {
         session_id: this.sessionId,
-        subject: subject,
         content: content
       });
     };
@@ -4218,55 +6600,69 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (event != null) {
         event.preventDefault();
       }
-      return this.el.find('.js-offline-compose-attachment-input').trigger('click');
+      return this.el.querySelector('.js-offline-compose-attachment-input').click();
     };
 
     ZammadChat.prototype.uploadOfflineAttachment = function(event) {
-      var attachBtn, file, formData, ref;
-      file = (ref = event.currentTarget.files) != null ? ref[0] : void 0;
+      var attachBtn, file, formData, ref, xhr;
+      file = (ref = event.target.files) != null ? ref[0] : void 0;
       if (!file) {
         return;
       }
       formData = new FormData();
       formData.append('File', file);
-      attachBtn = this.el.find('.js-offline-compose-attach');
-      attachBtn.prop('disabled', true);
-      $.ajax({
-        type: 'POST',
-        url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments",
-        data: formData,
-        processData: false,
-        contentType: false,
-        cache: false,
-        success: (function(_this) {
-          return function(data) {
-            var chip;
-            chip = $('<div>').addClass('zammad-chat-offline-compose-attachment-chip');
-            chip.append($('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.97 12v3.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V10c0-3.87-3.13-7-7-7s-7 3.13-7 7v6c0 3.31 2.69 6 6 6"/></svg>'));
-            chip.append($('<span>').text(data.filename));
-            return _this.el.find('.js-offline-compose-attachments').append(chip);
-          };
-        })(this),
-        error: (function(_this) {
-          return function(xhr) {
-            var message, ref1;
-            message = ((ref1 = xhr.responseJSON) != null ? ref1.error : void 0) || _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
-            return _this.el.find('.js-offline-compose-error').text(message).removeClass('zammad-chat-is-hidden');
-          };
-        })(this),
-        complete: (function(_this) {
-          return function() {
-            return attachBtn.prop('disabled', false);
-          };
-        })(this)
-      });
-      return this.el.find('.js-offline-compose-attachment-input').val('');
+      attachBtn = this.el.querySelector('.js-offline-compose-attach');
+      if (attachBtn != null) {
+        attachBtn.setAttribute('disabled', 'disabled');
+      }
+      xhr = new XMLHttpRequest();
+      xhr.open('POST', (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + this.sessionId + "/attachments");
+      xhr.onload = (function(_this) {
+        return function() {
+          var chip, data, errorEl, filenameEl, message, parsed, ref1;
+          if (attachBtn != null) {
+            attachBtn.removeAttribute('disabled');
+          }
+          if (xhr.status >= 200 && xhr.status < 300) {
+            data = JSON.parse(xhr.responseText);
+            chip = document.createElement('div');
+            chip.className = 'zammad-chat-offline-compose-attachment-chip';
+            chip.innerHTML = siskaIcon(siskaFileIcon(file.name), 16);
+            filenameEl = document.createElement('span');
+            filenameEl.textContent = data.filename;
+            chip.appendChild(filenameEl);
+            if ((ref1 = _this.el.querySelector('.js-offline-compose-attachments')) != null) {
+              ref1.appendChild(chip);
+            }
+            return;
+          }
+          message = _this.T(_this.phrases['chat_phrase_attachment_upload_error'] || 'The attachment could not be uploaded.');
+          try {
+            parsed = JSON.parse(xhr.responseText);
+            if (parsed.error) {
+              message = parsed.error;
+            }
+          } catch (error1) {}
+          errorEl = _this.el.querySelector('.js-offline-compose-error');
+          if (errorEl) {
+            errorEl.textContent = message;
+            return errorEl.classList.remove('zammad-chat-is-hidden');
+          }
+        };
+      })(this);
+      xhr.send(formData);
+      return event.target.value = '';
     };
 
     ZammadChat.prototype.onOfflineMessageSendResult = function(data) {
-      this.setButtonLoading(this.el.find('.js-offline-compose-submit'), false);
+      var errorEl;
+      this.setButtonLoading(this.el.querySelector('.js-offline-compose-submit'), false);
       if (data.state !== 'ok') {
-        this.el.find('.js-offline-compose-error').text(data.message).removeClass('zammad-chat-is-hidden');
+        errorEl = this.el.querySelector('.js-offline-compose-error');
+        if (errorEl) {
+          errorEl.textContent = data.message;
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
         return;
       }
       this.lastSessionId = this.sessionId;
@@ -4275,16 +6671,16 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showOfflineSent = function() {
-      return this.el.find('.zammad-chat-modal').html(this.view('offline_sent')({
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_sent')({
         email: this.customerEmail
-      }));
+      });
     };
 
     ZammadChat.prototype.finishOfflineFlow = function(event) {
       if (event != null) {
         event.preventDefault();
       }
-      this.setButtonLoading(this.el.find('.js-offline-sent-done'), true);
+      this.setButtonLoading(this.el.querySelector('.js-offline-sent-done'), true);
       return this.showFeedback();
     };
 
@@ -4299,41 +6695,47 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (inline) {
         this.hideModal();
         this.maybeAddTimestamp();
-        this.el.find('.zammad-chat-body').append("<div class=\"zammad-chat-feedback-inline js-feedback-inline\">" + markup + "</div>");
+        this.body.insertAdjacentHTML('beforeend', "<div class=\"zammad-chat-feedback-inline js-feedback-inline\">" + markup + "</div>");
         this.scrollToBottom();
       } else {
-        this.el.find('.zammad-chat-modal').html(markup);
+        this.el.querySelector('.zammad-chat-modal').innerHTML = markup;
       }
       this.agent = void 0;
       return this.updateHeader();
     };
 
-    ZammadChat.prototype.selectFeedbackScore = function(event) {
+    ZammadChat.prototype.selectFeedbackScore = function(event, score) {
       if (event != null) {
         event.preventDefault();
       }
-      this.feedbackScore = parseInt($(event.currentTarget).data('score'), 10);
-      return this.el.find('.js-feedback-star').each((function(_this) {
-        return function(i, el) {
+      this.feedbackScore = parseInt(score, 10);
+      return this.el.querySelectorAll('.js-feedback-star').forEach((function(_this) {
+        return function(el) {
           var starScore;
-          starScore = parseInt($(el).data('score'), 10);
-          return $(el).toggleClass('is-active', starScore <= _this.feedbackScore);
+          starScore = parseInt(el.dataset.score, 10);
+          return el.classList.toggle('is-active', starScore <= _this.feedbackScore);
         };
       })(this));
     };
 
     ZammadChat.prototype.submitFeedback = function(event) {
-      var comment, ref;
+      var comment, errorEl, ref, ref1;
       if (event != null) {
         event.preventDefault();
       }
+      errorEl = this.el.querySelector('.js-feedback-error');
       if (!this.feedbackScore) {
-        this.el.find('.js-feedback-error').text(this.T(this.phrases['chat_phrase_feedback_score_error'] || 'Please select a rating.')).removeClass('zammad-chat-is-hidden');
+        if (errorEl) {
+          errorEl.textContent = this.T(this.phrases['chat_phrase_feedback_score_error'] || 'Please select a rating.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
         return;
       }
-      this.el.find('.js-feedback-error').addClass('zammad-chat-is-hidden');
-      this.setButtonLoading(this.el.find('.js-feedback-submit'), true);
-      comment = (ref = this.el.find('.js-feedback-comment').val()) != null ? ref.trim() : void 0;
+      if (errorEl != null) {
+        errorEl.classList.add('zammad-chat-is-hidden');
+      }
+      this.setButtonLoading(this.el.querySelector('.js-feedback-submit'), true);
+      comment = (ref = this.el.querySelector('.js-feedback-comment')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
       return this.send('chat_session_feedback_submit', {
         session_id: this.lastSessionId,
         score: this.feedbackScore,
@@ -4342,9 +6744,14 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onFeedbackSubmitResult = function(data) {
-      this.setButtonLoading(this.el.find('.js-feedback-submit'), false);
+      var errorEl;
+      this.setButtonLoading(this.el.querySelector('.js-feedback-submit'), false);
       if (data.state !== 'ok') {
-        this.el.find('.js-feedback-error').text(data.message || this.T(this.phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.')).removeClass('zammad-chat-is-hidden');
+        errorEl = this.el.querySelector('.js-feedback-error');
+        if (errorEl) {
+          errorEl.textContent = data.message || this.T(this.phrases['chat_phrase_feedback_submit_error_fallback'] || 'Could not save your feedback. Please try again.');
+          errorEl.classList.remove('zammad-chat-is-hidden');
+        }
         return;
       }
       return this.showFeedbackThanks();
@@ -4354,7 +6761,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (event != null) {
         event.preventDefault();
       }
-      this.setButtonLoading(this.el.find('.js-feedback-skip'), true);
+      this.setButtonLoading(this.el.querySelector('.js-feedback-skip'), true);
       return this.goToStartChat();
     };
 
@@ -4362,12 +6769,13 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       var markup, overlay;
       markup = this.view('feedback_thanks')();
       if (this.feedbackInline) {
-        overlay = this.el.find('.js-feedback-thanks-overlay');
-        if (overlay.length) {
-          overlay.html(markup).removeClass('zammad-chat-is-hidden');
+        overlay = this.el.querySelector('.js-feedback-thanks-overlay');
+        if (overlay) {
+          overlay.innerHTML = markup;
+          overlay.classList.remove('zammad-chat-is-hidden');
         }
       } else {
-        this.el.find('.zammad-chat-modal').html(markup);
+        this.el.querySelector('.zammad-chat-modal').innerHTML = markup;
       }
       return setTimeout(((function(_this) {
         return function() {
@@ -4379,17 +6787,19 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.hideFeedbackThanksOverlay = function() {
       var overlay;
-      overlay = this.el.find('.js-feedback-thanks-overlay');
-      if (!overlay.length) {
+      overlay = this.el.querySelector('.js-feedback-thanks-overlay');
+      if (!overlay) {
         return;
       }
-      overlay.addClass('zammad-chat-is-hidden');
-      return overlay.html('');
+      overlay.classList.add('zammad-chat-is-hidden');
+      return overlay.innerHTML = '';
     };
 
     ZammadChat.prototype.onOpenAnimationEnd = function() {
       var base;
+      this.el.removeEventListener('transitionend', this.onOpenAnimationEnd);
       this.idleTimeout.stop();
+      this.maybeSendRead();
       if (this.isFullscreen) {
         this.disableScrollOnRoot();
       }
@@ -4420,6 +6830,25 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       return this.switchTab('home');
     };
 
+    ZammadChat.prototype.onPanelKeydown = function(event) {
+      var picker, toggle;
+      if (event.key !== 'Escape' || event.defaultPrevented) {
+        return;
+      }
+      picker = this.el.querySelector('.js-emoji-picker');
+      if (picker && !picker.classList.contains('zammad-chat-is-hidden')) {
+        event.preventDefault();
+        picker.classList.add('zammad-chat-is-hidden');
+        toggle = this.el.querySelector('.js-emoji-toggle');
+        toggle.classList.remove('is-active');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+        return;
+      }
+      event.preventDefault();
+      return this.close();
+    };
+
     ZammadChat.prototype.toggle = function(event) {
       if (this.isOpen) {
         return this.close(event);
@@ -4429,6 +6858,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.close = function(event) {
+      var focusInside;
       if (!this.isOpen) {
         this.log.debug('can\'t close widget, it\'s not open');
         return;
@@ -4444,9 +6874,16 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (this.isFullscreen) {
         this.enableScrollOnRoot();
       }
-      this.launcherEl.removeClass('zammad-chat-is-open');
-      this.el.one('transitionend', this.onCloseAnimationEnd);
-      return this.el.removeClass('zammad-chat-is-open');
+      focusInside = this.el.contains(document.activeElement);
+      this.launcherEl.classList.remove('zammad-chat-is-open');
+      this.launcherEl.setAttribute('aria-expanded', 'false');
+      if (focusInside) {
+        this.launcherEl.focus({
+          preventScroll: true
+        });
+      }
+      this.el.addEventListener('transitionend', this.onCloseAnimationEnd);
+      return this.el.classList.remove('zammad-chat-is-open');
     };
 
     ZammadChat.prototype.exitChat = function(event) {
@@ -4460,9 +6897,14 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (event != null) {
         event.stopPropagation();
       }
+      if (this.sessionId && !this.agent) {
+        this.log.debug('exit chat before agent connected -> back to home');
+        this.cancelQueue(event);
+        return;
+      }
       if (this.sessionId) {
         this.log.debug('exit chat');
-        this.el.find('.zammad-chat-modal').html(this.view('ending_chat')());
+        this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('ending_chat')();
         this.sessionClose();
         return setTimeout(this.showFeedback, 2000);
       } else {
@@ -4478,6 +6920,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.onCloseAnimationEnd = function() {
       var base;
+      this.el.removeEventListener('transitionend', this.onCloseAnimationEnd);
       if (!this.sessionId) {
         this.agent = void 0;
         this.switchTab('home');
@@ -4494,8 +6937,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         return;
       }
       if (this.launcherEl) {
-        this.launcherEl.removeClass('zammad-chat-is-shown');
-        return this.launcherEl.removeClass('zammad-chat-is-loaded');
+        this.launcherEl.classList.remove('zammad-chat-is-shown');
+        return this.launcherEl.classList.remove('zammad-chat-is-loaded');
       }
     };
 
@@ -4503,34 +6946,37 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (this.state === 'offline') {
         return;
       }
-      this.launcherEl.addClass('zammad-chat-is-loaded');
-      return this.launcherEl.addClass('zammad-chat-is-shown');
+      this.launcherEl.classList.add('zammad-chat-is-loaded');
+      return this.launcherEl.classList.add('zammad-chat-is-shown');
     };
 
     ZammadChat.prototype.disableInput = function() {
       this.inputDisabled = true;
-      this.input.prop('contenteditable', false);
-      this.el.find('.zammad-chat-send').prop('disabled', true);
+      this.input.setAttribute('contenteditable', false);
+      this.el.querySelector('.zammad-chat-send').disabled = true;
       return this.io.close();
     };
 
     ZammadChat.prototype.disableComposeInput = function() {
-      var ref;
+      var ref, sendBtn;
       this.inputDisabled = true;
       if ((ref = this.input) != null) {
-        ref.prop('contenteditable', false);
+        ref.setAttribute('contenteditable', false);
       }
-      return this.el.find('.zammad-chat-send').prop('disabled', true);
+      sendBtn = this.el.querySelector('.zammad-chat-send');
+      if (sendBtn) {
+        return sendBtn.disabled = true;
+      }
     };
 
     ZammadChat.prototype.enableInput = function() {
       this.inputDisabled = false;
-      this.input.prop('contenteditable', true);
-      return this.el.find('.zammad-chat-send').prop('disabled', false);
+      this.input.setAttribute('contenteditable', true);
+      return this.el.querySelector('.zammad-chat-send').disabled = false;
     };
 
     ZammadChat.prototype.hideModal = function() {
-      return this.el.find('.zammad-chat-modal').html('');
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = '';
     };
 
     ZammadChat.prototype.onQueueScreen = function(data) {
@@ -4555,9 +7001,9 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     ZammadChat.prototype.onQueue = function(data) {
       this.log.notice('onQueue', data.position);
       this.inQueue = true;
-      return this.el.find('.zammad-chat-modal').html(this.view('waiting')({
-        position: data.position
-      }));
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('waiting')({
+        position: parseInt(data.position, 10) || null
+      });
     };
 
     ZammadChat.prototype.onAgentTypingStart = function() {
@@ -4565,19 +7011,21 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         clearTimeout(this.stopTypingId);
       }
       this.stopTypingId = setTimeout(this.onAgentTypingEnd, 3000);
-      if (this.el.find('.zammad-chat-message--typing').get(0)) {
+      if (this.el.querySelector('.zammad-chat-message--typing')) {
         return;
       }
       this.maybeAddTimestamp();
-      this.el.find('.zammad-chat-body').append(this.view('typingIndicator')());
-      if (!this.isVisible(this.el.find('.zammad-chat-message--typing'), true)) {
+      this.body.insertAdjacentHTML('beforeend', this.view('typingIndicator')());
+      if (!this.isVisible(this.el.querySelector('.zammad-chat-message--typing'), true)) {
         return;
       }
       return this.scrollToBottom();
     };
 
     ZammadChat.prototype.onAgentTypingEnd = function() {
-      return this.el.find('.zammad-chat-message--typing').remove();
+      if (this.el.querySelector('.zammad-chat-message--typing')) {
+        return this.el.querySelector('.zammad-chat-message--typing').remove();
+      }
     };
 
     ZammadChat.prototype.onLeaveTemporary = function() {
@@ -4599,7 +7047,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           this.updateLastTimestamp(label, time);
           return this.lastTimestamp = timestamp;
         } else {
-          this.el.find('.zammad-chat-body').append(this.view('timestamp')({
+          this.body.insertAdjacentHTML('beforeend', this.view('timestamp')({
             label: label,
             time: time
           }));
@@ -4611,13 +7059,18 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.updateLastTimestamp = function(label, time) {
+      var timestamps;
       if (!this.el) {
         return;
       }
-      return this.el.find('.zammad-chat-body').find('.zammad-chat-timestamp').last().replaceWith(this.view('timestamp')({
+      timestamps = this.el.querySelectorAll('.zammad-chat-body .zammad-chat-timestamp');
+      if (!timestamps) {
+        return;
+      }
+      return timestamps[timestamps.length - 1].outerHTML = this.view('timestamp')({
         label: label,
         time: time
-      }));
+      });
     };
 
     ZammadChat.prototype.addStatus = function(status) {
@@ -4625,7 +7078,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         return;
       }
       this.maybeAddTimestamp();
-      this.el.find('.zammad-chat-body').append(this.view('status')({
+      this.body.insertAdjacentHTML('beforeend', this.view('status')({
         status: status
       }));
       return this.scrollToBottom();
@@ -4656,8 +7109,8 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (!this.el) {
         return;
       }
-      overlay = this.el.find('.js-connection-overlay');
-      if (!overlay.length) {
+      overlay = this.el.querySelector('.js-connection-overlay');
+      if (!overlay) {
         return;
       }
       if (this.connectionOverlayHideTimeoutId) {
@@ -4665,18 +7118,18 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         this.connectionOverlayHideTimeoutId = void 0;
       }
       copy = this.connectionOverlayCopy(state);
-      overlay.html(this.view('connection_overlay')({
+      overlay.innerHTML = this.view('connection_overlay')({
         state: state,
         title: copy.title,
         subtitle: copy.subtitle
-      }));
+      });
       ref = ['reconnecting', 'restored', 'lost'];
       for (j = 0, len = ref.length; j < len; j++) {
         otherState = ref[j];
-        overlay.removeClass("zammad-chat-connection-overlay--" + otherState);
+        overlay.classList.remove("zammad-chat-connection-overlay--" + otherState);
       }
-      overlay.addClass("zammad-chat-connection-overlay--" + state);
-      overlay.removeClass('zammad-chat-is-hidden');
+      overlay.classList.add("zammad-chat-connection-overlay--" + state);
+      overlay.classList.remove('zammad-chat-is-hidden');
       if (state === 'restored') {
         return this.connectionOverlayHideTimeoutId = setTimeout(this.hideConnectionOverlay, 1800);
       }
@@ -4687,37 +7140,38 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (!this.el) {
         return;
       }
-      overlay = this.el.find('.js-connection-overlay');
-      if (!overlay.length) {
+      overlay = this.el.querySelector('.js-connection-overlay');
+      if (!overlay) {
         return;
       }
-      overlay.addClass('zammad-chat-is-hidden');
-      return overlay.html('');
+      overlay.classList.add('zammad-chat-is-hidden');
+      return overlay.innerHTML = '';
     };
 
     ZammadChat.prototype.updateLauncherConnectionState = function(hasIssue) {
       var ref;
-      return (ref = this.launcherEl) != null ? ref.toggleClass('zammad-chat-launcher--connection-issue', hasIssue) : void 0;
+      return (ref = this.launcherEl) != null ? ref.classList.toggle('zammad-chat-launcher--connection-issue', hasIssue) : void 0;
     };
 
     ZammadChat.prototype.detectScrolledtoBottom = function() {
       var scrollBottom;
-      scrollBottom = this.el.find('.zammad-chat-body').scrollTop() + this.el.find('.zammad-chat-body').outerHeight();
-      this.scrolledToBottom = Math.abs(scrollBottom - this.el.find('.zammad-chat-body').prop('scrollHeight')) <= this.scrollSnapTolerance;
+      scrollBottom = this.body.scrollTop + this.body.offsetHeight;
+      this.scrolledToBottom = Math.abs(scrollBottom - this.body.scrollHeight) <= this.scrollSnapTolerance;
       if (this.scrolledToBottom) {
-        return this.el.find('.zammad-scroll-hint').addClass('is-hidden');
+        return this.el.querySelector('.zammad-scroll-hint').classList.add('is-hidden');
       }
     };
 
     ZammadChat.prototype.showScrollHint = function() {
-      this.el.find('.zammad-scroll-hint').removeClass('is-hidden');
-      return this.el.find('.zammad-chat-body').scrollTop(this.el.find('.zammad-chat-body').scrollTop() + this.el.find('.zammad-scroll-hint').outerHeight());
+      this.el.querySelector('.zammad-scroll-hint').classList.remove('is-hidden');
+      return this.body.scrollTop = this.body.scrollTop + this.el.querySelector('.zammad-scroll-hint').offsetHeight;
     };
 
     ZammadChat.prototype.onScrollHintClick = function() {
-      return this.el.find('.zammad-chat-body').animate({
-        scrollTop: this.el.find('.zammad-chat-body').prop('scrollHeight')
-      }, 300);
+      return this.body.scrollTo({
+        top: this.body.scrollHeight,
+        behavior: 'smooth'
+      });
     };
 
     ZammadChat.prototype.scrollToBottom = function(arg) {
@@ -4726,25 +7180,30 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
         showHint: false
       }).showHint;
       if (this.scrolledToBottom) {
-        return this.el.find('.zammad-chat-body').scrollTop($('.zammad-chat-body').prop('scrollHeight'));
+        return this.body.scrollTop = this.body.scrollHeight;
       } else if (showHint) {
         return this.showScrollHint();
       }
     };
 
     ZammadChat.prototype.destroy = function(params) {
-      var ref;
+      var btn, ref;
       if (params == null) {
         params = {};
       }
       this.log.debug('destroy widget', params);
+      this.stopAvailabilityPolling();
       this.setAgentOnlineState('offline');
       if (params.remove && this.el) {
         this.el.remove();
         if ((ref = this.launcherEl) != null) {
           ref.remove();
         }
-        $("." + this.options.buttonClass).hide();
+        btn = document.querySelector("." + this.options.buttonClass);
+        if (btn) {
+          btn.classList.add(this.options.inactiveClass);
+          btn.style.display = 'none';
+        }
       }
       if (this.waitingListTimeout) {
         this.waitingListTimeout.stop();
@@ -4759,7 +7218,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onIoReconnecting = function(attempt, maxAttempts) {
-      var ref;
+      var ref, sendBtn;
       this.log.debug("reconnecting attempt " + attempt + "/" + maxAttempts);
       if (attempt !== 1) {
         return;
@@ -4773,14 +7232,17 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (!this.inputDisabled) {
         this.reconnectDisabledInput = true;
         if ((ref = this.input) != null) {
-          ref.prop('contenteditable', false);
+          ref.setAttribute('contenteditable', false);
         }
-        return this.el.find('.zammad-chat-send').prop('disabled', true);
+        sendBtn = this.el.querySelector('.zammad-chat-send');
+        if (sendBtn) {
+          return sendBtn.disabled = true;
+        }
       }
     };
 
     ZammadChat.prototype.onIoReconnected = function() {
-      var base, ref;
+      var base, ref, sendBtn;
       this.log.debug('reconnected');
       if (!this.isOpen) {
         return;
@@ -4794,9 +7256,12 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (this.reconnectDisabledInput) {
         this.reconnectDisabledInput = false;
         if ((ref = this.input) != null) {
-          ref.prop('contenteditable', true);
+          ref.setAttribute('contenteditable', true);
         }
-        return this.el.find('.zammad-chat-send').prop('disabled', false);
+        sendBtn = this.el.querySelector('.zammad-chat-send');
+        if (sendBtn) {
+          return sendBtn.disabled = false;
+        }
       }
     };
 
@@ -4816,6 +7281,9 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
     ZammadChat.prototype.onSessionClosed = function(data) {
       var base;
+      if (data.closed_by_agent && this.sessionId) {
+        this.showClosingGreeting();
+      }
       this.addStatus(this.T('Chat closed by %s', data.realname));
       this.disableComposeInput();
       this.setAgentOnlineState('offline');
@@ -4837,13 +7305,41 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       }
     };
 
+    ZammadChat.prototype.noteAgentMessage = function() {
+      this.unreadAgentMessages = true;
+      return this.maybeSendRead();
+    };
+
+    ZammadChat.prototype.maybeSendRead = function() {
+      if (!this.unreadAgentMessages) {
+        return;
+      }
+      if (!this.sessionId || !this.isOpen || document.hidden) {
+        return;
+      }
+      if (this.activeTab !== 'messages') {
+        return;
+      }
+      this.unreadAgentMessages = false;
+      return this.send('chat_session_message_read', {
+        session_id: this.sessionId
+      });
+    };
+
     ZammadChat.prototype.markMessagesRead = function() {
-      var statusEls;
-      statusEls = this.el.find('.zammad-chat-message--customer .zammad-chat-message-status--sent');
+      var j, len, results1, statusEl, statusEls;
+      statusEls = this.el.querySelectorAll('.zammad-chat-message--customer .zammad-chat-message-status--sent');
       if (!statusEls.length) {
         return;
       }
-      return statusEls.removeClass('zammad-chat-message-status--sent').addClass('zammad-chat-message-status--read').attr('aria-label', this.T('Read'));
+      results1 = [];
+      for (j = 0, len = statusEls.length; j < len; j++) {
+        statusEl = statusEls[j];
+        statusEl.classList.remove('zammad-chat-message-status--sent');
+        statusEl.classList.add('zammad-chat-message-status--read');
+        results1.push(statusEl.setAttribute('aria-label', this.T('Read')));
+      }
+      return results1;
     };
 
     ZammadChat.prototype.setSessionId = function(id) {
@@ -4856,7 +7352,7 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.onConnectionEstablished = function(data, showGreeting) {
-      var base, ref;
+      var base, j, len, ref, ref1, ref2, selector;
       if (showGreeting == null) {
         showGreeting = true;
       }
@@ -4870,20 +7366,27 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       if (data.session_id) {
         this.setSessionId(data.session_id);
       }
-      this.el.find('.zammad-chat-body').html('');
-      this.el.find('.zammad-chat-agent').html(this.view('agent')({
+      this.body.innerHTML = '';
+      this.initCustomerHistory();
+      this.el.querySelector('.zammad-chat-agent').innerHTML = this.view('agent')({
         agent: this.agent,
         initials: this.initialsOf((ref = this.agent) != null ? ref.name : void 0)
-      }));
+      });
       if (showGreeting) {
         this.showWelcomeGreeting();
       }
-      this.el.find('.js-chat-attach').toggleClass('zammad-chat-is-hidden', !data.attachment_enabled);
+      ref1 = ['.js-chat-attach', '.js-chat-attach-image'];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        selector = ref1[j];
+        if ((ref2 = this.el.querySelector(selector)) != null) {
+          ref2.classList.toggle('zammad-chat-is-hidden', !data.attachment_enabled);
+        }
+      }
       this.enableInput();
       this.hideModal();
       this.updateHeader();
       if (!this.isFullscreen) {
-        this.input.trigger('focus');
+        this.input.focus();
       }
       this.setAgentOnlineState('online');
       this.waitingListTimeout.stop();
@@ -4892,9 +7395,452 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       return typeof (base = this.options).onConnectionEstablished === "function" ? base.onConnectionEstablished(data) : void 0;
     };
 
-    ZammadChat.prototype.showWelcomeGreeting = function() {
+    ZammadChat.prototype.HISTORY_PAGE_SIZE = 10;
+
+    ZammadChat.prototype.initCustomerHistory = function() {
+      var ref;
+      if (!this.sessionId) {
+        return;
+      }
+      this.history = {
+        messages: [],
+        sessions: {},
+        hasMore: false,
+        loading: false,
+        verified: false,
+        email: this.customerEmail
+      };
+      if ((ref = this.historyEl) != null) {
+        ref.remove();
+      }
+      this.historyEl = document.createElement('div');
+      this.historyEl.className = 'zammad-chat-history js-history';
+      this.body.insertBefore(this.historyEl, this.body.firstChild);
+      this.historyEl.addEventListener('click', this.onHistoryClick);
+      this.historyEl.addEventListener('input', this.onHistoryOtpInput);
+      this.historyEl.addEventListener('keydown', this.onHistoryOtpKeydown);
+      this.historyEl.addEventListener('paste', this.onHistoryOtpPaste);
+      if (!this.historyScrollBound) {
+        this.historyScrollBound = true;
+        this.body.addEventListener('scroll', this.onHistoryScroll);
+      }
+      return this.requestCustomerHistory();
+    };
+
+    ZammadChat.prototype.requestCustomerHistory = function() {
+      var ref;
+      if (!this.history || this.history.loading) {
+        return;
+      }
+      this.history.loading = true;
+      this.history.pendingBefore = (ref = this.history.messages[0]) != null ? ref.id : void 0;
+      if (this.history.verified) {
+        this.renderCustomerHistory();
+      }
+      return this.send('chat_customer_history', {
+        session_id: this.sessionId,
+        before_id: this.history.pendingBefore
+      });
+    };
+
+    ZammadChat.prototype.onCustomerHistory = function(data) {
+      var first, fromBottom, j, k, key, known, len, len1, m, ref, ref1, ref2, ref3, value;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      if ((data.before_id || void 0) !== (this.history.pendingBefore || void 0)) {
+        return;
+      }
+      this.history.loading = false;
+      switch (data.state) {
+        case 'unavailable':
+          if ((ref = this.historyEl) != null) {
+            ref.remove();
+          }
+          this.historyEl = null;
+          return;
+        case 'locked':
+          this.history.email = data.email || this.history.email;
+          this.history.card = 'locked';
+          this.renderHistoryCard();
+          return;
+      }
+      first = !this.history.verified;
+      this.history.verified = true;
+      this.history.hasMore = !!data.has_more;
+      ref1 = data.sessions || {};
+      for (key in ref1) {
+        value = ref1[key];
+        this.history.sessions[key] = value;
+      }
+      known = {};
+      ref2 = this.history.messages;
+      for (j = 0, len = ref2.length; j < len; j++) {
+        m = ref2[j];
+        known[m.id] = true;
+      }
+      ref3 = data.messages || [];
+      for (k = 0, len1 = ref3.length; k < len1; k++) {
+        m = ref3[k];
+        if (!known[m.id]) {
+          this.history.messages.push(m);
+        }
+      }
+      this.history.messages.sort(function(a, b) {
+        return a.id - b.id;
+      });
+      fromBottom = this.body.scrollHeight - this.body.scrollTop;
+      this.renderCustomerHistory();
+      if (first && this.scrolledToBottom) {
+        return this.scrollToBottom();
+      } else {
+        return this.body.scrollTop = this.body.scrollHeight - fromBottom;
+      }
+    };
+
+    ZammadChat.prototype.onHistoryScroll = function() {
+      var ref;
+      if (!((ref = this.history) != null ? ref.verified : void 0) || !this.history.hasMore || this.history.loading) {
+        return;
+      }
+      if (this.body.scrollTop < 60) {
+        return this.requestCustomerHistory();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryClick = function(event) {
+      if (event.target.closest('.js-history-view, .js-history-resend')) {
+        event.preventDefault();
+        this.history.busy = true;
+        this.renderHistoryCard();
+        return this.send('chat_customer_history_otp_request', {
+          session_id: this.sessionId
+        });
+      } else if (event.target.closest('.js-history-cancel')) {
+        event.preventDefault();
+        this.history.card = 'locked';
+        this.history.error = null;
+        return this.renderHistoryCard();
+      } else if (event.target.closest('.js-history-verify')) {
+        event.preventDefault();
+        return this.submitHistoryOtp();
+      } else if (event.target.closest('.js-history-more')) {
+        event.preventDefault();
+        if (this.history.hasMore) {
+          return this.requestCustomerHistory();
+        }
+      }
+    };
+
+    ZammadChat.prototype.onCustomerHistoryOtpRequest = function(data) {
+      var ref;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      this.history.busy = false;
+      this.history.email = data.email || this.history.email;
+      switch (data.state) {
+        case 'verified':
+          this.requestCustomerHistory();
+          return;
+        case 'ok':
+          this.history.error = null;
+          break;
+        case 'cooldown':
+          this.history.error = this.T('Please wait %s seconds before requesting another code.', data.wait_seconds);
+          break;
+        default:
+          this.history.error = this.T('The code could not be sent. Please try again later.');
+      }
+      this.history.card = 'otp';
+      this.renderHistoryCard();
+      return (ref = this.historyEl.querySelector('.js-history-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.submitHistoryOtp = function() {
+      var code, el, j, len, ref;
+      if (this.history.busy) {
+        return;
+      }
+      code = '';
+      ref = this.historyEl.querySelectorAll('.js-history-otp-digit');
+      for (j = 0, len = ref.length; j < len; j++) {
+        el = ref[j];
+        code += el.value || '';
+      }
+      if (code.length !== 6) {
+        this.history.error = this.T('Please enter the full 6-digit code.');
+        this.renderHistoryCard();
+        return;
+      }
+      this.history.busy = true;
+      return this.send('chat_customer_history_otp_verify', {
+        session_id: this.sessionId,
+        code: code
+      });
+    };
+
+    ZammadChat.prototype.onCustomerHistoryOtpVerify = function(data) {
+      var ref;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      this.history.busy = false;
+      if (data.state === 'ok') {
+        this.history.error = null;
+        this.requestCustomerHistory();
+        return;
+      }
+      this.history.error = (function() {
+        switch (data.state) {
+          case 'expired':
+            return this.T('This code has expired. Please request a new one.');
+          case 'too_many_attempts':
+            return this.T('Too many incorrect attempts. Please request a new code.');
+          default:
+            return this.T('Incorrect code. Please try again.');
+        }
+      }).call(this);
+      this.renderHistoryCard();
+      return (ref = this.historyEl.querySelector('.js-history-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.renderHistoryCard = function() {
+      if (!this.historyEl) {
+        return;
+      }
+      return this.historyEl.innerHTML = this.view('history_card')({
+        state: this.history.card || 'locked',
+        email: this.history.email,
+        error: this.history.error,
+        busy: this.history.busy
+      });
+    };
+
+    ZammadChat.prototype.onHistoryOtpInput = function(event) {
+      var input, next, ref, value;
+      input = event.target;
+      if (!((ref = input.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      value = input.value.replace(/[^0-9]/g, '');
+      input.value = value.slice(-1);
+      if (!value) {
+        return;
+      }
+      next = this.historyEl.querySelector(".js-history-otp-digit[data-index='" + (parseInt(input.dataset.index, 10) + 1) + "']");
+      if (next) {
+        return next.focus();
+      } else {
+        return this.submitHistoryOtp();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryOtpKeydown = function(event) {
+      var input, prev, ref;
+      input = event.target;
+      if (!((ref = input.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        this.submitHistoryOtp();
+        return;
+      }
+      if (event.keyCode !== 8 || input.value) {
+        return;
+      }
+      prev = this.historyEl.querySelector(".js-history-otp-digit[data-index='" + (parseInt(input.dataset.index, 10) - 1) + "']");
+      if (prev) {
+        prev.value = '';
+        return prev.focus();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryOtpPaste = function(event) {
+      var box, boxes, i, j, len, pasted, ref, ref1, ref2, ref3;
+      if (!((ref = event.target.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      event.preventDefault();
+      pasted = ((ref1 = event.clipboardData) != null ? (ref2 = ref1.getData('text')) != null ? ref2.replace(/[^0-9]/g, '') : void 0 : void 0) || '';
+      if (!pasted) {
+        return;
+      }
+      boxes = this.historyEl.querySelectorAll('.js-history-otp-digit');
+      for (i = j = 0, len = boxes.length; j < len; i = ++j) {
+        box = boxes[i];
+        box.value = pasted.charAt(i) || '';
+      }
+      if (pasted.length >= boxes.length) {
+        return this.submitHistoryOtp();
+      } else {
+        return (ref3 = boxes[pasted.length]) != null ? ref3.focus() : void 0;
+      }
+    };
+
+    ZammadChat.prototype.historyDateLabel = function(time) {
+      var date;
+      date = new Date(time);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      if (date.toDateString() === new Date().toDateString()) {
+        return this.T('Today');
+      }
+      try {
+        return date.toLocaleDateString(this.options.lang || void 0, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error1) {
+        return date.toDateString();
+      }
+    };
+
+    ZammadChat.prototype.renderCustomerHistory = function() {
+      var day, ended, from, index, items, j, lastAuthor, lastDay, lastSession, len, message, messages, meta, part, pushEnd, range, session, started, state;
+      if (!this.historyEl) {
+        return;
+      }
+      items = [];
+      lastDay = null;
+      lastSession = null;
+      lastAuthor = null;
+      messages = this.history.messages;
+      pushEnd = (function(_this) {
+        return function(session, lastMessage) {
+          var text, time;
+          if (!session || !lastMessage || session.state !== 'closed') {
+            return;
+          }
+          if (session.last_message_id && lastMessage.id !== session.last_message_id) {
+            return;
+          }
+          text = (function() {
+            switch (session.closed_by) {
+              case 'agent':
+                return this.T('Chat ended by the agent');
+              case 'customer':
+                return this.T('Chat ended by you');
+              default:
+                return this.T('Chat ended');
+            }
+          }).call(_this);
+          time = session.ended_at ? _this.formatTime(session.ended_at) : '';
+          return items.push({
+            type: 'end',
+            text: (time ? text + " · " + time : text),
+            score: session.csat_score
+          });
+        };
+      })(this);
+      for (index = j = 0, len = messages.length; j < len; index = ++j) {
+        message = messages[index];
+        session = this.history.sessions[String(message.chat_session_id)] || {};
+        if (lastSession && session !== lastSession) {
+          pushEnd(lastSession, messages[index - 1]);
+        }
+        day = new Date(message.created_at).toDateString();
+        if (day !== lastDay) {
+          items.push({
+            type: 'date',
+            label: this.historyDateLabel(message.created_at)
+          });
+          lastDay = day;
+        }
+        if (session !== lastSession) {
+          started = this.formatTime(session.created_at);
+          ended = session.ended_at ? this.formatTime(session.ended_at) : '';
+          range = ended && ended !== started ? started + "–" + ended : started;
+          meta = ((function() {
+            var k, len1, ref, results1;
+            ref = [session.agent_name, range];
+            results1 = [];
+            for (k = 0, len1 = ref.length; k < len1; k++) {
+              part = ref[k];
+              if (part) {
+                results1.push(part);
+              }
+            }
+            return results1;
+          })()).join(' · ');
+          items.push({
+            type: 'session',
+            id: session.id,
+            meta: meta
+          });
+          lastSession = session;
+          lastAuthor = null;
+        }
+        from = message.is_from_agent ? 'agent' : 'customer';
+        if (from === 'agent' && session.agent_name && lastAuthor !== session.agent_name) {
+          items.push({
+            type: 'author',
+            name: session.agent_name
+          });
+        }
+        lastAuthor = from === 'agent' ? session.agent_name : null;
+        items.push({
+          type: 'message',
+          html: this.historyMessageHtml(message, session, from)
+        });
+      }
+      if (lastSession) {
+        pushEnd(lastSession, messages[messages.length - 1]);
+      }
+      state = this.history.loading ? 'loading' : this.history.hasMore ? 'ready' : items.length ? 'end' : 'empty';
+      return this.historyEl.innerHTML = this.view('history_thread')({
+        items: items,
+        state: state,
+        pageSize: this.HISTORY_PAGE_SIZE
+      });
+    };
+
+    ZammadChat.prototype.historyMessageHtml = function(message, session, from) {
+      var ref, time;
+      time = this.formatTime(message.created_at);
+      if (message.filename) {
+        return this.view(this.attachmentView(message.content_type, message.display))({
+          from: from,
+          filename: message.filename,
+          metaLabel: this.attachmentMeta(message.filename, message.size),
+          senderLabel: this.attachmentSender(from === 'agent'),
+          url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + session.session_id + "/attachments/" + message.id,
+          unreadClass: '',
+          time: time,
+          isRead: !!message.read_at
+        });
+      } else {
+        return this.view('message')({
+          message: message.content,
+          from: from,
+          time: time,
+          isRead: !!message.read_at,
+          replyTo: (ref = message.reply_to) != null ? ref.content : void 0,
+          unreadClass: ''
+        });
+      }
+    };
+
+    ZammadChat.prototype.showWelcomeGreeting = function(createdAt) {
       var greeting;
       greeting = this.phrases['chat_phrase_messages_welcome_greeting'];
+      if (!greeting) {
+        return;
+      }
+      this.maybeAddTimestamp();
+      return this.renderMessage({
+        message: greeting,
+        from: 'agent',
+        time: this.formatTime(createdAt)
+      });
+    };
+
+    ZammadChat.prototype.showClosingGreeting = function() {
+      var greeting;
+      greeting = this.phrases['chat_phrase_messages_closing_greeting'];
       if (!greeting) {
         return;
       }
@@ -4907,32 +7853,28 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.showCustomerTimeout = function() {
-      var reload;
-      this.el.find('.zammad-chat-modal').html(this.view('customer_timeout')({
-        agent: this.agent.name,
-        delay: this.options.inactiveTimeout
-      }));
-      reload = function() {
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('customer_timeout')({
+        agent: this.escapeHtml(this.agent.name),
+        delay: parseInt(this.options.inactiveTimeout, 10) || this.options.inactiveTimeout
+      });
+      this.el.querySelector('.js-restart').addEventListener('click', function() {
         return location.reload();
-      };
-      this.el.find('.js-restart').on('click', reload);
+      });
       return this.sessionClose();
     };
 
     ZammadChat.prototype.showWaitingListTimeout = function() {
-      var reload;
-      this.el.find('.zammad-chat-modal').html(this.view('waiting_list_timeout')({
+      this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('waiting_list_timeout')({
         delay: this.options.watingListTimeout
-      }));
-      reload = function() {
+      });
+      this.el.querySelector('.js-restart').addEventListener('click', function() {
         return location.reload();
-      };
-      this.el.find('.js-restart').on('click', reload);
+      });
       return this.sessionClose();
     };
 
     ZammadChat.prototype.showLoader = function() {
-      return this.el.find('.zammad-chat-modal').html(this.view('loader')());
+      return this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('loader')();
     };
 
     ZammadChat.prototype.initialsOf = function(name) {
@@ -4944,39 +7886,33 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       return ((((ref = parts[0]) != null ? ref[0] : void 0) || '') + (((ref1 = parts[1]) != null ? ref1[0] : void 0) || '')).toUpperCase();
     };
 
-    ZammadChat.prototype.updateHomeLogo = function(url) {
-      var marks;
-      marks = this.el.find('.zammad-chat-home-logo-mark, .zammad-chat-prechat-icon');
-      marks.css('background', 'none');
-      return marks.html($('<img>').attr({
-        src: url,
-        alt: ''
-      }).css({
-        width: '100%',
-        height: '100%',
-        'object-fit': 'contain'
-      }));
-    };
-
     ZammadChat.prototype.updatePhrases = function(phrases) {
+      var input, welcomeGreeting, welcomeSubtext;
       this.phrases = phrases;
       if (!this.el) {
         return;
       }
-      this.el.find('.zammad-chat-tab-body--home').html(this.view('home')());
-      this.el.find('.zammad-chat-tab-body--help').html(this.view('help')());
+      this.el.querySelector('.zammad-chat-tab-body--home').innerHTML = this.view('home')();
+      this.el.querySelector('.zammad-chat-tab-body--help').innerHTML = this.view('help')();
       if (this.activeTab === 'help') {
         this.loadKnowledgeBase(true);
       } else {
         this.kbLoaded = false;
       }
-      this.el.find('.zammad-chat-welcome-title').html(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋');
-      this.el.find('.zammad-chat-welcome-subtext').text(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?'));
-      this.el.find('.zammad-chat-input').attr('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
-      this.applyOfflineHomeState();
-      if (this.logoUrl) {
-        return this.updateHomeLogo(this.logoUrl);
+      welcomeGreeting = this.el.querySelector('.js-welcome-greeting');
+      if (welcomeGreeting) {
+        welcomeGreeting.textContent = this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi Simmers');
       }
+      welcomeSubtext = this.el.querySelector('.zammad-chat-welcome-subtext');
+      if (welcomeSubtext) {
+        welcomeSubtext.textContent = this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?');
+      }
+      input = this.el.querySelector('.zammad-chat-input');
+      if (input) {
+        input.setAttribute('placeholder', this.T(this.phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…'));
+      }
+      this.applyOfflineHomeState();
+      return this.applyOnlineHomeState();
     };
 
     ZammadChat.prototype.formatTime = function(isoString) {
@@ -5017,13 +7953,18 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.setAgentOnlineState = function(state) {
-      var capitalizedState;
+      var capitalizedState, statusEl;
       this.state = state;
       if (!this.el) {
         return;
       }
       capitalizedState = state.charAt(0).toUpperCase() + state.slice(1);
-      return this.el.find('.zammad-chat-agent-status').attr('data-status', state).text(this.T(capitalizedState));
+      statusEl = this.el.querySelector('.zammad-chat-agent-status');
+      if (!statusEl) {
+        return;
+      }
+      statusEl.dataset.status = state;
+      return statusEl.textContent = this.T(capitalizedState);
     };
 
     ZammadChat.prototype.detectHost = function() {
@@ -5062,10 +8003,10 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
       var base, ref, ref1;
       this.cssLoaded = true;
       if ((ref = this.el) != null) {
-        ref.css('display', '');
+        ref.style.display = '';
       }
       if ((ref1 = this.launcherEl) != null) {
-        ref1.css('display', '');
+        ref1.style.display = '';
       }
       if (this.statusReceived) {
         this.hidePreload();
@@ -5124,69 +8065,39 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.disableScrollOnRoot = function() {
-      this.rootScrollOffset = this.scrollRoot.scrollTop();
-      return this.scrollRoot.css({
-        overflow: 'hidden',
-        position: 'fixed'
-      });
+      this.rootScrollOffset = this.scrollRoot.scrollTop;
+      this.scrollRoot.style.overflow = 'hidden';
+      return this.scrollRoot.style.position = 'fixed';
     };
 
     ZammadChat.prototype.enableScrollOnRoot = function() {
-      this.scrollRoot.scrollTop(this.rootScrollOffset);
-      return this.scrollRoot.css({
-        overflow: '',
-        position: ''
-      });
+      this.scrollRoot.scrollTop = this.rootScrollOffset;
+      this.scrollRoot.style.overflow = '';
+      return this.scrollRoot.style.position = '';
     };
 
     ZammadChat.prototype.isVisible = function(el, partial, hidden, direction) {
-      var $t, $w, _bottom, _left, _right, _top, bViz, clientSize, compareBottom, compareLeft, compareRight, compareTop, hVisible, lViz, offset, rViz, rec, t, tViz, vVisible, viewBottom, viewLeft, viewRight, viewTop, vpHeight, vpWidth;
+      var bViz, clientSize, hVisible, lViz, rViz, rec, tViz, vVisible, vpHeight, vpWidth;
       if (el.length < 1) {
         return;
       }
-      $w = $(window);
-      $t = el.length > 1 ? el.eq(0) : el;
-      t = $t.get(0);
-      vpWidth = $w.width();
-      vpHeight = $w.height();
+      vpWidth = window.innerWidth;
+      vpHeight = window.innerHeight;
       direction = direction ? direction : 'both';
       clientSize = hidden === true ? t.offsetWidth * t.offsetHeight : true;
-      if (typeof t.getBoundingClientRect === 'function') {
-        rec = t.getBoundingClientRect();
-        tViz = rec.top >= 0 && rec.top < vpHeight;
-        bViz = rec.bottom > 0 && rec.bottom <= vpHeight;
-        lViz = rec.left >= 0 && rec.left < vpWidth;
-        rViz = rec.right > 0 && rec.right <= vpWidth;
-        vVisible = partial ? tViz || bViz : tViz && bViz;
-        hVisible = partial ? lViz || rViz : lViz && rViz;
-        if (direction === 'both') {
-          return clientSize && vVisible && hVisible;
-        } else if (direction === 'vertical') {
-          return clientSize && vVisible;
-        } else if (direction === 'horizontal') {
-          return clientSize && hVisible;
-        }
-      } else {
-        viewTop = $w.scrollTop();
-        viewBottom = viewTop + vpHeight;
-        viewLeft = $w.scrollLeft();
-        viewRight = viewLeft + vpWidth;
-        offset = $t.offset();
-        _top = offset.top;
-        _bottom = _top + $t.height();
-        _left = offset.left;
-        _right = _left + $t.width();
-        compareTop = partial === true ? _bottom : _top;
-        compareBottom = partial === true ? _top : _bottom;
-        compareLeft = partial === true ? _right : _left;
-        compareRight = partial === true ? _left : _right;
-        if (direction === 'both') {
-          return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop)) && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-        } else if (direction === 'vertical') {
-          return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop));
-        } else if (direction === 'horizontal') {
-          return !!clientSize && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-        }
+      rec = el.getBoundingClientRect();
+      tViz = rec.top >= 0 && rec.top < vpHeight;
+      bViz = rec.bottom > 0 && rec.bottom <= vpHeight;
+      lViz = rec.left >= 0 && rec.left < vpWidth;
+      rViz = rec.right > 0 && rec.right <= vpWidth;
+      vVisible = partial ? tViz || bViz : tViz && bViz;
+      hVisible = partial ? lViz || rViz : lViz && rViz;
+      if (direction === 'both') {
+        return clientSize && vVisible && hVisible;
+      } else if (direction === 'vertical') {
+        return clientSize && vVisible;
+      } else if (direction === 'horizontal') {
+        return clientSize && hVisible;
       }
     };
 
@@ -5300,28 +8211,30 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
     };
 
     ZammadChat.prototype.wordFilter = function(editor) {
-      var content, last_level, pnt;
+      var content, cur_level, el, i, j, k, l, last_level, len, len1, len2, len3, len4, len5, len6, len7, list_tag, matches, n, o, p, pnt, q, r, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s, start, str, txt, u;
       content = editor.html();
       content = content.replace(/<!--[\s\S]+?-->/gi, '');
       content = content.replace(/<(!|script[^>]*>.*?<\/script(?=[>\s])|\/?(\?xml(:\w+)?|img|meta|link|style|\w:\w+)(?=[\s\/>]))[^>]*>/gi, '');
       content = content.replace(/<(\/?)s>/gi, '<$1strike>');
       content = content.replace(/&nbsp;/gi, ' ');
-      editor.html(content);
-      $('p', editor).each(function() {
-        var matches, str;
-        str = $(this).attr('style');
+      editor.innerHTML = content;
+      ref = editor.querySelectorAll('p');
+      for (j = 0, len = ref.length; j < len; j++) {
+        p = ref[j];
+        str = p.getAttribute('style');
         matches = /mso-list:\w+ \w+([0-9]+)/.exec(str);
         if (matches) {
-          return $(this).data('_listLevel', parseInt(matches[1], 10));
+          p.dataset._listLevel = parseInt(matches[1], 10);
         }
-      });
+      }
       last_level = 0;
       pnt = null;
-      $('p', editor).each(function() {
-        var cur_level, i, j, list_tag, matches, ref, ref1, start, txt;
-        cur_level = $(this).data('_listLevel');
+      ref1 = editor.querySelectorAll('p');
+      for (k = 0, len1 = ref1.length; k < len1; k++) {
+        p = ref1[k];
+        cur_level = p.dataset._listLevel;
         if (cur_level !== void 0) {
-          txt = $(this).text();
+          txt = p.textContent;
           list_tag = '<ul></ul>';
           if (/^\s*\w+\./.test(txt)) {
             matches = /([0-9])\./.exec(txt);
@@ -5334,68 +8247,82 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
           }
           if (cur_level > last_level) {
             if (last_level === 0) {
-              $(this).before(list_tag);
-              pnt = $(this).prev();
+              p.insertAdjacentHTML('beforebegin', list_tag);
+              pnt = p.previousElementSibling;
             } else {
-              pnt = $(list_tag).appendTo(pnt);
+
             }
+            pnt.insertAdjacentHTML('beforeend', list_tag);
           }
           if (cur_level < last_level) {
-            for (i = j = ref = i, ref1 = last_level - cur_level; ref <= ref1 ? j <= ref1 : j >= ref1; i = ref <= ref1 ? ++j : --j) {
-              pnt = pnt.parent();
+            for (i = l = ref2 = i, ref3 = last_level - cur_level; ref2 <= ref3 ? l <= ref3 : l >= ref3; i = ref2 <= ref3 ? ++l : --l) {
+              pnt = pnt.parentNode;
             }
           }
-          $('span:first', this).remove();
-          pnt.append('<li>' + $(this).html() + '</li>');
-          $(this).remove();
-          return last_level = cur_level;
+          if (p.querySelector('span:first')) {
+            p.querySelector('span:first').remove();
+          }
+          pnt.insertAdjacentHTML('beforeend', '<li>' + p.innerHTML + '</li>');
+          p.remove();
+          last_level = cur_level;
         } else {
-          return last_level = 0;
+          last_level = 0;
         }
-      });
-      $('[style]', editor).removeAttr('style');
-      $('[align]', editor).removeAttr('align');
-      $('span', editor).replaceWith(function() {
-        return $(this).contents();
-      });
-      $('span:empty', editor).remove();
-      $("[class^='Mso']", editor).removeAttr('class');
-      $('p:empty', editor).remove();
+      }
+      ref4 = editor.querySelectorAll('[style]');
+      for (n = 0, len2 = ref4.length; n < len2; n++) {
+        el = ref4[n];
+        el.removeAttribute('style');
+      }
+      ref5 = editor.querySelectorAll('[align]');
+      for (o = 0, len3 = ref5.length; o < len3; o++) {
+        el = ref5[o];
+        el.removeAttribute('align');
+      }
+      ref6 = editor.querySelectorAll('span');
+      for (q = 0, len4 = ref6.length; q < len4; q++) {
+        el = ref6[q];
+        el.outerHTML = el.innerHTML;
+      }
+      ref7 = editor.querySelectorAll('span:empty');
+      for (r = 0, len5 = ref7.length; r < len5; r++) {
+        el = ref7[r];
+        el.remove();
+      }
+      ref8 = editor.querySelectorAll("[class^='Mso']");
+      for (s = 0, len6 = ref8.length; s < len6; s++) {
+        el = ref8[s];
+        el.removeAttribute('class');
+      }
+      ref9 = editor.querySelectorAll('p:empty');
+      for (u = 0, len7 = ref9.length; u < len7; u++) {
+        el = ref9[u];
+        el.remove();
+      }
       return editor;
     };
 
     ZammadChat.prototype.removeAttribute = function(element) {
-      var $element, att, j, len, ref;
+      var att, j, len, ref, results1;
       if (!element) {
         return;
       }
-      $element = $(element);
       ref = element.attributes;
+      results1 = [];
       for (j = 0, len = ref.length; j < len; j++) {
         att = ref[j];
-        if (att && att.name) {
-          element.removeAttribute(att.name);
-        }
+        results1.push(element.removeAttribute(att.name));
       }
-      return $element.removeAttr('style').removeAttr('class').removeAttr('lang').removeAttr('type').removeAttr('align').removeAttr('id').removeAttr('wrap').removeAttr('title');
+      return results1;
     };
 
-    ZammadChat.prototype.removeAttributes = function(html, parent) {
-      if (parent == null) {
-        parent = true;
+    ZammadChat.prototype.removeAttributes = function(html) {
+      var j, len, node, ref;
+      ref = html.querySelectorAll('*');
+      for (j = 0, len = ref.length; j < len; j++) {
+        node = ref[j];
+        this.removeAttribute(node);
       }
-      if (parent) {
-        html.each((function(_this) {
-          return function(index, element) {
-            return _this.removeAttribute(element);
-          };
-        })(this));
-      }
-      html.find('*').each((function(_this) {
-        return function(index, element) {
-          return _this.removeAttribute(element);
-        };
-      })(this));
       return html;
     };
 
@@ -5403,4 +8330,4 @@ var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); 
 
   })(Base);
   return window.ZammadChat = ZammadChat;
-})(window.jQuery, window);
+})(window);
