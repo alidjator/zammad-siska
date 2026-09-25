@@ -47,6 +47,7 @@ return is sent as message back to peer
 
     # broadcast new state to agents
     Chat.broadcast_agent_state_update(chat_ids, @session['id'])
+    Chat.broadcast_availability_change
   end
 
 end

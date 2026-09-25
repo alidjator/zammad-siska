@@ -39,6 +39,11 @@ class Service::AuxStatus::ChangeStatus
     # access to.
     Service::AuxStatus::DistributeTicket.pending_for(@target) if @status == 'available'
 
+    # AUX ikut menentukan agent dihitung online di live chat
+    # (`Chat.active_agent_count`) -- widget customer diberi tahu.
+    Chat.broadcast_availability_change
+
+
     @target
   end
 

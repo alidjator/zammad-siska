@@ -11,6 +11,11 @@ class Chat < ApplicationModel
   validates :note, length: { maximum: 250 }
   sanitized_html :note
 
+  # Atas permintaan user (widget berubah online/offline tanpa reload) --
+  # perubahan setting chat (aktif/nonaktif, max_queue, blokir, dst.)
+  # ikut diumumkan ke widget. Lihat `broadcast_availability_change`.
+  after_commit :broadcast_availability_change_after_commit, on: %i[create update destroy]
+
 =begin
 
 get the customer state of a chat
@@ -549,6 +554,23 @@ optional you can ignore it for dedicated user
 
 =end
 
+  # Atas permintaan user ("ketika agent klik on/off ini berubah tanpa
+  # reload halaman"). Beri tahu SEMUA klien websocket (termasuk widget
+  # customer anonim -> recipient 'public') bahwa ketersediaan chat
+  # mungkin berubah. Sengaja TANPA status: hasil `customer_state` bisa
+  # beda per customer (blokir IP/negara), jadi widget menanyakan ulang
+  # `chat_status_customer` sendiri (dgn jeda acak, lihat
+  # `onAvailabilityChanged` di public/assets/chat/chat-no-jquery.coffee).
+  # Klien desktop agent mengabaikan event yg tidak dikenalnya.
+  # Dipanggil dari: `Sessions::Event::ChatAgentState` (on/off agent),
+  # `Service::AuxStatus::ChangeStatus` (AUX manual & kedaluwarsa), dan
+  # `after_commit` model ini.
+  def self.broadcast_availability_change
+    Sessions.broadcast({ event: 'chat_availability_changed', data: {} }, 'public')
+  rescue => e
+    Rails.logger.error "Chat.broadcast_availability_change failed: #{e.message}"
+  end
+
   def self.broadcast_agent_state_update(chat_ids, ignore_user_id = nil)
 
     # send broadcast to agents
@@ -717,6 +739,12 @@ check if country is blocked for chat
 
     countries = block_country.split(';')
     countries.any?(geo_ip['country_code'])
+  end
+
+  private
+
+  def broadcast_availability_change_after_commit
+    self.class.broadcast_availability_change
   end
 
 end
