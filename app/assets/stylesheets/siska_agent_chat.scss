@@ -1397,6 +1397,15 @@ $siska-thumb-h: 180px;
   font-weight: 600;
 }
 
+// Subject prechat (judul tiket) -- di antara nama dan subline.
+.siska-agent .siska-conv-subject {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: $siska-body-color;
+  font-size: 13px;
+}
+
 .siska-agent .siska-conv-sub {
   overflow: hidden;
   text-overflow: ellipsis;

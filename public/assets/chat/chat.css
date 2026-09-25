@@ -1320,6 +1320,21 @@
   font-size: 13px;
 }
 
+.zammad-chat-prechat-field-meta {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(33, 37, 41, 0.6);
+}
+.zammad-chat-prechat-field-meta.is-invalid {
+  color: #dc2626;
+}
+
 .zammad-chat-prechat-notice {
   display: -webkit-box;
   display: -ms-flexbox;

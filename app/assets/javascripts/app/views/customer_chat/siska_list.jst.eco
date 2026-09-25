@@ -117,8 +117,8 @@
                     <span class="siska-chat-wait s-small"><%- @SiskaIcon('hourglass', 12) %><%= waiting.wait %></span>
                   <% end %>
                 </span>
-                <% if waiting.category: %>
-                  <span class="siska-chat-item-snippet s-muted s-small"><%= waiting.category %></span>
+                <% if waiting.subject or waiting.category: %>
+                  <span class="siska-chat-item-snippet s-muted s-small"<% if waiting.subject: %> title="<%= waiting.subject %>"<% end %>><%= _.compact([waiting.subject, waiting.category]).join(' · ') %></span>
                 <% end %>
               </span>
             </li>

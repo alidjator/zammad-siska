@@ -16,6 +16,7 @@ payload (widget anonim, Fase 5)
       name: 'the customer name (Fase 5 -- wajib, lihat DESIGN_LIVE_CHAT_ENHANCEMENT.md 5.1.1)',
       email: 'the customer email (Fase 5 -- wajib)',
       category: 'kategori tiket, wajib, salah satu value Chat::Session.category_options',
+      subject: 'judul tiket (maks. SUBJECT_MAX karakter) -- wajib di widget; kosong = judul lama',
     },
   }
 
@@ -47,6 +48,13 @@ return is sent as message back to peer
   # resminya.
   EMAIL_FORMAT = %r{\A[^@\s]+@[^@\s]+\.[^@\s]+\z}.freeze
 
+  # Atas permintaan user ("untuk live chat judul diambil dari subject")
+  # -- SAMA dgn `PRECHAT_SUBJECT_MAX` di widget (chat-no-jquery.coffee).
+  # Kosong TIDAK ditolak di sini supaya widget versi lama (belum py
+  # field Subject, masih ter-cache di situs pelanggan) tetap bisa
+  # memulai chat -- tiketnya jatuh ke judul lama "Live Chat - nama".
+  SUBJECT_MAX = 100
+
   def run
     return super if super
 
@@ -58,26 +66,30 @@ return is sent as message back to peer
 
     return if !check_chat_exists
 
-    name     = @payload['data']['name'].to_s.strip
     email    = @payload['data']['email'].to_s.strip.downcase
+    # Widget baru TIDAK lagi mengirim `name` (field prechat dihapus) --
+    # diturunkan dari email. Widget lama (masih ter-cache) yg masih
+    # mengirim nama tetap dihormati.
+    name     = @payload['data']['name'].to_s.strip.presence || Chat::Session.name_from_email(email)
     category = @payload['data']['category'].to_s.strip
+    subject  = @payload['data']['subject'].to_s.squish.truncate(SUBJECT_MAX, omission: '')
 
     # Atas permintaan user (field Category Prechat, wajib diisi sama
     # spt name/email): divalidasi thd Chat::Session.category_options
     # (SUMBER KEBENARAN yang sama dipakai utk menampilkan pilihan ke
     # widget, lihat chat_status_customer.rb) -- BUKAN daftar hardcode
     # terpisah yang bisa basi kalau admin ubah opsi Ticket.category.
-    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
+    if email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
       return {
         event: 'chat_session_init',
         data:  {
           state:   'failed',
-          message: __('Please provide a valid name, email, and category before starting the chat.'),
+          message: __('Please provide a valid email and category before starting the chat.'),
         },
       }
     end
 
-    create_session(chat_id: @payload['data']['chat_id'], name: name, email: email, category: category, ticket_id: nil, self_service: false)
+    create_session(chat_id: @payload['data']['chat_id'], name: name, email: email, category: category, subject: subject.presence, ticket_id: nil, self_service: false)
   end
 
   private
@@ -159,7 +171,7 @@ return is sent as message back to peer
   # TIDAK PERNAH mengisinya (tiket-nya SUDAH ADA & SUDAH punya
   # category sendiri, tidak ditanya ulang), cuma jalur widget anonim
   # (tiket BARU) yang mengisi.
-  def create_session(chat_id:, name:, email:, ticket_id:, self_service:, category: nil)
+  def create_session(chat_id:, name:, email:, ticket_id:, self_service:, category: nil, subject: nil)
     # geo ip lookup
     geo_ip = nil
     if remote_ip
@@ -196,6 +208,7 @@ return is sent as message back to peer
         geo_ip:       geo_ip,
         dns_name:     dns_name,
         self_service: self_service,
+        subject:      subject,
       },
     )
 

@@ -85,7 +85,6 @@ upsert_phrase('chat_phrase_offline_start_button', 'Offline: Tombol mulai pesan o
 puts '== Prechat (Isi Nama, Email & Category) =='
 upsert_phrase('chat_phrase_prechat_title', 'Prechat: Judul', "Let's get started")
 upsert_phrase('chat_phrase_prechat_subtitle', 'Prechat: Subjudul', 'Please share a few details so our agent can help you faster.')
-upsert_phrase('chat_phrase_prechat_name_label', 'Prechat: Label nama', 'Your name')
 upsert_phrase('chat_phrase_prechat_email_label', 'Prechat: Label email', 'Your email')
 # Atas permintaan user ("saya mau menambahkan kategori ini pada
 # halaman messages, sejalan dengan inputan name, email") -- field
@@ -97,8 +96,21 @@ upsert_phrase('chat_phrase_prechat_email_label', 'Prechat: Label email', 'Your e
 # basi kalau admin ubah opsi Ticket.category lewat Admin > Objects.
 upsert_phrase('chat_phrase_prechat_category_label', 'Prechat: Label category', 'Category')
 upsert_phrase('chat_phrase_prechat_category_placeholder', 'Prechat: Placeholder category (belum dipilih)', 'Select a category')
+# Atas permintaan user ("untuk live chat judul diambil dari subject")
+# -- field Subject prechat (judul tiket), wajib.
+upsert_phrase('chat_phrase_prechat_subject_label', 'Prechat: Label subject', 'Subject')
+upsert_phrase('chat_phrase_prechat_subject_placeholder', 'Prechat: Placeholder subject', "What's this about?")
+upsert_phrase('chat_phrase_prechat_subject_required', 'Prechat: Pesan subject wajib diisi', 'Please enter a subject.')
 upsert_phrase('chat_phrase_prechat_submit_button', 'Prechat: Tombol submit', 'Start chat')
-upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid name, email, and category.')
+upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid email, category, and subject.')
+# Field "Your name" dihapus & Subject ditambah -- nilai default LAMA
+# pesan validasi masih menyebut "name" & tidak menyebut subject.
+# Diperbarui HANYA kalau admin belum mengubahnya (masih default lama).
+legacy_validation = Setting.find_by(name: 'chat_phrase_prechat_validation_error')
+if legacy_validation && Setting.get('chat_phrase_prechat_validation_error') == 'Please provide a valid name, email, and category.'
+  Setting.set('chat_phrase_prechat_validation_error', 'Please provide a valid email, category, and subject.')
+  puts '  (diperbarui dari default lama) chat_phrase_prechat_validation_error'
+end
 
 puts '== Menunggu Agent & Timeout =='
 upsert_phrase('chat_phrase_waiting_title', 'Waiting: Judul (dipakai jg di layar connecting)', 'Connecting you to an agent…')

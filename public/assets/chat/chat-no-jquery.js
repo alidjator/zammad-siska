@@ -2492,21 +2492,37 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(__sanitize(this.category || ''));
     
-      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <!-- Atas permintaan user ("untuk live chat judul diambil dari\n    subject, tambahkan input subject dibawah kategori") -- WAJIB, maks.\n    100 karakter, dipakai jadi JUDUL tiket saat agent Accept (lihat\n    `Chat::Session#create_ticket_for_chat!`). Label/placeholder SAMA\n    dgn form pesan offline (views/offline_compose.eco). Disembunyikan\n    di mode offline (`@showSubject` false) -- form offline sudah\n    menanyakan Subject sendiri, jangan ditanya dua kali. -->\n    ');
     
-      __out.push(this.T(this.phrases['chat_phrase_prechat_name_label'] || 'Your name'));
-    
-      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-name');
-    
-      if (this.error && !this.name) {
-        __out.push(__sanitize(' zammad-chat-field-invalid'));
+      if (this.showSubject) {
+        __out.push('\n      <div class="zammad-chat-prechat-field">\n        <label>');
+        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_label'] || 'Subject'));
+        __out.push('</label>\n        <input type="text" class="zammad-chat-prechat-subject');
+        if (this.error && !this.subject) {
+          __out.push(__sanitize(' zammad-chat-field-invalid'));
+        }
+        __out.push('" value="');
+        __out.push(__sanitize(this.subject || ''));
+        __out.push('" maxlength="');
+        __out.push(__sanitize(this.subjectMax));
+        __out.push('" placeholder="');
+        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_placeholder'] || "What's this about?"));
+        __out.push('" required>\n        <div class="zammad-chat-prechat-field-meta');
+        if (this.error && !this.subject) {
+          __out.push(__sanitize(' is-invalid'));
+        }
+        __out.push('">\n          <span>');
+        if (this.error && !this.subject) {
+          __out.push(this.T(this.phrases['chat_phrase_prechat_subject_required'] || 'Please enter a subject.'));
+        }
+        __out.push('</span>\n          <span class="js-prechat-subject-count">');
+        __out.push(__sanitize((this.subject || '').length));
+        __out.push('/');
+        __out.push(__sanitize(this.subjectMax));
+        __out.push('</span>\n        </div>\n      </div>\n    ');
       }
     
-      __out.push('" value="');
-    
-      __out.push(__sanitize(this.name || ''));
-    
-      __out.push('" required>\n    </div>\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('\n    <!-- Field "Your name" DIHAPUS atas permintaan user -- nama diisi\n    sistem dari bagian depan email (lihat `nameFromEmail` di\n    chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_email_label'] || 'Your email'));
     
@@ -6067,7 +6083,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.showPrechatForm = function(params) {
-      var j, len, menu, opt, ref, selectedValue, toggleBtn;
+      var j, len, menu, opt, ref, selectedValue, subjectInput, toggleBtn;
       if (params == null) {
         params = {};
       }
@@ -6076,9 +6092,24 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         notice: params.notice,
         name: params.name,
         email: params.email,
-        category: params.category
+        category: params.category,
+        subject: params.subject,
+        showSubject: !this.offlineMode,
+        subjectMax: this.PRECHAT_SUBJECT_MAX
       });
       this.el.querySelector('.zammad-chat-prechat-form').addEventListener('submit', this.submitPrechatForm);
+      subjectInput = this.el.querySelector('.zammad-chat-prechat-subject');
+      if (subjectInput) {
+        subjectInput.addEventListener('input', (function(_this) {
+          return function() {
+            var counter;
+            counter = _this.el.querySelector('.js-prechat-subject-count');
+            if (counter) {
+              return counter.textContent = subjectInput.value.length + "/" + _this.PRECHAT_SUBJECT_MAX;
+            }
+          };
+        })(this));
+      }
       if (this.logoUrl) {
         this.updateHomeLogo(this.logoUrl);
       }
@@ -6156,22 +6187,32 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
     };
 
+    ZammadChat.prototype.nameFromEmail = function(email) {
+      var local;
+      local = String(email || '').split('@')[0];
+      return local.replace(/[^A-Za-z0-9]+/g, ' ').trim() || email;
+    };
+
+    ZammadChat.prototype.PRECHAT_SUBJECT_MAX = 100;
+
     ZammadChat.prototype.submitPrechatForm = function(event) {
-      var category, email, emailFormat, name, ref, ref1, ref2, ref3, ref4, ref5;
+      var category, email, emailFormat, name, needSubject, ref, ref1, ref2, ref3, ref4, ref5, subject;
       event.preventDefault();
-      name = (ref = this.el.querySelector('.zammad-chat-prechat-name')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
-      email = (ref2 = this.el.querySelector('.zammad-chat-prechat-email')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
-      category = (ref4 = this.el.querySelector('.js-prechat-category-input')) != null ? (ref5 = ref4.value) != null ? ref5.trim() : void 0 : void 0;
+      email = (ref = this.el.querySelector('.zammad-chat-prechat-email')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
+      category = (ref2 = this.el.querySelector('.js-prechat-category-input')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
+      subject = (ref4 = this.el.querySelector('.zammad-chat-prechat-subject')) != null ? (ref5 = ref4.value) != null ? ref5.trim() : void 0 : void 0;
+      needSubject = !this.offlineMode;
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-      if (!name || !email || !emailFormat.test(email) || !category) {
+      if (!email || !emailFormat.test(email) || !category || (needSubject && !subject)) {
         this.showPrechatForm({
-          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name, email, and category.'),
-          name: name,
+          error: (needSubject ? this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.') : this.T('Please provide a valid email and category.')),
           email: email,
-          category: category
+          category: category,
+          subject: subject
         });
         return;
       }
+      name = this.nameFromEmail(email);
       this.customerName = name;
       sessionStorage.setItem('customerName', name);
       this.customerEmail = email;
@@ -6189,7 +6230,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           url: window.location.href,
           name: name,
           email: email,
-          category: category
+          category: category,
+          subject: subject
         });
       }
     };

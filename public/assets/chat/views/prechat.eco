@@ -44,10 +44,26 @@
       <input type="hidden" class="js-prechat-category-input" value="<%= @category || '' %>">
       <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>
     </div>
-    <div class="zammad-chat-prechat-field">
-      <label><%- @T(@phrases['chat_phrase_prechat_name_label'] || 'Your name') %></label>
-      <input type="text" class="zammad-chat-prechat-name<%= ' zammad-chat-field-invalid' if @error and !@name %>" value="<%= @name || '' %>" required>
-    </div>
+    <!-- Atas permintaan user ("untuk live chat judul diambil dari
+    subject, tambahkan input subject dibawah kategori") -- WAJIB, maks.
+    100 karakter, dipakai jadi JUDUL tiket saat agent Accept (lihat
+    `Chat::Session#create_ticket_for_chat!`). Label/placeholder SAMA
+    dgn form pesan offline (views/offline_compose.eco). Disembunyikan
+    di mode offline (`@showSubject` false) -- form offline sudah
+    menanyakan Subject sendiri, jangan ditanya dua kali. -->
+    <% if @showSubject: %>
+      <div class="zammad-chat-prechat-field">
+        <label><%- @T(@phrases['chat_phrase_prechat_subject_label'] || 'Subject') %></label>
+        <input type="text" class="zammad-chat-prechat-subject<%= ' zammad-chat-field-invalid' if @error and !@subject %>" value="<%= @subject || '' %>" maxlength="<%= @subjectMax %>" placeholder="<%- @T(@phrases['chat_phrase_prechat_subject_placeholder'] || "What's this about?") %>" required>
+        <div class="zammad-chat-prechat-field-meta<%= ' is-invalid' if @error and !@subject %>">
+          <span><% if @error and !@subject: %><%- @T(@phrases['chat_phrase_prechat_subject_required'] || 'Please enter a subject.') %><% end %></span>
+          <span class="js-prechat-subject-count"><%= (@subject || '').length %>/<%= @subjectMax %></span>
+        </div>
+      </div>
+    <% end %>
+    <!-- Field "Your name" DIHAPUS atas permintaan user -- nama diisi
+    sistem dari bagian depan email (lihat `nameFromEmail` di
+    chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_email_label'] || 'Your email') %></label>
       <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%= @email || '' %>" required>

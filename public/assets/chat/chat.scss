@@ -1732,6 +1732,20 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   font-size: 13px;
 }
 
+// Baris kecil di bawah input Subject prechat: pesan wajib-diisi (kiri)
+// + penghitung karakter x/100 (kanan).
+.zammad-chat-prechat-field-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(33, 37, 41, 0.6);
+
+  &.is-invalid {
+    color: $siska-error;
+  }
+}
+
 // Atas permintaan user (audit kit Able Pro TAILWIND baru) -- diganti
 // dari style "outline" Able Pro VUE lama (transparan+border
 // currentColor) ke satu-satunya pola `.alert-success` yang GENUINELY

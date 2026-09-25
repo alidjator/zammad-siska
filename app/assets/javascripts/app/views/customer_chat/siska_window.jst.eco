@@ -11,6 +11,9 @@
     </span>
     <div class="siska-conv-title">
       <div class="siska-conv-name"><span class="js-name"><%= @name %></span></div>
+      <% if @subject: %>
+        <div class="siska-conv-subject" title="<%= @subject %>"><%= @subject %></div>
+      <% end %>
       <div class="siska-conv-sub"><%= @subline %></div>
     </div>
     <div class="siska-conv-actions">

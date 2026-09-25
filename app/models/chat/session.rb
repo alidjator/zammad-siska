@@ -34,6 +34,15 @@ class Chat::Session < ApplicationModel
   # `chat_status_customer.rb` MAUPUN `chat_session_init.rb`/
   # `chat_offline_session_init.rb`) supaya 1 sumber dipakai baik utk
   # menampilkan pilihan (widget) maupun memvalidasi nilai (server).
+  # Atas permintaan user (field "Your name" prechat dihapus) -- nama
+  # customer diturunkan dari bagian depan email: tiap deret karakter
+  # non-alfanumerik jadi 1 spasi ("alidjator_78.klx@gmail.com" ->
+  # "alidjator 78 klx"). Rumus SAMA dgn `nameFromEmail` di widget
+  # (chat-no-jquery.coffee). Kosong -> email utuh.
+  def self.name_from_email(email)
+    email.to_s.split('@').first.to_s.gsub(%r{[^A-Za-z0-9]+}, ' ').strip.presence || email.to_s
+  end
+
   def self.category_options
     attr = ObjectManager::Attribute.get(object: 'Ticket', name: 'category')
     return [] if !attr
@@ -124,6 +133,11 @@ class Chat::Session < ApplicationModel
   # Subject wajib. Default `nil` -> fallback ke judul generik lama
   # (`"Live Chat - #{name}"`) -- chat BIASA (tanpa form Subject sama
   # sekali) TIDAK terpengaruh SAMA SEKALI.
+  #
+  # Chat BIASA sekarang juga py Subject (form prechat, disimpan di
+  # `preferences[:subject]` oleh `chat_session_init.rb`) -- dipakai
+  # jadi judul kalau ada; sesi dari widget lama tanpa Subject tetap
+  # jatuh ke judul generik.
   def create_ticket_for_chat!(article: nil, title: nil)
     return if ticket_id.present?
 
@@ -152,7 +166,7 @@ class Chat::Session < ApplicationModel
     actor_id = user_id.presence || 1
 
     ticket = Ticket.create!(
-      title:         title.presence || "Live Chat - #{name.presence || email}",
+      title:         title.presence || preferences[:subject].presence || "Live Chat - #{name.presence || email}",
       group_id:      group_id,
       customer_id:   customer.id,
       # Atas permintaan user (field Category Prechat) -- `category`

@@ -2495,8 +2495,17 @@ do(window) ->
         name: params.name
         email: params.email
         category: params.category
+        subject: params.subject
+        showSubject: !@offlineMode
+        subjectMax: @PRECHAT_SUBJECT_MAX
       )
       @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
+      # Penghitung karakter Subject (x/100) -- diperbarui tiap ketik.
+      subjectInput = @el.querySelector('.zammad-chat-prechat-subject')
+      if subjectInput
+        subjectInput.addEventListener 'input', =>
+          counter = @el.querySelector('.js-prechat-subject-count')
+          counter.textContent = "#{subjectInput.value.length}/#{@PRECHAT_SUBJECT_MAX}" if counter
       # Logo custom -- mirror persis dari chat.coffee (lihat catatan
       # panjang di sana).
       @updateHomeLogo(@logoUrl) if @logoUrl
@@ -2575,10 +2584,20 @@ do(window) ->
         button.classList.remove('is-loading')
         button.disabled = false
 
+    # "alidjator_78.klx@gmail.com" -> "alidjator 78 klx": ambil bagian
+    # sebelum @, tiap deret karakter non-alfanumerik jadi 1 spasi.
+    # Kosong (mis. "___@x.com") -> pakai email utuh.
+    nameFromEmail: (email) ->
+      local = String(email || '').split('@')[0]
+      local.replace(/[^A-Za-z0-9]+/g, ' ').trim() || email
+
+    # Batas panjang Subject prechat -- SAMA dgn `SUBJECT_MAX` di
+    # lib/sessions/event/chat_session_init.rb.
+    PRECHAT_SUBJECT_MAX: 100
+
     submitPrechatForm: (event) =>
       event.preventDefault()
 
-      name     = @el.querySelector('.zammad-chat-prechat-name')?.value?.trim()
       email    = @el.querySelector('.zammad-chat-prechat-email')?.value?.trim()
       # Atas permintaan user (field Category, wajib sama spt
       # name/email) -- nilai SUNGGUHAN disimpan di input tersembunyi
@@ -2588,13 +2607,18 @@ do(window) ->
       # `value` sungguhan yang dikirim ke server).
       category = @el.querySelector('.js-prechat-category-input')?.value?.trim()
 
+      # Subject (judul tiket) -- cuma ditanya di mode online, lihat
+      # catatan `@showSubject` di views/prechat.eco.
+      subject  = @el.querySelector('.zammad-chat-prechat-subject')?.value?.trim()
+      needSubject = !@offlineMode
+
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-      if !name || !email || !emailFormat.test(email) || !category
+      if !email || !emailFormat.test(email) || !category || (needSubject && !subject)
         @showPrechatForm
-          error:    @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid name, email, and category.')
-          name:     name
+          error:    (if needSubject then @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.') else @T('Please provide a valid email and category.'))
           email:    email
           category: category
+          subject:  subject
         return
 
       # Dipakai lagi nanti utk avatar inisial di bubble pesan sendiri
@@ -2604,6 +2628,10 @@ do(window) ->
       # & jam pesan): `@customerName` cuma variabel JS di memori,
       # server TIDAK PERNAH mengirim balik nama customer di payload
       # reconnect (`Chat#customer_state`).
+      # Nama TIDAK lagi ditanya (atas permintaan user) -- diturunkan
+      # dari email, rumus SAMA dgn server (`Chat::Session.name_from_email`)
+      # supaya avatar inisial di widget cocok dgn nama yg dilihat agent.
+      name = @nameFromEmail(email)
       @customerName = name
       sessionStorage.setItem 'customerName', name
       # Enhancement 1 -- Tahap 3 -- mirror persis dari chat.coffee
@@ -2626,6 +2654,7 @@ do(window) ->
           name:     name
           email:    email
           category: category
+          subject:  subject
         )
 
     # ============================================================

@@ -48,8 +48,11 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
       }
     end
 
-    name     = @payload['data']['name'].to_s.strip
     email    = @payload['data']['email'].to_s.strip.downcase
+    # Widget baru TIDAK lagi mengirim `name` (field prechat dihapus) --
+    # diturunkan dari email. Widget lama (masih ter-cache) yg masih
+    # mengirim nama tetap dihormati.
+    name     = @payload['data']['name'].to_s.strip.presence || Chat::Session.name_from_email(email)
     category = @payload['data']['category'].to_s.strip
 
     # Atas permintaan user (field Category, wajib sama spt di jalur
@@ -57,10 +60,10 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
     # SAMA (`Chat::Session.category_options`), form Prechat/OfflineHome
     # di widget ADALAH satu form yang SAMA (lihat catatan atas file
     # ini), jadi validasinya WAJIB konsisten dgn jalur online.
-    if name.blank? || email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
+    if email.blank? || !email.match?(EMAIL_FORMAT) || category.blank? || !Chat::Session.category_options.pluck(:value).include?(category)
       return {
         event: 'chat_offline_session_init',
-        data:  { state: 'failed', message: __('Please provide a valid name, email, and category.') },
+        data:  { state: 'failed', message: __('Please provide a valid email and category.') },
       }
     end
 

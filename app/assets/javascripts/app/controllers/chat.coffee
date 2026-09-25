@@ -334,11 +334,13 @@ class App.CustomerChat extends App.Controller
     for topic in topics
       sessions = []
       for waitingSession in (@meta.waiting_chat_session_list_by_chat?[topic.id] || [])
-        continue if !matches("#{waitingSession.name || ''} #{waitingSession.email || ''} #{waitingSession.category || ''}")
+        subject = waitingSession.preferences?.subject
+        continue if !matches("#{waitingSession.name || ''} #{waitingSession.email || ''} #{waitingSession.category || ''} #{subject || ''}")
         sessions.push(
           name:     waitingSession.name || App.i18n.translatePlain('Visitor')
           initials: App.SiskaFormat.initials(waitingSession.name)
           category: waitingSession.category
+          subject:  subject
           wait:     @formatWait(waitingSession.created_at)
         )
       waitingTotal += sessions.length
@@ -351,9 +353,9 @@ class App.CustomerChat extends App.Controller
       waitingTotal: waitingTotal
       showTopics:   topics.length > 1
       canAccept:    @maxChatWindows > @windowCount()
+      accepting:    @accepting?.chatId
       active:       !!@meta.active
       query:        @listQuery
-      accepting:    @accepting?.chatId
     )
 
     @detailEmpty.toggleClass('hidden', !!@selectedSessionId)
@@ -441,15 +443,13 @@ class App.CustomerChat extends App.Controller
 
   acceptChat: (e) =>
     return if @windowCount() >= @maxChatWindows
+    return if @accepting
     chat_id = $(e.currentTarget).attr('data-chat-id')
     @acceptPending = true
-    return if @accepting
+    @startAccepting(chat_id)
     App.WebSocket.send(event:'chat_session_start', chat_id: chat_id)
     @idleTimeoutStop()
-    @startAccepting(chat_id)
 
-  # Redesign sisi agent (Tahap 5) -- halaman Pengaturan menggantikan modal
-  # `Setting` lama. Dipanggil dari tombol Settings ATAU dari `switch` (Online
   # --- Loading penuh saat "Accept next" (mockup "Menerima chat") ------------
   # Keputusan user: batas waktu 10 detik; bila gagal & masih ada customer
   # menunggu, tombolnya "Accept next" (coba lagi), selain itu "Close".
@@ -499,6 +499,8 @@ class App.CustomerChat extends App.Controller
     e?.preventDefault()
     @finishAccepting()
 
+  # Redesign sisi agent (Tahap 5) -- halaman Pengaturan menggantikan modal
+  # `Setting` lama. Dipanggil dari tombol Settings ATAU dari `switch` (Online
   # tanpa topik aktif, dgn pesan error + `active` = status yang diminta),
   # persis seperti modal dulu. Jendela chat tetap hidup di belakangnya.
   settings: (params = {}) ->
@@ -1197,6 +1199,7 @@ class App.ChatWindow extends App.Controller
     prefs = session.preferences || {}
     started = App.SiskaFormat.time(session.created_at)
     details = []
+    details.push(label: __('Subject'), value: prefs.subject) if prefs.subject
     details.push(label: __('Category'), value: session.category) if session.category
     details.push(label: __('Session'), value: _.compact(["##{session.id}", (App.i18n.translatePlain('started %s', started) if started)]).join(' · '))
     details.push(label: __('Ticket'), value: '…', ticketId: session.ticket_id) if session.ticket_id
@@ -1213,6 +1216,7 @@ class App.ChatWindow extends App.Controller
     name:             @name
     session:          session
     initials:         App.SiskaFormat.initials(@name)
+    subject:          prefs.subject
     subline:          _.compact([session.email, session.category, App.i18n.translatePlain('session #%s', session.id)]).join(' · ')
     transferChats:    ({ id: chat.id, name: chat.displayName() } for chat in App.Chat.all() when chat.id isnt session.chat_id)
     details:          details

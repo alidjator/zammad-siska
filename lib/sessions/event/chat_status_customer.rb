@@ -78,10 +78,12 @@ return is sent as message back to peer
     chat_phrase_offline_start_button
     chat_phrase_prechat_title
     chat_phrase_prechat_subtitle
-    chat_phrase_prechat_name_label
     chat_phrase_prechat_email_label
     chat_phrase_prechat_category_label
     chat_phrase_prechat_category_placeholder
+    chat_phrase_prechat_subject_label
+    chat_phrase_prechat_subject_placeholder
+    chat_phrase_prechat_subject_required
     chat_phrase_prechat_submit_button
     chat_phrase_prechat_validation_error
     chat_phrase_waiting_title
