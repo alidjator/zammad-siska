@@ -74,7 +74,7 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 | 3.15 | Link "Continue to mobile" (hanya di mobile) | ✅ | |
 | 3.16 | Footer "Powered by Zammad" | 🔄 | Diganti branding SISKA (K5) |
 | 3.17 | Re-render otomatis saat setting login berubah (`config_update_local`) | ✅ | |
-| 3.18 | **OTP email setelah password benar** | ➕ | Lihat §6 |
+| 3.18 | ~~OTP email setelah password benar~~ | — | Ditunda (K1) |
 
 ## 4. Halaman Register (`#signup`)
 
@@ -118,14 +118,24 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
    jadi recovery code, "try another method", dan penegakan per role ikut
    berfungsi.
 
+**Aturan OTP register & lupa password (disepakati 2026-09-25)**
+
+- 6 digit acak, berlaku 5 menit, maks. 5 kali salah, jeda kirim ulang
+  30 detik (sama dgn OTP widget).
+- Tambahan: maks. 5 kode per 15 menit per akun/email; setting terpisah
+  `auth_otp_*`; kode disimpan sbg hash & dibandingkan constant-time;
+  template email khusus (bukan "SISKA Live Chat").
+- Tahapan: Tahap 1 OTP register, Tahap 3 OTP lupa password; OTP login
+  (Tahap 2) ditunda.
+
 **Keputusan (2026-09-25)**
 
 | # | Pertanyaan | Keputusan |
 |---|---|---|
-| K1 | OTP login berlaku untuk siapa | **Semua pengguna**, lewat setting on/off baru, **default off** |
-| K2 | "Don't ask again on this device for 30 days" | **Ya, 30 hari** |
+| K1 | OTP login berlaku untuk siapa | ~~Semua pengguna, setting on/off, default off~~ → **DITUNDA (2026-09-25): login TIDAK memakai OTP**, hanya register |
+| K2 | "Don't ask again on this device for 30 days" | ~~Ya, 30 hari~~ → gugur bersama K1 |
 | K3 | Isi email verifikasi register | **Kode 6 digit + link verifikasi lama sebagai cadangan** |
-| K4 | Halaman lupa password | **Redesign + OTP**: email → kode → password baru → langsung masuk |
+| K4 | Halaman lupa password | **Redesign + OTP**: email → kode → password baru → langsung masuk (dikonfirmasi ulang 2026-09-25: tetap OTP walau login tanpa OTP) |
 | K5 | Footer "Powered by Zammad" | Diganti "© SISKA · helpdesk.satu.solutions" (sesuai mockup) |
 | K6 | Layout | Kit Able Pro **Authentication v2** + ilustrasi customer service SISKA di kiri |
 
