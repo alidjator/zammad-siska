@@ -279,6 +279,13 @@ class App.CustomerChat extends App.Controller
 
     # reopen chats
     if @meta.active_sessions
+      # Audit chat agent: `active_sessions` = SEMUA sesi berjalan milik
+      # agent ini (dikirim tiap `chat_status_agent`, termasuk saat
+      # tersambung lagi). Jendela yg masih aktif tapi sesinya tidak ada di
+      # daftar ini sudah ditutup selagi agent offline -- tandai selesai.
+      runningIds = (session.session_id for session in @meta.active_sessions)
+      for sessionId, chat of @chatWindows
+        chat.closedWhileAway?() if chat && !chat.isOffline && !_.contains(runningIds, sessionId)
       for session in @meta.active_sessions
         @addChat(session)
     @meta.active_sessions = false
@@ -815,9 +822,14 @@ class App.ChatWindow extends App.Controller
     @controllerBind('chat_session_closed', (data) =>
       return if data.session_id isnt @session.session_id
       return if data.self_written
+      return if @isOffline
       if @siska
         text = if data.closed_by_agent
           App.i18n.translatePlain('Chat ended by %s', data.realname)
+        else if data.reason is 'agent_disconnected'
+          # Audit chat agent: chat dialihkan ke tiket krn agent terputus
+          # (`Chat::Session#handover_to_ticket!`), bukan ditutup customer.
+          @movedToTicketText(data.ticket_number)
         else
           App.i18n.translatePlain('Chat ended by the customer')
         @addSeparator(text)
@@ -1256,6 +1268,22 @@ class App.ChatWindow extends App.Controller
     showRating:       App.Config.get('chat_agent_show_rating') isnt false
 
   # Pemisah "Chat ended by … · HH:MM" (teks di-escape oleh template).
+  movedToTicketText: (ticketNumber) =>
+    # Hanya NOMOR tiket (bukan id internal) -- tanpa nomor, teks generik.
+    number = ticketNumber || @session.ticket_number
+    if number
+      App.i18n.translatePlain('The agent was disconnected. The chat was moved to ticket #%s.', number)
+    else
+      App.i18n.translatePlain('The agent was disconnected. The chat was moved to a ticket.')
+
+  # Audit chat agent: dipanggil CustomerChat#updateMeta saat agent
+  # tersambung lagi & sesi ini tidak lagi berjalan (ditutup selama agent
+  # offline -- event penutupannya tidak pernah sampai).
+  closedWhileAway: =>
+    return if @isOffline
+    @addSeparator(@movedToTicketText())
+    @goOffline()
+
   addSeparator: (text) =>
     @body.append App.view('customer_chat/siska_separator')(
       text: text

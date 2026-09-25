@@ -40,7 +40,9 @@
     <%- @T('Scroll down to see new messages') %>
   </div>
   <div class="chat-body-holder js-scrollHolder">
-    <div class="chat-body js-body"></div>
+    <!-- Audit chat agent (aksesibilitas): pesan customer yg masuk
+    diumumkan pembaca layar (hanya tambahan). -->
+    <div class="chat-body js-body" role="log" aria-live="polite" aria-relevant="additions" aria-label="<%- @Ti('Messages') %>"></div>
   </div>
   <div class="chat-reply-indicator js-replyIndicator hidden"></div>
 <div class="siska-ended-bar js-endedBar hidden" role="status">

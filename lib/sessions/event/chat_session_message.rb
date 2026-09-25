@@ -26,6 +26,24 @@ return is sent as message back to peer
 
     chat_session = current_chat_session
 
+    # SISKA (audit chat agent): sesi yg sudah ditutup (mis. dialihkan ke
+    # tiket krn agent terputus, `Chat::Session#handover_to_ticket!`) tidak
+    # boleh menerima pesan lagi -- sebelumnya pesan tetap tersimpan &
+    # ikut masuk tiket padahal lawan bicara tidak pernah menerimanya.
+    # Pengirim diberi tahu lewat `chat_session_closed` (+ alasan).
+    if chat_session.state == 'closed'
+      return {
+        event: 'chat_session_closed',
+        data:  {
+          session_id:      chat_session.session_id,
+          realname:        'System',
+          closed_by_agent: false,
+          reason:          chat_session.preferences[:closed_reason],
+          ticket_number:   chat_session.ticket&.number,
+        },
+      }
+    end
+
     user_id = nil
     if @session
       user_id = @session['id']

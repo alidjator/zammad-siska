@@ -637,3 +637,10 @@ msgstr "Masuk dengan kata sandi baru Anda untuk melanjutkan."
 
 msgid "Your reset session has expired. Please request a new code."
 msgstr "Sesi reset Anda sudah kedaluwarsa. Silakan minta kode baru."
+
+# Audit chat agent -- chat dialihkan ke tiket krn agent terputus
+msgid "The agent was disconnected. The chat was moved to ticket #%s."
+msgstr "Agent terputus. Chat dialihkan ke tiket #%s."
+
+msgid "The agent was disconnected. The chat was moved to a ticket."
+msgstr "Agent terputus. Chat dialihkan ke tiket."
