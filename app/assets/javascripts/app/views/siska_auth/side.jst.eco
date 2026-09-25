@@ -1,0 +1,6 @@
+<!-- Redesign login/register (Tahap 0, mockup "SISKA Login & Register",
+kit Able Pro Authentication v2): kolom ilustrasi kiri. Dekoratif murni;
+disembunyikan di layar < 992px (lihat siska_auth.scss). -->
+<div class="siska-auth-side" aria-hidden="true">
+  <img src="/assets/images/siska/auth-illustration.svg" alt="">
+</div>

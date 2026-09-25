@@ -4,6 +4,7 @@ class Login extends App.ControllerFullPage
     'click .js-go-to-mobile': 'goToMobile'
     'click .js-try-another':              'clickedTryAnotherTwoFactor'
     'click .js-select-two-factor-method': 'clickedAnotherTwoFactor'
+    'click .js-togglePassword':           'togglePassword'
   className: 'login'
 
   constructor: ->
@@ -225,6 +226,19 @@ class Login extends App.ControllerFullPage
       twoFactorMethod:           newMethod
       twoFactorAvailableMethods: @twoFactorAvailableMethods
     )
+
+  # Redesign login SISKA (Tahap 0) -- tombol mata di field password
+  # (views/login.jst.eco): tampilkan/sembunyikan isi password.
+  togglePassword: (e) ->
+    @preventDefaultAndStopPropagation(e)
+
+    button = $(e.currentTarget)
+    input  = @$('[name="password"]')
+    show   = input.attr('type') is 'password'
+    input.attr('type', if show then 'text' else 'password')
+    button.attr('aria-pressed', String(show))
+    button.attr('aria-label', App.i18n.translatePlain(if show then 'Hide password' else 'Show password'))
+    input.trigger('focus')
 
   goToMobile: (e) ->
     @preventDefaultAndStopPropagation(e)

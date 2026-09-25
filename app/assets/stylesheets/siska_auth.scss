@@ -1,0 +1,512 @@
+// Redesign halaman login / register / lupa password SISKA -- Tahap 0
+// (tampilan saja). Mockup: canvas "SISKA Login & Register", kit Able
+// Pro Authentication v2 (ilustrasi kiri, form kanan). Inventaris &
+// keputusan: docs/INVENTORY_LOGIN_REGISTER.md.
+//
+// Scope `.siska-auth` (root setiap template auth). Selektor root
+// digandakan (`.siska-auth.siska-auth`) supaya menang atas aturan
+// Zammad `.login`/`.signup`/`.reset_password` (padding, background,
+// warna teks) tanpa `!important`. Font & token warna SAMA dgn redesign
+// agent (siska_agent_chat.scss, font-face 'SISKA Inter' didefinisikan
+// di sana & ikut bundle yg sama).
+
+$sa-primary: #4680ff;
+$sa-primary-600: #3f78ff;
+$sa-primary-tint: rgba(70, 128, 255, 0.1);
+$sa-headings: #1d2630;
+$sa-body: #131920;
+$sa-secondary: #5b6b79;
+$sa-muted: rgba(33, 37, 41, 0.75);
+$sa-border: #e7eaee;
+$sa-input-border: #bec8d0;
+$sa-danger: #dd2727;
+$sa-danger-tint: rgba(221, 39, 39, 0.08);
+$sa-success: #1a8c61;
+$sa-success-tint: rgba(42, 167, 126, 0.1);
+$sa-warning: #b34c00;
+$sa-warning-tint: rgba(210, 89, 0, 0.08);
+$sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
+
+.siska-auth.siska-auth {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  min-height: 100vh;
+  padding: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  color: $sa-body;
+  font-family: 'SISKA Inter', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'salt';
+  font-size: 14px;
+  line-height: 1.5;
+
+  a {
+    color: $sa-primary;
+  }
+
+  p {
+    margin: 0;
+    max-width: none;
+    padding-top: 0;
+    text-align: inherit;
+    color: inherit;
+  }
+
+  p a {
+    text-decoration: none;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Kolom ilustrasi (kiri)
+// ---------------------------------------------------------------------
+.siska-auth-side {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  // Rasio ilustrasi 514:800, tidak melebihi 40% lebar layar.
+  width: min(64.25vh, 40vw);
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  @media (max-width: $sa-side-breakpoint - 1px) {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Kolom form (kanan)
+// ---------------------------------------------------------------------
+.siska-auth-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 72px;
+  position: relative;
+
+  @media (max-width: 767px) {
+    padding: 24px 16px 72px;
+  }
+}
+
+// Kartu tanpa bingkai & bayangan (kit v2: `card border-none
+// shadow-none` di atas latar putih). Tetap kelas `.hero-unit` (target
+// animasi shake login) -- tampilan bawaannya dinetralkan di sini.
+.siska-auth .siska-auth-card.hero-unit {
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+  padding: 40px 40px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: $sa-body;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (max-width: 767px) {
+    padding: 16px 0 16px;
+  }
+}
+
+.siska-auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.siska-auth-logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.siska-auth-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $sa-primary-tint;
+  color: $sa-primary;
+
+  &.is-success {
+    background: $sa-success-tint;
+    color: $sa-success;
+  }
+
+  &.is-danger {
+    background: $sa-danger-tint;
+    color: $sa-danger;
+  }
+}
+
+.siska-auth .siska-auth-title {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $sa-headings;
+}
+
+.siska-auth .siska-auth-subtitle,
+.siska-auth .siska-auth-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: $sa-muted;
+}
+
+.siska-auth .siska-auth-text {
+  text-align: center;
+}
+
+// ---------------------------------------------------------------------
+// Form (markup sendiri di login + markup App.ControllerForm di register,
+// lupa password, login admin; + langkah 2FA bawaan di dalam `.js-form`)
+// ---------------------------------------------------------------------
+.siska-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.siska-auth {
+  .form-group {
+    margin: 0;
+  }
+
+  // Form generik: satu grup per field, jarak antar grup.
+  .js-password,
+  .js-adminPassword,
+  .siska-auth-form > fieldset,
+  .siska-auth-form > .form-group + .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .formGroup-label {
+    margin-bottom: 6px;
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: $sa-headings;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+  }
+
+  .form-control {
+    height: auto;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid $sa-input-border;
+    border-radius: 8px;
+    background: #fff;
+    color: $sa-body;
+    font: inherit;
+    font-size: 14px;
+    box-shadow: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &::placeholder {
+      color: #97a2ac;
+    }
+
+    &:focus {
+      border-color: $sa-primary;
+      box-shadow: 0 0 0 3px rgba(70, 128, 255, 0.15);
+      outline: none;
+    }
+  }
+
+  .has-error .form-control {
+    border-color: $sa-danger;
+  }
+
+  .help-inline,
+  .help-block {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: $sa-danger;
+
+    &:empty {
+      display: none;
+    }
+  }
+
+  .help-text {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: $sa-secondary;
+    text-align: left;
+  }
+
+  // Judul langkah 2FA (views/widget/two_factor_login/*).
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: $sa-headings;
+  }
+
+  .form-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+  }
+
+  // Tombol: primer = pill penuh (kit, sama dgn widget & agent).
+  .btn {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .btn.btn--primary,
+  .siska-auth-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 20px;
+    border: 1px solid $sa-primary;
+    border-radius: 20px;
+    background: $sa-primary;
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: none;
+
+    &:hover,
+    &:focus-visible {
+      background: $sa-primary-600;
+      border-color: $sa-primary-600;
+      color: #fff;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $sa-primary;
+      outline-offset: 2px;
+    }
+
+    &[disabled] {
+      opacity: 0.65;
+    }
+  }
+
+  .btn--text {
+    color: $sa-primary;
+  }
+
+  .checkbox-replacement {
+    margin: 0;
+    font-size: 13px;
+    color: $sa-secondary;
+
+    .icon {
+      fill: $sa-primary;
+    }
+  }
+}
+
+.siska-auth-password {
+  position: relative;
+
+  .form-control {
+    padding-right: 48px;
+  }
+}
+
+.siska-auth-eye {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: $sa-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(29, 38, 48, 0.06);
+  }
+
+  &[aria-pressed='true'] {
+    color: $sa-primary;
+  }
+}
+
+.siska-auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.siska-auth .siska-auth-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: $sa-primary;
+
+  &:hover {
+    color: $sa-primary-600;
+    text-decoration: underline;
+  }
+}
+
+// Alert: markup sendiri (`.siska-auth-alert`) + `.alert` bawaan
+// (App.ControllerForm `.js-danger`, langkah 2FA).
+.siska-auth-alert,
+.siska-auth .alert {
+  margin: 0;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.siska-auth-alert.is-danger,
+.siska-auth .alert--danger {
+  color: $sa-danger;
+  background: $sa-danger-tint;
+}
+
+.siska-auth-alert.is-success,
+.siska-auth .alert--success {
+  color: $sa-success;
+  background: $sa-success-tint;
+}
+
+.siska-auth .alert--warning {
+  color: $sa-warning;
+  background: $sa-warning-tint;
+}
+
+.siska-auth-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: $sa-secondary;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $sa-border;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Bawah kartu: pindah login <-> register, catatan, link kembali, footer
+// ---------------------------------------------------------------------
+.siska-auth-footer {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: $sa-secondary;
+
+  &:empty {
+    display: none;
+  }
+
+  // Teks bantuan 2FA (help_text.jst.eco) dirender ke sini.
+  > p:not([class]) {
+    font-size: 13px;
+  }
+}
+
+.siska-auth .siska-auth-switch {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 18px;
+  border-top: 1px solid $sa-border;
+}
+
+.siska-auth .siska-auth-back {
+  display: flex;
+  justify-content: center;
+  padding-top: 18px;
+  border-top: 1px solid $sa-border;
+
+  .siska-auth-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: $sa-secondary;
+  }
+}
+
+.siska-auth-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  font-size: 12px;
+  color: $sa-secondary;
+  text-align: center;
+}
+
+.siska-auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+
+  a {
+    color: $sa-secondary;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siska-auth .form-control {
+    transition: none;
+  }
+}

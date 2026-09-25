@@ -18,6 +18,7 @@
  *= require chat_enhancements
  *= require my_chat
  *= require siska_agent_chat
+ *= require siska_auth
  *
  *= require_tree ./addons/
  *= require_tree ./custom/

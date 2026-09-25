@@ -1,29 +1,19 @@
-<div class="signup fullscreen">
-  <div class="fullscreen-center">
-    <div class="hero-unit fullscreen-body">
-      <h1><%- @T('Registration successful!') %></h1>
-      <p><%- @T('Thanks for joining. Email sent to "%s".', @email) %></p>
-      <p><%- @T('Please click on the link in the verification email.') %> <%- @T('If you don\'t see the email, check other places it might be, like your junk, spam, social, or other folders.') %></p>
-      <form>
+<!-- Redesign auth SISKA (Tahap 0, mockup "SISKA Login & Register",
+kit Able Pro Authentication v2) -- tampilan saja, alur & titik pasang
+JS (kelas js-*, `form`, `.retry`) tidak diubah. Tahap 1 akan mengganti layar ini dgn input kode OTP. -->
+<div class="siska-auth signup">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(icon: 'mail', title: App.i18n.translateContent('Registration successful!')) %>
+      <p class="siska-auth-text"><%- @T('Thanks for joining. Email sent to "%s".', @email) %></p>
+      <p class="siska-auth-text"><%- @T('Please click on the link in the verification email.') %> <%- @T('If you don\'t see the email, check other places it might be, like your junk, spam, social, or other folders.') %></p>
+      <form class="siska-auth-form">
         <input type="hidden" name="email" value="<%= @email %>">
-        <div class="form-controls">
-          <a class="btn btn--text btn--subtle js-cancel" href="#login"><%- @T('Go Back') %></a>
-          <button class="btn btn--primary js-submitResend align-right"><%- @T('Resend verification email') %></button>
-        </div>
+        <button class="btn btn--primary siska-auth-submit js-submitResend"><%- @T('Resend verification email') %></button>
       </form>
+      <p class="siska-auth-back"><a href="#login" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Go Back') %></a></p>
     </div>
-  <% if !_.isEmpty(@public_links): %>
-    <p>
-      <% for link, link_index in @public_links: %>
-        <% if link_index > 0: %> | <% end %>
-        <a href="<%= link.link %>" title="<% if link.description: %><%= link.description %><% else: %><%= link.title %><% end %>"<% if link.new_tab: %> target="_blank"<% end %>><%= link.title %></a>
-      <% end %>
-    </p>
-  <% end %>
-  </div>
-  <div class="poweredBy">
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logo') %></a>
-    <%- @T('Powered by') %>
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logotype', 'logotype') %></a>
-  </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
 </div>

@@ -447,3 +447,37 @@ msgstr "Menerima…"
 #: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
 msgid "Being accepted"
 msgstr "Sedang diterima"
+
+# Redesign login/register/lupa password (Tahap 0)
+msgid "Sign in to %s"
+msgstr "Masuk ke %s"
+
+msgid "Use the email or username registered with our support team."
+msgstr "Gunakan email atau nama pengguna yang terdaftar di tim dukungan kami."
+
+msgid "Show password"
+msgstr "Tampilkan kata sandi"
+
+msgid "Hide password"
+msgstr "Sembunyikan kata sandi"
+
+msgid "Don't have an account?"
+msgstr "Belum punya akun?"
+
+msgid "Create your %s account"
+msgstr "Buat akun %s Anda"
+
+msgid "We will send a verification email to activate your account."
+msgstr "Kami akan mengirim email verifikasi untuk mengaktifkan akun Anda."
+
+msgid "Already have an account?"
+msgstr "Sudah punya akun?"
+
+msgid "Back to sign in"
+msgstr "Kembali ke halaman masuk"
+
+msgid "Enter the email or username of your account. We will send you instructions to reset your password."
+msgstr "Masukkan email atau nama pengguna akun Anda. Kami akan mengirim petunjuk untuk mengatur ulang kata sandi."
+
+msgid "Send again"
+msgstr "Kirim ulang"

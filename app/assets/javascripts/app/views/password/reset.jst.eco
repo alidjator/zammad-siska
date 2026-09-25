@@ -1,27 +1,17 @@
-<div class="reset_password fullscreen">
-  <div class="fullscreen-center">
-    <div class="hero-unit fullscreen-body">
-      <h2><%- @T('Forgot your password?') %><small></small></h2>
-      <form class="js-passwordForm">
+<!-- Redesign auth SISKA (Tahap 0, mockup "SISKA Login & Register",
+kit Able Pro Authentication v2) -- tampilan saja, alur & titik pasang
+JS (kelas js-*, `form`, `.retry`) tidak diubah.  -->
+<div class="siska-auth reset_password">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(icon: 'key', title: App.i18n.translateContent('Forgot your password?'), subtitle: App.i18n.translateContent('Enter the email or username of your account. We will send you instructions to reset your password.')) %>
+      <form class="siska-auth-form js-passwordForm">
         <div class="js-password"></div>
-        <div class="form-controls">
-          <a class="btn btn--text btn--subtle js-cancel" href="#login"><%- @T('Cancel & Go Back') %></a>
-          <button class="btn btn--primary js-submit align-right"><%- @T('Submit') %></button>
-        </div>
+        <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Submit') %></button>
       </form>
+      <p class="siska-auth-back"><a href="#login" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Back to sign in') %></a></p>
     </div>
-  <% if !_.isEmpty(@public_links): %>
-    <p>
-      <% for link, link_index in @public_links: %>
-        <% if link_index > 0: %> | <% end %>
-        <a href="<%= link.link %>"<% if link.description: %> title="<%- @T(link.description) %>"<% end %><% if link.new_tab: %> rel="noopener noreferrer" target="_blank"<% end %>><%- @T(link.title) %></a>
-      <% end %>
-    </p>
-  <% end %>
-  </div>
-  <div class="poweredBy">
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logo') %></a>
-    <%- @T('Powered by') %>
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logotype', 'logotype') %></a>
-  </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
 </div>

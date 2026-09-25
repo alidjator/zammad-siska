@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 514 800" width="514" height="800">
+  <!-- Ilustrasi halaman login/register SISKA (mockup canvas "SISKA Login & Register"). -->
+  <defs>
+    <!-- Latar (warna dasar, lingkaran, garis putus-putus) memudar ke
+         putih mulai x~300 sampai tepi kanan, supaya menyatu dgn panel
+         form (tidak ada kesan kotak/terpisah). Kartu & bubble tidak
+         ikut dipudarkan. -->
+    <linearGradient id="fadeRight" gradientUnits="userSpaceOnUse" x1="290" y1="0" x2="514" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="bgMask" maskUnits="userSpaceOnUse" x="0" y="0" width="514" height="800">
+      <rect width="514" height="800" fill="url(#fadeRight)"/>
+    </mask>
+  </defs>
+  <rect width="514" height="800" fill="#ffffff"/>
+  <g mask="url(#bgMask)">
+    <rect width="514" height="800" fill="#f6f8fd"/>
+    <circle cx="257" cy="480" r="235" fill="#edf2ff"/>
+    <circle cx="257" cy="480" r="170" fill="#e4ecff"/>
+    <path d="M18 560 C40 330 140 190 257 178 C390 165 486 270 496 440" fill="none" stroke="#a9c1ff" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9"/>
+    <path d="M60 720 C160 760 360 760 470 690" fill="none" stroke="#c9d7fb" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 9"/>
+    <ellipse cx="257" cy="712" rx="200" ry="16" fill="#dfe7fb"/>
+  </g>
+
+  <!-- Dekorasi kecil -->
+  <circle cx="470" cy="58" r="8" fill="none" stroke="#f5b86a" stroke-width="3"/>
+  <circle cx="40" cy="92" r="6" fill="none" stroke="#f5b86a" stroke-width="2.5"/>
+  <circle cx="300" cy="46" r="5" fill="#a9c1ff"/>
+  <circle cx="28" cy="420" r="5" fill="#a9c1ff"/>
+  <circle cx="490" cy="520" r="6" fill="#ffd8a8"/>
+  <path d="M470 600 l0 14 M463 607 l14 0" stroke="#ff9fc4" stroke-width="3" stroke-linecap="round"/>
+  <path d="M34 640 l0 12 M28 646 l12 0" stroke="#7fd3b3" stroke-width="3" stroke-linecap="round"/>
+  <path d="M120 60 q6 -8 12 0 t12 0 t12 0" fill="none" stroke="#7fd3b3" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M430 360 q6 -8 12 0 t12 0" fill="none" stroke="#b9a7ff" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Email masuk -->
+  <g>
+    <rect x="222" y="74" width="70" height="48" rx="8" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+    <path d="M224 80 L257 104 L290 80" fill="none" stroke="#a9c1ff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="290" cy="76" r="9" fill="#ff6b8a"/>
+    <path d="M286 76 h8" stroke="#ffffff" stroke-width="0"/>
+  </g>
+
+  <!-- Kartu rating bintang -->
+  <g>
+    <rect x="46" y="128" width="164" height="52" rx="14" fill="#ffffff" stroke="#e3e9f7" stroke-width="2"/>
+    <g fill="#f5a524">
+      <path d="M72 142 l4.1 8.3 9.2 1.3 -6.6 6.5 1.6 9.1 -8.3 -4.3 -8.2 4.3 1.6 -9.1 -6.7 -6.5 9.2 -1.3z"/>
+      <path d="M102 142 l4.1 8.3 9.2 1.3 -6.6 6.5 1.6 9.1 -8.3 -4.3 -8.2 4.3 1.6 -9.1 -6.7 -6.5 9.2 -1.3z"/>
+      <path d="M132 142 l4.1 8.3 9.2 1.3 -6.6 6.5 1.6 9.1 -8.3 -4.3 -8.2 4.3 1.6 -9.1 -6.7 -6.5 9.2 -1.3z"/>
+      <path d="M162 142 l4.1 8.3 9.2 1.3 -6.6 6.5 1.6 9.1 -8.3 -4.3 -8.2 4.3 1.6 -9.1 -6.7 -6.5 9.2 -1.3z"/>
+    </g>
+    <path d="M192 142 l4.1 8.3 9.2 1.3 -6.6 6.5 1.6 9.1 -8.3 -4.3 -8.2 4.3 1.6 -9.1 -6.7 -6.5 9.2 -1.3z" fill="#e3e9f7"/>
+  </g>
+
+  <!-- Kartu tiket selesai -->
+  <g>
+    <rect x="330" y="100" width="140" height="74" rx="14" fill="#ffffff" stroke="#e3e9f7" stroke-width="2"/>
+    <circle cx="358" cy="137" r="15" fill="#e1f5ec"/>
+    <path d="M351 137 l5 5 9 -10" fill="none" stroke="#2aa77e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="382" y="122" width="70" height="8" rx="4" fill="#c9d3e6"/>
+    <rect x="382" y="138" width="50" height="8" rx="4" fill="#e3e9f7"/>
+    <rect x="382" y="154" width="30" height="8" rx="4" fill="#bfe8d6"/>
+  </g>
+
+  <!-- Bubble chat customer -->
+  <g>
+    <path d="M300 214 a16 16 0 0 1 16 -16 h138 a16 16 0 0 1 16 16 v34 a16 16 0 0 1 -16 16 h-122 l-18 16 v-16 a14 14 0 0 1 -14 -14 z" fill="#4680ff"/>
+    <rect x="320" y="216" width="112" height="9" rx="4.5" fill="#ffffff" opacity="0.9"/>
+    <rect x="320" y="234" width="76" height="9" rx="4.5" fill="#ffffff" opacity="0.6"/>
+  </g>
+
+  <!-- Bubble chat agent -->
+  <g>
+    <path d="M44 278 a16 16 0 0 1 16 -16 h138 a16 16 0 0 1 16 16 v34 a16 16 0 0 1 -16 16 h-24 l-18 16 v-16 h-96 a16 16 0 0 1 -16 -16 z" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+    <circle cx="70" cy="295" r="13" fill="#eaf0ff"/>
+    <path d="M63 296 a7 7 0 0 1 14 0" fill="none" stroke="#4680ff" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="61" y="294" width="4" height="7" rx="2" fill="#4680ff"/>
+    <rect x="75" y="294" width="4" height="7" rx="2" fill="#4680ff"/>
+    <rect x="92" y="282" width="100" height="9" rx="4.5" fill="#c9d3e6"/>
+    <rect x="92" y="300" width="70" height="9" rx="4.5" fill="#e3e9f7"/>
+  </g>
+
+  <!-- Indikator mengetik -->
+  <g>
+    <rect x="360" y="300" width="72" height="36" rx="18" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+    <circle cx="380" cy="318" r="5" fill="#a9c1ff"/>
+    <circle cx="396" cy="318" r="5" fill="#7fa2ff"/>
+    <circle cx="412" cy="318" r="5" fill="#4680ff"/>
+  </g>
+
+  <!-- Jam (waktu respons) -->
+  <g>
+    <circle cx="96" cy="410" r="24" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+    <circle cx="96" cy="410" r="16" fill="none" stroke="#f5a524" stroke-width="3"/>
+    <path d="M96 401 v10 l7 5" fill="none" stroke="#f5a524" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+
+  <!-- Kursi -->
+  <rect x="190" y="470" width="134" height="150" rx="40" fill="#c9d7fb"/>
+
+  <!-- Badan agent -->
+  <path d="M175 598 C175 526 202 484 257 484 C312 484 339 526 339 598 Z" fill="#4680ff"/>
+  <path d="M238 486 L257 512 L276 486 Z" fill="#dbe6ff"/>
+  <rect x="245" y="452" width="24" height="36" rx="10" fill="#eeb08f"/>
+
+  <!-- Kepala -->
+  <circle cx="257" cy="414" r="46" fill="#f7c9a8"/>
+  <path d="M209 410 C203 362 232 350 257 350 C292 350 313 370 305 408 C296 388 280 380 258 382 C236 384 220 392 214 416 Z" fill="#1d2a55"/>
+  <circle cx="300" cy="362" r="15" fill="#1d2a55"/>
+  <circle cx="241" cy="418" r="4.2" fill="#1d2a55"/>
+  <circle cx="273" cy="418" r="4.2" fill="#1d2a55"/>
+  <path d="M244 436 Q257 447 270 436" fill="none" stroke="#1d2a55" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="230" cy="432" r="6" fill="#ff9fa8" opacity="0.5"/>
+  <circle cx="284" cy="432" r="6" fill="#ff9fa8" opacity="0.5"/>
+
+  <!-- Headset -->
+  <path d="M205 410 C205 346 309 346 309 410" fill="none" stroke="#2b3a67" stroke-width="7" stroke-linecap="round"/>
+  <rect x="196" y="398" width="18" height="32" rx="8" fill="#4680ff"/>
+  <rect x="300" y="398" width="18" height="32" rx="8" fill="#4680ff"/>
+  <path d="M205 426 C205 452 222 462 240 458" fill="none" stroke="#2b3a67" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="243" cy="457" r="6" fill="#4680ff"/>
+
+  <!-- Lengan -->
+  <path d="M184 540 C168 566 172 594 206 598 L236 598 L236 584 L212 580 C206 566 208 552 212 538 Z" fill="#3a6ff0"/>
+  <path d="M330 540 C346 566 342 594 308 598 L278 598 L278 584 L302 580 C308 566 306 552 302 538 Z" fill="#3a6ff0"/>
+
+  <!-- Meja -->
+  <rect x="80" y="596" width="354" height="22" rx="8" fill="#b7c8f5"/>
+  <rect x="106" y="618" width="14" height="92" rx="5" fill="#a3b8ef"/>
+  <rect x="394" y="618" width="14" height="92" rx="5" fill="#a3b8ef"/>
+
+  <!-- Laptop (tampak belakang) -->
+  <rect x="200" y="522" width="114" height="74" rx="8" fill="#e8eeff" stroke="#c9d7fb" stroke-width="2"/>
+  <circle cx="257" cy="558" r="27" fill="#ffffff"/>
+  <!-- Logo SISKA (vektor): pin, atas biru, bawah cokelat, 3 cincin -->
+  <g transform="translate(257 555) scale(0.4)">
+    <defs>
+      <clipPath id="logoTop"><rect x="-60" y="-60" width="120" height="58"/></clipPath>
+      <clipPath id="logoBottom"><rect x="-60" y="-2" width="120" height="70"/></clipPath>
+    </defs>
+    <path d="M-50 0 A50 50 0 1 1 50 0 C50 24 28 42 0 64 C-28 42 -50 24 -50 0 Z" fill="#1ea5d0" clip-path="url(#logoTop)"/>
+    <path d="M-50 0 A50 50 0 1 1 50 0 C50 24 28 42 0 64 C-28 42 -50 24 -50 0 Z" fill="#d7a27b" clip-path="url(#logoBottom)"/>
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/>
+    <circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/>
+    <circle cx="0" cy="0" r="15.5" fill="#ffffff"/>
+  </g>
+  <rect x="190" y="592" width="134" height="7" rx="3.5" fill="#9fb5ee"/>
+
+  <!-- Tanaman -->
+  <path d="M137 556 C120 530 118 506 128 494 C140 510 142 534 137 556 Z" fill="#2aa77e"/>
+  <path d="M140 556 C150 526 166 512 180 510 C176 530 160 548 140 556 Z" fill="#7fd3b3"/>
+  <path d="M134 556 C116 544 104 530 102 516 C118 520 130 536 134 556 Z" fill="#5cc49c"/>
+  <rect x="118" y="554" width="40" height="42" rx="7" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+
+  <!-- Mug -->
+  <rect x="352" y="562" width="30" height="34" rx="6" fill="#ffffff" stroke="#dbe4f7" stroke-width="2"/>
+  <path d="M382 572 h6 a8 8 0 0 1 0 16 h-6" fill="none" stroke="#dbe4f7" stroke-width="3"/>
+  <rect x="352" y="574" width="30" height="7" fill="#ffd8a8"/>
+  <path d="M362 552 q-5 -6 0 -12 M372 552 q-5 -6 0 -12" fill="none" stroke="#c9d7fb" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

@@ -1,26 +1,23 @@
-<div class="signup fullscreen">
-  <div class="fullscreen-center">
-    <div class="hero-unit fullscreen-body">
-      <h1><%- @T('Join %s', @C('product_name')) %></h1>
-      <form>
-        <div class="form-controls">
-          <a class="btn btn--text btn--subtle js-cancel" href="#login"><%- @T('Cancel & Go Back') %></a>
-          <button class="btn btn--primary js-submit align-right"><%- @T('Create my account') %></button>
+<!-- Redesign auth SISKA (Tahap 0, mockup "SISKA Login & Register",
+kit Able Pro Authentication v2) -- tampilan saja, alur & titik pasang
+JS (kelas js-*, `form`, `.retry`) tidak diubah. Field tetap dibangun `App.ControllerForm` (screen signup) di dalam `<form>`. -->
+<div class="siska-auth signup">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", title: App.i18n.translateContent('Create your %s account', (@C('product_name') || '').split(' (')[0]), subtitle: App.i18n.translateContent('We will send a verification email to activate your account.')) %>
+      <form class="siska-auth-form">
+        <div class="siska-auth-actions">
+          <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Create account') %></button>
         </div>
       </form>
     </div>
-  <% if !_.isEmpty(@public_links): %>
-    <p>
-      <% for link, link_index in @public_links: %>
-        <% if link_index > 0: %> | <% end %>
-        <a href="<%= link.link %>"<% if link.description: %> title="<%- @T(link.description) %>"<% end %><% if link.new_tab: %> rel="noopener noreferrer" target="_blank"<% end %>><%- @T(link.title) %></a>
-      <% end %>
-    </p>
-  <% end %>
-  </div>
-  <div class="poweredBy">
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logo') %></a>
-    <%- @T('Powered by') %>
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logotype', 'logotype') %></a>
-  </div>
+    <div class="siska-auth-footer">
+      <p class="siska-auth-switch">
+        <span><%- @T('Already have an account?') %></span>
+        <a class="siska-auth-link js-cancel" href="#login"><%- @T('Sign in') %></a>
+      </p>
+    </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
 </div>

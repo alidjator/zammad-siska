@@ -1,17 +1,11 @@
-<div class="request_admin_password_auth fullscreen">
-  <div class="fullscreen-center">
-    <div class="hero-unit fullscreen-body">
-      <h2><%- @T('Admin password login instructions were sent to your email address.') %><small></small></h2>
-      <p><%- @T('If you don\'t receive instructions within a minute or two, check your email\'s spam and junk filters, or try resending your request.') %></p>
-      <div class="form-controls">
-        <a class="btn btn--text btn--subtle js-cancel" href="#login"><%- @T('Cancel & Go Back') %></a>
-        <button class="btn btn--primary retry align-right"><%- @T('again') %></button>
-      </div>
-    </div>
+<!-- Redesign auth SISKA (Tahap 0). KONTEN SAJA -- dirender via
+`@html` ke dalam root yg dibuat `admin_password_auth/request`. -->
+  <%- App.view('siska_auth/side')() %>
+<main class="siska-auth-main">
+  <div class="siska-auth-card hero-unit">
+    <%- App.view('siska_auth/brand')(icon: 'mail', title: App.i18n.translateContent('Admin password login instructions were sent to your email address.'), subtitle: App.i18n.translateContent('If you don\'t receive instructions within a minute or two, check your email\'s spam and junk filters, or try resending your request.')) %>
+    <button class="btn btn--primary siska-auth-submit retry"><%- @T('Send again') %></button>
+    <p class="siska-auth-back"><a href="#login" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Cancel & Go Back') %></a></p>
   </div>
-  <div class="poweredBy">
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logo') %></a>
-    <%- @T('Powered by') %>
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logotype', 'logotype') %></a>
-  </div>
-</div>
+  <%- App.view('siska_auth/footer')(public_links: []) %>
+</main>

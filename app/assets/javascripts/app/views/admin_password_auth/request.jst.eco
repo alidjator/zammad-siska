@@ -1,19 +1,17 @@
-<div class="request_admin_password_auth fullscreen">
-  <div class="fullscreen-center">
-    <div class="hero-unit fullscreen-body">
-      <h2><%- @T('Request password login for admin?') %><small></small></h2>
-      <form class="js-adminPasswordAuthForm">
+<!-- Redesign auth SISKA (Tahap 0, mockup "SISKA Login & Register",
+kit Able Pro Authentication v2) -- tampilan saja, alur & titik pasang
+JS (kelas js-*, `form`, `.retry`) tidak diubah.  -->
+<div class="siska-auth request_admin_password_auth">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(icon: 'shield', title: App.i18n.translateContent('Request password login for admin?')) %>
+      <form class="siska-auth-form js-adminPasswordAuthForm">
         <div class="js-adminPassword"></div>
-        <div class="form-controls">
-          <a class="btn btn--text btn--subtle js-cancel" href="#login"><%- @T('Cancel & Go Back') %></a>
-          <button class="btn btn--primary js-submit align-right"><%- @T('Submit') %></button>
-        </div>
+        <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Submit') %></button>
       </form>
+      <p class="siska-auth-back"><a href="#login" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Cancel & Go Back') %></a></p>
     </div>
-  </div>
-  <div class="poweredBy">
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logo') %></a>
-    <%- @T('Powered by') %>
-    <a href="https://zammad.org" target="_blank"><%- @Icon('logotype', 'logotype') %></a>
-  </div>
+    <%- App.view('siska_auth/footer')(public_links: []) %>
+  </main>
 </div>
