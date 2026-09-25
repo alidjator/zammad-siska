@@ -1,0 +1,19 @@
+<!-- Redesign lupa password SISKA -- Tahap 3 (OTP): langkah password baru
+setelah kode benar. Dirender PasswordReset#renderNewPassword; field dari
+App.ControllerForm (password + konfirmasi) + checklist aturan
+(App.SiskaAuthOtp#renderPasswordRules). `@error`: teks alert (sudah
+diterjemahkan & di-escape pemanggil) atau kosong. -->
+<div class="siska-auth reset_password">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(align: 'start', logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", asideHref: '#login', asideLabel: App.i18n.translateContent('Back to Login'), title: App.i18n.translateContent('Choose your new password.'), subtitle: App.i18n.translateContent('Your code is verified. Enter a new password for your account.')) %>
+      <div class="js-alert"></div>
+      <form class="siska-auth-form js-newPasswordForm" novalidate>
+        <div class="js-password"></div>
+        <button class="btn btn--primary siska-auth-submit js-submit" type="submit"><%- @T('Save password') %></button>
+      </form>
+    </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
+</div>

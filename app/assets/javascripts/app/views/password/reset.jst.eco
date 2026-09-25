@@ -1,15 +1,15 @@
 <!-- Redesign auth SISKA (Tahap 0, mockup "SISKA Login & Register",
-kit Able Pro Authentication v2) -- tampilan saja, alur & titik pasang
-JS (kelas js-*, `form`, `.retry`) tidak diubah.  -->
+kit Able Pro Authentication v2). Tahap 3: langkah 1 lupa password
+dgn OTP -- username/email -> kode dikirim (PasswordReset#submit). -->
 <div class="siska-auth reset_password">
   <%- App.view('siska_auth/side')() %>
   <main class="siska-auth-main">
     <div class="siska-auth-card hero-unit">
-      <%- App.view('siska_auth/brand')(align: 'start', logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", asideHref: '#login', asideLabel: App.i18n.translateContent('Back to Login'), title: App.i18n.translateContent('Forgot your password?'), subtitle: App.i18n.translateContent('Enter the email or username of your account. We will send you instructions to reset your password.')) %>
+      <%- App.view('siska_auth/brand')(align: 'start', logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", asideHref: '#login', asideLabel: App.i18n.translateContent('Back to Login'), title: App.i18n.translateContent('Forgot your password?'), subtitle: App.i18n.translateContent('Enter the email or username of your account. We will send you a code to reset your password.')) %>
       <form class="siska-auth-form js-passwordForm">
         <div class="js-password"></div>
         <p class="siska-auth-text siska-auth-small is-start"><%- @T('Do not forget to check your spam folder.') %></p>
-        <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Submit') %></button>
+        <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Send code') %></button>
       </form>
     </div>
     <%- App.view('siska_auth/footer')(public_links: @public_links) %>

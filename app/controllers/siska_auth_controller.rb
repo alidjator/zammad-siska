@@ -1,6 +1,7 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Redesign login/register SISKA -- Tahap 1 (OTP register). Endpoint
+# Redesign login/register SISKA -- Tahap 1 (OTP register) & Tahap 3
+# (OTP lupa password). Endpoint
 # publik (visitor belum login), CSRF tetap berlaku (ajax Zammad
 # mengirim X-CSRF-Token). Semua respons berstatus 200 dgn `message`
 # 'ok'/'failed' + `state` -- sama dgn pola `users#email_verify_send`,
@@ -51,6 +52,85 @@ class SiskaAuthController < ApplicationController
     end
 
     render json: { message: 'ok' }.merge(otp_rules), status: :ok
+  rescue Service::CheckFeatureEnabled::FeatureDisabledError => e
+    raise Exceptions::UnprocessableContent, e.message
+  end
+
+  # ------------------------------------------------------------------
+  # Tahap 3 -- lupa password dgn OTP: username/email -> kode 6 digit ->
+  # password baru -> langsung masuk. Link reset di email tetap berlaku
+  # (users#password_reset_verify tidak diubah).
+  # ------------------------------------------------------------------
+
+  # POST /api/v1/siska_auth/password_reset_otp/request  { username }
+  # Juga dipakai utk kirim ulang. Respons SERAGAM utk akun ada/tidak.
+  def password_reset_otp_request
+    Service::CheckFeatureEnabled.execute(name: 'user_lost_password')
+    raise Exceptions::UnprocessableContent, 'username param needed!' if params[:username].blank?
+
+    otp     = Siska::AuthOtp.new(purpose: 'password_reset', email: params[:username])
+    blocked = otp.send_blocked
+    if blocked
+      render json: { message: 'failed' }.merge(blocked), status: :ok
+      return
+    end
+
+    otp.register_request!
+    Service::User::PasswordReset::Deprecated::Send.execute(username: otp.email)
+
+    render json: { message: 'ok' }.merge(otp_rules), status: :ok
+  rescue Service::CheckFeatureEnabled::FeatureDisabledError => e
+    raise Exceptions::UnprocessableContent, e.message
+  end
+
+  # POST /api/v1/siska_auth/password_reset_otp/verify  { username, code }
+  # Kode benar -> token reset baru (sekali pakai, link di email ikut
+  # tidak berlaku) utk langkah password baru. Belum login di sini.
+  def password_reset_otp_verify
+    Service::CheckFeatureEnabled.execute(name: 'user_lost_password')
+
+    otp    = Siska::AuthOtp.new(purpose: 'password_reset', email: params[:username])
+    result = otp.verify(params[:code])
+
+    if result[:state] != 'verified'
+      render json: { message: 'failed' }.merge(result.slice(:state, :attempts_left)), status: :ok
+      return
+    end
+
+    user = result[:user]
+    Token.where(action: 'PasswordReset', user_id: user.id).destroy_all
+    token = Token.create!(action: 'PasswordReset', user_id: user.id, persistent: false)
+
+    render json: { message: 'ok', reset_token: token.token }, status: :ok
+  rescue Service::CheckFeatureEnabled::FeatureDisabledError => e
+    raise Exceptions::UnprocessableContent, e.message
+  end
+
+  # POST /api/v1/siska_auth/password_reset_otp/complete  { reset_token, password }
+  # Password disimpan lewat service bawaan (kebijakan password, email
+  # "password diubah"), lalu langsung login -- KECUALI user ber-2FA
+  # (atau wajib 2FA): tidak di-login-kan otomatis supaya 2FA tidak
+  # terlewati, frontend mengarahkan ke halaman login.
+  def password_reset_otp_complete
+    raise Exceptions::UnprocessableContent, 'reset_token param needed!' if params[:reset_token].blank?
+
+    begin
+      user = Service::User::PasswordReset::Update.execute(token: params[:reset_token], password: params[:password])
+    rescue Service::User::PasswordReset::Update::InvalidTokenError, Service::User::PasswordReset::Update::EmailError
+      render json: { message: 'failed', state: 'invalid_token' }, status: :ok
+      return
+    rescue PasswordPolicy::Error => e
+      render json: { message: 'failed', state: 'password_policy', notice: e.metadata }, status: :ok
+      return
+    end
+
+    if user.two_factor_configured? || user.two_factor_setup_required?
+      render json: { message: 'ok', logged_in: false }, status: :ok
+      return
+    end
+
+    current_user_set(user)
+    render json: { message: 'ok', logged_in: true }, status: :ok
   rescue Service::CheckFeatureEnabled::FeatureDisabledError => e
     raise Exceptions::UnprocessableContent, e.message
   end

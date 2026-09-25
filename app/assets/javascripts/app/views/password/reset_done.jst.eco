@@ -1,0 +1,20 @@
+<!-- Redesign lupa password SISKA -- Tahap 3 (OTP): password tersimpan.
+`@loggedIn` true -> sudah login & dialihkan otomatis (pola sama dgn
+signup/verified). false (akun ber-2FA) -> diminta masuk lewat halaman
+login supaya 2FA tetap berlaku. -->
+<div class="siska-auth reset_password">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <% if @loggedIn: %>
+        <%- App.view('siska_auth/brand')(icon: 'check', iconTone: 'success', title: App.i18n.translateContent('Your password has been changed'), subtitle: App.i18n.translateContent('You are signed in and will be taken to your tickets.')) %>
+        <a href="#" class="btn btn--primary siska-auth-submit js-goHome"><%- @T('Continue') %></a>
+        <p class="siska-auth-text siska-auth-small" role="status"><%- @T('Redirecting…') %></p>
+      <% else: %>
+        <%- App.view('siska_auth/brand')(icon: 'check', iconTone: 'success', title: App.i18n.translateContent('Your password has been changed'), subtitle: App.i18n.translateContent('Sign in with your new password to continue.')) %>
+        <a href="#login" class="btn btn--primary siska-auth-submit"><%- @T('Sign in') %></a>
+      <% end %>
+    </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
+</div>

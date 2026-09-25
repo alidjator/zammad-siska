@@ -132,10 +132,14 @@ module Siska
       PURPOSES[purpose]
     end
 
+    # Tahap 3: utk lupa password, `email` = apa yg diketik user di form
+    # (username ATAU email, sama dgn `User.password_reset_new_token`) --
+    # status permintaan tetap dikunci per isian itu.
     def find_user
       return if email.blank?
+      return ::User.find_by(email: email) if purpose == 'signup'
 
-      ::User.find_by(email: email)
+      ::User.find_by(login: email, active: true) || ::User.find_by(email: email, active: true)
     end
 
     def cache_key

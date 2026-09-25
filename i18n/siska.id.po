@@ -600,3 +600,40 @@ msgstr "Batas waktu agent tidak aktif"
 
 msgid "Minutes without activity in the app (mouse, keyboard, touch) and without open chats until the agent is set offline automatically. 0 disables it."
 msgstr "Menit tanpa aktivitas di aplikasi (mouse, keyboard, sentuh) dan tanpa chat terbuka sampai agent otomatis di-set offline. 0 = nonaktif."
+
+# Redesign lupa password -- Tahap 3 (OTP)
+msgid "Enter the email or username of your account. We will send you a code to reset your password."
+msgstr "Masukkan email atau nama pengguna akun Anda. Kami akan mengirim kode untuk mereset kata sandi Anda."
+
+msgid "Send code"
+msgstr "Kirim kode"
+
+msgid "Check your email"
+msgstr "Periksa email Anda"
+
+msgid "Enter the 6-digit code to reset your password."
+msgstr "Masukkan kode 6 digit untuk mereset kata sandi Anda."
+
+msgid "If an account exists for %s, we sent a code to its email address."
+msgstr "Jika ada akun untuk %s, kami telah mengirim kode ke alamat emailnya."
+
+msgid "Use a different email or username"
+msgstr "Gunakan email atau nama pengguna lain"
+
+msgid "Your code is verified. Enter a new password for your account."
+msgstr "Kode Anda sudah terverifikasi. Masukkan kata sandi baru untuk akun Anda."
+
+msgid "Save password"
+msgstr "Simpan kata sandi"
+
+msgid "Your password has been changed"
+msgstr "Kata sandi Anda sudah diubah"
+
+msgid "You are signed in and will be taken to your tickets."
+msgstr "Anda sudah masuk dan akan diarahkan ke tiket Anda."
+
+msgid "Sign in with your new password to continue."
+msgstr "Masuk dengan kata sandi baru Anda untuk melanjutkan."
+
+msgid "Your reset session has expired. Please request a new code."
+msgstr "Sesi reset Anda sudah kedaluwarsa. Silakan minta kode baru."
