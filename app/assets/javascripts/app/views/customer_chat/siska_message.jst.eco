@@ -3,7 +3,7 @@
     <span class="s-avatar s-avatar-sm siska-msg-avatar" aria-hidden="true"><%= @initials %></span>
   <% end %>
   <div class="siska-msg-main">
-    <div class="siska-msg-meta"><%= @author %> <span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></div>
+    <div class="siska-msg-meta"><%= @author %> <span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></div>
     <div class="siska-msg-row">
       <div class="siska-msg-bubble siska-msg-bubble--<%= @kind %>">
         <% if @replyTo: %>

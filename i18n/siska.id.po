@@ -1,0 +1,409 @@
+# Terjemahan Bahasa Indonesia untuk string baru redesign panel chat agent SISKA
+# (G8, docs/COMPARISON_WIDGET_VS_AGENT.md). Dimuat otomatis bersama
+# i18n/zammad.id.po oleh Translation::SynchronizesFromPo#po_files_for_locale
+# (semua i18n/*.id.po). File terpisah supaya zammad.id.po bawaan tidak berubah.
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: id\n"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s active agents"
+msgstr "%s agen aktif"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s chats"
+msgstr "%s percakapan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s conversations from this email"
+msgstr "%s percakapan dari email ini"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s h %s min"
+msgstr "%s j %s mnt"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s in progress"
+msgstr "%s berlangsung"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s is typing…"
+msgstr "%s sedang mengetik…"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s min"
+msgstr "%s mnt"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s unread"
+msgstr "%s belum dibaca"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s waiting"
+msgstr "%s menunggu"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "(no messages)"
+msgstr "(tidak ada pesan)"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Accept next"
+msgstr "Terima berikutnya"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Accept the customer who has waited longest"
+msgstr "Terima pelanggan yang paling lama menunggu"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Active for %s"
+msgstr "Aktif untuk %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Allow attachments from customers"
+msgstr "Izinkan lampiran dari pelanggan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Allowed file types"
+msgstr "Tipe file diizinkan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Beginning of the chat history from %s"
+msgstr "Awal riwayat chat dari %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Chat #%s"
+msgstr "Chat #%s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Chat ended"
+msgstr "Chat berakhir"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Chat ended by %s"
+msgstr "Chat diakhiri oleh %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Chat ended by the agent"
+msgstr "Chat diakhiri oleh agen"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Chat ended by the customer"
+msgstr "Chat diakhiri oleh pelanggan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Close panel"
+msgstr "Tutup panel"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Copied"
+msgstr "Disalin"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Current conversation · Chat #%s"
+msgstr "Percakapan saat ini · Chat #%s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Customer reaction: %s"
+msgstr "Reaksi pelanggan: %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Display name for customers"
+msgstr "Nama tampilan untuk pelanggan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Edit name & tags"
+msgstr "Ubah nama & tag"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Emoji"
+msgstr "Emoji"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "End chat"
+msgstr "Akhiri chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Ended"
+msgstr "Berakhir"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "File attachments are turned off by the administrator."
+msgstr "Lampiran file dinonaktifkan oleh administrator."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "General"
+msgstr "Umum"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Go online"
+msgstr "Online-kan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Go online to receive waiting customers."
+msgstr "Ubah status ke Online untuk menerima pelanggan yang menunggu."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Greeting for %s"
+msgstr "Sapaan untuk %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "IP"
+msgstr "IP"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "In progress"
+msgstr "Sedang berlangsung"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Leave empty to use your account name."
+msgstr "Kosongkan untuk memakai nama akun Anda."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Live Chat Settings"
+msgstr "Pengaturan Live Chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Loading %s earlier messages…"
+msgstr "Memuat %s pesan sebelumnya…"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Managed by admin"
+msgstr "Diatur oleh admin"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Maximum concurrent chats"
+msgstr "Maksimal percakapan bersamaan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Maximum concurrent chats reached"
+msgstr "Batas maksimal percakapan bersamaan tercapai"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Maximum size"
+msgstr "Ukuran maksimal"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Message options"
+msgstr "Opsi pesan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "New chats in the queue are not assigned to you once this limit is reached."
+msgstr "Chat baru di antrean tidak diberikan kepada Anda bila batas ini tercapai."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "No active conversations"
+msgstr "Belum ada percakapan aktif"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "No conversation selected"
+msgstr "Belum ada percakapan dipilih"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "No earlier conversations from this email"
+msgstr "Belum ada percakapan sebelumnya dari email ini"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "No matching chats"
+msgstr "Tidak ada chat yang cocok"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Not receiving chats"
+msgstr "Tidak menerima chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Open Ticket"
+msgstr "Buka tiket"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Open ticket"
+msgstr "Buka tiket"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Page"
+msgstr "Halaman"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Pick a chat from the list, or accept a waiting customer."
+msgstr "Pilih chat dari daftar, atau terima pelanggan yang menunggu."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Previous chats"
+msgstr "Riwayat chat sebelumnya"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Previous chats from this visitor:"
+msgstr "Chat sebelumnya dari pengunjung ini:"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Processing…"
+msgstr "Memproses…"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Profile & history"
+msgstr "Profil & riwayat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Rating %s of 5"
+msgstr "Rating %s dari 5"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Rating from customer"
+msgstr "Rating dari pelanggan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "React"
+msgstr "Reaksi"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Read by customer"
+msgstr "Dibaca pelanggan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Receiving chats"
+msgstr "Menerima chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Recently ended"
+msgstr "Baru berakhir"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Remove from list"
+msgstr "Tutup dari daftar"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Replying to:"
+msgstr "Membalas:"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Scroll up to load earlier messages"
+msgstr "Gulir ke atas untuk memuat pesan lebih lama"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Search chats"
+msgstr "Cari percakapan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Send image"
+msgstr "Kirim gambar"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Sent"
+msgstr "Terkirim"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Set your capacity, greetings per topic, and attachments for the chats you handle."
+msgstr "Atur kapasitas, sapaan per topik, dan lampiran untuk chat yang Anda tangani."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Show avatar"
+msgstr "Tampilkan avatar"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The attachment could not be uploaded."
+msgstr "Lampiran tidak dapat diunggah."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The conversation has ended."
+msgstr "Percakapan telah berakhir."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The conversation has ended. The transcript is saved in ticket"
+msgstr "Percakapan telah berakhir. Transkrip tersimpan di tiket"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The customer left the conversation"
+msgstr "Pelanggan meninggalkan percakapan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The greeting is sent automatically when you accept a chat from that topic. Separate several greetings with ; to pick one at random."
+msgstr "Sapaan dikirim otomatis saat Anda menerima chat dari topik tersebut. Pisahkan beberapa sapaan dengan ; untuk dipilih secara acak."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The image and attachment buttons appear in the widget for the chats you handle."
+msgstr "Tombol gambar & lampiran tampil di widget pada chat yang Anda tangani."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The queue is empty"
+msgstr "Antrean kosong"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The settings could not be saved."
+msgstr "Pengaturan tidak dapat disimpan."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "The text could not be copied."
+msgstr "Teks tidak dapat disalin."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Ticket #%s"
+msgstr "Tiket #%s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Ticket:"
+msgstr "Tiket:"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "To be able to chat you need to select at least one chat topic from below!"
+msgstr "Untuk dapat chat, pilih minimal satu topik chat di bawah!"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Topics & greetings"
+msgstr "Topik & sapaan"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Transfer to another topic"
+msgstr "Transfer ke topik lain"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Type a reply…"
+msgstr "Ketik balasan…"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Upload progress"
+msgstr "Progres unggah"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Visitor"
+msgstr "Pengunjung"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Waiting for agent"
+msgstr "Menunggu agen"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "You"
+msgstr "Anda"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "You are |offline|. New chats will not be assigned to you until you go online."
+msgstr "Anda sedang |Offline|. Chat baru tidak akan diberikan kepada Anda sampai status diubah ke Online."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "You ended the chat"
+msgstr "Anda mengakhiri chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Your profile picture is visible in the customer widget."
+msgstr "Foto profil Anda terlihat di widget pelanggan."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Your reaction: %s"
+msgstr "Reaksi Anda: %s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Your reaction: %s. Remove"
+msgstr "Reaksi Anda: %s. Hapus"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "e.g. SISKA CS"
+msgstr "Contoh: CS SISKA"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "session #%s"
+msgstr "sesi #%s"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "started %s"
+msgstr "mulai %s"

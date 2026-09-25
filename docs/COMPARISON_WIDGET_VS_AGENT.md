@@ -67,7 +67,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 
 | Fitur | Widget customer | Panel agent | Status |
 |---|---|---|---|
-| Bahasa label | Indonesia, dari phrase server (diatur admin) | English (string sumber `@T`, locale agent English) | ❗ **G8** |
+| Bahasa label | Indonesia, dari phrase server (diatur admin) | Mengikuti bahasa profil agent; locale `id` aktif + `i18n/siska.id.po` (100 string) | ✅ **G8 selesai** (2026-09-25, opsi a) |
 
 ## 7. Backlog gap
 
@@ -80,7 +80,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | G5 | Kartu gambar | Widget | ✅ **Selesai** 2026-09-25 (keputusan user: kartu) |
 | G6 | Progress unggah dengan persen | Agent | ✅ **Selesai** 2026-09-25, bersama perbaikan B1 |
 | G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` — **direvisi di audit (bagian 8): lebih kecil** |
-| G8 | Bahasa label panel agent | Agent | Terjemahan Bahasa Indonesia untuk string baru — **direvisi di audit (bagian 8): locale `id` belum aktif** |
+| G8 | Bahasa label panel agent | Agent | ✅ **Selesai** 2026-09-25 (opsi a: aktifkan locale `id` + `i18n/siska.id.po`) |
 
 ## 8. Hasil audit G1–G8 (2026-09-25)
 

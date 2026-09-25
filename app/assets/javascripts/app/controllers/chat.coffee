@@ -1387,7 +1387,7 @@ class App.ChatWindow extends App.Controller
     readAt = new Date().toISOString()
     for id, message of @messagesById when message.created_by_id && !message.history_session_id
       message.read_at ||= readAt
-    label = App.i18n.translateInline('Read')
+    label = App.i18n.translateInline('Read by customer')
     @body.children('.siska-msg--agent').find('.js-msgStatus').not('.is-read')
       .addClass('is-read').attr('aria-label', label).attr('title', label)
 
