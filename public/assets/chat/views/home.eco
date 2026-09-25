@@ -1,25 +1,4 @@
 <div class="zammad-chat-home">
-  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --
-  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,
-  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri
-  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --
-  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1
-  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan
-  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit
-  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),
-  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius
-  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit
-  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,
-  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang
-  terverifikasi identik, ukuran 52px & background SOLID (bukan tint
-  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-
-  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu
-  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->
-  <div class="zammad-chat-home-logo">
-    <div class="zammad-chat-home-logo-mark">
-      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>
-    </div>
-  </div>
 
   <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.
   Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)
@@ -40,7 +19,11 @@
   sebelum dipakai di sini. -->
   <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">
     <%- @icon('warning', 20, tone: 'full', class: 'zammad-chat-home-offline-notice-icon') %>
-    <span class="zammad-chat-home-offline-notice-text"><%- @T(@phrases['chat_phrase_offline_notice_title'] || 'All agents are currently unavailable') %> <%- @T(@phrases['chat_phrase_offline_notice'] || 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.') %></span>
+    <!-- Atas permintaan user ("buat notice notice ini hanya 1 baris,
+    dibuat ringkas kalimatnya") -- cuma 1 frase (judul); frase
+    deskripsi `chat_phrase_offline_notice` tidak dipakai lagi di sini
+    (status offline sudah tertulis di header). -->
+    <span class="zammad-chat-home-offline-notice-text"><%- @T(@phrases['chat_phrase_offline_notice_title'] || "We're offline — leave us a message") %></span>
   </div>
 
   <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,
@@ -49,7 +32,7 @@
   atas (unicode \eac5). -->
   <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">
     <%- @icon('info', 20, tone: 'full', class: 'zammad-chat-home-online-notice-icon') %>
-    <span class="zammad-chat-home-online-notice-text"><%- @T(@phrases['chat_phrase_home_online_notice'] || "Agents are online now — start a conversation and we'll respond right away.") %></span>
+    <span class="zammad-chat-home-online-notice-text"><%- @T(@phrases['chat_phrase_home_online_notice'] || "Agents are online — chat with us now") %></span>
   </div>
 
   <div class="zammad-chat-home-actions">

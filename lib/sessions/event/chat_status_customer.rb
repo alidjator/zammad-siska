@@ -79,6 +79,7 @@ return is sent as message back to peer
     chat_phrase_prechat_title
     chat_phrase_prechat_subtitle
     chat_phrase_prechat_email_label
+    chat_phrase_prechat_email_placeholder
     chat_phrase_prechat_category_label
     chat_phrase_prechat_category_placeholder
     chat_phrase_prechat_subject_label

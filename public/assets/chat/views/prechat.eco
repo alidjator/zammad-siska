@@ -1,7 +1,6 @@
 <div class="zammad-chat-prechat">
-  <div class="zammad-chat-prechat-icon">
-    <%- @icon('chat-circle-dots', 24, tone: 'full') %>
-  </div>
+  <!-- Logo/ikon di atas judul DIHAPUS atas permintaan user ("pada
+  halaman ini, hapus logo", screenshot form prechat). -->
   <div class="zammad-chat-prechat-title"><%- @T(@phrases['chat_phrase_prechat_title'] || 'Let\'s get started') %></div>
   <div class="zammad-chat-prechat-subtext"><%- @T(@phrases['chat_phrase_prechat_subtitle'] || 'Please share a few details so our agent can help you faster.') %></div>
 
@@ -63,7 +62,7 @@
     chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->
     <div class="zammad-chat-prechat-field">
       <label><%- @T(@phrases['chat_phrase_prechat_email_label'] || 'Your email') %></label>
-      <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%= @email || '' %>" required>
+      <input type="email" class="zammad-chat-prechat-email<%= ' zammad-chat-field-invalid' if @error and !@email %>" value="<%= @email || '' %>" placeholder="<%- @T(@phrases['chat_phrase_prechat_email_placeholder'] || 'name@example.com') %>" autocomplete="email" required>
     </div>
     <!-- Atas permintaan user ("hilangkan icon pada button Start
     Chat"): ikon paper-plane dihapus, teks polos saja. -->

@@ -3941,8 +3941,10 @@ do(window) ->
         @loadKnowledgeBase(true)
       else
         @kbLoaded = false
-      welcomeTitle = @el.querySelector('.zammad-chat-welcome-title')
-      welcomeTitle.innerHTML = @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋' if welcomeTitle
+      # Hanya teks sapaan yg diganti -- logo SISKA di sebelahnya
+      # (views/chat.eco) tetap utuh.
+      welcomeGreeting = @el.querySelector('.js-welcome-greeting')
+      welcomeGreeting.innerHTML = @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') if welcomeGreeting
       welcomeSubtext = @el.querySelector('.zammad-chat-welcome-subtext')
       welcomeSubtext.textContent = @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') if welcomeSubtext
       input = @el.querySelector('.zammad-chat-input')

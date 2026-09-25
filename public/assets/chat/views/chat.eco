@@ -3,7 +3,12 @@
     <div class="zammad-chat-agent zammad-chat-is-hidden">
     </div>
     <div class="zammad-chat-welcome">
-      <span class="zammad-chat-welcome-title"><%- @T(@phrases['chat_phrase_home_greeting'] || 'Hi there') %> 👋</span>
+      <!-- Atas permintaan user ("lambaian tangan, ganti menggunakan logo
+      ini, `Hi There` ganti menjadi `Hi Simmers`") -- emoji 👋 diganti
+      logo SISKA (vektor inline, tanpa id). Teks sapaan dipisah ke
+      `.js-welcome-greeting` supaya `updatePhrases` cukup mengganti
+      teksnya tanpa menghapus logo. -->
+      <span class="zammad-chat-welcome-title"><span class="js-welcome-greeting"><%- @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') %></span><svg class="zammad-chat-welcome-logo" xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 118" focusable="false" aria-hidden="true"><path d="M-50 0 A50 50 0 0 1 50 0 Z" fill="#1ea5d0"/><path d="M-50 0 C-50 24 -28 42 0 64 C28 42 50 24 50 0 Z" fill="#d7a27b"/><circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="15.5" fill="#ffffff"/></svg></span>
       <span class="zammad-chat-welcome-subtext"><%- @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') %></span>
     </div>
     <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>
@@ -14,6 +19,81 @@
       <button type="button" class="zammad-chat-header-icon js-chat-close" aria-label="<%- @T('End chat') %>">
         <%- @icon('x', 17, class: 'zammad-chat-header-icon-close') %>
       </button>
+    </div>
+    <!-- Atas permintaan user ("pindahkan posisi gambar pada header",
+    mockup HomeHeader.dc.html) -- ilustrasi vektor (agent CS & customer
+    terhubung percakapan) di bawah sapaan, HANYA terlihat saat header
+    mode Home (`.zammad-chat-header--tinted`, lihat `updateHeader`) --
+    disembunyikan lewat CSS di tab lain, tidak ada JS tambahan.
+    Gelombang putih paling depan dipisah ke SVG sendiri
+    (`preserveAspectRatio="none"`, selalu selebar panel) supaya header
+    tetap menyatu mulus ke isi Home walau adegan menyusut di panel
+    pendek. Ujung kiri/kanan gelombang biru di dalam adegan DIPUDARKAN
+    (mask gradien) supaya tidak terlihat terpotong tegak saat adegan
+    lebih sempit dari panel -- permintaan user: "kesan tidak terpotong,
+    tapi gelombang jangan ditarik ke samping". Id mask berprefix
+    `zammad-chat-header-ill-` supaya tidak bentrok dgn situs host.
+    Dekoratif murni (`aria-hidden`). -->
+    <div class="zammad-chat-header-illustration" aria-hidden="true">
+      <svg class="zammad-chat-header-illustration-scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 220" preserveAspectRatio="xMidYMax meet" focusable="false" aria-hidden="true">
+      <defs>
+      <linearGradient id="zammad-chat-header-ill-fade-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="380" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.16" stop-color="#fff"/><stop offset="0.84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <mask id="zammad-chat-header-ill-fade" maskUnits="userSpaceOnUse" x="0" y="0" width="380" height="220"><rect width="380" height="220" fill="url(#zammad-chat-header-ill-fade-grad)"/></mask>
+      </defs>
+      <circle cx="190" cy="118" r="96" fill="#ffffff" opacity="0.55"/>
+      <path d="M104 104 C146 34 238 34 282 100" fill="none" stroke="#a9c1ff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>
+      <path d="M150 22 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6z" fill="#ffc15e"/>
+      <path d="M244 52 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#a9c1ff"/>
+      <path d="M34 66 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#7fd3b3"/>
+      <path d="M346 70 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2z" fill="#ffc15e"/>
+      <circle cx="330" cy="32" r="3.5" fill="#ffb3c7"/>
+      <circle cx="58" cy="30" r="3" fill="#a9c1ff"/>
+      <path d="M124 61 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#d6e2ff"/>
+      <path d="M122 58 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#ffffff"/>
+      <rect x="134" y="58" width="52" height="7" rx="3.5" fill="#c9d7fb"/>
+      <rect x="134" y="71" width="34" height="7" rx="3.5" fill="#e3ebff"/>
+      <path d="M186 104 a12 12 0 0 1 12 -12 h50 a12 12 0 0 1 12 12 v18 a12 12 0 0 1 -12 12 h-4 v10 l-12 -10 h-34 a12 12 0 0 1 -12 -12 z" fill="#4680ff"/>
+      <circle cx="208" cy="113" r="3.6" fill="#ffffff"/>
+      <circle cx="222" cy="113" r="3.6" fill="#ffffff" opacity="0.8"/>
+      <circle cx="236" cy="113" r="3.6" fill="#ffffff" opacity="0.6"/>
+      <circle cx="190" cy="30" r="13" fill="#2aa77e"/>
+      <path d="M184 30 l4 4 8 -8" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 168 C60 150 120 160 190 172 C260 184 320 170 380 150 L380 220 L0 220 Z" fill="#dbe6ff"/></g>
+      <g>
+      <path d="M40 206 C40 168 57 150 80 150 C103 150 120 168 120 206 Z" fill="#4680ff"/>
+      <path d="M80 150 C103 150 120 168 120 206 L80 206 Z" fill="#3a6ff0"/>
+      <path d="M70 151 L80 166 L90 151 Z" fill="#dbe6ff"/>
+      <rect x="74" y="136" width="12" height="18" rx="5" fill="#eeb08f"/>
+      <circle cx="80" cy="122" r="20" fill="#f7c9a8"/>
+      <path d="M59 125 C56 100 69 95 80 95 C97 95 105 106 101 125 C98 113 90 108 80 108 C70 108 63 114 61 129 Z" fill="#24325f"/>
+      <circle cx="98" cy="100" r="7" fill="#24325f"/>
+      <circle cx="73" cy="124" r="2" fill="#24325f"/>
+      <circle cx="87" cy="124" r="2" fill="#24325f"/>
+      <path d="M74 132 Q80 137 86 132" fill="none" stroke="#24325f" stroke-width="2" stroke-linecap="round"/>
+      <path d="M58 121 C58 93 102 93 102 121" fill="none" stroke="#1d2a55" stroke-width="4" stroke-linecap="round"/>
+      <rect x="53" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>
+      <rect x="98" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>
+      <path d="M58 127 C58 139 66 143 74 141" fill="none" stroke="#1d2a55" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="75" cy="141" r="3" fill="#ffb454"/>
+      </g>
+      <g>
+      <path d="M262 206 C262 172 279 156 300 156 C321 156 338 172 338 206 Z" fill="#2aa77e"/>
+      <path d="M300 156 C321 156 338 172 338 206 L300 206 Z" fill="#229068"/>
+      <rect x="294" y="140" width="12" height="18" rx="5" fill="#c98d68"/>
+      <circle cx="300" cy="128" r="19" fill="#d9a07a"/>
+      <path d="M281 127 C279 107 290 100 300 100 C314 100 322 108 319 127 C316 117 309 113 300 113 C291 113 285 117 283 129 Z" fill="#3b2a24"/>
+      <circle cx="293" cy="130" r="2" fill="#3b2a24"/>
+      <circle cx="307" cy="130" r="2" fill="#3b2a24"/>
+      <path d="M294 138 Q300 143 306 138" fill="none" stroke="#3b2a24" stroke-width="2" stroke-linecap="round"/>
+      <rect x="289" y="158" width="22" height="34" rx="5" fill="#1d2a55"/>
+      <rect x="292" y="162" width="16" height="24" rx="2" fill="#dbe6ff"/>
+      <rect x="294" y="166" width="10" height="4" rx="2" fill="#4680ff"/>
+      <rect x="296" y="174" width="10" height="4" rx="2" fill="#ffffff"/>
+      <ellipse cx="300" cy="190" rx="12" ry="6" fill="#d9a07a"/>
+      </g>
+      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 192 C80 178 150 198 230 192 C300 186 340 178 380 182 L380 220 L0 220 Z" fill="#c7d8ff"/></g>
+      </svg>
+      <svg class="zammad-chat-header-illustration-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 22" preserveAspectRatio="none" focusable="false" aria-hidden="true"><path d="M0 8 C90 -1 180 16 270 7 C320 3 350 4 380 0 L380 22 L0 22 Z" fill="#ffffff"/></svg>
     </div>
   </div>
   <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>

@@ -254,11 +254,11 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         __out.push(__sanitize(" style='font-size: " + this.fontSize + "'"));
       }
     
-      __out.push('>\n  <div class="zammad-chat-header">\n    <div class="zammad-chat-agent zammad-chat-is-hidden">\n    </div>\n    <div class="zammad-chat-welcome">\n      <span class="zammad-chat-welcome-title">');
+      __out.push('>\n  <div class="zammad-chat-header">\n    <div class="zammad-chat-agent zammad-chat-is-hidden">\n    </div>\n    <div class="zammad-chat-welcome">\n      <!-- Atas permintaan user ("lambaian tangan, ganti menggunakan logo\n      ini, `Hi There` ganti menjadi `Hi Simmers`") -- emoji 👋 diganti\n      logo SISKA (vektor inline, tanpa id). Teks sapaan dipisah ke\n      `.js-welcome-greeting` supaya `updatePhrases` cukup mengganti\n      teksnya tanpa menghapus logo. -->\n      <span class="zammad-chat-welcome-title"><span class="js-welcome-greeting">');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there'));
+      __out.push(this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi Simmers'));
     
-      __out.push(' 👋</span>\n      <span class="zammad-chat-welcome-subtext">');
+      __out.push('</span><svg class="zammad-chat-welcome-logo" xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 118" focusable="false" aria-hidden="true"><path d="M-50 0 A50 50 0 0 1 50 0 Z" fill="#1ea5d0"/><path d="M-50 0 C-50 24 -28 42 0 64 C28 42 50 24 50 0 Z" fill="#d7a27b"/><circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="15.5" fill="#ffffff"/></svg></span>\n      <span class="zammad-chat-welcome-subtext">');
     
       __out.push(this.T(this.phrases['chat_phrase_home_subtitle'] || 'How can we help you today?'));
     
@@ -280,7 +280,7 @@ window.zammadChatTemplates["chat"] = function(__obj) {
         "class": 'zammad-chat-header-icon-close'
       }));
     
-      __out.push('\n      </button>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      ');
+      __out.push('\n      </button>\n    </div>\n    <!-- Atas permintaan user ("pindahkan posisi gambar pada header",\n    mockup HomeHeader.dc.html) -- ilustrasi vektor (agent CS & customer\n    terhubung percakapan) di bawah sapaan, HANYA terlihat saat header\n    mode Home (`.zammad-chat-header--tinted`, lihat `updateHeader`) --\n    disembunyikan lewat CSS di tab lain, tidak ada JS tambahan.\n    Gelombang putih paling depan dipisah ke SVG sendiri\n    (`preserveAspectRatio="none"`, selalu selebar panel) supaya header\n    tetap menyatu mulus ke isi Home walau adegan menyusut di panel\n    pendek. Ujung kiri/kanan gelombang biru di dalam adegan DIPUDARKAN\n    (mask gradien) supaya tidak terlihat terpotong tegak saat adegan\n    lebih sempit dari panel -- permintaan user: "kesan tidak terpotong,\n    tapi gelombang jangan ditarik ke samping". Id mask berprefix\n    `zammad-chat-header-ill-` supaya tidak bentrok dgn situs host.\n    Dekoratif murni (`aria-hidden`). -->\n    <div class="zammad-chat-header-illustration" aria-hidden="true">\n      <svg class="zammad-chat-header-illustration-scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 220" preserveAspectRatio="xMidYMax meet" focusable="false" aria-hidden="true">\n      <defs>\n      <linearGradient id="zammad-chat-header-ill-fade-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="380" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.16" stop-color="#fff"/><stop offset="0.84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>\n      <mask id="zammad-chat-header-ill-fade" maskUnits="userSpaceOnUse" x="0" y="0" width="380" height="220"><rect width="380" height="220" fill="url(#zammad-chat-header-ill-fade-grad)"/></mask>\n      </defs>\n      <circle cx="190" cy="118" r="96" fill="#ffffff" opacity="0.55"/>\n      <path d="M104 104 C146 34 238 34 282 100" fill="none" stroke="#a9c1ff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>\n      <path d="M150 22 l2.6 6.4 6.4 2.6 -6.4 2.6 -2.6 6.4 -2.6 -6.4 -6.4 -2.6 6.4 -2.6z" fill="#ffc15e"/>\n      <path d="M244 52 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#a9c1ff"/>\n      <path d="M34 66 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#7fd3b3"/>\n      <path d="M346 70 l2.2 5.4 5.4 2.2 -5.4 2.2 -2.2 5.4 -2.2 -5.4 -5.4 -2.2 5.4 -2.2z" fill="#ffc15e"/>\n      <circle cx="330" cy="32" r="3.5" fill="#ffb3c7"/>\n      <circle cx="58" cy="30" r="3" fill="#a9c1ff"/>\n      <path d="M124 61 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#d6e2ff"/>\n      <path d="M122 58 a12 12 0 0 1 12 -12 h58 a12 12 0 0 1 12 12 v20 a12 12 0 0 1 -12 12 h-50 l-12 10 v-10 h-8 a12 12 0 0 1 -12 -12 z" fill="#ffffff"/>\n      <rect x="134" y="58" width="52" height="7" rx="3.5" fill="#c9d7fb"/>\n      <rect x="134" y="71" width="34" height="7" rx="3.5" fill="#e3ebff"/>\n      <path d="M186 104 a12 12 0 0 1 12 -12 h50 a12 12 0 0 1 12 12 v18 a12 12 0 0 1 -12 12 h-4 v10 l-12 -10 h-34 a12 12 0 0 1 -12 -12 z" fill="#4680ff"/>\n      <circle cx="208" cy="113" r="3.6" fill="#ffffff"/>\n      <circle cx="222" cy="113" r="3.6" fill="#ffffff" opacity="0.8"/>\n      <circle cx="236" cy="113" r="3.6" fill="#ffffff" opacity="0.6"/>\n      <circle cx="190" cy="30" r="13" fill="#2aa77e"/>\n      <path d="M184 30 l4 4 8 -8" fill="none" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>\n      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 168 C60 150 120 160 190 172 C260 184 320 170 380 150 L380 220 L0 220 Z" fill="#dbe6ff"/></g>\n      <g>\n      <path d="M40 206 C40 168 57 150 80 150 C103 150 120 168 120 206 Z" fill="#4680ff"/>\n      <path d="M80 150 C103 150 120 168 120 206 L80 206 Z" fill="#3a6ff0"/>\n      <path d="M70 151 L80 166 L90 151 Z" fill="#dbe6ff"/>\n      <rect x="74" y="136" width="12" height="18" rx="5" fill="#eeb08f"/>\n      <circle cx="80" cy="122" r="20" fill="#f7c9a8"/>\n      <path d="M59 125 C56 100 69 95 80 95 C97 95 105 106 101 125 C98 113 90 108 80 108 C70 108 63 114 61 129 Z" fill="#24325f"/>\n      <circle cx="98" cy="100" r="7" fill="#24325f"/>\n      <circle cx="73" cy="124" r="2" fill="#24325f"/>\n      <circle cx="87" cy="124" r="2" fill="#24325f"/>\n      <path d="M74 132 Q80 137 86 132" fill="none" stroke="#24325f" stroke-width="2" stroke-linecap="round"/>\n      <path d="M58 121 C58 93 102 93 102 121" fill="none" stroke="#1d2a55" stroke-width="4" stroke-linecap="round"/>\n      <rect x="53" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>\n      <rect x="98" y="114" width="9" height="15" rx="4.5" fill="#ffb454"/>\n      <path d="M58 127 C58 139 66 143 74 141" fill="none" stroke="#1d2a55" stroke-width="2.5" stroke-linecap="round"/>\n      <circle cx="75" cy="141" r="3" fill="#ffb454"/>\n      </g>\n      <g>\n      <path d="M262 206 C262 172 279 156 300 156 C321 156 338 172 338 206 Z" fill="#2aa77e"/>\n      <path d="M300 156 C321 156 338 172 338 206 L300 206 Z" fill="#229068"/>\n      <rect x="294" y="140" width="12" height="18" rx="5" fill="#c98d68"/>\n      <circle cx="300" cy="128" r="19" fill="#d9a07a"/>\n      <path d="M281 127 C279 107 290 100 300 100 C314 100 322 108 319 127 C316 117 309 113 300 113 C291 113 285 117 283 129 Z" fill="#3b2a24"/>\n      <circle cx="293" cy="130" r="2" fill="#3b2a24"/>\n      <circle cx="307" cy="130" r="2" fill="#3b2a24"/>\n      <path d="M294 138 Q300 143 306 138" fill="none" stroke="#3b2a24" stroke-width="2" stroke-linecap="round"/>\n      <rect x="289" y="158" width="22" height="34" rx="5" fill="#1d2a55"/>\n      <rect x="292" y="162" width="16" height="24" rx="2" fill="#dbe6ff"/>\n      <rect x="294" y="166" width="10" height="4" rx="2" fill="#4680ff"/>\n      <rect x="296" y="174" width="10" height="4" rx="2" fill="#ffffff"/>\n      <ellipse cx="300" cy="190" rx="12" ry="6" fill="#d9a07a"/>\n      </g>\n      <g mask="url(#zammad-chat-header-ill-fade)"><path d="M0 192 C80 178 150 198 230 192 C300 186 340 178 380 182 L380 220 L0 220 Z" fill="#c7d8ff"/></g>\n      </svg>\n      <svg class="zammad-chat-header-illustration-wave" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 22" preserveAspectRatio="none" focusable="false" aria-hidden="true"><path d="M0 8 C90 -1 180 16 270 7 C320 3 350 4 380 0 L380 22 L0 22 Z" fill="#ffffff"/></svg>\n    </div>\n  </div>\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--home is-active"></div>\n\n  <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">\n    <div class="zammad-chat-modal"></div>\n    <div class="zammad-scroll-hint is-hidden">\n      ');
     
       __out.push(this.icon('arrow-circle-down', 20, {
         "class": 'zammad-scroll-hint-icon'
@@ -1242,20 +1242,16 @@ window.zammadChatTemplates["home"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-home">\n  <!-- Atas permintaan user ("rubah total Home dan OfflineHome") --\n  ikon bubble chat lama (dari sprite kit VUE) diganti `custom-message-2`,\n  yang GENUINELY ada di sprite "custom" kit Tailwind baru sendiri\n  (`dist/assets/js/icon/custom-font.js`, bukan Tabler kali ini --\n  ikon ini kebetulan SUDAH tersedia asli di kit ini, prioritas 1\n  dibanding cari padanan Tabler). Duotone SENGAJA dipertahankan\n  (`opacity="0.4"` di path pertama) -- gaya asli ikon ini di kit\n  Tailwind (beda dari mayoritas ikon widget lain yang flat 1 opacity),\n  BUKAN kesalahan/disederhanakan. Ukuran badge (52px) & radius\n  (`$siska-radius-lg`=12px) TETAP -- dicek ULANG ke preseden NYATA kit\n  baru (`w_chart.html`: `.w-10.h-10.rounded-xl` = ikon-dlm-kotak,\n  radius `rounded-xl`=12px SAMA PERSIS) -- cuma radiusnya yang\n  terverifikasi identik, ukuran 52px & background SOLID (bukan tint\n  10%) tetap dipertahankan sengaja krn ini logo BRANDING hero (satu-\n  satunya elemen dominan halaman), bukan ikon aksen kecil di kartu\n  dashboard -- preseden itu tidak berlaku sama utk konteks beda ini. -->\n  <div class="zammad-chat-home-logo">\n    <div class="zammad-chat-home-logo-mark">\n      <svg width="26" height="26" viewBox="0 0 24 24"><path opacity="0.4" d="M7 18.4302H11L15.45 21.3902C16.11 21.8302 17 21.3602 17 20.5602V18.4302C20 18.4302 22 16.4302 22 13.4302V7.43018C22 4.43018 20 2.43018 17 2.43018H7C4 2.43018 2 4.43018 2 7.43018V13.4302C2 16.4302 4 18.4302 7 18.4302Z" fill="currentColor"/><path d="M15.5 11.25H8.5C8.09 11.25 7.75 10.91 7.75 10.5C7.75 10.09 8.09 9.75 8.5 9.75H15.5C15.91 9.75 16.25 10.09 16.25 10.5C16.25 10.91 15.91 11.25 15.5 11.25Z" fill="currentColor"/></svg>\n    </div>\n  </div>\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    ');
+      __out.push('<div class="zammad-chat-home">\n\n  <!-- Enhancement 1 -- Tahap 3 (Offline Message + OTP), mockup OfflineHome.dc.html.\n  Tersembunyi default -- ditampilkan lewat `enterOfflineMode()` (chat.coffee)\n  begitu `chat_status_customer` balas state \'offline\' (SEMUA agent tidak\n  tersedia, termasuk yg lagi AUX -- lihat entri 143). -->\n  <!-- Atas permintaan user (audit kit Able Pro TAILWIND baru, HANYA\n  Home/OfflineHome): pola alert diganti ke `.alert-warning` GENUINE\n  kit baru (lihat chat.scss), teks tetap 1 baris (judul+deskripsi\n  digabung, kedua Setting tetap dipakai). Ikon `custom-warning-fill`\n  LAMA (sprite kit VUE) TIDAK ADA padanannya di kit Tailwind baru --\n  diganti path `alert-triangle` Tabler Icons (dipilih user), diekstrak\n  LANGSUNG dari glyph SVG font kit ini\n  (`assets/fonts/tabler/tabler-icons.svg`, glyph-name="alert-triangle",\n  unicode \\ea06) -- BUKAN digambar ulang manual/ditebak. Koordinat\n  glyph font di-flip vertikal (`scale(1,-1) translate(0,-986.5)`,\n  986.5 = ascent font ini) krn sistem koordinat SVG font terbalik dari\n  SVG biasa -- hasil render dikonfirmasi tegak lewat `rsvg-convert`\n  sebelum dipakai di sini. -->\n  <div class="zammad-chat-home-offline-notice zammad-chat-is-hidden">\n    ');
     
       __out.push(this.icon('warning', 20, {
         tone: 'full',
         "class": 'zammad-chat-home-offline-notice-icon'
       }));
     
-      __out.push('\n    <span class="zammad-chat-home-offline-notice-text">');
+      __out.push('\n    <!-- Atas permintaan user ("buat notice notice ini hanya 1 baris,\n    dibuat ringkas kalimatnya") -- cuma 1 frase (judul); frase\n    deskripsi `chat_phrase_offline_notice` tidak dipakai lagi di sini\n    (status offline sudah tertulis di header). -->\n    <span class="zammad-chat-home-offline-notice-text">');
     
-      __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || 'All agents are currently unavailable'));
-    
-      __out.push(' ');
-    
-      __out.push(this.T(this.phrases['chat_phrase_offline_notice'] || 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.'));
+      __out.push(this.T(this.phrases['chat_phrase_offline_notice_title'] || "We're offline — leave us a message"));
     
       __out.push('</span>\n  </div>\n\n  <!-- Notice agent online -- pola SAMA (audit kit Tailwind baru,\n  `.alert-info`). Ikon `info-circle` Tabler (dipilih user), diekstrak\n  & diverifikasi render dgn cara SAMA persis spt alert-triangle di\n  atas (unicode \\eac5). -->\n  <div class="zammad-chat-home-online-notice zammad-chat-is-hidden">\n    ');
     
@@ -1266,7 +1262,7 @@ window.zammadChatTemplates["home"] = function(__obj) {
     
       __out.push('\n    <span class="zammad-chat-home-online-notice-text">');
     
-      __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online now — start a conversation and we'll respond right away."));
+      __out.push(this.T(this.phrases['chat_phrase_home_online_notice'] || "Agents are online — chat with us now"));
     
       __out.push('</span>\n  </div>\n\n  <div class="zammad-chat-home-actions">\n    <!-- Atas permintaan user ("hilangkan icon pada button Leave\n    us.../Send us..."): KEDUA ikon (online & offline) dihapus dari\n    markup -- toggle visibilitasnya di `applyOfflineHomeState`\n    (chat.coffee/chat-no-jquery.coffee) ikut dihapus, TIDAK cuma\n    disembunyikan CSS. Pergantian LABEL teks ("Send us a\n    message"/"Leave us a message") TETAP jalan, itu bukan ikon. -->\n    <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">\n      <span class="js-home-start-label">');
     
@@ -2420,13 +2416,7 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
   }
   (function() {
     (function() {
-      __out.push('<div class="zammad-chat-prechat">\n  <div class="zammad-chat-prechat-icon">\n    ');
-    
-      __out.push(this.icon('chat-circle-dots', 24, {
-        tone: 'full'
-      }));
-    
-      __out.push('\n  </div>\n  <div class="zammad-chat-prechat-title">');
+      __out.push('<div class="zammad-chat-prechat">\n  <!-- Logo/ikon di atas judul DIHAPUS atas permintaan user ("pada\n  halaman ini, hapus logo", screenshot form prechat). -->\n  <div class="zammad-chat-prechat-title">');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_title'] || 'Let\'s get started'));
     
@@ -2540,7 +2530,11 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(__sanitize(this.email || ''));
     
-      __out.push('" required>\n    </div>\n    <!-- Atas permintaan user ("hilangkan icon pada button Start\n    Chat"): ikon paper-plane dihapus, teks polos saja. -->\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <span>');
+      __out.push('" placeholder="');
+    
+      __out.push(this.T(this.phrases['chat_phrase_prechat_email_placeholder'] || 'name@example.com'));
+    
+      __out.push('" autocomplete="email" required>\n    </div>\n    <!-- Atas permintaan user ("hilangkan icon pada button Start\n    Chat"): ikon paper-plane dihapus, teks polos saja. -->\n    <button type="submit" class="zammad-chat-prechat-submit">\n      <span>');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_submit_button'] || 'Start chat'));
     
@@ -7764,7 +7758,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.updatePhrases = function(phrases) {
-      var input, welcomeSubtext, welcomeTitle;
+      var input, welcomeGreeting, welcomeSubtext;
       this.phrases = phrases;
       if (!this.el) {
         return;
@@ -7776,9 +7770,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       } else {
         this.kbLoaded = false;
       }
-      welcomeTitle = this.el.querySelector('.zammad-chat-welcome-title');
-      if (welcomeTitle) {
-        welcomeTitle.innerHTML = this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi there') + ' 👋';
+      welcomeGreeting = this.el.querySelector('.js-welcome-greeting');
+      if (welcomeGreeting) {
+        welcomeGreeting.innerHTML = this.T(this.phrases['chat_phrase_home_greeting'] || 'Hi Simmers');
       }
       welcomeSubtext = this.el.querySelector('.zammad-chat-welcome-subtext');
       if (welcomeSubtext) {

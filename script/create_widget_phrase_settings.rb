@@ -57,7 +57,13 @@ def upsert_phrase(name, title, default_value)
 end
 
 puts '== Home =='
-upsert_phrase('chat_phrase_home_greeting', 'Home: Sapaan', 'Hi there')
+upsert_phrase('chat_phrase_home_greeting', 'Home: Sapaan', 'Hi Simmers')
+# Atas permintaan user ("`Hi There` ganti menjadi `Hi Simmers`") --
+# nilai default LAMA diperbarui hanya kalau admin belum mengubahnya.
+if Setting.find_by(name: 'chat_phrase_home_greeting') && Setting.get('chat_phrase_home_greeting') == 'Hi there'
+  Setting.set('chat_phrase_home_greeting', 'Hi Simmers')
+  puts '  (diperbarui dari default lama) chat_phrase_home_greeting'
+end
 upsert_phrase('chat_phrase_home_subtitle', 'Home: Subjudul', 'How can we help you today?')
 upsert_phrase('chat_phrase_home_start_button', 'Home: Tombol mulai chat', 'Send us a message')
 upsert_phrase('chat_phrase_home_search_button', 'Home/Help: Tombol/placeholder cari bantuan', 'Search for help')
@@ -65,7 +71,7 @@ upsert_phrase('chat_phrase_home_search_button', 'Home/Help: Tombol/placeholder c
 # ditambahkan juga alert seperti tadi, type alert yang sama, color
 # info") -- pasangan notice offline di atas, tipe alert "Basic" yang
 # SAMA, ditampilkan begitu agent tersedia.
-upsert_phrase('chat_phrase_home_online_notice', 'Home: Pesan notice saat agent online', "Agents are online now — start a conversation and we'll respond right away.")
+upsert_phrase('chat_phrase_home_online_notice', 'Home: Pesan notice saat agent online', "Agents are online — chat with us now")
 
 puts '== Home -- Semua Agent Offline =='
 upsert_phrase('chat_phrase_offline_status', 'Offline: Status', "We're offline right now")
@@ -78,7 +84,7 @@ upsert_phrase('chat_phrase_offline_status', 'Offline: Status', "We're offline ri
 # dipecah 2: judul baru `chat_phrase_offline_notice_title` (kalimat
 # pertama) + `chat_phrase_offline_notice` (SEKARANG cuma kalimat
 # kedua, jadi baris deskripsi).
-upsert_phrase('chat_phrase_offline_notice_title', 'Offline: Judul notice di Home', 'All agents are currently unavailable')
+upsert_phrase('chat_phrase_offline_notice_title', 'Offline: Judul notice di Home', "We're offline — leave us a message")
 upsert_phrase('chat_phrase_offline_notice', 'Offline: Deskripsi notice di Home', 'Leave your message and email, we will verify it via an OTP code and reply as soon as possible.')
 upsert_phrase('chat_phrase_offline_start_button', 'Offline: Tombol mulai pesan offline', 'Leave us a message')
 
@@ -86,6 +92,7 @@ puts '== Prechat (Isi Nama, Email & Category) =='
 upsert_phrase('chat_phrase_prechat_title', 'Prechat: Judul', "Let's get started")
 upsert_phrase('chat_phrase_prechat_subtitle', 'Prechat: Subjudul', 'Please share a few details so our agent can help you faster.')
 upsert_phrase('chat_phrase_prechat_email_label', 'Prechat: Label email', 'Your email')
+upsert_phrase('chat_phrase_prechat_email_placeholder', 'Prechat: Placeholder email', 'name@example.com')
 # Atas permintaan user ("saya mau menambahkan kategori ini pada
 # halaman messages, sejalan dengan inputan name, email") -- field
 # ke-3 Prechat, wajib diisi. Label/placeholder INI configurable
@@ -188,5 +195,19 @@ upsert_phrase('chat_phrase_attachment_upload_error', 'Lampiran: Pesan error uplo
 # Item lampiran OfflineCompose (follow-up terpisah dari Enhancement 4
 # awal, ditambahkan belakangan atas permintaan user).
 upsert_phrase('chat_phrase_offline_compose_attach_button', 'Offline Compose: Tombol tambah lampiran', 'Add attachment')
+
+# Atas permintaan user ("notice hanya 1 baris, ringkas kalimatnya") --
+# nilai default LAMA notice Home diperbarui hanya kalau admin belum
+# mengubahnya. `chat_phrase_offline_notice` (deskripsi) tidak lagi
+# ditampilkan di notice Home.
+{
+  'chat_phrase_home_online_notice'   => ["Agents are online now — start a conversation and we'll respond right away.", "Agents are online — chat with us now"],
+  'chat_phrase_offline_notice_title' => ['All agents are currently unavailable', "We're offline — leave us a message"],
+}.each do |name, (old_value, new_value)|
+  next if !Setting.find_by(name: name) || Setting.get(name) != old_value
+
+  Setting.set(name, new_value)
+  puts "  (diperbarui dari default lama) #{name}"
+end
 
 puts 'Done.'
