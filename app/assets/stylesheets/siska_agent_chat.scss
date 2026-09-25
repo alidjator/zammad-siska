@@ -904,7 +904,9 @@ $siska-thumb-h: 180px;
 // Kartu gambar: pratinjau di atas + kaki kartu. Putih bergaris untuk
 // customer MAUPUN agent (keputusan user), jadi tidak ikut biru bubble agent.
 .siska-agent .siska-img-card {
-  width: $siska-thumb-w;
+  // K1: gambar TEPAT 240x180 -- kartu border-box jadi lebar + 2px garis
+  // (sebelumnya 240 termasuk garis -> gambar 238px), sama dgn widget
+  width: calc(#{$siska-thumb-w} + 2px);
   max-width: 100%;
   border: 1px solid $siska-border;
   border-radius: $siska-radius-sm;
@@ -935,11 +937,13 @@ $siska-thumb-h: 180px;
   color: $siska-body-color;
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.4; // K1: sama dgn widget
 }
 
 .siska-agent .siska-img-card-meta {
   color: $siska-text-secondary;
   font-size: 12px;
+  line-height: 1.4; // K1: sama dgn widget
 }
 
 .siska-agent .siska-img-card-download {

@@ -1858,6 +1858,7 @@ do(window) ->
           # `receiveMessage`), balik `undefined` utk pesan hasil replay
           # ini, gagal diam-diam tanpa error.
           @agentMessagesById[message.id] = message if isAgentMessage and message.id
+          (@ownMessagesById ||= {})[message.id] = message if !isAgentMessage and message.id
           # G1: pesan agent yang belum pernah terlihat oleh customer
           @unreadAgentMessages = true if isAgentMessage and !message.read_at
           # G3: reaksi agent ke pesan customer ikut digambar ulang saat reload
@@ -2021,6 +2022,9 @@ do(window) ->
         filename: toggle.dataset.filename
         reactions: @REACTIONS
         current: toggle.closest('.zammad-chat-message')?.dataset.reaction || null
+        # G9: pesan sendiri -> tanpa baris reaksi (reaksi customer hanya utk
+        # pesan agent), tetap Reply + Copy / Download
+        own: !!toggle.closest('.zammad-chat-message--customer')
       )
       menu = wrapper.querySelector('.js-message-menu-list')
       body.appendChild(menu)
@@ -2125,6 +2129,7 @@ do(window) ->
       return if !localId
       el = @body?.querySelector(".zammad-chat-message[data-message-id='#{localId}']")
       el.dataset.messageId = message.id if el
+      (@ownMessagesById ||= {})[message.id] = message
 
     # G3 (keputusan user "perlu"): reaksi AGENT ke pesan customer -- badge
     # hanya tampilan (bukan tombol), karena customer tidak bisa mengubahnya.
@@ -2195,7 +2200,8 @@ do(window) ->
       return if !target
       messageId = target.dataset.messageId
       return if !messageId
-      message = @agentMessagesById[messageId]
+      # G9: juga pesan sendiri (id server dari echo / riwayat / lampiran)
+      message = @agentMessagesById[messageId] || @ownMessagesById?[messageId]
       return if !message
 
       # Atas permintaan user (screenshot: kutipan reply ke pesan
@@ -2285,6 +2291,7 @@ do(window) ->
         time: @formatTime(data.created_at)
       )
       @agentMessagesById[data.id] = data if from is 'agent' and data.id
+      (@ownMessagesById ||= {})[data.id] = data if from is 'customer' and data.id
       @noteAgentMessage() if from is 'agent'
 
       # Fitur kirim gambar: gambar milik sendiri menggantikan placeholder

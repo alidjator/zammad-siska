@@ -3922,6 +3922,12 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   justify-content: center;
 }
 
+// G9: tombol menu juga di bubble customer (latar tint primary 10% di atas
+// area pesan) -- gradasi memakai warna latar bubble itu, bukan putih
+.zammad-chat-message--customer .zammad-chat-message-body:not(.zammad-chat-image-card) > .zammad-chat-message-menu-toggle {
+  background: linear-gradient(to left, #e6edfa 60%, rgba(230, 237, 250, 0));
+}
+
 .zammad-chat-message:hover .zammad-chat-message-menu-toggle,
 .zammad-chat-message.is-menu-open .zammad-chat-message-menu-toggle {
   opacity: 1;
@@ -4133,7 +4139,9 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   width: 242px;
   max-width: 100%;
   padding: 0;
-  border: 1px solid $siska-border;
+  // K1: warna garis SAMA dgn panel agent (`$siska-border` agent = #e7eaee;
+  // token widget #e8ebee beda 1 tingkat)
+  border: 1px solid #e7eaee;
   border-radius: $siska-radius-sm;
   background: #ffffff;
   box-shadow: none;
@@ -4150,8 +4158,8 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
 .zammad-chat-image-card-foot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 6px 8px 10px;
+  gap: 10px;
+  padding: 10px 8px 10px 12px; // K1: sama dgn .siska-img-card-foot agent
 }
 
 .zammad-chat-image-card-text {
@@ -4169,7 +4177,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   color: $siska-body-color;
   font-size: 13px;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .zammad-chat-image-card-meta {
@@ -4178,7 +4186,7 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
   gap: 3px;
   color: $siska-text-secondary;
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.4;
 
   .zammad-chat-message-time {
     color: inherit;

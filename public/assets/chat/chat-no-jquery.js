@@ -179,7 +179,7 @@ window.zammadChatTemplates["attachment_message"] = function(__obj) {
     
       __out.push('</span>');
     
-      if (this.from === 'agent' && this.id) {
+      if (this.id) {
         __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
         __out.push(this.T('Message options'));
         __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="file" data-download="');
@@ -1176,7 +1176,7 @@ window.zammadChatTemplates["image_message"] = function(__obj) {
     
       __out.push('</a></span>');
     
-      if (this.from === 'agent' && this.id) {
+      if (this.id) {
         __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
         __out.push(this.T('Message options'));
         __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="image" data-download="');
@@ -1630,31 +1630,33 @@ window.zammadChatTemplates["message_menu"] = function(__obj) {
     
       __out.push(this.T('Message options'));
     
-      __out.push('">\n  <!-- Reaksi emoji (mockup "Reaksi emoji bubble"): tepat 5 emoji, reaksi\n  aktif ditandai; klik emoji yg sama = hapus. -->\n  <div class="zammad-chat-message-reactions" role="group" aria-label="');
+      __out.push('">\n  <!-- Reaksi emoji (mockup "Reaksi emoji bubble"): tepat 5 emoji, reaksi\n  aktif ditandai; klik emoji yg sama = hapus. -->\n  ');
     
-      __out.push(this.T('React'));
-    
-      __out.push('">\n    ');
-    
-      ref = this.reactions;
-      for (i = 0, len = ref.length; i < len; i++) {
-        reaction = ref[i];
-        __out.push('\n    <button type="button" class="zammad-chat-message-reaction js-message-react');
-        if (reaction.emoji === this.current) {
-          __out.push(__sanitize(' is-active'));
+      if (!this.own) {
+        __out.push('\n  <div class="zammad-chat-message-reactions" role="group" aria-label="');
+        __out.push(this.T('React'));
+        __out.push('">\n    ');
+        ref = this.reactions;
+        for (i = 0, len = ref.length; i < len; i++) {
+          reaction = ref[i];
+          __out.push('\n    <button type="button" class="zammad-chat-message-reaction js-message-react');
+          if (reaction.emoji === this.current) {
+            __out.push(__sanitize(' is-active'));
+          }
+          __out.push('" role="menuitemradio" aria-checked="');
+          __out.push(__sanitize(reaction.emoji === this.current ? 'true' : 'false'));
+          __out.push('" aria-label="');
+          __out.push(this.T(reaction.label));
+          __out.push('" data-reaction="');
+          __out.push(__sanitize(reaction.emoji));
+          __out.push('">');
+          __out.push(__sanitize(reaction.emoji));
+          __out.push('</button>\n    ');
         }
-        __out.push('" role="menuitemradio" aria-checked="');
-        __out.push(__sanitize(reaction.emoji === this.current ? 'true' : 'false'));
-        __out.push('" aria-label="');
-        __out.push(this.T(reaction.label));
-        __out.push('" data-reaction="');
-        __out.push(__sanitize(reaction.emoji));
-        __out.push('">');
-        __out.push(__sanitize(reaction.emoji));
-        __out.push('</button>\n    ');
+        __out.push('\n  </div>\n  ');
       }
     
-      __out.push('\n  </div>\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
+      __out.push('\n  <button type="button" class="zammad-chat-message-menu-item js-message-reply" role="menuitem">');
     
       __out.push(this.icon('arrow-bend-up-left', 18));
     
@@ -1779,7 +1781,7 @@ window.zammadChatTemplates["message"] = function(__obj) {
     
       __out.push('</span>');
     
-      if (this.from === 'agent' && this.id) {
+      if (this.id) {
         __out.push('<button type="button" class="zammad-chat-message-menu-toggle js-message-menu" aria-label="');
         __out.push(this.T('Message options'));
         __out.push('" aria-haspopup="menu" aria-expanded="false" data-kind="text">');
@@ -5002,6 +5004,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           if (isAgentMessage && message.id) {
             this.agentMessagesById[message.id] = message;
           }
+          if (!isAgentMessage && message.id) {
+            (this.ownMessagesById || (this.ownMessagesById = {}))[message.id] = message;
+          }
           if (isAgentMessage && !message.read_at) {
             this.unreadAgentMessages = true;
           }
@@ -5156,7 +5161,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         download: toggle.dataset.download,
         filename: toggle.dataset.filename,
         reactions: this.REACTIONS,
-        current: ((ref = toggle.closest('.zammad-chat-message')) != null ? ref.dataset.reaction : void 0) || null
+        current: ((ref = toggle.closest('.zammad-chat-message')) != null ? ref.dataset.reaction : void 0) || null,
+        own: !!toggle.closest('.zammad-chat-message--customer')
       });
       menu = wrapper.querySelector('.js-message-menu-list');
       body.appendChild(menu);
@@ -5324,8 +5330,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       }
       el = (ref1 = this.body) != null ? ref1.querySelector(".zammad-chat-message[data-message-id='" + localId + "']") : void 0;
       if (el) {
-        return el.dataset.messageId = message.id;
+        el.dataset.messageId = message.id;
       }
+      return (this.ownMessagesById || (this.ownMessagesById = {}))[message.id] = message;
     };
 
     ZammadChat.prototype.applyAgentReaction = function(messageId, reaction) {
@@ -5434,7 +5441,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.startReply = function(event) {
-      var message, messageId, target;
+      var message, messageId, ref, target;
       if (!event.target.closest('.js-message-reply')) {
         return;
       }
@@ -5447,7 +5454,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (!messageId) {
         return;
       }
-      message = this.agentMessagesById[messageId];
+      message = this.agentMessagesById[messageId] || ((ref = this.ownMessagesById) != null ? ref[messageId] : void 0);
       if (!message) {
         return;
       }
@@ -5559,6 +5566,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       });
       if (from === 'agent' && data.id) {
         this.agentMessagesById[data.id] = data;
+      }
+      if (from === 'customer' && data.id) {
+        (this.ownMessagesById || (this.ownMessagesById = {}))[data.id] = data;
       }
       if (from === 'agent') {
         this.noteAgentMessage();

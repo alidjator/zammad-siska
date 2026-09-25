@@ -31,6 +31,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | Reply | Ada, hanya ke pesan agent | Ada, ke semua pesan | ◐ |
 | Copy teks | Ada + toast "Copied" (`copyMessage`) | Ada di menu titik tiga (juga pesan teks riwayat) + notifikasi "Copied" | ✅ **G2 selesai** (2026-09-25) |
 | Download lampiran | Ada | Ada | ✅ |
+| Menu pada pesan **sendiri** (Reply, Copy / Download) | Ada: menu ▾ di pesan sendiri (Reply + Copy / Download, tanpa reaksi) | Ada di semua pesan (termasuk pesan sendiri) | ✅ **G9 selesai** (2026-09-25) |
 | Reaksi emoji | Customer bereaksi (5 emoji whitelist) ke pesan agent; melihat badge reaksi agent di pesannya | Agent bereaksi ke pesan customer (baris emoji di menu, chip bisa dihapus) + melihat reaksi customer | ✅ **G3 selesai** (2026-09-25, dua arah) |
 
 ## 3. Gambar & file
@@ -61,7 +62,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | Sapaan pembuka / penutup | Sapaan selamat datang & penutup (phrase admin) | Sapaan otomatis per topik (Settings agent) | ✅ Saling melengkapi |
 | Rating | Customer memberi rating | Agent melihat rating (Setting `chat_agent_show_rating`, default menyala) | ✅ |
 | Chat berakhir | Layar penutup + rating | Pemisah, kartu rating, bilah "percakapan telah berakhir" | ✅ |
-| Status koneksi | Overlay "Connection lost" + reconnect otomatis | Tidak ada penanda putus koneksi di jendela chat (hanya reconnect bawaan Zammad) | ❗ **G7** |
+| Status koneksi | Overlay "Connection lost" + reconnect otomatis | Banner "Connection lost. Reconnecting…" di halaman chat (+ modal global Zammad) | ✅ **G7 selesai** (2026-09-25) |
 
 ## 6. Bahasa
 
@@ -79,8 +80,9 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 | G4 | Pratinjau gambar seragam 240 × 180 | Widget | ✅ **Selesai** 2026-09-25 (keputusan user: 240 × 180) |
 | G5 | Kartu gambar | Widget | ✅ **Selesai** 2026-09-25 (keputusan user: kartu) |
 | G6 | Progress unggah dengan persen | Agent | ✅ **Selesai** 2026-09-25, bersama perbaikan B1 |
-| G7 | Penanda putus koneksi di jendela chat | Agent | Banner "Connection lost, reconnecting…" terhubung ke status `App.WebSocket` — **direvisi di audit (bagian 8): lebih kecil** |
+| G7 | Penanda putus koneksi di jendela chat | Agent | ✅ **Selesai** 2026-09-25 |
 | G8 | Bahasa label panel agent | Agent | ✅ **Selesai** 2026-09-25 (opsi a: aktifkan locale `id` + `i18n/siska.id.po`) |
+| G9 | Menu (Reply, Copy / Download) pada pesan customer sendiri | Widget | ✅ **Selesai** 2026-09-25 |
 
 ## 8. Hasil audit G1–G8 (2026-09-25)
 
