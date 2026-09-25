@@ -590,3 +590,13 @@ msgstr "Kami mengirim kode verifikasi ke email Anda."
 
 msgid "We sent the code to %s."
 msgstr "Kode dikirim ke %s."
+
+# Live chat -- agent otomatis offline karena tidak aktif (celah #5)
+msgid "Chat set to offline because you were inactive for %s minutes."
+msgstr "Chat di-set offline karena Anda tidak aktif selama %s menit."
+
+msgid "Agent away timeout"
+msgstr "Batas waktu agent tidak aktif"
+
+msgid "Minutes without activity in the app (mouse, keyboard, touch) and without open chats until the agent is set offline automatically. 0 disables it."
+msgstr "Menit tanpa aktivitas di aplikasi (mouse, keyboard, sentuh) dan tanpa chat terbuka sampai agent otomatis di-set offline. 0 = nonaktif."

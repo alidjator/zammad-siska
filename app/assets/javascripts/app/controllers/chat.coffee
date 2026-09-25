@@ -51,6 +51,15 @@ class App.CustomerChat extends App.Controller
     @selectedSessionId = undefined
     @listQuery = ''
     @idleTimeout = parseInt(@Config.get('chat_agent_idle_timeout') || 120)
+    # Celah #5 audit putus koneksi: agent yg membiarkan tab terbuka lalu
+    # meninggalkan meja tetap dihitung online (sinyal hidup tiap 55 dtk),
+    # customer masuk antrean tanpa ada yg menjawab. Tidak ada aktivitas
+    # (mouse/keyboard/sentuh/scroll) di aplikasi selama
+    # `chat_agent_away_timeout` menit & tidak ada chat terbuka -> chat
+    # otomatis di-set offline. 0 = fitur mati.
+    @awayTimeoutMinutes = parseInt(@Config.get('chat_agent_away_timeout') ? 10)
+    @lastActivityAt = Date.now()
+    @startAwayWatch()
     @messageCounter = 0
     @meta =
       active: false
@@ -603,6 +612,26 @@ class App.CustomerChat extends App.Controller
           type: 'error'
           msg:  data?.message || __('The settings could not be saved.')
         )
+    )
+
+  startAwayWatch: =>
+    return if !(@awayTimeoutMinutes > 0)
+    markActive = => @lastActivityAt = Date.now()
+    for eventName in ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel']
+      document.addEventListener(eventName, markActive, { passive: true, capture: true })
+    @interval(@checkAway, 30000, 'siska-away-check')
+
+  checkAway: =>
+    return if !@meta.active
+    return if @windowCount() > 0
+    return if Date.now() - @lastActivityAt < @awayTimeoutMinutes * 60000
+    @switch(false)
+    @notify(
+      type:    'notice'
+      msg:     App.i18n.translatePlain('Chat set to offline because you were inactive for %s minutes.', @awayTimeoutMinutes)
+      # Agent sedang tidak di tempat -- pesan bertahan sampai diklik
+      # (24 jam), bukan 3,8 dtk bawaan.
+      timeout: 24 * 60 * 60 * 1000
     )
 
   idleTimeoutStart: =>
