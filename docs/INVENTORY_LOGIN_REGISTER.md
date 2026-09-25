@@ -72,7 +72,7 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 | 3.13 | Teks footer "You're already registered ... request your password here" | 🔄 | Diringkas |
 | 3.14 | Link "Register as a new customer" + public links | 🔄 | Jadi "Belum punya akun? Daftar" di bawah tombol |
 | 3.15 | Link "Continue to mobile" (hanya di mobile) | ✅ | |
-| 3.16 | Footer "Powered by Zammad" | ❓ | Dipertahankan atau diganti branding SISKA |
+| 3.16 | Footer "Powered by Zammad" | 🔄 | Diganti branding SISKA (K5) |
 | 3.17 | Re-render otomatis saat setting login berubah (`config_update_local`) | ✅ | |
 | 3.18 | **OTP email setelah password benar** | ➕ | Lihat §6 |
 
@@ -87,7 +87,7 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 | 4.5 | Field "Password (confirm)" otomatis dari form generik (`attribute.single` false) | ✅ | Dipertahankan sebagai "Confirm password" |
 | 4.6 | Tombol "Cancel & Go Back" + "Create my account" | 🔄 | Jadi 1 tombol utama + link "Sudah punya akun? Masuk" |
 | 4.7 | Sukses → halaman "Registration successful! ... click on the link in the verification email" + tombol "Resend verification email" | 🔄 | **Diganti OTP 6 digit** (lihat §6) |
-| 4.8 | Verifikasi lewat link `#email_verify/:token` | ❓ | Tetap dikirim di email sebagai cadangan, atau dihapus |
+| 4.8 | Verifikasi lewat link `#email_verify/:token` | ✅ | Tetap dikirim sebagai cadangan di samping kode (K3) |
 | 4.9 | Akun signup yang belum terverifikasi **tidak bisa login** (`auth/backend/internal.rb:24`) | ✅ | Aturan dipertahankan; OTP register yang memverifikasi |
 | 4.10 | Email sudah terdaftar → server tetap membalas sukses (tidak membocorkan) | ✅ | Wajib dipertahankan untuk OTP juga |
 
@@ -95,7 +95,7 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 
 | # | Halaman | Status | Catatan |
 |---|---|---|---|
-| 5.1 | Lupa password (`#password_reset`, `reset_sent`, `reset_change`, `reset_failed`) | ❓ | Ikut gaya baru agar konsisten; OTP untuk reset belum diminta |
+| 5.1 | Lupa password (`#password_reset`, `reset_sent`, `reset_change`, `reset_failed`) | 🔄 | Redesign + OTP (K4) |
 | 5.2 | Request login admin (`#admin_password_auth`) | ✅ | Hanya gaya |
 
 ## 6. Usulan OTP
@@ -118,10 +118,16 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
    jadi recovery code, "try another method", dan penegakan per role ikut
    berfungsi.
 
-**Keputusan yang dibutuhkan (❓)**
-- OTP login berlaku untuk siapa: semua pengguna, hanya agent/admin, atau
-  hanya customer?
-- Ada opsi "percayai perangkat ini 30 hari" supaya tidak diminta OTP tiap
-  login?
-- Link verifikasi di email register dipertahankan sebagai cadangan?
-- Footer "Powered by Zammad" dipertahankan?
+**Keputusan (2026-09-25)**
+
+| # | Pertanyaan | Keputusan |
+|---|---|---|
+| K1 | OTP login berlaku untuk siapa | **Semua pengguna**, lewat setting on/off baru, **default off** |
+| K2 | "Don't ask again on this device for 30 days" | **Ya, 30 hari** |
+| K3 | Isi email verifikasi register | **Kode 6 digit + link verifikasi lama sebagai cadangan** |
+| K4 | Halaman lupa password | **Redesign + OTP**: email → kode → password baru → langsung masuk |
+| K5 | Footer "Powered by Zammad" | Diganti "© SISKA · helpdesk.satu.solutions" (sesuai mockup) |
+| K6 | Layout | Kit Able Pro **Authentication v2** + ilustrasi customer service SISKA di kiri |
+
+Mockup: canvas "SISKA Login & Register" (login, register, lupa password;
+masing-masing sekarang vs usulan).
