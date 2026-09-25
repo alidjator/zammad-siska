@@ -86,6 +86,7 @@ return is sent as message back to peer
     chat_phrase_prechat_subject_required
     chat_phrase_prechat_submit_button
     chat_phrase_prechat_offline_submit_button
+    chat_phrase_agent_disconnected_notice
     chat_phrase_prechat_validation_error
     chat_phrase_waiting_title
     chat_phrase_waiting_subtitle

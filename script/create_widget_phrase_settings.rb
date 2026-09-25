@@ -116,6 +116,7 @@ upsert_phrase('chat_phrase_prechat_subject_placeholder', 'Prechat: Placeholder s
 upsert_phrase('chat_phrase_prechat_subject_required', 'Prechat: Pesan subject wajib diisi', 'Please enter a subject.')
 upsert_phrase('chat_phrase_prechat_submit_button', 'Prechat: Tombol submit', 'Start chat')
 upsert_phrase('chat_phrase_prechat_offline_submit_button', 'Prechat: Tombol submit saat agent offline', 'Leave message')
+upsert_phrase('chat_phrase_agent_disconnected_notice', 'Messages: Agent terputus, chat dialihkan ke tiket (%s = no. tiket, %s = email)', "Our agent got disconnected. Your conversation is saved as ticket #%s and we'll reply by email to %s.")
 upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid email, category, and subject.')
 # Field "Your name" dihapus & Subject ditambah -- nilai default LAMA
 # pesan validasi masih menyebut "name" & tidak menyebut subject.

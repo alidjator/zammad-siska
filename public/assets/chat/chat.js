@@ -3220,6 +3220,9 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     Timeout.prototype.start = function() {
       var check, timeoutStartedAt;
       this.stop();
+      if (!this.options.timeout) {
+        return;
+      }
       timeoutStartedAt = new Date;
       check = (function(_this) {
         return function() {
@@ -3532,7 +3535,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       inactiveClass: 'is-inactive',
       title: '<strong>Chat</strong> with us!',
       scrollHint: 'Scroll down to see new messages',
-      idleTimeout: 6,
+      idleTimeout: false,
       idleTimeoutIntervallCheck: 0.5,
       inactiveTimeout: 8,
       inactiveTimeoutIntervallCheck: 0.5,
@@ -7284,7 +7287,11 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (data.closed_by_agent && this.sessionId) {
         this.showClosingGreeting();
       }
-      this.addStatus(this.T('Chat closed by %s', data.realname));
+      if (data.reason === 'agent_disconnected') {
+        this.addStatus(this.T(this.phrases['chat_phrase_agent_disconnected_notice'] || "Our agent got disconnected. Your conversation is saved as ticket #%s and we'll reply by email to %s.", data.ticket_number || '-', data.email || this.customerEmail || '-'));
+      } else {
+        this.addStatus(this.T('Chat closed by %s', data.realname));
+      }
       this.disableComposeInput();
       this.setAgentOnlineState('offline');
       this.inactiveTimeout.stop();
@@ -7302,6 +7309,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             return _this.showFeedback(true);
           };
         })(this)), 2000);
+      } else if (data.reason === 'agent_disconnected' && this.sessionId) {
+        sessionStorage.removeItem('unfinished_message');
+        this.lastSessionId = this.sessionId;
+        return this.setSessionId(void 0);
       }
     };
 

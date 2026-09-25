@@ -86,6 +86,8 @@ do(window) ->
 
     start: =>
       @stop()
+      # `timeout` kosong/false/0 = timer dimatikan (lihat `idleTimeout`).
+      return if !@options.timeout
       timeoutStartedAt = new Date
       check = =>
         timeLeft = new Date - new Date(timeoutStartedAt.getTime() + @options.timeout * 1000 * 60)
@@ -323,7 +325,12 @@ do(window) ->
       inactiveClass: 'is-inactive'
       title: '<strong>Chat</strong> with us!'
       scrollHint: 'Scroll down to see new messages'
-      idleTimeout: 6
+      # Atas permintaan user (celah #2 audit putus koneksi): bawaan
+      # Zammad 6 menit -> widget (launcher) DIHAPUS dari halaman kalau
+      # panel belum dibuka, jadi pengunjung yg lama membaca tidak bisa
+      # chat tanpa reload. SISKA: mati secara default. Situs yg memang
+      # ingin perilaku lama tetap bisa mengisi opsi `idleTimeout` (menit).
+      idleTimeout: false
       idleTimeoutIntervallCheck: 0.5
       inactiveTimeout: 8
       inactiveTimeoutIntervallCheck: 0.5
@@ -3609,7 +3616,14 @@ do(window) ->
       # menutup chat (pemicu sama dgn kartu rating di bawah), tepat
       # sebelum baris status.
       @showClosingGreeting() if data.closed_by_agent and @sessionId
-      @addStatus @T('Chat closed by %s', data.realname)
+      # Atas permintaan user (celah #1 audit putus koneksi): agent
+      # terputus > 2 menit -> server mengubah chat jadi tiket
+      # (`Chat::Session#handover_to_ticket!`). Customer diberi tahu nomor
+      # tiket & email tujuan balasan, bukan "Chat closed by System".
+      if data.reason is 'agent_disconnected'
+        @addStatus @T(@phrases['chat_phrase_agent_disconnected_notice'] || "Our agent got disconnected. Your conversation is saved as ticket #%s and we'll reply by email to %s.", data.ticket_number || '-', data.email || @customerEmail || '-')
+      else
+        @addStatus @T('Chat closed by %s', data.realname)
       @disableComposeInput()
       @setAgentOnlineState 'offline'
       @inactiveTimeout.stop()
@@ -3630,6 +3644,12 @@ do(window) ->
         @lastSessionId = @sessionId
         @setSessionId undefined
         setTimeout (=> @showFeedback(true)), 2000
+      else if data.reason is 'agent_disconnected' and @sessionId
+        # Sesi sudah ditutup server -- dilepas supaya buka panel
+        # berikutnya kembali ke prechat (chat baru), bukan sesi mati.
+        sessionStorage.removeItem 'unfinished_message'
+        @lastSessionId = @sessionId
+        @setSessionId undefined
 
     # Atas permintaan user (mockup `Messages.dc.html`): penanda
     # "sudah dibaca" ala WhatsApp -- mirror persis dari chat.coffee
