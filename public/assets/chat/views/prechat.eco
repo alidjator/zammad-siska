@@ -67,7 +67,10 @@
     <!-- Atas permintaan user ("hilangkan icon pada button Start
     Chat"): ikon paper-plane dihapus, teks polos saja. -->
     <button type="submit" class="zammad-chat-prechat-submit">
-      <span><%- @T(@phrases['chat_phrase_prechat_submit_button'] || 'Start chat') %></span>
+      <!-- Atas permintaan user: label "Leave message" saat agent offline.
+      Diisi & diperbarui `updatePrechatSubmitLabel()` (status bisa
+      berubah selagi form terbuka); nilai di sini = keadaan online. -->
+      <span class="js-prechat-submit-label"><%= @T(@phrases['chat_phrase_prechat_submit_button'] || 'Start chat') %></span>
     </button>
   </form>
 </div>

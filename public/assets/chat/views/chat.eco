@@ -1,4 +1,8 @@
-<div class="zammad-chat<%= ' zammad-chat--flat' if @flat %>"<%= " style='font-size: #{ @fontSize }'" if @fontSize %>>
+<!-- Audit widget (aksesibilitas): panel diumumkan sbg dialog non-modal
+(`aria-modal` sengaja tidak dipasang -- halaman situs tetap bisa
+dipakai), `tabindex="-1"` supaya `open()` bisa memindahkan fokus ke
+sini. Escape = minimize (`onPanelKeydown`). -->
+<div class="zammad-chat<%= ' zammad-chat--flat' if @flat %>" role="dialog" aria-label="<%= @T('Chat') %>" tabindex="-1"<%= " style='font-size: #{ @fontSize }'" if @fontSize %>>
   <div class="zammad-chat-header">
     <div class="zammad-chat-agent zammad-chat-is-hidden">
     </div>
@@ -8,8 +12,8 @@
       logo SISKA (vektor inline, tanpa id). Teks sapaan dipisah ke
       `.js-welcome-greeting` supaya `updatePhrases` cukup mengganti
       teksnya tanpa menghapus logo. -->
-      <span class="zammad-chat-welcome-title"><span class="js-welcome-greeting"><%- @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') %></span><svg class="zammad-chat-welcome-logo" xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 118" focusable="false" aria-hidden="true"><path d="M-50 0 A50 50 0 0 1 50 0 Z" fill="#1ea5d0"/><path d="M-50 0 C-50 24 -28 42 0 64 C28 42 50 24 50 0 Z" fill="#d7a27b"/><circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="15.5" fill="#ffffff"/></svg></span>
-      <span class="zammad-chat-welcome-subtext"><%- @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') %></span>
+      <span class="zammad-chat-welcome-title"><span class="js-welcome-greeting"><%= @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') %></span><svg class="zammad-chat-welcome-logo" xmlns="http://www.w3.org/2000/svg" viewBox="-52 -52 104 118" focusable="false" aria-hidden="true"><path d="M-50 0 A50 50 0 0 1 50 0 Z" fill="#1ea5d0"/><path d="M-50 0 C-50 24 -28 42 0 64 C28 42 50 24 50 0 Z" fill="#d7a27b"/><circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="27" fill="none" stroke="#ffffff" stroke-width="5"/><circle cx="0" cy="0" r="15.5" fill="#ffffff"/></svg></span>
+      <span class="zammad-chat-welcome-subtext"><%= @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') %></span>
     </div>
     <div class="zammad-chat-header-title zammad-chat-is-hidden"><span class="js-header-title-text"></span></div>
     <div class="zammad-chat-header-controls">
@@ -104,11 +108,14 @@
       <%- @icon('arrow-circle-down', 20, class: 'zammad-scroll-hint-icon') %>
       <%- @T(@scrollHint) %>
     </div>
-    <div class="zammad-chat-body"></div>
+    <!-- Audit widget (aksesibilitas): `role="log"` + `aria-live` supaya
+    pesan agent yg masuk diumumkan pembaca layar (hanya tambahan,
+    bukan seluruh isi ulang). -->
+    <div class="zammad-chat-body" role="log" aria-live="polite" aria-relevant="additions" aria-label="<%= @T('Messages') %>"></div>
     <div class="zammad-chat-reply-indicator js-reply-indicator zammad-chat-is-hidden"></div>
     <form class="zammad-chat-controls">
       <div class="zammad-chat-emoji-picker js-emoji-picker zammad-chat-is-hidden"></div>
-      <div class="zammad-chat-input" rows="1" placeholder="<%- @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…') %>" contenteditable="true"></div>
+      <div class="zammad-chat-input" rows="1" placeholder="<%= @T(@phrases['chat_phrase_messages_compose_placeholder'] || 'Compose your message…') %>" contenteditable="true"></div>
       <div class="zammad-chat-controls-icons">
         <button type="button" class="zammad-chat-emoji-toggle js-emoji-toggle" aria-label="<%- @T('Emoji') %>" aria-expanded="false">
           <%- @icon('smiley', 16, tone: 'active') %>

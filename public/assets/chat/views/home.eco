@@ -41,9 +41,12 @@
     markup -- toggle visibilitasnya di `applyOfflineHomeState`
     (chat.coffee/chat-no-jquery.coffee) ikut dihapus, TIDAK cuma
     disembunyikan CSS. Pergantian LABEL teks ("Send us a
-    message"/"Leave us a message") TETAP jalan, itu bukan ikon. -->
+    message"/"Leave us a message") TETAP jalan, itu bukan ikon.
+    Atas permintaan user: label saat agent online "Chat with us"
+    (sebelumnya "Send us a message"); saat offline tetap diganti
+    `applyOfflineHomeState` ke "Leave us a message". -->
     <button type="button" class="zammad-chat-home-action js-home-start-action" data-tab="messages">
-      <span class="js-home-start-label"><%- @T(@phrases['chat_phrase_home_start_button'] || 'Send us a message') %></span>
+      <span class="js-home-start-label"><%= @T(@phrases['chat_phrase_home_start_button'] || 'Chat with us') %></span>
     </button>
     <button type="button" class="zammad-chat-home-action zammad-chat-home-action--secondary" data-tab="help">
       <span><%- @T(@phrases['chat_phrase_home_search_button'] || 'Search for help') %></span>

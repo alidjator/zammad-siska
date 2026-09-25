@@ -65,7 +65,13 @@ if Setting.find_by(name: 'chat_phrase_home_greeting') && Setting.get('chat_phras
   puts '  (diperbarui dari default lama) chat_phrase_home_greeting'
 end
 upsert_phrase('chat_phrase_home_subtitle', 'Home: Subjudul', 'How can we help you today?')
-upsert_phrase('chat_phrase_home_start_button', 'Home: Tombol mulai chat', 'Send us a message')
+upsert_phrase('chat_phrase_home_start_button', 'Home: Tombol mulai chat', 'Chat with us')
+# Atas permintaan user (label tombol saat agent online "Chat with us") --
+# nilai default LAMA diperbarui hanya kalau admin belum mengubahnya.
+if Setting.find_by(name: 'chat_phrase_home_start_button') && Setting.get('chat_phrase_home_start_button') == 'Send us a message'
+  Setting.set('chat_phrase_home_start_button', 'Chat with us')
+  puts '  (diperbarui dari default lama) chat_phrase_home_start_button'
+end
 upsert_phrase('chat_phrase_home_search_button', 'Home/Help: Tombol/placeholder cari bantuan', 'Search for help')
 # Atas permintaan user ("pada halaman home saat agent online,
 # ditambahkan juga alert seperti tadi, type alert yang sama, color
@@ -109,6 +115,7 @@ upsert_phrase('chat_phrase_prechat_subject_label', 'Prechat: Label subject', 'Su
 upsert_phrase('chat_phrase_prechat_subject_placeholder', 'Prechat: Placeholder subject', "What's this about?")
 upsert_phrase('chat_phrase_prechat_subject_required', 'Prechat: Pesan subject wajib diisi', 'Please enter a subject.')
 upsert_phrase('chat_phrase_prechat_submit_button', 'Prechat: Tombol submit', 'Start chat')
+upsert_phrase('chat_phrase_prechat_offline_submit_button', 'Prechat: Tombol submit saat agent offline', 'Leave message')
 upsert_phrase('chat_phrase_prechat_validation_error', 'Prechat: Pesan error validasi', 'Please provide a valid email, category, and subject.')
 # Field "Your name" dihapus & Subject ditambah -- nilai default LAMA
 # pesan validasi masih menyebut "name" & tidak menyebut subject.

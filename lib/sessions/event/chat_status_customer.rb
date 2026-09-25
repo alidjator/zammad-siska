@@ -53,13 +53,12 @@ return is sent as message back to peer
 
     {
       event: 'chat_status_customer',
-      data:  current_chat.customer_state(session_id).merge(logo_url: product_logo_url, phrases: widget_phrases, category_options: Chat::Session.category_options),
+      data:  current_chat.customer_state(session_id).merge(phrases: widget_phrases, category_options: Chat::Session.category_options),
     }
   end
 
   # Enhancement 4 -- "buatkan semua frase dalam widget configurable".
-  # Pola SAMA dgn `product_logo_url` di atas: widget statis lintas-
-  # domain tidak bisa baca `Setting.get` langsung, jadi disisipkan di
+  # Widget statis lintas-domain tidak bisa baca `Setting.get` langsung, jadi disisipkan di
   # payload event yg SUDAH SELALU dikirim ini. Daftar nama Setting
   # PERSIS sama dgn `script/create_widget_phrase_settings.rb` (sumber
   # kebenaran nilai default) -- kalau ada Setting yg belum dibuat,
@@ -86,6 +85,7 @@ return is sent as message back to peer
     chat_phrase_prechat_subject_placeholder
     chat_phrase_prechat_subject_required
     chat_phrase_prechat_submit_button
+    chat_phrase_prechat_offline_submit_button
     chat_phrase_prechat_validation_error
     chat_phrase_waiting_title
     chat_phrase_waiting_subtitle
@@ -139,25 +139,6 @@ return is sent as message back to peer
 
   def widget_phrases
     PHRASE_SETTING_NAMES.index_with { |name| Setting.get(name) }
-  end
-
-  # Atas permintaan user ("logo pada home mengambil dari setting logo
-  # zammad") -- widget disajikan sbg file statis lintas-domain, TIDAK
-  # bisa baca `Setting.get('product_logo')` langsung dari SCSS/eco
-  # (compile-time, tanpa akses DB) -- disertakan di SINI (payload event
-  # yg SUDAH SELALU dikirim ke widget sejak `render()`, lihat
-  # chat.coffee) supaya JS bisa isi logo Home secara dinamis SETELAH
-  # widget dimuat, bukan bikin event/endpoint baru. URL dibangun manual
-  # dari `http_type`/`fqdn` (pola yang SAMA dipakai
-  # `chat_knowledge_base_search.rb`), path & param persis preseden
-  # NYATA yang sudah ada (`feedback_controller.rb`, satu-satunya
-  # pemakai publik/anonim endpoint `system_assets` ini di codebase).
-  # `nil` kalau belum ada logo custom diupload -- frontend fallback ke
-  # ikon generik yang sudah ada, tidak dipaksa.
-  def product_logo_url
-    return if Setting.get('product_logo').blank?
-
-    "#{Setting.get('http_type')}://#{Setting.get('fqdn')}/api/v1/system_assets/product_logo/#{ERB::Util.url_encode(Setting.get('product_logo'))}"
   end
 
   def blocked_ip?

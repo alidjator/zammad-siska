@@ -1,5 +1,5 @@
 @font-face {
-  font-family: "Inter var";
+  font-family: "SISKA Inter";
   font-weight: 100 900;
   font-display: swap;
   font-style: normal;
@@ -8,7 +8,7 @@
 .zammad-chat {
   background: white;
   color: #131920;
-  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "SISKA Inter", "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   -webkit-font-feature-settings: "salt";
   font-feature-settings: "salt";
   position: fixed;
@@ -21,7 +21,7 @@
   box-sizing: border-box;
   -webkit-box-shadow: 0 12px 32px rgba(19, 25, 32, 0.12);
   box-shadow: 0 12px 32px rgba(19, 25, 32, 0.12);
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 8px;
   overflow: hidden;
   display: -webkit-box;
@@ -180,7 +180,7 @@
   -ms-flex-pack: justify;
   justify-content: space-between;
   gap: 8px;
-  border-bottom: 1px solid #e8ebee;
+  border-bottom: 1px solid #e7eaee;
 }
 @media only screen and (max-width: 768px) {
   .zammad-chat-header {
@@ -261,7 +261,7 @@
 }
 
 .zammad-chat-welcome-subtext {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
 }
 
@@ -388,7 +388,7 @@
   width: 10px;
   height: 10px;
   border-radius: 100%;
-  background: #dc2626;
+  background: #dd2727;
   border: 2px solid white;
   font-size: 0;
 }
@@ -398,12 +398,12 @@
 }
 
 .zammad-chat-agent-status[data-status=connecting] {
-  -webkit-animation: linear connect-fade 600ms infinite alternate;
-  animation: linear connect-fade 600ms infinite alternate;
+  -webkit-animation: linear zammad-chat-connect-fade 600ms infinite alternate;
+  animation: linear zammad-chat-connect-fade 600ms infinite alternate;
   background: #e58a00;
 }
 
-@-webkit-keyframes connect-fade {
+@-webkit-keyframes zammad-chat-connect-fade {
   from {
     opacity: 0.5;
     -webkit-transform: scale(0.6);
@@ -416,7 +416,7 @@
   }
 }
 
-@keyframes connect-fade {
+@keyframes zammad-chat-connect-fade {
   from {
     opacity: 0.5;
     -webkit-transform: scale(0.6);
@@ -473,7 +473,7 @@
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  border-bottom: 1px solid #e8ebee;
+  border-bottom: 1px solid #e7eaee;
   padding: 7px 10px 6px;
   color: rgba(33, 37, 41, 0.75);
   cursor: pointer;
@@ -634,7 +634,7 @@
 .zammad-chat-status-inner {
   background: white;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   max-width: 70%;
 }
@@ -650,7 +650,7 @@
 }
 
 .zammad-chat-message--agent .zammad-chat-message-body {
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
 }
 
 .zammad-chat-message--unread {
@@ -677,8 +677,8 @@
   height: 6px;
   width: 6px;
   display: inline-block;
-  -webkit-animation: ease-in-out load-fade 600ms infinite alternate;
-  animation: ease-in-out load-fade 600ms infinite alternate;
+  -webkit-animation: ease-in-out zammad-chat-load-fade 600ms infinite alternate;
+  animation: ease-in-out zammad-chat-load-fade 600ms infinite alternate;
 }
 
 .zammad-chat-loading-circle + .zammad-chat-loading-circle {
@@ -691,7 +691,7 @@
   animation-delay: 0.26s;
 }
 
-@-webkit-keyframes load-fade {
+@-webkit-keyframes zammad-chat-load-fade {
   0% {
     opacity: 0.5;
     -webkit-transform: scale(0.6);
@@ -704,7 +704,7 @@
   }
 }
 
-@keyframes load-fade {
+@keyframes zammad-chat-load-fade {
   0% {
     opacity: 0.5;
     -webkit-transform: scale(0.6);
@@ -724,7 +724,7 @@
   -ms-flex-direction: column;
   flex-direction: column;
   gap: 8px;
-  border-top: 1px solid #e8ebee;
+  border-top: 1px solid #e7eaee;
   padding: 10px 12px 12px;
   margin: 0;
   position: relative;
@@ -887,7 +887,7 @@
 }
 
 .zammad-chat-emoji-picker-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: rgba(33, 37, 41, 0.75);
   padding: 2px 4px 8px;
@@ -957,7 +957,7 @@
 .zammad-chat-message--customer .zammad-chat-message-body.zammad-chat-attachment {
   background: white;
   color: #131920;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
 }
 
 .zammad-chat-attachment-icon {
@@ -1084,7 +1084,7 @@
   font-size: 12px;
   color: rgba(33, 37, 41, 0.75);
   background: #f8f9fa;
-  border-top: 1px solid #e8ebee;
+  border-top: 1px solid #e7eaee;
 }
 .zammad-chat-reply-indicator:not(.zammad-chat-is-hidden)::before {
   content: "";
@@ -1150,25 +1150,6 @@
   text-align: center;
 }
 
-.zammad-chat-prechat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(70, 128, 255, 0.1);
-  color: #4680ff;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  margin: 0 auto 8px;
-  overflow: hidden;
-}
-
 .zammad-chat-prechat-title {
   font-size: 16px;
   font-weight: 600;
@@ -1177,7 +1158,7 @@
 
 .zammad-chat-prechat-subtext {
   color: rgba(33, 37, 41, 0.75);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   margin-bottom: 20px;
 }
@@ -1313,7 +1294,7 @@
   z-index: 10;
   margin-top: 6px;
   background: white;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 8px;
   -webkit-box-shadow: 0 4px 24px rgba(62, 57, 107, 0.18);
   box-shadow: 0 4px 24px rgba(62, 57, 107, 0.18);
@@ -1359,12 +1340,12 @@
 
 .zammad-chat-prechat-field input.zammad-chat-field-invalid,
 .zammad-chat-prechat-category.zammad-chat-field-invalid {
-  border-color: #dc2626;
+  border-color: #dd2727;
 }
 
 .zammad-chat-prechat-error {
-  color: #dc2626;
-  font-size: 13px;
+  color: #dd2727;
+  font-size: 14px;
 }
 
 .zammad-chat-prechat-field-meta {
@@ -1379,7 +1360,7 @@
   color: rgba(33, 37, 41, 0.6);
 }
 .zammad-chat-prechat-field-meta.is-invalid {
-  color: #dc2626;
+  color: #dd2727;
 }
 
 .zammad-chat-prechat-notice {
@@ -1392,10 +1373,10 @@
   gap: 16px;
   padding: 12px 20px;
   border-radius: 8px;
-  background: rgba(44, 168, 127, 0.2);
-  border: 1px solid rgba(44, 168, 127, 0.2);
+  background: rgba(44, 168, 127, 0.1);
+  border: 1px solid rgba(44, 168, 127, 0.1);
   color: #1a8c61;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
 }
 .zammad-chat-prechat-notice svg {
@@ -1456,7 +1437,7 @@
   display: flex;
   -ms-flex-negative: 0;
   flex-shrink: 0;
-  border-top: 1px solid #e8ebee;
+  border-top: 1px solid #e7eaee;
   background: white;
 }
 
@@ -1544,43 +1525,6 @@
   justify-content: center;
 }
 
-.zammad-chat-home-logo {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.zammad-chat-home-logo-mark {
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
-  background: #4680ff;
-  color: white;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -ms-flex-negative: 0;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-.zammad-chat-home-logo-mark svg {
-  fill: currentColor;
-  stroke: none;
-}
-
 .zammad-chat-home-actions {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -1612,7 +1556,7 @@
   height: 44px;
   padding: 0 24px;
   margin: 0;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 8px;
   background: #4680ff;
   color: white;
@@ -1671,7 +1615,7 @@
 .zammad-chat-offline-compose-submit,
 .zammad-chat-offline-sent-button {
   height: auto;
-  padding: 12px 20px;
+  padding: 8px 16px;
   border-radius: 20px;
   font-size: 14px;
   line-height: 1.5;
@@ -1895,7 +1839,7 @@
 }
 
 .zammad-chat-kb-result {
-  border-bottom: 1px solid #e8ebee;
+  border-bottom: 1px solid #e7eaee;
 }
 
 .zammad-chat-kb-result-link {
@@ -1975,7 +1919,7 @@
 
 .zammad-chat-kb-empty {
   margin-top: 16px;
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   text-align: center;
 }
@@ -2048,7 +1992,7 @@
 }
 
 .zammad-chat-waiting-spinner--danger {
-  border-color: #dc2626;
+  border-color: #dd2727;
   border-left-color: transparent;
 }
 
@@ -2071,7 +2015,7 @@
 
 .zammad-chat-waiting-subtext {
   color: rgba(33, 37, 41, 0.75);
-  font-size: 13px;
+  font-size: 14px;
   max-width: 220px;
   line-height: 1.5;
 }
@@ -2117,7 +2061,7 @@
 }
 
 .zammad-chat-connection-overlay--lost .zammad-chat-connection-overlay-icon {
-  color: #dc2626;
+  color: #dd2727;
 }
 
 @-webkit-keyframes zammad-chat-connection-pop {
@@ -2152,7 +2096,7 @@
 }
 
 .zammad-chat-connection-overlay-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   max-width: 260px;
   line-height: 1.5;
@@ -2161,9 +2105,9 @@
 
 .zammad-chat-connection-overlay-reload {
   margin-top: 20px;
-  padding: 12px 20px;
+  padding: 8px 16px;
   border-radius: 20px;
-  border: none;
+  border: 1px solid transparent;
   background: #4680ff;
   color: #ffffff;
   font-size: 14px;
@@ -2200,7 +2144,7 @@
   border-radius: 6px;
   background: rgba(70, 128, 255, 0.1);
   color: #4680ff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -2210,7 +2154,7 @@
   background: transparent;
   color: #4680ff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
   cursor: pointer;
   padding: 0;
@@ -2227,7 +2171,7 @@
   -ms-flex-align: center;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
 }
 
@@ -2265,7 +2209,7 @@
   background: rgba(229, 138, 0, 0.2);
   border: 1px solid rgba(229, 138, 0, 0.2);
   color: #da6d00;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   margin-bottom: 4px;
 }
@@ -2288,7 +2232,7 @@
   background: rgba(62, 201, 214, 0.2);
   border: 1px solid rgba(62, 201, 214, 0.2);
   color: #28b5c6;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   margin-bottom: 4px;
 }
@@ -2338,7 +2282,7 @@
 }
 
 .zammad-chat-offline-otp-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   line-height: 1.5;
   max-width: 280px;
@@ -2396,7 +2340,7 @@
   gap: 5px;
   margin-top: 20px;
   font-size: 12px;
-  color: #dc2626;
+  color: #dd2727;
 }
 .zammad-chat-offline-otp-error:not(.zammad-chat-is-hidden) svg {
   -ms-flex-negative: 0;
@@ -2416,7 +2360,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 22px;
-  font-size: 13px;
+  font-size: 14px;
   color: #131920;
 }
 
@@ -2425,7 +2369,7 @@
   background: transparent;
   color: #4680ff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   cursor: pointer;
   padding: 0;
@@ -2444,7 +2388,7 @@
   background: transparent;
   color: #4680ff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
   cursor: pointer;
   margin-top: 18px;
@@ -2479,8 +2423,8 @@
   padding: 10px 16px;
   background: transparent;
   border-bottom: 1px solid currentColor;
-  font-size: 13px;
-  color: #2ca87f;
+  font-size: 14px;
+  color: #0f7d4f;
 }
 .zammad-chat-offline-compose-verified svg {
   -ms-flex-negative: 0;
@@ -2577,7 +2521,7 @@
 .zammad-chat-offline-compose-error {
   margin-top: 10px;
   font-size: 12px;
-  color: #dc2626;
+  color: #dd2727;
 }
 
 .zammad-chat-offline-compose-submit {
@@ -2608,7 +2552,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 999px;
   background: #f8f9fa;
   color: #5b6b79;
@@ -2643,7 +2587,7 @@
   background: none;
   color: #4680ff;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -2701,7 +2645,7 @@
 }
 
 .zammad-chat-offline-sent-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   line-height: 1.55;
   max-width: 270px;
@@ -2717,7 +2661,7 @@
   box-sizing: border-box;
   width: 100%;
   background: white;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 12px;
   padding: 20px 18px;
 }
@@ -2773,7 +2717,7 @@
 }
 
 .zammad-chat-feedback-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   margin-top: 6px;
 }
@@ -2797,7 +2741,7 @@
   display: block;
 }
 .zammad-chat-feedback-star.is-active {
-  color: #dc2626;
+  color: #dd2727;
 }
 .zammad-chat-feedback-star.is-active .zammad-chat-icon-fill {
   opacity: 1;
@@ -2846,7 +2790,7 @@
   width: 100%;
   margin-top: 10px;
   font-size: 12px;
-  color: #dc2626;
+  color: #dd2727;
   text-align: left;
 }
 
@@ -2872,7 +2816,7 @@
   -webkit-box-pack: center;
   -ms-flex-pack: center;
   justify-content: center;
-  padding: 12px 20px;
+  padding: 8px 16px;
   border: 1px solid #5b6b79;
   border-radius: 20px;
   background: transparent;
@@ -2909,8 +2853,8 @@
   -webkit-box-pack: center;
   -ms-flex-pack: center;
   justify-content: center;
-  padding: 12px 20px;
-  border: none;
+  padding: 8px 16px;
+  border: 1px solid transparent;
   border-radius: 20px;
   background: #4680ff;
   color: white;
@@ -2979,7 +2923,7 @@
 }
 
 .zammad-chat-feedback-thanks-subtitle {
-  font-size: 13px;
+  font-size: 14px;
   color: rgba(33, 37, 41, 0.75);
   line-height: 1.55;
   max-width: 270px;
@@ -3228,7 +3172,7 @@
   flex-direction: column;
   background: rgba(19, 25, 32, 0.92);
   color: #ffffff;
-  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "SISKA Inter", "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   -webkit-font-feature-settings: "salt";
   font-feature-settings: "salt";
   font-size: 14px;
@@ -3591,7 +3535,7 @@
   border-radius: 20px;
   background: rgba(19, 25, 32, 0.88);
   color: #ffffff;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   white-space: nowrap;
   pointer-events: none;
@@ -3623,7 +3567,7 @@
   gap: 2px;
   padding: 2px 4px 8px;
   margin-bottom: 4px;
-  border-bottom: 1px solid #e8ebee;
+  border-bottom: 1px solid #e7eaee;
 }
 
 .zammad-chat-message-reaction {
@@ -3633,7 +3577,7 @@
   border: none;
   border-radius: 100%;
   background: transparent;
-  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "SISKA Inter", "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   font-size: 18px;
   line-height: 1;
   display: -webkit-box;
@@ -3693,12 +3637,12 @@
   height: 24px;
   min-width: 30px;
   padding: 0 6px;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 12px;
   background: #ffffff;
   -webkit-box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
   box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
-  font-family: "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-family: "SISKA Inter", "Inter var", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   font-size: 14px;
   line-height: 1;
   display: -webkit-box;
@@ -3773,7 +3717,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #131920;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
 }
@@ -3850,7 +3794,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 8px;
   background: #ffffff;
 }
@@ -3899,7 +3843,7 @@
 
 .zammad-chat-history-card-title {
   color: #131920;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -3946,7 +3890,7 @@
 .zammad-chat-history-card-verify {
   width: 100%;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .zammad-chat-history-otp-boxes {
@@ -3958,7 +3902,7 @@
 }
 
 .zammad-chat-history-card-error {
-  color: #dc2626;
+  color: #dd2727;
   font-size: 12px;
 }
 
@@ -4006,7 +3950,7 @@
   background: #eceff2;
   color: rgba(33, 37, 41, 0.75);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
 }
 .zammad-chat-history-pill--action {
   background: rgba(70, 128, 255, 0.1);
@@ -4059,7 +4003,7 @@
   border-radius: 20px;
   background: #eceff2;
   color: rgba(33, 37, 41, 0.75);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -4075,11 +4019,11 @@
   gap: 6px;
   max-width: 100%;
   padding: 5px 10px;
-  border: 1px solid #e8ebee;
+  border: 1px solid #e7eaee;
   border-radius: 20px;
   background: #ffffff;
   color: rgba(33, 37, 41, 0.75);
-  font-size: 11px;
+  font-size: 12px;
 }
 .zammad-chat-history-session svg {
   color: #5b6b79;
@@ -4094,7 +4038,7 @@
 .zammad-chat-history-author {
   margin: 0 0 -8px 2px;
   color: rgba(33, 37, 41, 0.75);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .zammad-chat-history-line {
@@ -4106,7 +4050,7 @@
   align-items: center;
   gap: 8px;
   color: rgba(33, 37, 41, 0.75);
-  font-size: 11px;
+  font-size: 12px;
 }
 .zammad-chat-history-line::before, .zammad-chat-history-line::after {
   content: "";
@@ -4114,7 +4058,7 @@
   -ms-flex: 1;
   flex: 1;
   height: 1px;
-  background: #e8ebee;
+  background: #e7eaee;
 }
 .zammad-chat-history-line > span {
   display: -webkit-inline-box;
@@ -4152,5 +4096,20 @@
 }
 
 .zammad-chat-history-heart.is-on {
-  color: #dc2626;
+  color: #dd2727;
+}
+
+@media only screen and (max-width: 768px) {
+  .zammad-chat .zammad-chat-input,
+.zammad-chat .zammad-chat-prechat-field input,
+.zammad-chat .zammad-chat-help-search,
+.zammad-chat .zammad-chat-offline-compose-subject-input,
+.zammad-chat .zammad-chat-offline-compose-textarea,
+.zammad-chat .zammad-chat-feedback-textarea,
+.zammad-chat .zammad-chat-offline-otp-digit {
+    font-size: 16px;
+  }
+}
+.zammad-chat:focus {
+  outline: none;
 }

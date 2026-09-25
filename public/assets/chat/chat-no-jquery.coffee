@@ -948,6 +948,63 @@ do(window) ->
       @send 'chat_status_customer',
         session_id: @sessionId
         url: window.location.href
+      @startAvailabilityPolling()
+
+    # Atas permintaan user ("ketika agent klik on/off ini berubah tanpa
+    # reload halaman") -- dua jalur:
+    # 1. PUSH: server broadcast `chat_availability_changed` (tanpa data
+    #    status -- tiap customer bisa beda hasil, mis. blokir IP/negara)
+    #    saat agent on/off, AUX berubah, atau Chat diubah admin. Widget
+    #    tanya ulang `chat_status_customer` setelah jeda acak 0-3 dtk
+    #    supaya ratusan widget tidak serentak menghantam server.
+    # 2. CEK BERKALA (cadangan utk agent yg tutup browser/putus -- server
+    #    baru menganggapnya offline setelah 2 menit, tanpa event): tiap
+    #    60 dtk, HANYA saat panel terbuka, tab browser terlihat, & tidak
+    #    ada sesi chat/offline berjalan. Buka panel / tab kembali
+    #    terlihat juga memicu tanya ulang kalau status sudah > 30 dtk.
+    # Sesi berjalan (`@sessionId`: antre, chat, pesan offline + OTP)
+    # tidak pernah diganggu -- alurnya punya status sendiri.
+    AVAILABILITY_POLL_MS: 60000
+    AVAILABILITY_STALE_MS: 30000
+    AVAILABILITY_JITTER_MS: 3000
+
+    startAvailabilityPolling: =>
+      return if @availabilityIntervalId
+      @availabilityIntervalId = setInterval(@pollAvailability, @AVAILABILITY_POLL_MS)
+      @onVisibilityChangeAvailability = =>
+        @refreshAvailabilityIfStale() if !document.hidden and @isOpen
+      document.addEventListener('visibilitychange', @onVisibilityChangeAvailability)
+
+    stopAvailabilityPolling: =>
+      clearInterval(@availabilityIntervalId) if @availabilityIntervalId
+      @availabilityIntervalId = undefined
+      clearTimeout(@availabilityJitterId) if @availabilityJitterId
+      @availabilityJitterId = undefined
+      document.removeEventListener('visibilitychange', @onVisibilityChangeAvailability) if @onVisibilityChangeAvailability
+      @onVisibilityChangeAvailability = undefined
+
+    canRefreshAvailability: =>
+      !!@statusReceived and !@sessionId
+
+    refreshAvailability: =>
+      @availabilityJitterId = undefined
+      return if !@canRefreshAvailability()
+      @send 'chat_status_customer',
+        session_id: @sessionId
+        url: window.location.href
+
+    pollAvailability: =>
+      return if !@isOpen or document.hidden
+      @refreshAvailability()
+
+    refreshAvailabilityIfStale: =>
+      return if @lastStatusAt and Date.now() - @lastStatusAt < @AVAILABILITY_STALE_MS
+      @refreshAvailability()
+
+    onAvailabilityChanged: =>
+      return if !@canRefreshAvailability()
+      return if @availabilityJitterId
+      @availabilityJitterId = setTimeout(@refreshAvailability, Math.floor(Math.random() * @AVAILABILITY_JITTER_MS))
 
     # Atas permintaan user (loading full page) -- mirror persis dari
     # chat.coffee (lihat komentar detail di sana).
@@ -998,6 +1055,12 @@ do(window) ->
       # minimize BARU di header (khusus mobile), gantikan launcher yg
       # disembunyikan saat panel terbuka di mobile.
       @el.querySelector('.js-chat-minimize').addEventListener('click', @close)
+      # Audit widget (aksesibilitas): Escape di dalam panel menutup
+      # emoji picker kalau terbuka, selain itu minimize panel (sesi
+      # chat TIDAK diakhiri, sama dgn tombol minimize). Menu pesan &
+      # penampil gambar punya Escape sendiri yg memanggil
+      # `preventDefault()`, jadi dilewati di sini.
+      @el.addEventListener('keydown', @onPanelKeydown)
       # `.js-chat-status` sekarang jadi bagian dari `views/agent.eco`
       # (dot online di avatar) -- dirender ULANG setiap
       # `onConnectionEstablished`, TIDAK ADA di DOM statis sejak awal
@@ -1703,17 +1766,17 @@ do(window) ->
             @onCustomerHistoryOtpVerify pipe.data
           when 'chat_session_feedback_submit'
             @onFeedbackSubmitResult pipe.data
+          when 'chat_availability_changed'
+            @onAvailabilityChanged()
           when 'chat_status_customer'
-            # Atas permintaan user ("logo pada home mengambil dari
-            # setting logo zammad") -- mirror persis dari chat.coffee.
-            #
-            # Bug ditemukan user ("logo home dan offlineHome satu
-            # sumber dgn logo aplikasi") -- mirror persis dari
-            # chat.coffee (lihat catatan panjang di sana): `@logoUrl`
-            # disimpan persisten, dipasang ULANG di akhir
-            # `updatePhrases()`.
-            @logoUrl = pipe.data.logo_url if pipe.data.logo_url
-            @updateHomeLogo(@logoUrl) if @logoUrl
+            # Atas permintaan user (on/off agent berubah tanpa reload):
+            # status yg diterima SETELAH yg pertama = hasil tanya ulang
+            # (push `chat_availability_changed`, cek berkala, reconnect).
+            # Di jalur ini tampilan hanya digambar ulang kalau status/frase
+            # memang berubah, & `onReady`/`onError` tidak diulang.
+            isRefresh = !!@statusReceived
+            wasOffline = @offlineMode
+            @lastStatusAt = Date.now()
             # Bug ditemukan user -- mirror persis dari chat.coffee
             # (lihat catatan panjang di sana).
             @offlineMode = pipe.data.state is 'offline'
@@ -1721,7 +1784,10 @@ do(window) ->
             # offline -- mirror persis dari chat.coffee (lihat catatan
             # panjang di sana).
             @launcherEl?.classList.toggle('zammad-chat-launcher--offline', @offlineMode)
-            @updatePhrases(pipe.data.phrases) if pipe.data.phrases
+            @updatePrechatSubmitLabel()
+            if pipe.data.phrases
+              phrasesChanged = JSON.stringify(pipe.data.phrases) isnt JSON.stringify(@phrases || {})
+              @updatePhrases(pipe.data.phrases) if !isRefresh or phrasesChanged or wasOffline isnt @offlineMode
             # Atas permintaan user (field Category Prechat) -- pola
             # SAMA dgn `@phrases`: disimpan di instance, dibaca nanti
             # oleh `showPrechatForm` saat form dirender. TIDAK perlu
@@ -1739,7 +1805,11 @@ do(window) ->
               when 'online'
                 @setSessionId undefined
 
-                if !@options.cssAutoload || @cssLoaded
+                if @readyDone
+                  # Tanya ulang: widget sudah siap, cukup pastikan tampil
+                  # (mis. baru pulih dari offline).
+                  @show()
+                else if !@options.cssAutoload || @cssLoaded
                   @onReady()
                 else
                   @socketReady = true
@@ -1755,11 +1825,18 @@ do(window) ->
               when 'chat_disabled'
                 @onError 'Zammad Chat: Chat is disabled'
               when 'no_seats_available'
-                @onError "Zammad Chat: Too many clients in queue. Clients in queue: #{pipe.data.queue}"
+                # Antrean penuh bersifat sementara -- saat tanya ulang
+                # widget TIDAK dihancurkan (onError = destroy), tampilan
+                # dibiarkan; server tetap menolak saat chat dimulai.
+                if isRefresh
+                  @log.notice "Zammad Chat: Too many clients in queue. Clients in queue: #{pipe.data.queue}"
+                else
+                  @onError "Zammad Chat: Too many clients in queue. Clients in queue: #{pipe.data.queue}"
               when 'reconnect'
                 @onReopenSession pipe.data
 
     onReady: ->
+      @readyDone = true
       @log.debug 'widget ready for use'
       # Mirror persis dari chat.coffee.
       @hidePreload()
@@ -2443,7 +2520,7 @@ do(window) ->
       document.documentElement.style.overflow = overflow
       trigger?.focus() if document.contains(trigger)
 
-    open: =>
+    open: (event) =>
       if @isOpen
         @log.debug 'widget already open, block'
         return
@@ -2455,6 +2532,7 @@ do(window) ->
       @isOpen = true
       @log.debug 'open widget'
       @show()
+      @refreshAvailabilityIfStale() if @canRefreshAvailability()
 
       if @sessionId
         # Fase 7 -- ada sesi chat yang sedang berjalan (reconnect) --
@@ -2481,6 +2559,13 @@ do(window) ->
       @launcherEl.setAttribute 'aria-expanded', 'true'
       @el.addEventListener 'transitionend', @onOpenAnimationEnd
       @el.classList.add 'zammad-chat-is-open'
+      # Audit widget (aksesibilitas): fokus keyboard pindah ke panel
+      # (`tabindex="-1"` di views/chat.eco) supaya pembaca layar tahu
+      # panel sudah terbuka & Tab berikutnya langsung ke isi panel.
+      # HANYA bila dibuka lewat aksi user (`event` dari launcher/tombol)
+      # -- buka otomatis saat sesi dipulihkan tidak boleh merebut fokus
+      # dari halaman situs pelanggan.
+      @el.focus(preventScroll: true) if event
 
     # Fase 5 -- Item No. 5 (Auto-Create Ticket). See
     # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.1.1. Nama & email
@@ -2498,6 +2583,7 @@ do(window) ->
         subject: params.subject
         subjectMax: @PRECHAT_SUBJECT_MAX
       )
+      @updatePrechatSubmitLabel()
       @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
       # Penghitung karakter Subject (x/100) -- diperbarui tiap ketik.
       subjectInput = @el.querySelector('.zammad-chat-prechat-subject')
@@ -2505,9 +2591,6 @@ do(window) ->
         subjectInput.addEventListener 'input', =>
           counter = @el.querySelector('.js-prechat-subject-count')
           counter.textContent = "#{subjectInput.value.length}/#{@PRECHAT_SUBJECT_MAX}" if counter
-      # Logo custom -- mirror persis dari chat.coffee (lihat catatan
-      # panjang di sana).
-      @updateHomeLogo(@logoUrl) if @logoUrl
 
       # Atas permintaan user (field Category Prechat, wajib diisi
       # sama spt name/email) -- kontrol dropdown CUSTOM (bukan
@@ -2593,6 +2676,18 @@ do(window) ->
     # Batas panjang Subject prechat -- SAMA dgn `SUBJECT_MAX` di
     # lib/sessions/event/chat_session_init.rb.
     PRECHAT_SUBJECT_MAX: 100
+
+    # Atas permintaan user: tombol submit prechat "Leave message" saat
+    # agent offline (pesan offline + OTP), "Start chat" saat online.
+    # Dipanggil saat form dirender DAN tiap `chat_status_customer`, jadi
+    # label ikut berganti walau form sedang terbuka.
+    updatePrechatSubmitLabel: =>
+      label = @el?.querySelector('.js-prechat-submit-label')
+      return if !label
+      label.textContent = if @offlineMode
+        @T(@phrases['chat_phrase_prechat_offline_submit_button'] || 'Leave message')
+      else
+        @T(@phrases['chat_phrase_prechat_submit_button'] || 'Start chat')
 
     submitPrechatForm: (event) =>
       event.preventDefault()
@@ -3075,6 +3170,20 @@ do(window) ->
       @showPrechatForm()
       @switchTab('home')
 
+    onPanelKeydown: (event) =>
+      return if event.key isnt 'Escape' or event.defaultPrevented
+      picker = @el.querySelector('.js-emoji-picker')
+      if picker and !picker.classList.contains('zammad-chat-is-hidden')
+        event.preventDefault()
+        picker.classList.add('zammad-chat-is-hidden')
+        toggle = @el.querySelector('.js-emoji-toggle')
+        toggle.classList.remove('is-active')
+        toggle.setAttribute('aria-expanded', 'false')
+        toggle.focus()
+        return
+      event.preventDefault()
+      @close()
+
     toggle: (event) =>
       if @isOpen
         @close(event)
@@ -3107,8 +3216,14 @@ do(window) ->
         @enableScrollOnRoot()
 
       # Fase 7 -- lihat komentar sama di open().
+      # Audit widget (aksesibilitas): fokus yg ada di dalam panel
+      # dikembalikan ke launcher, supaya tidak hilang ke elemen yg
+      # disembunyikan. Class `is-open` dilepas dulu (di mobile launcher
+      # `display:none` selama panel terbuka).
+      focusInside = @el.contains(document.activeElement)
       @launcherEl.classList.remove 'zammad-chat-is-open'
       @launcherEl.setAttribute 'aria-expanded', 'false'
+      @launcherEl.focus(preventScroll: true) if focusInside
       @el.addEventListener 'transitionend', @onCloseAnimationEnd
       @el.classList.remove 'zammad-chat-is-open'
 
@@ -3411,6 +3526,7 @@ do(window) ->
 
     destroy: (params = {}) =>
       @log.debug 'destroy widget', params
+      @stopAvailabilityPolling()
 
       @setAgentOnlineState 'offline'
 
@@ -3907,27 +4023,6 @@ do(window) ->
       parts = name.trim().split(/\s+/)
       ((parts[0]?[0] || '') + (parts[1]?[0] || '')).toUpperCase()
 
-    # Atas permintaan user ("logo pada home mengambil dari setting
-    # logo zammad") -- mirror persis dari chat.coffee. Selector
-    # diperluas ke `.zammad-chat-prechat-icon` (permintaan lanjutan
-    # "tambahkan juga logo pada halaman ini seperti home dan offline
-    # home") -- BEDA dari jQuery, DOM native TIDAK meng-clone otomatis
-    # kalau 1 node yg sama di-`appendChild` ke >1 induk (node cuma
-    # PINDAH ke induk terakhir) -- jadi WAJIB bikin `<img>` BARU per
-    # elemen lewat `forEach`, bukan 1 elemen dipakai bersama.
-    updateHomeLogo: (url) =>
-      marks = @el.querySelectorAll('.zammad-chat-home-logo-mark, .zammad-chat-prechat-icon')
-      marks.forEach (mark) ->
-        mark.style.background = 'none'
-        img = document.createElement('img')
-        img.src = url
-        img.alt = ''
-        img.style.width = '100%'
-        img.style.height = '100%'
-        img.style.objectFit = 'contain'
-        mark.innerHTML = ''
-        mark.appendChild(img)
-
     # Enhancement 4 -- mirror persis dari chat.coffee (lihat catatan
     # panjang di sana).
     updatePhrases: (phrases) =>
@@ -3944,7 +4039,7 @@ do(window) ->
       # Hanya teks sapaan yg diganti -- logo SISKA di sebelahnya
       # (views/chat.eco) tetap utuh.
       welcomeGreeting = @el.querySelector('.js-welcome-greeting')
-      welcomeGreeting.innerHTML = @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') if welcomeGreeting
+      welcomeGreeting.textContent = @T(@phrases['chat_phrase_home_greeting'] || 'Hi Simmers') if welcomeGreeting
       welcomeSubtext = @el.querySelector('.zammad-chat-welcome-subtext')
       welcomeSubtext.textContent = @T(@phrases['chat_phrase_home_subtitle'] || 'How can we help you today?') if welcomeSubtext
       input = @el.querySelector('.zammad-chat-input')
@@ -3960,9 +4055,6 @@ do(window) ->
       # PENUH dari template (notice online balik ke hidden by default
       # tiap kali), jadi di sini cukup tampilkan kalau memang online.
       @applyOnlineHomeState()
-      # Logo custom -- mirror persis dari chat.coffee (lihat catatan
-      # panjang di sana).
-      @updateHomeLogo(@logoUrl) if @logoUrl
 
     # Atas permintaan user (mockup `Messages.dc.html`, "tidak ada time
     # per chat") -- mirror persis dari chat.coffee.
