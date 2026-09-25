@@ -672,6 +672,67 @@ optional you can put the max oldest chat entries
     true
   end
 
+  # Job scheduler "Live Chat: pantau koneksi" (tiap menit, lihat
+  # script/create_chat_handover_scheduler.rb) -- menggabungkan:
+  # * #1 agent terputus -> chat jadi tiket (`handover_disconnected_agent_sessions`)
+  # * #3 customer terputus tanpa sempat mengirim leave (HP: browser
+  #   di-kill/baterai habis) -> sesi ditutup (`close_disconnected_customer_sessions`)
+  # * #4 ketersediaan berubah TANPA event (agent kedaluwarsa > 2 menit
+  #   tanpa sinyal hidup) -> push ke widget (`broadcast_availability_if_changed`)
+  def self.check_live_chat_connections
+    handover_disconnected_agent_sessions
+    close_disconnected_customer_sessions
+    broadcast_availability_if_changed
+    true
+  end
+
+  CUSTOMER_DISCONNECT_GRACE = 2.minutes
+
+  # Celah #3 audit putus koneksi (bawaan Zammad: sesi baru ditutup
+  # `cleanup_close` 5-20 menit kemudian, agent melihat customer seolah
+  # masih di chat & antrean berisi "chat hantu"). Pola SAMA dgn
+  # `handover_disconnected_agent_sessions`: tandai dulu, tersambung lagi
+  # (reload/pindah halaman) -> tanda dihapus, lewat masa tenggang ->
+  # `Chat::Session#close_customer_gone!`. Berlaku utk sesi antre
+  # (`waiting`) maupun berjalan (`running`).
+  def self.close_disconnected_customer_sessions(grace = CUSTOMER_DISCONNECT_GRACE)
+    Chat::Session.where(state: %w[waiting running]).find_each do |chat_session|
+      if chat_session.customer_connected?
+        next if chat_session.preferences[:customer_disconnected_at].blank?
+
+        chat_session.preferences.delete(:customer_disconnected_at)
+        chat_session.save!
+        next
+      end
+
+      since = chat_session.preferences[:customer_disconnected_at]
+      if since.blank?
+        chat_session.preferences[:customer_disconnected_at] = Time.zone.now.iso8601
+        chat_session.save!
+        next
+      end
+      next if Time.zone.parse(since.to_s) > grace.ago
+
+      chat_session.close_customer_gone!
+    end
+    true
+  end
+
+  AVAILABILITY_CACHE_KEY = 'Chat::availability_signature'.freeze
+
+  # Celah #4: push `chat_availability_changed` hanya terpicu event
+  # eksplisit (on/off, AUX, setting). Agent yg menutup browser berhenti
+  # dihitung online setelah 2 menit TANPA event -- job ini membandingkan
+  # status per chat (`customer_state` tanpa sesi) dgn hasil menit lalu,
+  # dan mem-broadcast kalau berubah. Run pertama hanya menyimpan patokan.
+  def self.broadcast_availability_if_changed
+    signature = Chat.where(active: true).order(:id).map { |chat| [chat.id, chat.customer_state[:state]] }
+    previous  = Rails.cache.read(AVAILABILITY_CACHE_KEY)
+    Rails.cache.write(AVAILABILITY_CACHE_KEY, signature)
+    broadcast_availability_change if !previous.nil? && previous != signature
+    true
+  end
+
   def self.connected_user_ids
     Sessions.sessions.filter_map do |client_id|
       Sessions.get(client_id)&.dig(:user, 'id')&.to_i

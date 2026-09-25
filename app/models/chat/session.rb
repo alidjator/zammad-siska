@@ -274,6 +274,48 @@ class Chat::Session < ApplicationModel
     false
   end
 
+  # Celah #3 -- lihat `Chat.close_disconnected_customer_sessions`.
+  # Customer dianggap tersambung kalau minimal satu client di
+  # `participants` masih punya koneksi websocket DAN bukan agent (sesi
+  # agent -- yg sedang menangani maupun agent sebelumnya pada chat yg
+  # ditransfer -- dilewati).
+  def customer_connected?
+    Array(preferences[:participants]).any? do |client_id|
+      next false if !Sessions.session_exists?(client_id)
+
+      user_id_of_client = Sessions.get(client_id)&.dig(:user, 'id')
+      next true if user_id_of_client.blank?
+      next false if user_id_of_client.to_i == user_id.to_i
+
+      !User.lookup(id: user_id_of_client)&.permissions?('chat.agent')
+    end
+  end
+
+  # Penutupan sama dgn `ChatLeaveJob` (customer menutup tab) -- agent
+  # menerima `chat_session_left` ("The customer left the conversation"),
+  # antrean agent diperbarui.
+  def close_customer_gone!
+    return false if state == 'closed'
+
+    self.state = 'closed'
+    preferences[:closed_reason] = 'customer_disconnected'
+    preferences.delete(:customer_disconnected_at)
+    save!
+
+    send_to_recipients({
+                         event: 'chat_session_left',
+                         data:  {
+                           realname:   name.presence || 'Anonymous',
+                           session_id: session_id,
+                         },
+                       })
+    Chat.broadcast_agent_state_update([chat_id])
+    true
+  rescue => e
+    Rails.logger.error "Live Chat gagal menutup sesi customer terputus #{session_id}: #{e.message}"
+    false
+  end
+
   def sync_attachment_to_ticket!(chat_message)
     return if ticket_id.blank?
 

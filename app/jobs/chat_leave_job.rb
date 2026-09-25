@@ -6,6 +6,10 @@ class ChatLeaveJob < ApplicationJob
     # check if customer has permanently left the conversation
     chat_session = Chat::Session.find_by(id: chat_session_id)
     return if !chat_session
+    # SISKA: widget kini mengirim leave dari `beforeunload` & `pagehide`
+    # (celah #3), dan sesi bisa sudah ditutup job pemantau koneksi --
+    # jangan tutup/umumkan dua kali.
+    return if chat_session.state == 'closed'
     return if chat_session.recipients_active?
 
     chat_session.state = 'closed'
