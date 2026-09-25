@@ -814,13 +814,24 @@ $siska-thumb-h: 180px;
   font-size: 12px;
 }
 
-.siska-agent .siska-msg-time { margin-left: 4px; }
+.siska-agent .siska-msg-time { margin: 0; }
+
+// Atas permintaan user ("design bubble di agent disamakan dengan widget"):
+// jam + centang DI DALAM bubble, pojok kanan bawah -- nilai sama dgn
+// `.zammad-chat-message-time` widget.
+.siska-agent .siska-msg-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  margin-top: 3px;
+  color: $siska-text-secondary;
+  font-size: 12px;
+}
 
 // G1: centang terkirim (abu) / dibaca customer (biru) di pesan agent
 .siska-agent .siska-msg-status {
   display: inline-flex;
-  margin-left: 4px;
-  vertical-align: -3px;
   color: $siska-secondary; // kontras >= 3:1 di latar putih (ikon bermakna)
   transition: color 0.2s;
 
@@ -839,17 +850,28 @@ $siska-thumb-h: 180px;
 .siska-agent .siska-msg-bubble {
   position: relative;
   min-width: 0;
-  padding: 12px 16px;
+  // Disamakan dgn bubble widget (`.zammad-chat-message-body`): padding
+  // 12px, tinggi baris 1.4. Bubble sendiri (agent) = tint biru 10% + teks
+  // gelap spt bubble customer di widget; bubble lawan putih bergaris.
+  padding: 12px;
   border: 1px solid $siska-border;
   border-radius: 4px;
   background: $siska-card-bg;
   color: $siska-body-color;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 
   @at-root .siska-agent .siska-msg--agent .siska-msg-bubble {
-    border-color: $siska-primary;
-    background: $siska-primary;
-    color: #fff;
+    border-color: transparent;
+    background: $siska-primary-tint;
+    color: $siska-body-color;
+  }
+
+  // Kartu file agent sendiri = kartu putih bergaris, spt kartu lampiran
+  // customer di widget (`.zammad-chat-attachment`).
+  @at-root .siska-agent .siska-msg--agent .siska-msg-bubble--file {
+    border-color: $siska-border;
+    background: $siska-card-bg;
   }
 
   &.siska-msg-bubble--image {
@@ -880,18 +902,17 @@ $siska-thumb-h: 180px;
 }
 
 .siska-agent .siska-msg-quote {
-  margin-bottom: 8px;
-  padding: 6px 10px;
+  // Sama dgn `.zammad-chat-message-quote` widget.
+  margin-bottom: 6px;
+  padding: 6px 8px;
   border-left: 3px solid $siska-primary;
   border-radius: 4px;
-  background: $siska-primary-tint;
+  background: $siska-body-bg;
   color: $siska-text-secondary;
-  font-size: 13px;
+  font-size: 12px;
 
   @at-root .siska-agent .siska-msg--agent .siska-msg-quote {
-    border-left-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.16);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.6);
   }
 }
 
@@ -1005,11 +1026,6 @@ $siska-thumb-h: 180px;
 .siska-agent .siska-tone-warning { background: $siska-warning-tint; color: $siska-warning; }
 .siska-agent .siska-tone-secondary { background: $siska-secondary-tint; color: $siska-secondary; }
 
-// di bubble agent (biru solid) ikon file memakai latar putih
-.siska-agent .siska-msg--agent .siska-file-icon {
-  background: #fff;
-}
-
 .siska-agent .siska-msg-file-text {
   flex: 1;
   min-width: 0;
@@ -1028,14 +1044,12 @@ $siska-thumb-h: 180px;
   color: $siska-text-secondary;
   font-size: 12px;
 
-  @at-root .siska-agent .siska-msg--agent .siska-msg-file-meta { color: rgba(255, 255, 255, 0.8); }
 }
 
 .siska-agent .siska-msg-file-download {
   display: flex;
   color: $siska-secondary;
 
-  @at-root .siska-agent .siska-msg--agent .siska-msg-file-download { color: #fff; }
 }
 
 // Chip reaksi customer di pojok bawah bubble agent
@@ -1046,14 +1060,17 @@ $siska-thumb-h: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  height: 24px;
-  padding: 0 6px;
+  // Atas permintaan user ("reaction ... berbingkai bulat seperti
+  // whatsapp"): lingkaran putih 26px (sebelumnya pill 30x24), sama dgn
+  // `.zammad-chat-reaction-badge` di widget.
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: 1px solid $siska-border;
-  border-radius: 12px;
+  border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
 
   &.hidden { display: none; }
@@ -1067,7 +1084,7 @@ $siska-thumb-h: 180px;
 // G3: chip reaksi agent sendiri di bubble customer -- tombol, klik = hapus
 .siska-agent .siska-msg-reaction--own {
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
 
   &:hover { background: $siska-body-bg; }
@@ -1162,7 +1179,7 @@ $siska-thumb-h: 180px;
 .siska-agent .siska-typing-dots {
   display: flex;
   gap: 4px;
-  padding: 14px 16px;
+  padding: 12px; // sama dgn indikator mengetik widget
   border: 1px solid $siska-border;
   border-radius: 4px;
   background: #fff;
@@ -2054,12 +2071,6 @@ $siska-thumb-h: 180px;
     transition: width 0.2s linear;
   }
 
-  // di kartu file agent (biru solid) bar memakai putih
-  @at-root .siska-agent .siska-msg--agent .siska-msg-file .siska-upload-bar {
-    background: rgba(255, 255, 255, 0.3);
-
-    > span { background: #fff; }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

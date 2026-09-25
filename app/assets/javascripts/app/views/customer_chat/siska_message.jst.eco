@@ -3,7 +3,11 @@
     <span class="s-avatar s-avatar-sm siska-msg-avatar" aria-hidden="true"><%= @initials %></span>
   <% end %>
   <div class="siska-msg-main">
-    <div class="siska-msg-meta"><%= @author %> <span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></div>
+    <!-- Atas permintaan user ("design bubble di agent disamakan dengan
+    widget"): jam & centang pindah ke DALAM bubble (pojok kanan bawah,
+    gaya WhatsApp spt widget); baris atas tinggal nama pengirim. Class
+    `.siska-msg-time` & `.js-msgStatus` tetap (dipakai chat.coffee). -->
+    <div class="siska-msg-meta"><%= @author %></div>
     <div class="siska-msg-row">
       <div class="siska-msg-bubble siska-msg-bubble--<%= @kind %>">
         <% if @replyTo: %>
@@ -21,6 +25,7 @@
               <span class="siska-img-card-text">
                 <span class="siska-img-card-name" title="<%= @file.name %>"><%= @file.name %></span>
                 <% if @file.meta: %><span class="siska-img-card-meta"><%= @file.meta %></span><% end %>
+                <span class="siska-msg-time-row"><span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></span>
               </span>
               <a class="siska-img-card-download" href="<%= @file.downloadUrl %>" target="_blank" rel="noopener" download aria-label="<%- @Ti('Download %s', @file.name) %>"><%- @SiskaIcon('download-simple', 18) %></a>
             </div>
@@ -34,8 +39,10 @@
             </span>
             <span class="siska-msg-file-download"><%- @SiskaIcon('download-simple', 18) %></span>
           </a>
+          <span class="siska-msg-time-row"><span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></span>
         <% else: %>
           <div class="siska-msg-text"><%- @html %></div>
+          <span class="siska-msg-time-row"><span class="siska-msg-time"><%= @time %></span><% if @sender is 'agent': %><span class="siska-msg-status js-msgStatus<%= ' is-read' if @isRead %>" role="img" aria-label="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>" title="<%- @Ti(if @isRead then 'Read by customer' else 'Sent') %>"><%- @SiskaIcon('checks', 16) %></span><% end %></span>
         <% end %>
         <% if @sender is 'customer': %>
           <!-- G3: reaksi AGENT ke pesan customer; klik = hapus (bukan di riwayat) -->

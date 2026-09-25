@@ -4142,15 +4142,18 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
   left: 8px;
   bottom: -14px;
   z-index: 1;
-  height: 24px;
-  min-width: 30px;
-  padding: 0 6px;
+  // Atas permintaan user ("reaction ... berbingkai bulat seperti
+  // whatsapp"): lingkaran putih 26px (sebelumnya pill 30x24), sama dgn
+  // `.siska-msg-reaction` di panel agent.
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: 1px solid $siska-border;
-  border-radius: 12px;
+  border-radius: 50%;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(19, 25, 32, 0.12);
   font-family: $siska-font;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1;
   display: flex;
   align-items: center;
