@@ -635,6 +635,49 @@ optional you can put the max oldest chat entries
     true
   end
 
+# Atas permintaan user (celah #1 audit putus koneksi) -- lihat
+# `Chat::Session#handover_to_ticket!`. Dijalankan scheduler tiap menit.
+# Sesi `running` yg agent-nya TIDAK punya satu pun koneksi websocket
+# aktif (store sesi di Redis, sama dgn yg dibaca websocket server)
+# ditandai `agent_disconnected_at`; tersambung lagi -> tanda dihapus
+# (reload/pindah jaringan singkat aman). Setelah masa tenggang lewat,
+# chat diubah jadi tiket. Efektif 2-3 menit sejak agent terputus.
+
+  AGENT_DISCONNECT_GRACE = 2.minutes
+
+  def self.handover_disconnected_agent_sessions(grace = AGENT_DISCONNECT_GRACE)
+    running = Chat::Session.where(state: 'running').where.not(user_id: nil).to_a
+    return true if running.blank?
+
+    connected = connected_user_ids
+    running.each do |chat_session|
+      if connected.include?(chat_session.user_id)
+        next if chat_session.preferences[:agent_disconnected_at].blank?
+
+        chat_session.preferences.delete(:agent_disconnected_at)
+        chat_session.save!
+        next
+      end
+
+      since = chat_session.preferences[:agent_disconnected_at]
+      if since.blank?
+        chat_session.preferences[:agent_disconnected_at] = Time.zone.now.iso8601
+        chat_session.save!
+        next
+      end
+      next if Time.zone.parse(since.to_s) > grace.ago
+
+      chat_session.handover_to_ticket!(reason: 'agent_disconnected')
+    end
+    true
+  end
+
+  def self.connected_user_ids
+    Sessions.sessions.filter_map do |client_id|
+      Sessions.get(client_id)&.dig(:user, 'id')&.to_i
+    end.to_set
+  end
+
 =begin
 
 close chat sessions where participants are offline

@@ -218,6 +218,62 @@ class Chat::Session < ApplicationModel
   # ticket!` di bawah, utk pesan OFFLINE (tiket BELUM ada saat upload
   # -- visitor bisa lampirkan file SAAT MENGETIK, sebelum klik "Kirim
   # Pesan" -- baru disinkronkan RETROAKTIF begitu tiketnya lahir).
+  # Atas permintaan user (celah #1 audit putus koneksi: agent menutup
+  # browser di tengah chat -> customer menunggu 5-20 menit tanpa kabar
+  # sampai `Chat.cleanup_close`). Dipanggil `Chat.handover_disconnected_
+  # agent_sessions` (scheduler tiap menit) setelah agent terputus lebih
+  # dari masa tenggang. Chat DIUBAH JADI TIKET: sesi ditutup, tiket
+  # (sudah dibuat saat agent menerima -- dibuat sekarang kalau belum)
+  # diberi catatan internal & status open, lalu dilanjutkan lewat
+  # email. Pemilik tiket TIDAK diubah -- tiket chat memang unassigned
+  # di grup chat, jadi diambil agent lain / didistribusikan AUX
+  # (`DistributeTicket.pending_for`) spt tiket biasa.
+  def handover_to_ticket!(reason: 'agent_disconnected')
+    return false if state == 'closed'
+
+    create_ticket_for_chat!
+    ticket = Ticket.find_by(id: ticket_id)
+
+    if ticket
+      agent_name = agent_user&.dig(:name) || '-'
+      Ticket::Article.create!(
+        ticket_id:     ticket.id,
+        type:          Ticket::Article::Type.find_by(name: 'note'),
+        sender:        Ticket::Article::Sender.find_by(name: 'System'),
+        from:          'System',
+        body:          format(__('Live chat dialihkan ke tiket: agent %s terputus dari live chat lebih dari %s menit. Lanjutkan percakapan dengan membalas customer lewat email (%s).'), agent_name, (Chat::AGENT_DISCONNECT_GRACE / 60).to_i, email.presence || '-'),
+        internal:      true,
+        created_by_id: 1,
+        updated_by_id: 1,
+      )
+      if ticket.state&.name == 'new'
+        ticket.update!(state: Ticket::State.find_by(name: 'open'), updated_by_id: 1)
+      end
+    end
+
+    self.state = 'closed'
+    preferences[:closed_reason] = reason
+    preferences.delete(:agent_disconnected_at)
+    save!
+
+    send_to_recipients({
+                         event: 'chat_session_closed',
+                         data:  {
+                           session_id:      session_id,
+                           realname:        'System',
+                           closed_by_agent: false,
+                           reason:          reason,
+                           ticket_number:   ticket&.number,
+                           email:           email,
+                         },
+                       })
+    Chat.broadcast_agent_state_update([chat_id])
+    true
+  rescue => e
+    Rails.logger.error "Live Chat gagal dialihkan ke tiket untuk sesi #{session_id}: #{e.message}"
+    false
+  end
+
   def sync_attachment_to_ticket!(chat_message)
     return if ticket_id.blank?
 
