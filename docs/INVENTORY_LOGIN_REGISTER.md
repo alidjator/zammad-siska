@@ -95,7 +95,7 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 
 | # | Halaman | Status | Catatan |
 |---|---|---|---|
-| 5.1 | Lupa password (`#password_reset`, `reset_sent`, `reset_change`, `reset_failed`) | 🔄 | Redesign + OTP (K4) |
+| 5.1 | Lupa password (`#password_reset`, `reset_otp`, `reset_otp_change`, `reset_done`; link email: `reset_change`, `reset_failed`) | ✅ | Redesign + OTP (K4) -- Tahap 3, lihat §7. `reset_sent` dihapus (diganti layar kode) |
 | 5.2 | Request login admin (`#admin_password_auth`) | ✅ | Hanya gaya |
 
 ## 6. Usulan OTP
@@ -141,3 +141,38 @@ Legenda: ✅ dipertahankan · 🔄 berubah · ➕ baru · ❓ perlu keputusan
 
 Mockup: canvas "SISKA Login & Register" (login, register, lupa password;
 masing-masing sekarang vs usulan).
+
+## 7. Tahap 3 -- OTP lupa password (2026-09-25)
+
+Alur `#password_reset` (`controllers/password_reset.coffee`):
+
+1. **Username/email** -> `POST /api/v1/siska_auth/password_reset_otp/request`.
+   Respons SERAGAM utk akun ada/tidak (`ok` + aturan); `failed` hanya utk
+   jeda 30 dtk / batas 5 kode per 15 menit (layar kode tetap tampil).
+   Dipakai juga utk kirim ulang.
+2. **Kode 6 digit** -> `.../verify { username, code }`. Layar menampilkan
+   isian user apa adanya ("Jika ada akun untuk X, kami telah mengirim
+   kode ..."), BUKAN email tersamar -- tidak membocorkan akun terdaftar.
+   Kode benar -> token `PasswordReset` baru (sekali pakai; link di email
+   ikut tidak berlaku).
+3. **Password baru + konfirmasi** (checklist aturan) -> `.../complete
+   { reset_token, password }` lewat `Service::User::PasswordReset::Update`
+   (kebijakan password, email "password diubah").
+4. **Langsung masuk** & dialihkan 3 dtk -- KECUALI akun ber-2FA / wajib
+   2FA: password diubah tapi tidak auto login (2FA tidak boleh
+   terlewati), diarahkan ke halaman login.
+
+Detail:
+- Kode dikunci per isian form (username ATAU email, sama dgn
+  `User.password_reset_new_token`) di `Siska::AuthOtp` (purpose
+  `password_reset`, token `PasswordResetOtp`, hash SHA-256, constant-time).
+- Email reset (en/id) kini berisi **kode + link cadangan**; kode juga ikut
+  terbit bila reset diminta lewat endpoint lama `users/password_reset`.
+  Template bahasa lain masih link saja.
+- Link reset di email (`#password_reset_verify/:token`) tidak diubah.
+- Input 6 kotak & checklist password dipakai bersama register lewat mixin
+  `App.SiskaAuthOtp` (`lib/mixins/siska_auth_otp.coffee`).
+- Isian user/email disisipkan SETELAH diterjemahkan (penanda
+  `{{identifier}}`/`{{email}}`), bukan argumen `%s`: `translateContent`
+  menerapkan markup link `[teks](url)` sesudah argumen disisipkan.
+
