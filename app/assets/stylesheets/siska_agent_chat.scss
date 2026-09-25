@@ -23,6 +23,7 @@ $siska-border: #e7eaee;
 $siska-input-border: #bec8d0;
 $siska-body-bg: #f8f9fa;
 $siska-card-bg: #fff;
+$siska-chat-pattern-bg: #f5f7fc; // latar area percakapan (pola doodle), sama dgn widget
 $siska-hover-bg: rgba(225, 229, 232, 0.5);
 $siska-hover-bg-soft: rgba(225, 229, 232, 0.3);
 $siska-success: #2aa77e;
@@ -726,10 +727,26 @@ $siska-thumb-h: 180px;
 // tetap memakai gaya Zammad lama.
 // ---------------------------------------------------------------------
 .siska-agent .siska-chat-window {
+  // Atas permintaan user ("terapkan hal yang sama untuk chat agent")
+  // -- latar pola doodle ala WhatsApp, SAMA PERSIS dgn widget
+  // (public/assets/chat/chat.scss `.zammad-chat-body`, varian "halus":
+  // ikon customer service 240x240 berulang, opasitas 10%, latar
+  // #f5f7fc). Bubble, kartu gambar/file & pill tanggal tetap berlatar
+  // solid sendiri.
   .chat-body-holder {
-    background: $siska-card-bg;
+    background-color: $siska-chat-pattern-bg;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240' opacity='0.10'%3E%3Cg fill='none' stroke='%234680ff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(22 20) rotate(-8)'%3E%3Cpath d='M2 4a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H11l-6 5v-5H6a4 4 0 0 1-4-4z'/%3E%3Cpath d='M8 7h12M8 11h8'/%3E%3C/g%3E%3Cg transform='translate(92 14) rotate(6)'%3E%3Cpath d='M3 15v-3a11 11 0 0 1 22 0v3'/%3E%3Crect x='1' y='14' width='5' height='9' rx='2.5'/%3E%3Crect x='22' y='14' width='5' height='9' rx='2.5'/%3E%3Cpath d='M24.5 23c0 3-3 5-7 5h-2'/%3E%3C/g%3E%3Cg transform='translate(160 26) rotate(-10)'%3E%3Crect x='0' y='0' width='26' height='18' rx='3'/%3E%3Cpath d='m1 2 12 9 12-9'/%3E%3C/g%3E%3Cg transform='translate(206 70) rotate(12)'%3E%3Cpath d='M11 1l3 6.4 7 1-5 4.9 1.2 7L11 17l-6.2 3.3L6 13.3 1 8.4l7-1z'/%3E%3C/g%3E%3Cg transform='translate(40 78)'%3E%3Ccircle cx='11' cy='11' r='10'/%3E%3Cpath d='m6.5 11 3 3 6-6.5'/%3E%3C/g%3E%3Cg transform='translate(120 70) rotate(-12)'%3E%3Cpath d='M6 1h4l2 5-2.5 1.5a11 11 0 0 0 6 6L17 11l5 2v4a2 2 0 0 1-2 2A19 19 0 0 1 2 3a2 2 0 0 1 2-2z'/%3E%3C/g%3E%3Cg transform='translate(168 118) rotate(-6)'%3E%3Cpath d='M24 1 1 10l9 3 3 9z'/%3E%3Cpath d='m10 13 14-12'/%3E%3C/g%3E%3Cg transform='translate(88 128)'%3E%3Ccircle cx='11' cy='11' r='10'/%3E%3Cpath d='M11 5.5V11l4 2.5'/%3E%3C/g%3E%3Cg transform='translate(20 142) rotate(8)'%3E%3Ccircle cx='11' cy='11' r='10'/%3E%3Cpath d='M7 13.5a5 5 0 0 0 8 0M8 8.5h.01M14 8.5h.01'/%3E%3C/g%3E%3Cg transform='translate(206 176) rotate(-10)'%3E%3Cpath d='M11 19S1 13 1 6.5A4.5 4.5 0 0 1 11 4a4.5 4.5 0 0 1 10 2.5C21 13 11 19 11 19z'/%3E%3C/g%3E%3Cg transform='translate(128 186) rotate(10)'%3E%3Cpath d='M1 3a2 2 0 0 1 2-2h22a2 2 0 0 1 2 2v3a3 3 0 0 0 0 6v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3a3 3 0 0 0 0-6z'/%3E%3Cpath d='M18 1v16' stroke-dasharray='2 2.5'/%3E%3C/g%3E%3Cg transform='translate(62 196) rotate(-6)'%3E%3Ccircle cx='11' cy='11' r='10'/%3E%3Cpath d='M8.2 8.5a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M11 17h.01'/%3E%3C/g%3E%3Cg transform='translate(176 212)'%3E%3Cpath d='M1 3h.01M8 3h.01M15 3h.01' stroke-width='3'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%234680ff'%3E%3Ccircle cx='70' cy='50' r='1.6'/%3E%3Ccircle cx='150' cy='96' r='1.4'/%3E%3Ccircle cx='36' cy='120' r='1.4'/%3E%3Ccircle cx='200' cy='150' r='1.6'/%3E%3Ccircle cx='110' cy='226' r='1.4'/%3E%3Ccircle cx='224' cy='16' r='1.4'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 240px 240px;
     font-size: 14px;
     line-height: 1.5;
+    // Atas permintaan user ("scroll pada agent dibuat seperti scroll
+    // pada customer") -- jalur scrollbar transparan (menyatu dgn pola
+    // latar, bukan pita abu2 terpisah) & pegangan abu2 gelap, sama
+    // dgn tampilan scrollbar widget customer. Properti standar
+    // `scrollbar-color` (Chrome 121+, Edge, Firefox) -- panah atas/
+    // bawah bawaan browser tetap ada, persis spt di widget.
+    scrollbar-color: #a1a1a1 transparent;
   }
 
   .chat-body {
