@@ -2035,3 +2035,14 @@ $siska-thumb-h: 180px;
 @media (prefers-reduced-motion: reduce) {
   .siska-agent .siska-upload-bar > span { transition: none; }
 }
+
+// G7: banner koneksi putus (pola sama dgn banner Offline, warna danger)
+.siska-agent .siska-chat-connection {
+  flex-shrink: 0;
+  padding: 14px 18px;
+  font-size: 14px;
+
+  &.hidden { display: none; }
+
+  .siska-chat-offline-text { flex: 1; }
+}

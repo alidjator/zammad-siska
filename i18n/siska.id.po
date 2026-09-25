@@ -407,3 +407,7 @@ msgstr "sesi #%s"
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "started %s"
 msgstr "mulai %s"
+
+#: app/assets/javascripts/app/views/customer_chat/index.jst.eco
+msgid "Connection lost. Reconnecting… Messages you send will be delivered once the connection is back."
+msgstr "Koneksi terputus. Menyambungkan ulang… Pesan yang Anda kirim akan terkirim setelah koneksi pulih."

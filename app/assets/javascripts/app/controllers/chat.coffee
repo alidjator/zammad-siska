@@ -30,6 +30,7 @@ class App.CustomerChat extends App.Controller
     '.js-onlineLabel':  'onlineLabel'
     '.js-detailEmpty':  'detailEmpty'
     '.js-offlineBanner': 'offlineBanner'
+    '.js-connectionBanner': 'connectionBanner'
     '.js-settingsView':  'settingsView'
 
   sounds:
@@ -62,6 +63,11 @@ class App.CustomerChat extends App.Controller
 
     @render()
     @on('layout-has-changed', @propagateLayoutChange)
+
+    # G7: penanda koneksi putus (event dari app_post/websocket.coffee)
+    @controllerBind('ws:connection', (data) =>
+      @connectionBanner?.toggleClass('hidden', !!data.connected)
+    )
 
     # timer tunggu & jam di daftar
     @interval(@renderList, 30000, 'siska-chat-list')

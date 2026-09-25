@@ -177,6 +177,10 @@ class _webSocketSingleton extends App.Controller
       @connectionEstablished    = true
       @connectionWasEstablished = true
 
+      # SISKA G7 (docs/COMPARISON_WIDGET_VS_AGENT.md): status koneksi utk UI
+      # yang ingin menampilkan penanda sendiri (mis. halaman chat agent)
+      App.Event.trigger('ws:connection', connected: true)
+
       # close error message show up (because try so connect again) if exists
       App.Delay.clear('websocket-no-connection-try-reconnect-message', 'ws')
       if @error
@@ -208,6 +212,8 @@ class _webSocketSingleton extends App.Controller
 
       if @connectionEstablished
         @connectionEstablished = false
+        # SISKA G7: lihat onopen (onerror selalu diikuti onclose)
+        App.Event.trigger('ws:connection', connected: false)
 
       # if connection was not possible
       if !@connectionWasEstablished
