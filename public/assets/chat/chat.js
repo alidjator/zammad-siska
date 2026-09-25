@@ -4751,6 +4751,14 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       })(this));
       this.el.addEventListener('scroll', this.onKbResultsScroll, true);
       window.addEventListener('beforeunload', this.onLeaveTemporary);
+      window.addEventListener('pagehide', this.onLeaveTemporary);
+      window.addEventListener('pageshow', (function(_this) {
+        return function(event) {
+          if (event.persisted) {
+            return _this.leaveSent = false;
+          }
+        };
+      })(this));
       document.addEventListener('visibilitychange', (function(_this) {
         return function() {
           if (!document.hidden) {
@@ -7035,6 +7043,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (!this.sessionId) {
         return;
       }
+      if (this.leaveSent) {
+        return;
+      }
+      this.leaveSent = true;
+      setTimeout(((function(_this) {
+        return function() {
+          return _this.leaveSent = false;
+        };
+      })(this)), 5000);
       return this.send('chat_session_leave_temporary', {
         session_id: this.sessionId
       });

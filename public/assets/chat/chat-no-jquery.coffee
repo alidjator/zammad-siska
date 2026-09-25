@@ -1293,6 +1293,13 @@ do(window) ->
       @el.addEventListener('scroll', @onKbResultsScroll, true)
 
       window.addEventListener('beforeunload', @onLeaveTemporary)
+      # Celah #3 audit putus koneksi: di HP `beforeunload` sering tidak
+      # terpicu (tab ditutup dari switcher, pindah halaman di iOS).
+      # `pagehide` lebih andal di sana; `onLeaveTemporary` menjaga agar
+      # hanya terkirim sekali per kepergian. Halaman yg kembali dari
+      # back-forward cache (`pageshow` persisted) boleh mengirim lagi.
+      window.addEventListener('pagehide', @onLeaveTemporary)
+      window.addEventListener('pageshow', (event) => @leaveSent = false if event.persisted)
       # G1: kembali ke tab browser = pesan agent yang tampil kini terlihat
       document.addEventListener('visibilitychange', => @maybeSendRead() if !document.hidden)
       window.addEventListener('hashchange', =>
@@ -3404,6 +3411,11 @@ do(window) ->
 
     onLeaveTemporary: =>
       return if !@sessionId
+      return if @leaveSent
+      @leaveSent = true
+      # Kalau halaman ternyata tidak jadi ditutup (navigasi dibatalkan),
+      # timer ini masih jalan & membuka lagi kiriman berikutnya.
+      setTimeout((=> @leaveSent = false), 5000)
       @send 'chat_session_leave_temporary',
         session_id: @sessionId
 
