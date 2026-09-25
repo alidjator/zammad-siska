@@ -847,7 +847,7 @@ class App.ChatWindow extends App.Controller
         activeChat = false
 
       if @session && @session.preferences && @session.preferences.url
-        @addNoticeMessage(@session.preferences.url, undefined, activeChat)
+        @addNoticeMessage(@session.preferences.url, undefined, activeChat, @session.created_at)
 
       if @session.messages
         for message in @session.messages
@@ -1096,7 +1096,7 @@ class App.ChatWindow extends App.Controller
   # `chat_session_message`/replay histori sesi) -- fitur tambahan
   # "Reply ke Pesan Spesifik", Section 5.3.
   addMessage: (message, sender, isNew, useMaybeAddTimestamp = true) =>
-    @maybeAddTimestamp() if useMaybeAddTimestamp
+    @maybeAddTimestamp(message?.created_at) if useMaybeAddTimestamp
 
     @lastAddedType = sender
 
@@ -1714,7 +1714,7 @@ class App.ChatWindow extends App.Controller
     @releaseUploadPreview(uploadId)
 
   addAttachmentMessage: (message, sender, isNew) =>
-    @maybeAddTimestamp()
+    @maybeAddTimestamp(message?.created_at)
     @lastAddedType = sender
 
     @setLastMessage(
@@ -1803,12 +1803,20 @@ class App.ChatWindow extends App.Controller
       ticketId: @session.ticket_id
     )
 
-  maybeAddTimestamp: ->
-    timestamp = Date.now()
+  # B2 (docs/INVENTORY_AGENT_CHAT.md): `at` = waktu pesan yang dirender.
+  # Dulu selalu Date.now(), jadi saat jendela dirender ulang (reload) pil
+  # menampilkan jam render, bukan jam pesan. Tanpa `at` = pesan baru (now).
+  maybeAddTimestamp: (at) ->
+    date = if at then new Date(at) else new Date()
+    date = new Date() if isNaN(date.getTime())
+    timestamp = date.getTime()
 
     if !@lastTimestamp or timestamp - @lastTimestamp > @showTimeEveryXMinutes * 60000
-      label = App.i18n.translateInline('today')
-      time = new Date().toTimeString().substr(0,5)
+      label = if date.toDateString() is new Date().toDateString()
+        App.i18n.translateInline('today')
+      else
+        App.i18n.translateDate(date.toISOString())
+      time = date.toTimeString().substr(0,5)
       if @lastAddedType is 'timestamp'
         # update last time
         @updateLastTimestamp label, time
@@ -1843,8 +1851,13 @@ class App.ChatWindow extends App.Controller
 
     @scrollToBottom()
 
-  addNoticeMessage: (message, args, useMaybeAddTimestamp = true) ->
-    @maybeAddTimestamp() if useMaybeAddTimestamp
+  addNoticeMessage: (message, args, useMaybeAddTimestamp = true, at) ->
+    # B3: notice yang sama persis dgn notice terakhir tidak diulang (server
+    # mengirim URL halaman customer tiap reload / reconnect widget). URL yang
+    # berbeda (customer pindah halaman) tetap tampil.
+    return if message? && message is @lastNoticeMessage
+    @lastNoticeMessage = message
+    @maybeAddTimestamp(at) if useMaybeAddTimestamp
 
     @body.append App.view('customer_chat/chat_notice_message')(
       message: message
