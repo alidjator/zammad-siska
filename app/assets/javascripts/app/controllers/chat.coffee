@@ -18,6 +18,7 @@ class App.CustomerChat extends App.Controller
     'change .js-onlineSwitch': 'onOnlineSwitch'
     'input .js-listSearch':    'onListSearch'
     'click .js-goOnline':      'onGoOnline'
+    'click .js-acceptDismiss': 'dismissAcceptOverlay'
     'click .js-settingsCancel': 'closeSettings'
     'submit .js-settingsForm':  'saveSettings'
     'change .js-topicActive':   'onTopicActiveChange'
@@ -31,6 +32,7 @@ class App.CustomerChat extends App.Controller
     '.js-detailEmpty':  'detailEmpty'
     '.js-offlineBanner': 'offlineBanner'
     '.js-connectionBanner': 'connectionBanner'
+    '.js-acceptOverlay': 'acceptOverlay'
     '.js-settingsView':  'settingsView'
 
   sounds:
@@ -95,10 +97,13 @@ class App.CustomerChat extends App.Controller
     @controllerBind('chat_session_start', (data) =>
       if data.session
         @addChat(data.session)
+        # juga bila datang SETELAH batas waktu: overlay gagal ikut ditutup
+        @finishAccepting()
       else
         # mis. antrean sudah diambil agent lain -- jangan sampai sesi lain
         # yang datang belakangan ikut dipilih otomatis
         @acceptPending = false
+        @failAccepting('taken') if @accepting
     )
 
     # on new login or on
@@ -268,6 +273,8 @@ class App.CustomerChat extends App.Controller
 
     @renderHeader()
     @renderList()
+    # antrean berubah: tombol di overlay gagal ("Accept next" / "Close") ikut
+    @renderAcceptFailure() if @acceptFailure
     @updateNavMenu()
 
   renderHeader: =>
@@ -346,6 +353,7 @@ class App.CustomerChat extends App.Controller
       canAccept:    @maxChatWindows > @windowCount()
       active:       !!@meta.active
       query:        @listQuery
+      accepting:    @accepting?.chatId
     )
 
     @detailEmpty.toggleClass('hidden', !!@selectedSessionId)
@@ -435,11 +443,62 @@ class App.CustomerChat extends App.Controller
     return if @windowCount() >= @maxChatWindows
     chat_id = $(e.currentTarget).attr('data-chat-id')
     @acceptPending = true
+    return if @accepting
     App.WebSocket.send(event:'chat_session_start', chat_id: chat_id)
     @idleTimeoutStop()
+    @startAccepting(chat_id)
 
   # Redesign sisi agent (Tahap 5) -- halaman Pengaturan menggantikan modal
   # `Setting` lama. Dipanggil dari tombol Settings ATAU dari `switch` (Online
+  # --- Loading penuh saat "Accept next" (mockup "Menerima chat") ------------
+  # Keputusan user: batas waktu 10 detik; bila gagal & masih ada customer
+  # menunggu, tombolnya "Accept next" (coba lagi), selain itu "Close".
+  ACCEPT_TIMEOUT: 10000
+
+  startAccepting: (chatId) =>
+    @accepting = { chatId: chatId || 'all' }
+    @acceptFailure = null
+    @acceptOverlay.html(App.view('customer_chat/siska_accepting')(state: 'loading')).removeClass('hidden')
+    @renderList()
+    @delay(@onAcceptTimeout, @ACCEPT_TIMEOUT, 'siska-accept-timeout')
+
+  finishAccepting: =>
+    @clearDelay('siska-accept-timeout')
+    @accepting = null
+    @acceptFailure = null
+    @acceptOverlay?.addClass('hidden').empty()
+    @renderList()
+
+  # Batas waktu: sesi yang tetap datang belakangan masih dibuka otomatis
+  # (acceptPending dibiarkan), jadi tidak ada chat yang "hilang".
+  onAcceptTimeout: =>
+    return if !@accepting
+    @failAccepting('timeout')
+
+  failAccepting: (reason) =>
+    @clearDelay('siska-accept-timeout')
+    chatId = @accepting?.chatId
+    @accepting = null
+    @acceptFailure = { reason: reason, chatId: (if chatId is 'all' then undefined else chatId) }
+    @renderAcceptFailure()
+    @renderList()
+
+  renderAcceptFailure: =>
+    return if !@acceptFailure || !@acceptOverlay?.length
+    chatId = @acceptFailure.chatId
+    waiting = if chatId then (@meta.waiting_chat_count_by_chat?[chatId] || 0) else (@meta.waiting_chat_count || 0)
+    canRetry = @acceptFailure.reason is 'timeout' || (waiting > 0 && @maxChatWindows > @windowCount())
+    @acceptOverlay.html(App.view('customer_chat/siska_accepting')(
+      state: 'failed'
+      reason: @acceptFailure.reason
+      canRetry: canRetry
+      chatId: chatId
+    )).removeClass('hidden')
+
+  dismissAcceptOverlay: (e) =>
+    e?.preventDefault()
+    @finishAccepting()
+
   # tanpa topik aktif, dgn pesan error + `active` = status yang diminta),
   # persis seperti modal dulu. Jendela chat tetap hidup di belakangnya.
   settings: (params = {}) ->

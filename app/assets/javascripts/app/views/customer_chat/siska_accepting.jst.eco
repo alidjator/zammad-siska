@@ -1,0 +1,39 @@
+<!-- Mockup "Menerima chat -- loading penuh di jendela percakapan". Overlay
+     menutup seluruh kartu percakapan sejak Accept next diklik sampai sesi
+     tiba (atau gagal / batas waktu 10 detik). -->
+<% if @state is 'loading': %>
+  <div class="siska-accept-skeleton" aria-hidden="true">
+    <div class="siska-accept-skel-header">
+      <span class="siska-skel siska-skel-circle"></span>
+      <span class="siska-accept-skel-lines"><span class="siska-skel" style="width: 140px; height: 12px;"></span><span class="siska-skel" style="width: 260px; height: 9px;"></span></span>
+      <span class="siska-skel" style="width: 110px; height: 32px; border-radius: 20px;"></span>
+    </div>
+    <div class="siska-accept-skel-body">
+      <div class="siska-accept-skel-msg"><span class="siska-skel siska-skel-avatar"></span><span class="siska-accept-skel-bubble"><span class="siska-skel" style="width: 280px;"></span><span class="siska-skel" style="width: 180px;"></span></span></div>
+      <div class="siska-accept-skel-msg is-right"><span class="siska-accept-skel-bubble is-agent"><span class="siska-skel siska-skel-agent" style="width: 220px;"></span></span></div>
+      <div class="siska-accept-skel-msg"><span class="siska-skel siska-skel-avatar"></span><span class="siska-accept-skel-bubble"><span class="siska-skel" style="width: 220px;"></span><span class="siska-skel" style="width: 120px;"></span></span></div>
+    </div>
+    <div class="siska-accept-skel-foot"><span class="siska-skel" style="width: 100%; height: 40px; border-radius: 8px;"></span></div>
+  </div>
+  <div class="siska-accept-message" role="status" aria-live="polite">
+    <span class="siska-accept-icon"><span class="siska-thread-spin"><%- @SiskaIcon('spinner-gap', 32) %></span></span>
+    <div class="s-h2"><%- @T('Connecting to the customer…') %></div>
+    <div class="s-muted"><%- @T('Getting the customer who has waited longest. The conversation will appear in a moment.') %></div>
+  </div>
+<% else: %>
+  <div class="siska-accept-message" role="alert">
+    <span class="siska-accept-icon is-warning"><%- @SiskaIcon('warning', 32, tone: 'full') %></span>
+    <% if @reason is 'timeout': %>
+      <div class="s-h2"><%- @T('The server did not respond') %></div>
+      <div class="s-muted"><%- @T('Accepting the chat took longer than 10 seconds. Please try again.') %></div>
+    <% else: %>
+      <div class="s-h2"><%- @T('The customer was accepted by another agent') %></div>
+      <div class="s-muted"><%- @T(if @canRetry then 'The queue changed when you pressed Accept. Other customers are still waiting.' else 'The queue changed when you pressed Accept. No other customer is waiting right now.') %></div>
+    <% end %>
+    <% if @canRetry: %>
+      <button type="button" class="s-btn s-btn-primary js-acceptChat"<% if @chatId: %> data-chat-id="<%= @chatId %>"<% end %>><%- @SiskaIcon('check', 16) %><%- @T('Accept next') %></button>
+    <% else: %>
+      <button type="button" class="s-btn s-btn-outline-secondary js-acceptDismiss"><%- @T('Close') %></button>
+    <% end %>
+  </div>
+<% end %>

@@ -91,19 +91,31 @@
       <div class="siska-chat-queue">
         <div class="siska-chat-queue-head">
           <% if @showTopics: %><span class="siska-chat-queue-topic"><%= group.name %></span><% end %>
+          <% if @accepting: %>
+            <button type="button" class="s-btn s-btn-primary s-btn-sm" disabled aria-busy="true">
+              <span class="siska-thread-spin"><%- @SiskaIcon('spinner-gap', 14) %></span>
+              <%- @T('Accepting…') %>
+            </button>
+          <% else: %>
           <button type="button" class="s-btn s-btn-primary s-btn-sm js-acceptChat"<% if @showTopics: %> data-chat-id="<%= group.id %>"<% end %><%= ' disabled' if !@canAccept %> title="<%- @Ti(if @canAccept then 'Accept the customer who has waited longest' else 'Maximum concurrent chats reached') %>">
             <%- @SiskaIcon('check', 14) %>
             <%- @T('Accept next') %>
           </button>
+          <% end %>
         </div>
         <ul class="siska-chat-items" role="list">
-          <% for waiting in group.sessions: %>
-            <li class="siska-chat-waiting">
+          <% for waiting, index in group.sessions: %>
+            <% beingAccepted = index is 0 and @accepting and (@accepting is 'all' or String(@accepting) is String(group.id)) %>
+            <li class="siska-chat-waiting<%= ' is-accepting' if beingAccepted %>">
               <span class="s-avatar s-avatar-sm s-avatar-muted"><%= waiting.initials %></span>
               <span class="siska-chat-item-main">
                 <span class="siska-chat-item-row">
                   <span class="siska-chat-item-name"><%= waiting.name %></span>
-                  <span class="siska-chat-wait s-small"><%- @SiskaIcon('hourglass', 12) %><%= waiting.wait %></span>
+                  <% if beingAccepted: %>
+                    <span class="siska-chat-accepting s-small"><span class="siska-thread-spin"><%- @SiskaIcon('spinner-gap', 12) %></span><%- @T('Being accepted') %></span>
+                  <% else: %>
+                    <span class="siska-chat-wait s-small"><%- @SiskaIcon('hourglass', 12) %><%= waiting.wait %></span>
+                  <% end %>
                 </span>
                 <% if waiting.category: %>
                   <span class="siska-chat-item-snippet s-muted s-small"><%= waiting.category %></span>

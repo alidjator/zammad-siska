@@ -43,6 +43,7 @@
         <div class="s-muted"><%- @T('Pick a chat from the list, or accept a waiting customer.') %></div>
       </div>
       <div class="chat-workspace"></div>
+      <div class="s-card siska-accept-overlay js-acceptOverlay hidden"></div>
     </section>
   </div>
 </div>

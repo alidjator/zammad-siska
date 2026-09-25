@@ -411,3 +411,39 @@ msgstr "mulai %s"
 #: app/assets/javascripts/app/views/customer_chat/index.jst.eco
 msgid "Connection lost. Reconnecting… Messages you send will be delivered once the connection is back."
 msgstr "Koneksi terputus. Menyambungkan ulang… Pesan yang Anda kirim akan terkirim setelah koneksi pulih."
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "Connecting to the customer…"
+msgstr "Menghubungkan ke pelanggan…"
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "Getting the customer who has waited longest. The conversation will appear in a moment."
+msgstr "Mengambil pelanggan yang paling lama menunggu. Percakapan akan tampil sebentar lagi."
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "The server did not respond"
+msgstr "Server tidak merespons"
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "Accepting the chat took longer than 10 seconds. Please try again."
+msgstr "Menerima chat memakan waktu lebih dari 10 detik. Silakan coba lagi."
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "The customer was accepted by another agent"
+msgstr "Pelanggan sudah diterima agen lain"
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "The queue changed when you pressed Accept. Other customers are still waiting."
+msgstr "Antrean berubah saat Anda menekan Terima. Masih ada pelanggan lain yang menunggu."
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "The queue changed when you pressed Accept. No other customer is waiting right now."
+msgstr "Antrean berubah saat Anda menekan Terima. Tidak ada pelanggan lain yang menunggu saat ini."
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "Accepting…"
+msgstr "Menerima…"
+
+#: app/assets/javascripts/app/views/customer_chat/siska_accepting.jst.eco
+msgid "Being accepted"
+msgstr "Sedang diterima"

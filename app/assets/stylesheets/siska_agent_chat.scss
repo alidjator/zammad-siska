@@ -2050,3 +2050,142 @@ $siska-thumb-h: 180px;
 
   .siska-chat-offline-text { flex: 1; }
 }
+
+// ---------------------------------------------------------------------
+// Loading penuh saat "Accept next" (mockup "Menerima chat"): overlay
+// menutupi seluruh kartu percakapan (di atas jendela chat yang terpilih).
+// ---------------------------------------------------------------------
+.siska-agent .siska-accept-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &.hidden { display: none; }
+}
+
+.siska-agent .siska-accept-skeleton {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.siska-agent .siska-skel {
+  display: block;
+  height: 10px;
+  border-radius: 6px;
+  background: #eceff2;
+  animation: siska-skel-pulse 1.4s ease-in-out infinite;
+}
+
+.siska-agent .siska-skel-circle { width: 40px; height: 40px; border-radius: 100%; flex-shrink: 0; }
+.siska-agent .siska-skel-avatar { width: 32px; height: 32px; border-radius: 100%; flex-shrink: 0; }
+.siska-agent .siska-skel-agent { background: rgba(70, 128, 255, 0.18); }
+
+@keyframes siska-skel-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .siska-agent .siska-skel { animation: none; }
+}
+
+.siska-agent .siska-accept-skel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid $siska-border;
+}
+
+.siska-agent .siska-accept-skel-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.siska-agent .siska-accept-skel-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 18px;
+  padding: 20px 24px;
+}
+
+.siska-agent .siska-accept-skel-msg {
+  display: flex;
+  gap: 12px;
+
+  &.is-right { justify-content: flex-end; }
+}
+
+.siska-agent .siska-accept-skel-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid #eceff2;
+  border-radius: 4px;
+
+  &.is-agent { border: 0; background: rgba(70, 128, 255, 0.12); }
+}
+
+.siska-agent .siska-accept-skel-foot {
+  flex-shrink: 0;
+  padding: 16px;
+  border-top: 1px solid $siska-border;
+
+  .siska-skel { background: #f3f5f7; }
+}
+
+.siska-agent .siska-accept-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.78);
+  text-align: center;
+
+  .s-muted { max-width: 380px; font-size: 13px; line-height: 1.5; }
+  .s-btn { margin-top: 6px; }
+}
+
+// keadaan gagal: tanpa kerangka di belakangnya, latar kartu putih penuh
+.siska-agent .siska-accept-overlay > .siska-accept-message:only-child { background: $siska-card-bg; }
+
+.siska-agent .siska-accept-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 100%;
+  background: $siska-primary-tint;
+  color: $siska-primary;
+
+  &.is-warning { background: $siska-warning-tint; color: #b04a00; }
+}
+
+// antrean: customer yang sedang diterima
+.siska-agent .siska-chat-waiting.is-accepting { background: $siska-primary-tint; }
+
+.siska-agent .siska-chat-accepting {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  color: $siska-primary;
+  font-weight: 500;
+}
