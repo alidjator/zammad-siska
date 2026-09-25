@@ -217,6 +217,10 @@ do(window) ->
     'caret-right': ["M704 512l-320 320v-640z", "M726.64 489.36l-320-320c-5.792-5.798-13.797-9.385-22.64-9.385-17.673 0-32 14.327-32 32 0 0.009 0 0.018 0 0.027l-0-0.001v640c-0 0.007-0 0.016-0 0.025 0 17.673 14.327 32 32 32 8.843 0 16.848-3.587 22.64-9.385l0-0 320-320c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0zM416 754.76v-485.52l242.76 242.76z"]
     'chat-circle-dots': ["M896 512c0 0.014 0 0.031 0 0.048 0 212.077-171.923 384-384 384-70.806 0-137.136-19.164-194.086-52.588l1.806 0.98-149.56 49.88c-3.021 1.042-6.502 1.644-10.124 1.644-17.673 0-32-14.327-32-32 0-3.622 0.602-7.103 1.71-10.349l-0.067 0.225 49.88-149.56c-32.414-55.124-51.56-121.425-51.56-192.197 0-212.077 171.923-384 384-384 212.048 0 383.953 171.875 384 383.912l0 0.005z", "M512 96c-0.027-0-0.059-0-0.091-0-229.75 0-416 186.25-416 416 0 71.565 18.071 138.91 49.9 197.72l-1.089-2.2-45.4 136.2c-2.084 6.042-3.287 13.004-3.287 20.247 0 35.346 28.654 64 64 64 7.243 0 14.205-1.203 20.698-3.421l-0.45 0.134 136.2-45.4c56.567 30.683 123.852 48.72 195.349 48.72 229.75 0 416-186.25 416-416 0-229.69-186.152-415.903-415.82-416l-0.009-0zM512 864c-0.071 0-0.155 0-0.239 0-64.812 0-125.526-17.542-177.654-48.137l1.654 0.897c-4.587-2.706-10.105-4.309-15.997-4.32l-0.003-0c-3.623 0.002-7.103 0.617-10.34 1.747l0.22-0.067-149.64 49.88 49.88-149.6c1.048-3.029 1.653-6.519 1.653-10.151 0-5.895-1.594-11.417-4.374-16.16l0.082 0.151c-29.734-50.544-47.298-111.341-47.298-176.24 0-194.404 157.596-352 352-352s352 157.596 352 352c0 194.384-157.563 351.967-351.939 352l-0.003 0zM560 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM384 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM736 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"]
     'check': ["M928 224v576c0 35.346-28.654 64-64 64v0h-704c-35.346 0-64-28.654-64-64v0-576c0-35.346 28.654-64 64-64v0h704c35.346 0 64 28.654 64 64v0z", "M822.64 342.64l-384 384c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-160-160c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l137.36 137.4 361.36-361.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0z"]
+    'arrow-down': ["M800 576l-288 288-288-288z", "M829.56 563.76c-4.934-11.696-16.306-19.757-29.56-19.76l-256-0v-384c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 384h-256c-0.007-0-0.016-0-0.025-0-17.673 0-32 14.327-32 32 0 8.843 3.587 16.848 9.385 22.64l0 0 288 288c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 288-288c5.785-5.79 9.363-13.786 9.363-22.618 0-4.425-0.898-8.639-2.522-12.472l0.079 0.21zM512 818.76l-210.76-210.76h421.52z"]
+    'chats': ["M896 384v512l-158.32-128h-385.68c-17.673 0-32-14.327-32-32v0-160h352c17.673 0 32-14.327 32-32v0-192h160c17.673 0 32 14.327 32 32v0z", "M864 320h-128v-128c0-35.346-28.654-64-64-64v0h-512c-35.346 0-64 28.654-64 64v0 512c0.057 17.63 14.362 31.9 32 31.9 7.596 0 14.574-2.647 20.062-7.068l-0.062 0.048 140-112.88v120c0 35.346 28.654 64 64 64v0h374.36l149.64 120.88c5.416 4.409 12.392 7.089 19.993 7.12l0.007 0c17.673 0 32-14.327 32-32v0-512c0-35.346-28.654-64-64-64v0zM266.2 551.12l-106.2 85.88v-445h512v352h-385.68c-7.65 0.001-14.674 2.687-20.179 7.166l0.059-0.046zM864 829l-106.2-85.88c-5.416-4.409-12.392-7.089-19.993-7.12l-0.007-0h-385.8v-128h320c35.346 0 64-28.654 64-64v0-160h128z"]
+    'clock-counter-clockwise': ["M864 512c0 194.404-157.596 352-352 352s-352-157.596-352-352c0-194.404 157.596-352 352-352v0c194.404 0 352 157.596 352 352v0z", "M544 320v173.88l144.48 86.68c9.367 5.697 15.528 15.849 15.528 27.44 0 17.678-14.331 32.008-32.008 32.008-6.087 0-11.777-1.699-16.621-4.648l0.141 0.080-160-96c-9.362-5.696-15.52-15.844-15.52-27.43 0-0.003 0-0.007 0-0.010l-0 0.001v-192c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM512 128c-0.282-0.001-0.617-0.001-0.951-0.001-105.811 0-201.567 43.047-270.712 112.584l-0.017 0.017c-29.080 29.44-54.92 57.76-80.32 87.4v-72c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h160c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-92c28.6-33.68 57.080-65.4 89.56-98.28 57.908-57.908 137.908-93.725 226.274-93.725 176.731 0 320 143.269 320 320s-143.269 320-320 320c-85.11 0-162.46-33.227-219.785-87.416l0.151 0.142c-5.725-5.419-13.473-8.751-22-8.751-17.69 0-32.031 14.341-32.031 32.031 0 9.163 3.848 17.428 10.016 23.266l0.015 0.014c68.607 64.851 161.423 104.72 263.55 104.72 212.077 0 384-171.923 384-384 0-211.989-171.78-383.857-383.736-384l-0.014-0z"]
+    'spinner-gap': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M544 128v128c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-128c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM896 480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32s-14.327-32-32-32v0zM715.64 670.4c-5.727-5.449-13.492-8.801-22.041-8.801-17.673 0-32 14.327-32 32 0 8.548 3.352 16.314 8.813 22.054l-0.013-0.013 90.48 90.52c5.794 5.794 13.799 9.378 22.64 9.378 17.683 0 32.018-14.335 32.018-32.018 0-8.841-3.584-16.846-9.378-22.64l0 0zM512 736c-17.673 0-32 14.327-32 32v0 128c0 17.673 14.327 32 32 32s32-14.327 32-32v0-128c0-17.673-14.327-32-32-32v0zM308.36 670.4l-90.52 90.48c-5.794 5.794-9.378 13.799-9.378 22.64 0 17.683 14.335 32.018 32.018 32.018 8.841 0 16.846-3.584 22.64-9.378v-0l90.48-90.52c5.449-5.727 8.801-13.492 8.801-22.041 0-17.673-14.327-32-32-32-8.548 0-16.314 3.352-22.054 8.813l0.013-0.013zM288 512c0-17.673-14.327-32-32-32v0h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32v0zM263.12 217.84c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l90.52 90.48c5.727 5.449 13.492 8.801 22.041 8.801 17.673 0 32-14.327 32-32 0-8.548-3.352-16.314-8.813-22.054l0.013 0.013z"]
     'check-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M694.64 393.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4 201.36-201.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"]
     'checks': ["M960 256v512c0 35.346-28.654 64-64 64v0h-768c-35.346 0-64-28.654-64-64v0-512c0-35.346 28.654-64 64-64v0h768c35.346 0 64 28.654 64 64v0z", "M566.64 406.64l-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378h0l73.36 73.4 201.36-201.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM854.64 361.36c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-201.36 201.4-41.36-41.4c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l64 64c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 224-224c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0z"]
     'clock': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM768 512c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 192h192c17.673 0 32 14.327 32 32v0z"]
@@ -1691,6 +1695,12 @@ do(window) ->
             @onOfflineMessageSendResult pipe.data
           # Enhancement 2 -- Rating Kepuasan (Feedback) -- mirror
           # persis dari chat.coffee.
+          when 'chat_customer_history'
+            @onCustomerHistory pipe.data
+          when 'chat_customer_history_otp_request'
+            @onCustomerHistoryOtpRequest pipe.data
+          when 'chat_customer_history_otp_verify'
+            @onCustomerHistoryOtpVerify pipe.data
           when 'chat_session_feedback_submit'
             @onFeedbackSubmitResult pipe.data
           when 'chat_status_customer'
@@ -3542,6 +3552,8 @@ do(window) ->
 
       # empty old messages
       @body.innerHTML = ''
+      # Riwayat chat dari email yang sama (terkunci OTP), selalu paling atas
+      @initCustomerHistory()
 
       @el.querySelector('.zammad-chat-agent').innerHTML = @view('agent')
         agent: @agent
@@ -3579,6 +3591,254 @@ do(window) ->
     # Kosong/tidak dikonfigurasi -> tidak render apa pun (bukan bubble
     # kosong) -- lihat `chat_phrase_messages_welcome_greeting` di
     # `script/create_widget_phrase_settings.rb`.
+    # --- Riwayat chat di widget ----------------------------------------------
+    # Mockup "Riwayat chat di widget -- email sama + verifikasi OTP". Keputusan
+    # user: riwayat dari email yang sama di perangkat mana pun, dibuka setelah
+    # verifikasi OTP ke email itu (sekali per sesi); kartu SELALU tampil
+    # (tidak membocorkan apakah email tsb punya riwayat); rating ditampilkan.
+    # Server (chat_customer_history*.rb) yang menegakkan OTP & participant.
+    HISTORY_PAGE_SIZE: 10
+
+    initCustomerHistory: =>
+      return if !@sessionId
+      @history = { messages: [], sessions: {}, hasMore: false, loading: false, verified: false, email: @customerEmail }
+      @historyEl?.remove()
+      @historyEl = document.createElement('div')
+      @historyEl.className = 'zammad-chat-history js-history'
+      @body.insertBefore(@historyEl, @body.firstChild)
+      @historyEl.addEventListener('click', @onHistoryClick)
+      @historyEl.addEventListener('input', @onHistoryOtpInput)
+      @historyEl.addEventListener('keydown', @onHistoryOtpKeydown)
+      @historyEl.addEventListener('paste', @onHistoryOtpPaste)
+      if !@historyScrollBound
+        @historyScrollBound = true
+        @body.addEventListener('scroll', @onHistoryScroll)
+      @requestCustomerHistory()
+
+    requestCustomerHistory: =>
+      return if !@history or @history.loading
+      @history.loading = true
+      @history.pendingBefore = @history.messages[0]?.id
+      @renderCustomerHistory() if @history.verified
+      @send 'chat_customer_history',
+        session_id: @sessionId
+        before_id: @history.pendingBefore
+
+    onCustomerHistory: (data) =>
+      return if !@history or data.session_id isnt @sessionId
+      return if (data.before_id || undefined) isnt (@history.pendingBefore || undefined)
+      @history.loading = false
+      switch data.state
+        when 'unavailable'
+          @historyEl?.remove()
+          @historyEl = null
+          return
+        when 'locked'
+          @history.email = data.email || @history.email
+          @history.card = 'locked'
+          @renderHistoryCard()
+          return
+      first = !@history.verified
+      @history.verified = true
+      @history.hasMore = !!data.has_more
+      @history.sessions[key] = value for key, value of (data.sessions || {})
+      known = {}
+      known[m.id] = true for m in @history.messages
+      @history.messages.push(m) for m in (data.messages || []) when !known[m.id]
+      @history.messages.sort (a, b) -> a.id - b.id
+      # jaga posisi baca: jarak dari bawah tidak berubah saat riwayat ditambah
+      fromBottom = @body.scrollHeight - @body.scrollTop
+      @renderCustomerHistory()
+      if first and @scrolledToBottom
+        @scrollToBottom()
+      else
+        @body.scrollTop = @body.scrollHeight - fromBottom
+
+    onHistoryScroll: =>
+      return if !@history?.verified or !@history.hasMore or @history.loading
+      @requestCustomerHistory() if @body.scrollTop < 60
+
+    onHistoryClick: (event) =>
+      if event.target.closest('.js-history-view, .js-history-resend')
+        event.preventDefault()
+        @history.busy = true
+        @renderHistoryCard()
+        @send 'chat_customer_history_otp_request', session_id: @sessionId
+      else if event.target.closest('.js-history-cancel')
+        event.preventDefault()
+        @history.card = 'locked'
+        @history.error = null
+        @renderHistoryCard()
+      else if event.target.closest('.js-history-verify')
+        event.preventDefault()
+        @submitHistoryOtp()
+      else if event.target.closest('.js-history-more')
+        event.preventDefault()
+        @requestCustomerHistory() if @history.hasMore
+
+    onCustomerHistoryOtpRequest: (data) =>
+      return if !@history or data.session_id isnt @sessionId
+      @history.busy = false
+      @history.email = data.email || @history.email
+      switch data.state
+        when 'verified'
+          @requestCustomerHistory()
+          return
+        when 'ok'
+          @history.error = null
+        when 'cooldown'
+          @history.error = @T('Please wait %s seconds before requesting another code.', data.wait_seconds)
+        else
+          @history.error = @T('The code could not be sent. Please try again later.')
+      @history.card = 'otp'
+      @renderHistoryCard()
+      @historyEl.querySelector('.js-history-otp-digit')?.focus()
+
+    submitHistoryOtp: =>
+      return if @history.busy
+      code = ''
+      code += (el.value || '') for el in @historyEl.querySelectorAll('.js-history-otp-digit')
+      if code.length isnt 6
+        @history.error = @T('Please enter the full 6-digit code.')
+        @renderHistoryCard()
+        return
+      @history.busy = true
+      @send 'chat_customer_history_otp_verify', session_id: @sessionId, code: code
+
+    onCustomerHistoryOtpVerify: (data) =>
+      return if !@history or data.session_id isnt @sessionId
+      @history.busy = false
+      if data.state is 'ok'
+        @history.error = null
+        @requestCustomerHistory()
+        return
+      @history.error = switch data.state
+        when 'expired' then @T('This code has expired. Please request a new one.')
+        when 'too_many_attempts' then @T('Too many incorrect attempts. Please request a new code.')
+        else @T('Incorrect code. Please try again.')
+      @renderHistoryCard()
+      @historyEl.querySelector('.js-history-otp-digit')?.focus()
+
+    renderHistoryCard: =>
+      return if !@historyEl
+      @historyEl.innerHTML = @view('history_card')(
+        state: @history.card || 'locked'
+        email: @history.email
+        error: @history.error
+        busy: @history.busy
+      )
+
+    # Kotak OTP riwayat: kelas sendiri (js-history-otp-digit) supaya handler
+    # OTP pesan offline (autoSubmitOfflineOtp) tidak ikut terpicu.
+    onHistoryOtpInput: (event) =>
+      input = event.target
+      return if !input.classList?.contains('js-history-otp-digit')
+      value = input.value.replace(/[^0-9]/g, '')
+      input.value = value.slice(-1)
+      return if !value
+      next = @historyEl.querySelector(".js-history-otp-digit[data-index='#{parseInt(input.dataset.index, 10) + 1}']")
+      if next then next.focus() else @submitHistoryOtp()
+
+    onHistoryOtpKeydown: (event) =>
+      input = event.target
+      return if !input.classList?.contains('js-history-otp-digit')
+      if event.keyCode is 13
+        event.preventDefault()
+        @submitHistoryOtp()
+        return
+      return if event.keyCode isnt 8 or input.value
+      prev = @historyEl.querySelector(".js-history-otp-digit[data-index='#{parseInt(input.dataset.index, 10) - 1}']")
+      if prev
+        prev.value = ''
+        prev.focus()
+
+    onHistoryOtpPaste: (event) =>
+      return if !event.target.classList?.contains('js-history-otp-digit')
+      event.preventDefault()
+      pasted = event.clipboardData?.getData('text')?.replace(/[^0-9]/g, '') || ''
+      return if !pasted
+      boxes = @historyEl.querySelectorAll('.js-history-otp-digit')
+      box.value = pasted.charAt(i) || '' for box, i in boxes
+      if pasted.length >= boxes.length then @submitHistoryOtp() else boxes[pasted.length]?.focus()
+
+    historyDateLabel: (time) ->
+      date = new Date(time)
+      return '' if isNaN(date.getTime())
+      return @T('Today') if date.toDateString() is new Date().toDateString()
+      try
+        date.toLocaleDateString(@options.lang || undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+      catch
+        date.toDateString()
+
+    renderCustomerHistory: =>
+      return if !@historyEl
+      items = []
+      lastDay = null
+      lastSession = null
+      lastAuthor = null
+      messages = @history.messages
+      pushEnd = (session, lastMessage) =>
+        return if !session or !lastMessage or session.state isnt 'closed'
+        return if session.last_message_id and lastMessage.id isnt session.last_message_id
+        text = switch session.closed_by
+          when 'agent' then @T('Chat ended by the agent')
+          when 'customer' then @T('Chat ended by you')
+          else @T('Chat ended')
+        time = if session.ended_at then @formatTime(session.ended_at) else ''
+        items.push(type: 'end', text: (if time then "#{text} · #{time}" else text), score: session.csat_score)
+      for message, index in messages
+        session = @history.sessions[String(message.chat_session_id)] || {}
+        pushEnd(lastSession, messages[index - 1]) if lastSession and session isnt lastSession
+        day = new Date(message.created_at).toDateString()
+        if day isnt lastDay
+          items.push(type: 'date', label: @historyDateLabel(message.created_at))
+          lastDay = day
+        if session isnt lastSession
+          started = @formatTime(session.created_at)
+          ended = if session.ended_at then @formatTime(session.ended_at) else ''
+          range = if ended and ended isnt started then "#{started}–#{ended}" else started
+          meta = (part for part in [session.agent_name, range] when part).join(' · ')
+          items.push(type: 'session', id: session.id, meta: meta)
+          lastSession = session
+          lastAuthor = null
+        from = if message.is_from_agent then 'agent' else 'customer'
+        if from is 'agent' and session.agent_name and lastAuthor isnt session.agent_name
+          items.push(type: 'author', name: session.agent_name)
+        lastAuthor = if from is 'agent' then session.agent_name else null
+        items.push(type: 'message', html: @historyMessageHtml(message, session, from))
+      pushEnd(lastSession, messages[messages.length - 1]) if lastSession
+      state = if @history.loading then 'loading' else if @history.hasMore then 'ready' else if items.length then 'end' else 'empty'
+      @historyEl.innerHTML = @view('history_thread')(
+        items: items
+        state: state
+        pageSize: @HISTORY_PAGE_SIZE
+      )
+
+    # Bubble riwayat memakai template pesan yang sama TANPA id (jadi tanpa
+    # menu/reply/reaksi); lampiran memakai session_id sesi asalnya.
+    historyMessageHtml: (message, session, from) =>
+      time = @formatTime(message.created_at)
+      if message.filename
+        @view(@attachmentView(message.content_type, message.display))(
+          from: from
+          filename: message.filename
+          metaLabel: @attachmentMeta(message.filename, message.size)
+          senderLabel: @attachmentSender(from is 'agent')
+          url: "#{@apiBaseUrl()}/api/v1/chat_sessions/#{session.session_id}/attachments/#{message.id}"
+          unreadClass: ''
+          time: time
+          isRead: !!message.read_at
+        )
+      else
+        @view('message')(
+          message: message.content
+          from: from
+          time: time
+          isRead: !!message.read_at
+          replyTo: message.reply_to?.content
+          unreadClass: ''
+        )
+
     showWelcomeGreeting: (createdAt) =>
       greeting = @phrases['chat_phrase_messages_welcome_greeting']
       return if !greeting

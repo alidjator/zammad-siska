@@ -943,6 +943,266 @@ window.zammadChatTemplates["help"] = function(__obj) {
 if (!window.zammadChatTemplates) {
   window.zammadChatTemplates = {};
 }
+window.zammadChatTemplates["history_card"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      var i, j;
+    
+      __out.push('<!-- Riwayat chat di widget (mockup "Riwayat chat di widget -- email sama +\n     verifikasi OTP"): kartu di atas percakapan saat ini. state \'locked\' =\n     tombol View; \'otp\' = kotak kode 6 digit di dalam percakapan (kelas\n     js-history-otp-digit, TERPISAH dari OTP pesan offline). -->\n');
+    
+      if (this.state === 'locked') {
+        __out.push('\n  <div class="zammad-chat-history-card">\n    <span class="zammad-chat-history-card-icon">');
+        __out.push(this.icon('clock-counter-clockwise', 18, {
+          tone: 'full'
+        }));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-text">\n      <span class="zammad-chat-history-card-title">');
+        __out.push(this.T('Previous conversations'));
+        __out.push('</span>\n      <span class="zammad-chat-history-card-sub">');
+        __out.push(this.T('Verify your email to see earlier chats from'));
+        __out.push(' <strong>');
+        __out.push(__sanitize(this.email));
+        __out.push('</strong>.</span>\n    </span>\n    <button type="button" class="zammad-chat-history-card-action js-history-view"');
+        if (this.busy) {
+          __out.push(__sanitize(' disabled'));
+        }
+        __out.push('>');
+        __out.push(this.T('View'));
+        __out.push('</button>\n  </div>\n');
+      } else {
+        __out.push('\n  <div class="zammad-chat-history-card zammad-chat-history-card--otp">\n    <span class="zammad-chat-history-card-icon">');
+        __out.push(this.icon('lock', 18, {
+          tone: 'full'
+        }));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-title">');
+        __out.push(this.T('Enter verification code'));
+        __out.push('</span>\n    <span class="zammad-chat-history-card-sub">');
+        __out.push(this.T('We sent a 6-digit code to'));
+        __out.push(' <strong>');
+        __out.push(__sanitize(this.email));
+        __out.push('</strong>.</span>\n    <div class="zammad-chat-offline-otp-boxes zammad-chat-history-otp-boxes" role="group" aria-label="');
+        __out.push(this.T('Verification code'));
+        __out.push('">\n      ');
+        for (i = j = 0; j <= 5; i = ++j) {
+          __out.push('<input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" placeholder="0" class="zammad-chat-offline-otp-digit js-history-otp-digit" data-index="');
+          __out.push(__sanitize(i));
+          __out.push('" aria-label="');
+          __out.push(this.T('Digit'));
+          __out.push(' ');
+          __out.push(__sanitize(i + 1));
+          __out.push('">');
+        }
+        __out.push('\n    </div>\n    ');
+        if (this.error) {
+          __out.push('<span class="zammad-chat-history-card-error" role="alert">');
+          __out.push(__sanitize(this.error));
+          __out.push('</span>');
+        }
+        __out.push('\n    <button type="button" class="zammad-chat-history-card-verify js-history-verify"');
+        if (this.busy) {
+          __out.push(__sanitize(' disabled'));
+        }
+        __out.push('>');
+        __out.push(this.T('Verify'));
+        __out.push('</button>\n    <span class="zammad-chat-history-card-links">');
+        __out.push(this.T("Didn't receive the code?"));
+        __out.push(' <button type="button" class="zammad-chat-history-card-link js-history-resend">');
+        __out.push(this.T('Resend'));
+        __out.push('</button> · <button type="button" class="zammad-chat-history-card-link js-history-cancel">');
+        __out.push(this.T('Cancel'));
+        __out.push('</button></span>\n  </div>\n');
+      }
+    
+      __out.push('\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
+window.zammadChatTemplates["history_thread"] = function(__obj) {
+  if (!__obj) __obj = {};
+  var __out = [], __capture = function(callback) {
+    var out = __out, result;
+    __out = [];
+    callback.call(this);
+    result = __out.join('');
+    __out = out;
+    return __safe(result);
+  }, __sanitize = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else if (typeof value !== 'undefined' && value != null) {
+      return __escape(value);
+    } else {
+      return '';
+    }
+  }, __safe, __objSafe = __obj.safe, __escape = __obj.escape;
+  __safe = __obj.safe = function(value) {
+    if (value && value.ecoSafe) {
+      return value;
+    } else {
+      if (!(typeof value !== 'undefined' && value != null)) value = '';
+      var result = new String(value);
+      result.ecoSafe = true;
+      return result;
+    }
+  };
+  if (!__escape) {
+    __escape = __obj.escape = function(value) {
+      return ('' + value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
+  }
+  (function() {
+    (function() {
+      var i, item, j, len, n, ref;
+    
+      __out.push('<!-- Thread riwayat (setelah OTP), pola sama dgn panel agent: pil status\n     paging, pil tanggal, kapsul sesi, bubble (tanpa menu), penutup sesi +\n     rating, pemisah "Current conversation". Bubble sudah dirender lebih dulu. -->\n<div class="zammad-chat-history-status">\n  ');
+    
+      if (this.state === 'loading') {
+        __out.push('\n    <span class="zammad-chat-history-pill" role="status"><span class="zammad-chat-history-spin">');
+        __out.push(this.icon('spinner-gap', 13));
+        __out.push('</span>');
+        __out.push(this.T('Loading %s earlier messages…', this.pageSize));
+        __out.push('</span>\n  ');
+      } else if (this.state === 'ready') {
+        __out.push('\n    <button type="button" class="zammad-chat-history-pill zammad-chat-history-pill--action js-history-more">');
+        __out.push(this.icon('arrow-down', 12, {
+          "class": 'zammad-chat-history-up'
+        }));
+        __out.push(this.T('Scroll up for earlier messages'));
+        __out.push('</button>\n  ');
+      } else if (this.state === 'end') {
+        __out.push('\n    <span class="zammad-chat-history-pill">');
+        __out.push(this.icon('check-circle', 12));
+        __out.push(this.T('Beginning of your chat history'));
+        __out.push('</span>\n  ');
+      } else if (this.state === 'empty') {
+        __out.push('\n    <span class="zammad-chat-history-pill">');
+        __out.push(this.icon('check-circle', 12));
+        __out.push(this.T('No earlier conversations'));
+        __out.push('</span>\n  ');
+      }
+    
+      __out.push('\n</div>\n');
+    
+      ref = this.items;
+      for (i = 0, len = ref.length; i < len; i++) {
+        item = ref[i];
+        __out.push('\n  ');
+        if (item.type === 'date') {
+          __out.push('\n    <div class="zammad-chat-history-date"><span>');
+          __out.push(__sanitize(item.label));
+          __out.push('</span></div>\n  ');
+        } else if (item.type === 'session') {
+          __out.push('\n    <div class="zammad-chat-history-session">');
+          __out.push(this.icon('clock-counter-clockwise', 12));
+          __out.push('<span><strong>');
+          __out.push(this.T('Chat #%s', item.id));
+          __out.push('</strong>');
+          if (item.meta) {
+            __out.push(' · ');
+            __out.push(__sanitize(item.meta));
+          }
+          __out.push('</span></div>\n  ');
+        } else if (item.type === 'author') {
+          __out.push('\n    <div class="zammad-chat-history-author">');
+          __out.push(__sanitize(item.name));
+          __out.push('</div>\n  ');
+        } else if (item.type === 'end') {
+          __out.push('\n    <div class="zammad-chat-history-line"><span>');
+          __out.push(__sanitize(item.text));
+          if (item.score) {
+            __out.push(' · <span class="zammad-chat-history-rating" role="img" aria-label="');
+            __out.push(this.T('Rating %s of 5', item.score));
+            __out.push('">');
+            for (n = j = 1; j <= 5; n = ++j) {
+              __out.push('<span class="zammad-chat-history-heart');
+              if (n <= item.score) {
+                __out.push(__sanitize(' is-on'));
+              }
+              __out.push('">');
+              __out.push(this.icon('heart', 11, {
+                tone: 'full'
+              }));
+              __out.push('</span>');
+            }
+            __out.push('</span>');
+          }
+          __out.push('</span></div>\n  ');
+        } else {
+          __out.push('\n    ');
+          __out.push(item.html);
+          __out.push('\n  ');
+        }
+        __out.push('\n');
+      }
+    
+      __out.push('\n');
+    
+      if (this.items.length) {
+        __out.push('\n  <div class="zammad-chat-history-line zammad-chat-history-current"><span>');
+        __out.push(this.icon('chats', 12));
+        __out.push(this.T('Current conversation'));
+        __out.push('</span></div>\n');
+      }
+    
+      __out.push('\n');
+    
+    }).call(this);
+    
+  }).call(__obj);
+  __obj.safe = __objSafe, __obj.escape = __escape;
+  return __out.join('');
+};
+
+if (!window.zammadChatTemplates) {
+  window.zammadChatTemplates = {};
+}
 window.zammadChatTemplates["home"] = function(__obj) {
   if (!__obj) __obj = {};
   var __out = [], __capture = function(callback) {
@@ -3137,6 +3397,10 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     'caret-right': ["M704 512l-320 320v-640z", "M726.64 489.36l-320-320c-5.792-5.798-13.797-9.385-22.64-9.385-17.673 0-32 14.327-32 32 0 0.009 0 0.018 0 0.027l-0-0.001v640c-0 0.007-0 0.016-0 0.025 0 17.673 14.327 32 32 32 8.843 0 16.848-3.587 22.64-9.385l0-0 320-320c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0zM416 754.76v-485.52l242.76 242.76z"],
     'chat-circle-dots': ["M896 512c0 0.014 0 0.031 0 0.048 0 212.077-171.923 384-384 384-70.806 0-137.136-19.164-194.086-52.588l1.806 0.98-149.56 49.88c-3.021 1.042-6.502 1.644-10.124 1.644-17.673 0-32-14.327-32-32 0-3.622 0.602-7.103 1.71-10.349l-0.067 0.225 49.88-149.56c-32.414-55.124-51.56-121.425-51.56-192.197 0-212.077 171.923-384 384-384 212.048 0 383.953 171.875 384 383.912l0 0.005z", "M512 96c-0.027-0-0.059-0-0.091-0-229.75 0-416 186.25-416 416 0 71.565 18.071 138.91 49.9 197.72l-1.089-2.2-45.4 136.2c-2.084 6.042-3.287 13.004-3.287 20.247 0 35.346 28.654 64 64 64 7.243 0 14.205-1.203 20.698-3.421l-0.45 0.134 136.2-45.4c56.567 30.683 123.852 48.72 195.349 48.72 229.75 0 416-186.25 416-416 0-229.69-186.152-415.903-415.82-416l-0.009-0zM512 864c-0.071 0-0.155 0-0.239 0-64.812 0-125.526-17.542-177.654-48.137l1.654 0.897c-4.587-2.706-10.105-4.309-15.997-4.32l-0.003-0c-3.623 0.002-7.103 0.617-10.34 1.747l0.22-0.067-149.64 49.88 49.88-149.6c1.048-3.029 1.653-6.519 1.653-10.151 0-5.895-1.594-11.417-4.374-16.16l0.082 0.151c-29.734-50.544-47.298-111.341-47.298-176.24 0-194.404 157.596-352 352-352s352 157.596 352 352c0 194.384-157.563 351.967-351.939 352l-0.003 0zM560 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM384 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0zM736 512c0 26.51-21.49 48-48 48s-48-21.49-48-48c0-26.51 21.49-48 48-48v0c26.51 0 48 21.49 48 48v0z"],
     'check': ["M928 224v576c0 35.346-28.654 64-64 64v0h-704c-35.346 0-64-28.654-64-64v0-576c0-35.346 28.654-64 64-64v0h704c35.346 0 64 28.654 64 64v0z", "M822.64 342.64l-384 384c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-160-160c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l137.36 137.4 361.36-361.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0z"],
+    'arrow-down': ["M800 576l-288 288-288-288z", "M829.56 563.76c-4.934-11.696-16.306-19.757-29.56-19.76l-256-0v-384c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 384h-256c-0.007-0-0.016-0-0.025-0-17.673 0-32 14.327-32 32 0 8.843 3.587 16.848 9.385 22.64l0 0 288 288c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 288-288c5.785-5.79 9.363-13.786 9.363-22.618 0-4.425-0.898-8.639-2.522-12.472l0.079 0.21zM512 818.76l-210.76-210.76h421.52z"],
+    'chats': ["M896 384v512l-158.32-128h-385.68c-17.673 0-32-14.327-32-32v0-160h352c17.673 0 32-14.327 32-32v0-192h160c17.673 0 32 14.327 32 32v0z", "M864 320h-128v-128c0-35.346-28.654-64-64-64v0h-512c-35.346 0-64 28.654-64 64v0 512c0.057 17.63 14.362 31.9 32 31.9 7.596 0 14.574-2.647 20.062-7.068l-0.062 0.048 140-112.88v120c0 35.346 28.654 64 64 64v0h374.36l149.64 120.88c5.416 4.409 12.392 7.089 19.993 7.12l0.007 0c17.673 0 32-14.327 32-32v0-512c0-35.346-28.654-64-64-64v0zM266.2 551.12l-106.2 85.88v-445h512v352h-385.68c-7.65 0.001-14.674 2.687-20.179 7.166l0.059-0.046zM864 829l-106.2-85.88c-5.416-4.409-12.392-7.089-19.993-7.12l-0.007-0h-385.8v-128h320c35.346 0 64-28.654 64-64v0-160h128z"],
+    'clock-counter-clockwise': ["M864 512c0 194.404-157.596 352-352 352s-352-157.596-352-352c0-194.404 157.596-352 352-352v0c194.404 0 352 157.596 352 352v0z", "M544 320v173.88l144.48 86.68c9.367 5.697 15.528 15.849 15.528 27.44 0 17.678-14.331 32.008-32.008 32.008-6.087 0-11.777-1.699-16.621-4.648l0.141 0.080-160-96c-9.362-5.696-15.52-15.844-15.52-27.43 0-0.003 0-0.007 0-0.010l-0 0.001v-192c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM512 128c-0.282-0.001-0.617-0.001-0.951-0.001-105.811 0-201.567 43.047-270.712 112.584l-0.017 0.017c-29.080 29.44-54.92 57.76-80.32 87.4v-72c0-17.673-14.327-32-32-32s-32 14.327-32 32v0 160c0 17.673 14.327 32 32 32v0h160c17.673 0 32-14.327 32-32s-14.327-32-32-32v0h-92c28.6-33.68 57.080-65.4 89.56-98.28 57.908-57.908 137.908-93.725 226.274-93.725 176.731 0 320 143.269 320 320s-143.269 320-320 320c-85.11 0-162.46-33.227-219.785-87.416l0.151 0.142c-5.725-5.419-13.473-8.751-22-8.751-17.69 0-32.031 14.341-32.031 32.031 0 9.163 3.848 17.428 10.016 23.266l0.015 0.014c68.607 64.851 161.423 104.72 263.55 104.72 212.077 0 384-171.923 384-384 0-211.989-171.78-383.857-383.736-384l-0.014-0z"],
+    'spinner-gap': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M544 128v128c0 17.673-14.327 32-32 32s-32-14.327-32-32v0-128c0-17.673 14.327-32 32-32s32 14.327 32 32v0zM896 480h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32s-14.327-32-32-32v0zM715.64 670.4c-5.727-5.449-13.492-8.801-22.041-8.801-17.673 0-32 14.327-32 32 0 8.548 3.352 16.314 8.813 22.054l-0.013-0.013 90.48 90.52c5.794 5.794 13.799 9.378 22.64 9.378 17.683 0 32.018-14.335 32.018-32.018 0-8.841-3.584-16.846-9.378-22.64l0 0zM512 736c-17.673 0-32 14.327-32 32v0 128c0 17.673 14.327 32 32 32s32-14.327 32-32v0-128c0-17.673-14.327-32-32-32v0zM308.36 670.4l-90.52 90.48c-5.794 5.794-9.378 13.799-9.378 22.64 0 17.683 14.335 32.018 32.018 32.018 8.841 0 16.846-3.584 22.64-9.378v-0l90.48-90.52c5.449-5.727 8.801-13.492 8.801-22.041 0-17.673-14.327-32-32-32-8.548 0-16.314 3.352-22.054 8.813l0.013-0.013zM288 512c0-17.673-14.327-32-32-32v0h-128c-17.673 0-32 14.327-32 32s14.327 32 32 32v0h128c17.673 0 32-14.327 32-32v0zM263.12 217.84c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l90.52 90.48c5.727 5.449 13.492 8.801 22.041 8.801 17.673 0 32-14.327 32-32 0-8.548-3.352-16.314-8.813-22.054l0.013 0.013z"],
     'check-circle': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M694.64 393.36c5.798 5.792 9.385 13.797 9.385 22.64s-3.587 16.848-9.385 22.64l-0 0-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378l73.36 73.4 201.36-201.4c5.792-5.798 13.797-9.385 22.64-9.385s16.848 3.587 22.64 9.385l0 0zM928 512c0 229.75-186.25 416-416 416s-416-186.25-416-416c0-229.75 186.25-416 416-416v0c229.65 0.25 415.75 186.35 416 415.976l0 0.024zM864 512c0-194.404-157.596-352-352-352s-352 157.596-352 352c0 194.404 157.596 352 352 352v0c194.313-0.228 351.772-157.687 352-351.978l0-0.022z"],
     'checks': ["M960 256v512c0 35.346-28.654 64-64 64v0h-768c-35.346 0-64-28.654-64-64v0-512c0-35.346 28.654-64 64-64v0h768c35.346 0 64 28.654 64 64v0z", "M566.64 406.64l-224 224c-5.792 5.798-13.797 9.385-22.64 9.385s-16.848-3.587-22.64-9.385l-0-0-96-96c-5.794-5.794-9.378-13.799-9.378-22.64 0-17.683 14.335-32.018 32.018-32.018 8.841 0 16.846 3.584 22.64 9.378h0l73.36 73.4 201.36-201.4c5.794-5.794 13.799-9.378 22.64-9.378 17.683 0 32.018 14.335 32.018 32.018 0 8.841-3.584 16.846-9.378 22.64l0-0zM854.64 361.36c-5.792-5.798-13.797-9.385-22.64-9.385s-16.848 3.587-22.64 9.385l-0 0-201.36 201.4-41.36-41.4c-5.794-5.794-13.799-9.378-22.64-9.378-17.683 0-32.018 14.335-32.018 32.018 0 8.841 3.584 16.846 9.378 22.64l64 64c5.792 5.798 13.797 9.385 22.64 9.385s16.848-3.587 22.64-9.385l0-0 224-224c5.798-5.792 9.385-13.797 9.385-22.64s-3.587-16.848-9.385-22.64l-0-0z"],
     'clock': ["M896 512c0 212.077-171.923 384-384 384s-384-171.923-384-384c0-212.077 171.923-384 384-384v0c212.077 0 384 171.923 384 384v0z", "M512 96c-229.75 0-416 186.25-416 416s186.25 416 416 416c229.75 0 416-186.25 416-416v0c-0.25-229.65-186.35-415.75-415.976-416l-0.024-0zM512 864c-194.404 0-352-157.596-352-352s157.596-352 352-352c194.404 0 352 157.596 352 352v0c-0.228 194.313-157.687 351.772-351.978 352l-0.022 0zM768 512c0 17.673-14.327 32-32 32v0h-224c-17.673 0-32-14.327-32-32v0-224c0-17.673 14.327-32 32-32s32 14.327 32 32v0 192h192c17.673 0 32 14.327 32 32v0z"],
@@ -3839,6 +4103,20 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.updateHomeLogo = bind(this.updateHomeLogo, this);
       this.showClosingGreeting = bind(this.showClosingGreeting, this);
       this.showWelcomeGreeting = bind(this.showWelcomeGreeting, this);
+      this.historyMessageHtml = bind(this.historyMessageHtml, this);
+      this.renderCustomerHistory = bind(this.renderCustomerHistory, this);
+      this.onHistoryOtpPaste = bind(this.onHistoryOtpPaste, this);
+      this.onHistoryOtpKeydown = bind(this.onHistoryOtpKeydown, this);
+      this.onHistoryOtpInput = bind(this.onHistoryOtpInput, this);
+      this.renderHistoryCard = bind(this.renderHistoryCard, this);
+      this.onCustomerHistoryOtpVerify = bind(this.onCustomerHistoryOtpVerify, this);
+      this.submitHistoryOtp = bind(this.submitHistoryOtp, this);
+      this.onCustomerHistoryOtpRequest = bind(this.onCustomerHistoryOtpRequest, this);
+      this.onHistoryClick = bind(this.onHistoryClick, this);
+      this.onHistoryScroll = bind(this.onHistoryScroll, this);
+      this.onCustomerHistory = bind(this.onCustomerHistory, this);
+      this.requestCustomerHistory = bind(this.requestCustomerHistory, this);
+      this.initCustomerHistory = bind(this.initCustomerHistory, this);
       this.onConnectionEstablished = bind(this.onConnectionEstablished, this);
       this.setSessionId = bind(this.setSessionId, this);
       this.markMessagesRead = bind(this.markMessagesRead, this);
@@ -4632,7 +4910,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onPaste = function(e) {
-      var clipboardData, docType, html, htmlTmp, imageFile, imageInserted, item, j, k, l, len, len1, len2, len3, m, match, newTag, node, outer, reader, ref, ref1, ref2, ref3, regex, replacementTag, sanitized, text;
+      var clipboardData, docType, html, htmlTmp, imageFile, imageInserted, item, j, k, l, len, len1, len2, len3, match, n, newTag, node, outer, reader, ref, ref1, ref2, ref3, regex, replacementTag, sanitized, text;
       e.stopPropagation();
       e.preventDefault();
       if (e.clipboardData) {
@@ -4742,8 +5020,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           node.outerHTML = newTag;
         }
         ref3 = html.querySelectorAll('font, img, svg, input, select, button, style, applet, embed, noframes, canvas, script, frame, iframe, meta, link, title, head, fieldset');
-        for (m = 0, len3 = ref3.length; m < len3; m++) {
-          node = ref3[m];
+        for (n = 0, len3 = ref3.length; n < len3; n++) {
+          node = ref3[n];
           node.remove();
         }
         this.removeAttributes(html);
@@ -4874,6 +5152,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
             break;
           case 'chat_offline_message_send':
             this.onOfflineMessageSendResult(pipe.data);
+            break;
+          case 'chat_customer_history':
+            this.onCustomerHistory(pipe.data);
+            break;
+          case 'chat_customer_history_otp_request':
+            this.onCustomerHistoryOtpRequest(pipe.data);
+            break;
+          case 'chat_customer_history_otp_verify':
+            this.onCustomerHistoryOtpVerify(pipe.data);
             break;
           case 'chat_session_feedback_submit':
             this.onFeedbackSubmitResult(pipe.data);
@@ -6904,6 +7191,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         this.setSessionId(data.session_id);
       }
       this.body.innerHTML = '';
+      this.initCustomerHistory();
       this.el.querySelector('.zammad-chat-agent').innerHTML = this.view('agent')({
         agent: this.agent,
         initials: this.initialsOf((ref = this.agent) != null ? ref.name : void 0)
@@ -6929,6 +7217,435 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.idleTimeout.stop();
       this.inactiveTimeout.start();
       return typeof (base = this.options).onConnectionEstablished === "function" ? base.onConnectionEstablished(data) : void 0;
+    };
+
+    ZammadChat.prototype.HISTORY_PAGE_SIZE = 10;
+
+    ZammadChat.prototype.initCustomerHistory = function() {
+      var ref;
+      if (!this.sessionId) {
+        return;
+      }
+      this.history = {
+        messages: [],
+        sessions: {},
+        hasMore: false,
+        loading: false,
+        verified: false,
+        email: this.customerEmail
+      };
+      if ((ref = this.historyEl) != null) {
+        ref.remove();
+      }
+      this.historyEl = document.createElement('div');
+      this.historyEl.className = 'zammad-chat-history js-history';
+      this.body.insertBefore(this.historyEl, this.body.firstChild);
+      this.historyEl.addEventListener('click', this.onHistoryClick);
+      this.historyEl.addEventListener('input', this.onHistoryOtpInput);
+      this.historyEl.addEventListener('keydown', this.onHistoryOtpKeydown);
+      this.historyEl.addEventListener('paste', this.onHistoryOtpPaste);
+      if (!this.historyScrollBound) {
+        this.historyScrollBound = true;
+        this.body.addEventListener('scroll', this.onHistoryScroll);
+      }
+      return this.requestCustomerHistory();
+    };
+
+    ZammadChat.prototype.requestCustomerHistory = function() {
+      var ref;
+      if (!this.history || this.history.loading) {
+        return;
+      }
+      this.history.loading = true;
+      this.history.pendingBefore = (ref = this.history.messages[0]) != null ? ref.id : void 0;
+      if (this.history.verified) {
+        this.renderCustomerHistory();
+      }
+      return this.send('chat_customer_history', {
+        session_id: this.sessionId,
+        before_id: this.history.pendingBefore
+      });
+    };
+
+    ZammadChat.prototype.onCustomerHistory = function(data) {
+      var first, fromBottom, j, k, key, known, len, len1, m, ref, ref1, ref2, ref3, value;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      if ((data.before_id || void 0) !== (this.history.pendingBefore || void 0)) {
+        return;
+      }
+      this.history.loading = false;
+      switch (data.state) {
+        case 'unavailable':
+          if ((ref = this.historyEl) != null) {
+            ref.remove();
+          }
+          this.historyEl = null;
+          return;
+        case 'locked':
+          this.history.email = data.email || this.history.email;
+          this.history.card = 'locked';
+          this.renderHistoryCard();
+          return;
+      }
+      first = !this.history.verified;
+      this.history.verified = true;
+      this.history.hasMore = !!data.has_more;
+      ref1 = data.sessions || {};
+      for (key in ref1) {
+        value = ref1[key];
+        this.history.sessions[key] = value;
+      }
+      known = {};
+      ref2 = this.history.messages;
+      for (j = 0, len = ref2.length; j < len; j++) {
+        m = ref2[j];
+        known[m.id] = true;
+      }
+      ref3 = data.messages || [];
+      for (k = 0, len1 = ref3.length; k < len1; k++) {
+        m = ref3[k];
+        if (!known[m.id]) {
+          this.history.messages.push(m);
+        }
+      }
+      this.history.messages.sort(function(a, b) {
+        return a.id - b.id;
+      });
+      fromBottom = this.body.scrollHeight - this.body.scrollTop;
+      this.renderCustomerHistory();
+      if (first && this.scrolledToBottom) {
+        return this.scrollToBottom();
+      } else {
+        return this.body.scrollTop = this.body.scrollHeight - fromBottom;
+      }
+    };
+
+    ZammadChat.prototype.onHistoryScroll = function() {
+      var ref;
+      if (!((ref = this.history) != null ? ref.verified : void 0) || !this.history.hasMore || this.history.loading) {
+        return;
+      }
+      if (this.body.scrollTop < 60) {
+        return this.requestCustomerHistory();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryClick = function(event) {
+      if (event.target.closest('.js-history-view, .js-history-resend')) {
+        event.preventDefault();
+        this.history.busy = true;
+        this.renderHistoryCard();
+        return this.send('chat_customer_history_otp_request', {
+          session_id: this.sessionId
+        });
+      } else if (event.target.closest('.js-history-cancel')) {
+        event.preventDefault();
+        this.history.card = 'locked';
+        this.history.error = null;
+        return this.renderHistoryCard();
+      } else if (event.target.closest('.js-history-verify')) {
+        event.preventDefault();
+        return this.submitHistoryOtp();
+      } else if (event.target.closest('.js-history-more')) {
+        event.preventDefault();
+        if (this.history.hasMore) {
+          return this.requestCustomerHistory();
+        }
+      }
+    };
+
+    ZammadChat.prototype.onCustomerHistoryOtpRequest = function(data) {
+      var ref;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      this.history.busy = false;
+      this.history.email = data.email || this.history.email;
+      switch (data.state) {
+        case 'verified':
+          this.requestCustomerHistory();
+          return;
+        case 'ok':
+          this.history.error = null;
+          break;
+        case 'cooldown':
+          this.history.error = this.T('Please wait %s seconds before requesting another code.', data.wait_seconds);
+          break;
+        default:
+          this.history.error = this.T('The code could not be sent. Please try again later.');
+      }
+      this.history.card = 'otp';
+      this.renderHistoryCard();
+      return (ref = this.historyEl.querySelector('.js-history-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.submitHistoryOtp = function() {
+      var code, el, j, len, ref;
+      if (this.history.busy) {
+        return;
+      }
+      code = '';
+      ref = this.historyEl.querySelectorAll('.js-history-otp-digit');
+      for (j = 0, len = ref.length; j < len; j++) {
+        el = ref[j];
+        code += el.value || '';
+      }
+      if (code.length !== 6) {
+        this.history.error = this.T('Please enter the full 6-digit code.');
+        this.renderHistoryCard();
+        return;
+      }
+      this.history.busy = true;
+      return this.send('chat_customer_history_otp_verify', {
+        session_id: this.sessionId,
+        code: code
+      });
+    };
+
+    ZammadChat.prototype.onCustomerHistoryOtpVerify = function(data) {
+      var ref;
+      if (!this.history || data.session_id !== this.sessionId) {
+        return;
+      }
+      this.history.busy = false;
+      if (data.state === 'ok') {
+        this.history.error = null;
+        this.requestCustomerHistory();
+        return;
+      }
+      this.history.error = (function() {
+        switch (data.state) {
+          case 'expired':
+            return this.T('This code has expired. Please request a new one.');
+          case 'too_many_attempts':
+            return this.T('Too many incorrect attempts. Please request a new code.');
+          default:
+            return this.T('Incorrect code. Please try again.');
+        }
+      }).call(this);
+      this.renderHistoryCard();
+      return (ref = this.historyEl.querySelector('.js-history-otp-digit')) != null ? ref.focus() : void 0;
+    };
+
+    ZammadChat.prototype.renderHistoryCard = function() {
+      if (!this.historyEl) {
+        return;
+      }
+      return this.historyEl.innerHTML = this.view('history_card')({
+        state: this.history.card || 'locked',
+        email: this.history.email,
+        error: this.history.error,
+        busy: this.history.busy
+      });
+    };
+
+    ZammadChat.prototype.onHistoryOtpInput = function(event) {
+      var input, next, ref, value;
+      input = event.target;
+      if (!((ref = input.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      value = input.value.replace(/[^0-9]/g, '');
+      input.value = value.slice(-1);
+      if (!value) {
+        return;
+      }
+      next = this.historyEl.querySelector(".js-history-otp-digit[data-index='" + (parseInt(input.dataset.index, 10) + 1) + "']");
+      if (next) {
+        return next.focus();
+      } else {
+        return this.submitHistoryOtp();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryOtpKeydown = function(event) {
+      var input, prev, ref;
+      input = event.target;
+      if (!((ref = input.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        this.submitHistoryOtp();
+        return;
+      }
+      if (event.keyCode !== 8 || input.value) {
+        return;
+      }
+      prev = this.historyEl.querySelector(".js-history-otp-digit[data-index='" + (parseInt(input.dataset.index, 10) - 1) + "']");
+      if (prev) {
+        prev.value = '';
+        return prev.focus();
+      }
+    };
+
+    ZammadChat.prototype.onHistoryOtpPaste = function(event) {
+      var box, boxes, i, j, len, pasted, ref, ref1, ref2, ref3;
+      if (!((ref = event.target.classList) != null ? ref.contains('js-history-otp-digit') : void 0)) {
+        return;
+      }
+      event.preventDefault();
+      pasted = ((ref1 = event.clipboardData) != null ? (ref2 = ref1.getData('text')) != null ? ref2.replace(/[^0-9]/g, '') : void 0 : void 0) || '';
+      if (!pasted) {
+        return;
+      }
+      boxes = this.historyEl.querySelectorAll('.js-history-otp-digit');
+      for (i = j = 0, len = boxes.length; j < len; i = ++j) {
+        box = boxes[i];
+        box.value = pasted.charAt(i) || '';
+      }
+      if (pasted.length >= boxes.length) {
+        return this.submitHistoryOtp();
+      } else {
+        return (ref3 = boxes[pasted.length]) != null ? ref3.focus() : void 0;
+      }
+    };
+
+    ZammadChat.prototype.historyDateLabel = function(time) {
+      var date;
+      date = new Date(time);
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+      if (date.toDateString() === new Date().toDateString()) {
+        return this.T('Today');
+      }
+      try {
+        return date.toLocaleDateString(this.options.lang || void 0, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+      } catch (error1) {
+        return date.toDateString();
+      }
+    };
+
+    ZammadChat.prototype.renderCustomerHistory = function() {
+      var day, ended, from, index, items, j, lastAuthor, lastDay, lastSession, len, message, messages, meta, part, pushEnd, range, session, started, state;
+      if (!this.historyEl) {
+        return;
+      }
+      items = [];
+      lastDay = null;
+      lastSession = null;
+      lastAuthor = null;
+      messages = this.history.messages;
+      pushEnd = (function(_this) {
+        return function(session, lastMessage) {
+          var text, time;
+          if (!session || !lastMessage || session.state !== 'closed') {
+            return;
+          }
+          if (session.last_message_id && lastMessage.id !== session.last_message_id) {
+            return;
+          }
+          text = (function() {
+            switch (session.closed_by) {
+              case 'agent':
+                return this.T('Chat ended by the agent');
+              case 'customer':
+                return this.T('Chat ended by you');
+              default:
+                return this.T('Chat ended');
+            }
+          }).call(_this);
+          time = session.ended_at ? _this.formatTime(session.ended_at) : '';
+          return items.push({
+            type: 'end',
+            text: (time ? text + " · " + time : text),
+            score: session.csat_score
+          });
+        };
+      })(this);
+      for (index = j = 0, len = messages.length; j < len; index = ++j) {
+        message = messages[index];
+        session = this.history.sessions[String(message.chat_session_id)] || {};
+        if (lastSession && session !== lastSession) {
+          pushEnd(lastSession, messages[index - 1]);
+        }
+        day = new Date(message.created_at).toDateString();
+        if (day !== lastDay) {
+          items.push({
+            type: 'date',
+            label: this.historyDateLabel(message.created_at)
+          });
+          lastDay = day;
+        }
+        if (session !== lastSession) {
+          started = this.formatTime(session.created_at);
+          ended = session.ended_at ? this.formatTime(session.ended_at) : '';
+          range = ended && ended !== started ? started + "–" + ended : started;
+          meta = ((function() {
+            var k, len1, ref, results1;
+            ref = [session.agent_name, range];
+            results1 = [];
+            for (k = 0, len1 = ref.length; k < len1; k++) {
+              part = ref[k];
+              if (part) {
+                results1.push(part);
+              }
+            }
+            return results1;
+          })()).join(' · ');
+          items.push({
+            type: 'session',
+            id: session.id,
+            meta: meta
+          });
+          lastSession = session;
+          lastAuthor = null;
+        }
+        from = message.is_from_agent ? 'agent' : 'customer';
+        if (from === 'agent' && session.agent_name && lastAuthor !== session.agent_name) {
+          items.push({
+            type: 'author',
+            name: session.agent_name
+          });
+        }
+        lastAuthor = from === 'agent' ? session.agent_name : null;
+        items.push({
+          type: 'message',
+          html: this.historyMessageHtml(message, session, from)
+        });
+      }
+      if (lastSession) {
+        pushEnd(lastSession, messages[messages.length - 1]);
+      }
+      state = this.history.loading ? 'loading' : this.history.hasMore ? 'ready' : items.length ? 'end' : 'empty';
+      return this.historyEl.innerHTML = this.view('history_thread')({
+        items: items,
+        state: state,
+        pageSize: this.HISTORY_PAGE_SIZE
+      });
+    };
+
+    ZammadChat.prototype.historyMessageHtml = function(message, session, from) {
+      var ref, time;
+      time = this.formatTime(message.created_at);
+      if (message.filename) {
+        return this.view(this.attachmentView(message.content_type, message.display))({
+          from: from,
+          filename: message.filename,
+          metaLabel: this.attachmentMeta(message.filename, message.size),
+          senderLabel: this.attachmentSender(from === 'agent'),
+          url: (this.apiBaseUrl()) + "/api/v1/chat_sessions/" + session.session_id + "/attachments/" + message.id,
+          unreadClass: '',
+          time: time,
+          isRead: !!message.read_at
+        });
+      } else {
+        return this.view('message')({
+          message: message.content,
+          from: from,
+          time: time,
+          isRead: !!message.read_at,
+          replyTo: (ref = message.reply_to) != null ? ref.content : void 0,
+          unreadClass: ''
+        });
+      }
     };
 
     ZammadChat.prototype.showWelcomeGreeting = function(createdAt) {
@@ -7338,7 +8055,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.wordFilter = function(editor) {
-      var content, cur_level, el, i, j, k, l, last_level, len, len1, len2, len3, len4, len5, len6, len7, list_tag, m, matches, n, o, p, pnt, q, r, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s, start, str, txt;
+      var content, cur_level, el, i, j, k, l, last_level, len, len1, len2, len3, len4, len5, len6, len7, list_tag, matches, n, o, p, pnt, q, r, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, s, start, str, txt, u;
       content = editor.html();
       content = content.replace(/<!--[\s\S]+?-->/gi, '');
       content = content.replace(/<(!|script[^>]*>.*?<\/script(?=[>\s])|\/?(\?xml(:\w+)?|img|meta|link|style|\w:\w+)(?=[\s\/>]))[^>]*>/gi, '');
@@ -7397,33 +8114,33 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         }
       }
       ref4 = editor.querySelectorAll('[style]');
-      for (m = 0, len2 = ref4.length; m < len2; m++) {
-        el = ref4[m];
+      for (n = 0, len2 = ref4.length; n < len2; n++) {
+        el = ref4[n];
         el.removeAttribute('style');
       }
       ref5 = editor.querySelectorAll('[align]');
-      for (n = 0, len3 = ref5.length; n < len3; n++) {
-        el = ref5[n];
+      for (o = 0, len3 = ref5.length; o < len3; o++) {
+        el = ref5[o];
         el.removeAttribute('align');
       }
       ref6 = editor.querySelectorAll('span');
-      for (o = 0, len4 = ref6.length; o < len4; o++) {
-        el = ref6[o];
+      for (q = 0, len4 = ref6.length; q < len4; q++) {
+        el = ref6[q];
         el.outerHTML = el.innerHTML;
       }
       ref7 = editor.querySelectorAll('span:empty');
-      for (q = 0, len5 = ref7.length; q < len5; q++) {
-        el = ref7[q];
+      for (r = 0, len5 = ref7.length; r < len5; r++) {
+        el = ref7[r];
         el.remove();
       }
       ref8 = editor.querySelectorAll("[class^='Mso']");
-      for (r = 0, len6 = ref8.length; r < len6; r++) {
-        el = ref8[r];
+      for (s = 0, len6 = ref8.length; s < len6; s++) {
+        el = ref8[s];
         el.removeAttribute('class');
       }
       ref9 = editor.querySelectorAll('p:empty');
-      for (s = 0, len7 = ref9.length; s < len7; s++) {
-        el = ref9[s];
+      for (u = 0, len7 = ref9.length; u < len7; u++) {
+        el = ref9[u];
         el.remove();
       }
       return editor;

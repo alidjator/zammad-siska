@@ -278,6 +278,81 @@ class Chat::Session < ApplicationModel
     true
   end
 
+  # Riwayat chat di jendela percakapan -- dipakai BERSAMA oleh panel agent
+  # (Sessions::Event::ChatSessionHistory, audience :agent) & widget customer
+  # (Sessions::Event::ChatCustomerHistory, audience :customer, hanya setelah
+  # verifikasi OTP email). Cakupan: sesi lain dgn email yang sama yang
+  # dimulai sebelum sesi ini; 10 pesan per halaman, paging via before_id.
+  HISTORY_PAGE_SIZE = 10
+
+  def history_page(before_id: nil, audience: :agent)
+    data = { messages: [], sessions: {}, has_more: false }
+    return data if email.blank?
+
+    history_session_ids = Chat::Session
+      .where(email: email)
+      .where.not(id: id)
+      .where('created_at < ?', created_at)
+      .pluck(:id)
+    return data if history_session_ids.blank?
+
+    scope = Chat::Message.where(chat_session_id: history_session_ids)
+    scope = scope.where('id < ?', before_id.to_i) if before_id.to_i.positive?
+    page = scope.reorder(id: :desc).limit(HISTORY_PAGE_SIZE + 1).to_a
+
+    data[:has_more] = page.size > HISTORY_PAGE_SIZE
+    page = page.first(HISTORY_PAGE_SIZE).reverse
+
+    sessions = Chat::Session.where(id: page.map(&:chat_session_id).uniq).index_by(&:id)
+    data[:messages] = page.map do |message|
+      Chat::Session.send(:enrich_message_attributes, message).merge(
+        'is_from_agent' => message.created_by_id.present? && message.created_by_id == sessions[message.chat_session_id]&.user_id,
+      )
+    end
+    data[:sessions] = sessions.transform_values { |session| session.history_summary(audience) }
+    data
+  end
+
+  # Ringkasan satu sesi utk kapsul pembuka & penutup sesi di riwayat.
+  # audience :customer TIDAK memuat data internal (tiket, id agent); nama
+  # agent = nama tampilan yang memang terlihat di widget; rating selalu
+  # (rating milik customer itu sendiri). audience :agent: rating hanya bila
+  # Setting chat_agent_show_rating menyala.
+  def history_summary(audience = :agent)
+    last_message = messages.reorder(id: :desc).first
+    summary = {
+      id:               id,
+      session_id:       session_id,
+      created_at:       created_at,
+      ended_at:         preferences[:closed_at] || last_message&.created_at,
+      closed_by:        preferences[:closed_by],
+      state:            state,
+      name:             name,
+      first_message_id: messages.minimum(:id),
+      last_message_id:  last_message&.id,
+    }
+    if audience == :customer
+      summary[:agent_name] = agent_user&.dig(:name)
+    else
+      summary[:agent_id]   = user_id
+      summary[:agent_name] = user_id ? User.lookup(id: user_id)&.fullname : nil
+    end
+
+    ticket = self.ticket
+    return summary if !ticket
+
+    if audience != :customer
+      summary[:ticket_id]     = ticket.id
+      summary[:ticket_number] = ticket.number
+    end
+    show_rating = audience == :customer || Setting.get('chat_agent_show_rating')
+    if show_rating && ticket.try(:csat_score).present?
+      summary[:csat_score]   = ticket.csat_score
+      summary[:csat_comment] = ticket.csat_comment
+    end
+    summary
+  end
+
   # Hasil balik berupa simbol (bukan boolean) SENGAJA -- pemanggil
   # (`chat_offline_otp_verify.rb`) perlu tahu ALASAN gagal (kedaluwarsa
   # vs kode salah vs sudah kehabisan percobaan) utk balas pesan error

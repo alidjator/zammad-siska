@@ -4221,3 +4221,238 @@ $siska-font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI'
     outline-offset: 2px;
   }
 }
+
+// ---------------------------------------------------------------------
+// Riwayat chat di widget (email sama + verifikasi OTP) -- mockup "Riwayat
+// chat di widget". Kartu terkunci / OTP di atas percakapan, lalu thread
+// riwayat pola panel agent (pil tanggal, kapsul sesi, penutup + rating,
+// pemisah "Current conversation").
+// ---------------------------------------------------------------------
+.zammad-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  &:empty { display: none; }
+}
+
+.zammad-chat-history-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid $siska-border;
+  border-radius: $siska-radius-sm;
+  background: #ffffff;
+
+  &--otp {
+    flex-direction: column;
+    text-align: center;
+    padding: 14px 12px;
+  }
+}
+
+.zammad-chat-history-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: $siska-primary-tint;
+  color: $siska-primary;
+}
+
+.zammad-chat-history-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.zammad-chat-history-card-title {
+  color: $siska-body-color;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.zammad-chat-history-card-sub {
+  color: $siska-text-secondary;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+
+  strong { color: $siska-body-color; font-weight: 600; }
+}
+
+.zammad-chat-history-card-action,
+.zammad-chat-history-card-verify {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 20px;
+  background: $siska-primary;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover { background: #3f78ff; }
+  &:disabled { opacity: 0.65; cursor: default; }
+  &:focus-visible { outline: 2px solid $siska-primary; outline-offset: 2px; }
+}
+
+.zammad-chat-history-card-verify {
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.zammad-chat-history-otp-boxes {
+  gap: 6px;
+
+  .zammad-chat-offline-otp-digit {
+    width: 34px;
+    height: 40px;
+  }
+}
+
+.zammad-chat-history-card-error {
+  color: $siska-error;
+  font-size: 12px;
+}
+
+.zammad-chat-history-card-links {
+  color: $siska-body-color;
+  font-size: 12px;
+}
+
+.zammad-chat-history-card-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: $siska-primary;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.zammad-chat-history-status {
+  display: flex;
+  justify-content: center;
+
+  &:empty { display: none; }
+}
+
+.zammad-chat-history-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 20px;
+  background: #eceff2;
+  color: $siska-text-secondary;
+  font-family: inherit;
+  font-size: 11px;
+
+  &--action {
+    background: $siska-primary-tint;
+    color: $siska-primary;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .zammad-chat-history-up { transform: rotate(180deg); }
+}
+
+.zammad-chat-history-spin {
+  display: inline-flex;
+  color: $siska-primary;
+
+  svg { animation: zammad-chat-history-spin 0.9s linear infinite; }
+}
+
+@keyframes zammad-chat-history-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zammad-chat-history-spin svg { animation: none; }
+}
+
+.zammad-chat-history-date {
+  align-self: center;
+
+  span {
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: #eceff2;
+    color: $siska-text-secondary;
+    font-size: 11px;
+    font-weight: 500;
+  }
+}
+
+.zammad-chat-history-session {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid $siska-border;
+  border-radius: 20px;
+  background: #ffffff;
+  color: $siska-text-secondary;
+  font-size: 11px;
+
+  svg { color: $siska-text-muted; flex-shrink: 0; }
+  strong { color: $siska-body-color; font-weight: 600; }
+}
+
+.zammad-chat-history-author {
+  margin: 0 0 -8px 2px;
+  color: $siska-text-secondary;
+  font-size: 11px;
+}
+
+.zammad-chat-history-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $siska-text-secondary;
+  font-size: 11px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $siska-border;
+  }
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    text-align: center;
+  }
+}
+
+.zammad-chat-history-current {
+  color: $siska-primary;
+  font-weight: 600;
+}
+
+.zammad-chat-history-rating { display: inline-flex; gap: 1px; }
+.zammad-chat-history-heart { display: inline-flex; color: $siska-input-border; }
+.zammad-chat-history-heart.is-on { color: $siska-error; }

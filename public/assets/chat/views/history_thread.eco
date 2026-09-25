@@ -1,0 +1,30 @@
+<!-- Thread riwayat (setelah OTP), pola sama dgn panel agent: pil status
+     paging, pil tanggal, kapsul sesi, bubble (tanpa menu), penutup sesi +
+     rating, pemisah "Current conversation". Bubble sudah dirender lebih dulu. -->
+<div class="zammad-chat-history-status">
+  <% if @state is 'loading': %>
+    <span class="zammad-chat-history-pill" role="status"><span class="zammad-chat-history-spin"><%- @icon('spinner-gap', 13) %></span><%- @T('Loading %s earlier messages…', @pageSize) %></span>
+  <% else if @state is 'ready': %>
+    <button type="button" class="zammad-chat-history-pill zammad-chat-history-pill--action js-history-more"><%- @icon('arrow-down', 12, class: 'zammad-chat-history-up') %><%- @T('Scroll up for earlier messages') %></button>
+  <% else if @state is 'end': %>
+    <span class="zammad-chat-history-pill"><%- @icon('check-circle', 12) %><%- @T('Beginning of your chat history') %></span>
+  <% else if @state is 'empty': %>
+    <span class="zammad-chat-history-pill"><%- @icon('check-circle', 12) %><%- @T('No earlier conversations') %></span>
+  <% end %>
+</div>
+<% for item in @items: %>
+  <% if item.type is 'date': %>
+    <div class="zammad-chat-history-date"><span><%= item.label %></span></div>
+  <% else if item.type is 'session': %>
+    <div class="zammad-chat-history-session"><%- @icon('clock-counter-clockwise', 12) %><span><strong><%- @T('Chat #%s', item.id) %></strong><% if item.meta: %> · <%= item.meta %><% end %></span></div>
+  <% else if item.type is 'author': %>
+    <div class="zammad-chat-history-author"><%= item.name %></div>
+  <% else if item.type is 'end': %>
+    <div class="zammad-chat-history-line"><span><%= item.text %><% if item.score: %> · <span class="zammad-chat-history-rating" role="img" aria-label="<%- @T('Rating %s of 5', item.score) %>"><% for n in [1..5]: %><span class="zammad-chat-history-heart<%= ' is-on' if n <= item.score %>"><%- @icon('heart', 11, tone: 'full') %></span><% end %></span><% end %></span></div>
+  <% else: %>
+    <%- item.html %>
+  <% end %>
+<% end %>
+<% if @items.length: %>
+  <div class="zammad-chat-history-line zammad-chat-history-current"><span><%- @icon('chats', 12) %><%- @T('Current conversation') %></span></div>
+<% end %>

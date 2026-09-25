@@ -58,7 +58,7 @@ Legenda: ✅ setara · ◐ berbeda tapi wajar / disengaja · ❗ gap
 
 | Fitur | Widget customer | Panel agent | Status |
 |---|---|---|---|
-| Riwayat chat lama di jendela | Tidak ada; tab Messages hanya percakapan saat ini | Ada, 10 pesan per halaman + paging (`4d574940`) | ◐ **Disengaja**: customer anonim hanya dikenali dari email yang diketik sendiri; riwayat per email tanpa verifikasi bisa membocorkan chat orang lain |
+| Riwayat chat lama di jendela | Ada (2026-09-25): semua sesi dari email yang sama, perangkat mana pun, **terkunci verifikasi OTP** ke email itu (sekali per sesi); 10 pesan per halaman + paging; rating ditampilkan; tanpa data internal (tiket, id agent) | Ada, 10 pesan per halaman + paging (`4d574940`) | ✅ Setara. Keputusan user: email sama lintas perangkat; OTP wajib karena email hanya diketik customer (tanpa OTP riwayat bisa dibaca orang lain) |
 | Sapaan pembuka / penutup | Sapaan selamat datang & penutup (phrase admin) | Sapaan otomatis per topik (Settings agent) | ✅ Saling melengkapi |
 | Rating | Customer memberi rating | Agent melihat rating (Setting `chat_agent_show_rating`, default menyala) | ✅ |
 | Chat berakhir | Layar penutup + rating | Pemisah, kartu rating, bilah "percakapan telah berakhir" | ✅ |

@@ -1,0 +1,26 @@
+<!-- Riwayat chat di widget (mockup "Riwayat chat di widget -- email sama +
+     verifikasi OTP"): kartu di atas percakapan saat ini. state 'locked' =
+     tombol View; 'otp' = kotak kode 6 digit di dalam percakapan (kelas
+     js-history-otp-digit, TERPISAH dari OTP pesan offline). -->
+<% if @state is 'locked': %>
+  <div class="zammad-chat-history-card">
+    <span class="zammad-chat-history-card-icon"><%- @icon('clock-counter-clockwise', 18, tone: 'full') %></span>
+    <span class="zammad-chat-history-card-text">
+      <span class="zammad-chat-history-card-title"><%- @T('Previous conversations') %></span>
+      <span class="zammad-chat-history-card-sub"><%- @T('Verify your email to see earlier chats from') %> <strong><%= @email %></strong>.</span>
+    </span>
+    <button type="button" class="zammad-chat-history-card-action js-history-view"<%= ' disabled' if @busy %>><%- @T('View') %></button>
+  </div>
+<% else: %>
+  <div class="zammad-chat-history-card zammad-chat-history-card--otp">
+    <span class="zammad-chat-history-card-icon"><%- @icon('lock', 18, tone: 'full') %></span>
+    <span class="zammad-chat-history-card-title"><%- @T('Enter verification code') %></span>
+    <span class="zammad-chat-history-card-sub"><%- @T('We sent a 6-digit code to') %> <strong><%= @email %></strong>.</span>
+    <div class="zammad-chat-offline-otp-boxes zammad-chat-history-otp-boxes" role="group" aria-label="<%- @T('Verification code') %>">
+      <% for i in [0..5]: %><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" placeholder="0" class="zammad-chat-offline-otp-digit js-history-otp-digit" data-index="<%= i %>" aria-label="<%- @T('Digit') %> <%= i + 1 %>"><% end %>
+    </div>
+    <% if @error: %><span class="zammad-chat-history-card-error" role="alert"><%= @error %></span><% end %>
+    <button type="button" class="zammad-chat-history-card-verify js-history-verify"<%= ' disabled' if @busy %>><%- @T('Verify') %></button>
+    <span class="zammad-chat-history-card-links"><%- @T("Didn't receive the code?") %> <button type="button" class="zammad-chat-history-card-link js-history-resend"><%- @T('Resend') %></button> · <button type="button" class="zammad-chat-history-card-link js-history-cancel"><%- @T('Cancel') %></button></span>
+  </div>
+<% end %>
