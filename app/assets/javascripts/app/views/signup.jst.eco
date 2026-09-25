@@ -5,8 +5,8 @@ JS (kelas js-*, `form`, `.retry`) tidak diubah. Field tetap dibangun `App.Contro
   <%- App.view('siska_auth/side')() %>
   <main class="siska-auth-main">
     <div class="siska-auth-card hero-unit">
-      <%- App.view('siska_auth/brand')(logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", title: App.i18n.translateContent('Create your %s account', (@C('product_name') || '').split(' (')[0]), subtitle: App.i18n.translateContent('We will send a verification email to activate your account.')) %>
-      <form class="siska-auth-form">
+      <%- App.view('siska_auth/brand')(logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", title: App.i18n.translateContent('Create your %s account', (@C('product_name') || '').split(' (')[0]), subtitle: App.i18n.translateContent('We will send a verification code to your email.')) %>
+      <form class="siska-auth-form js-signupForm">
         <div class="siska-auth-actions">
           <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Create account') %></button>
         </div>

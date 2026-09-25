@@ -5,12 +5,12 @@ JS (kelas js-*, `form`, `.retry`) tidak diubah.  -->
   <%- App.view('siska_auth/side')() %>
   <main class="siska-auth-main">
     <div class="siska-auth-card hero-unit">
-      <%- App.view('siska_auth/brand')(icon: 'key', title: App.i18n.translateContent('Forgot your password?'), subtitle: App.i18n.translateContent('Enter the email or username of your account. We will send you instructions to reset your password.')) %>
+      <%- App.view('siska_auth/brand')(align: 'start', logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", asideHref: '#login', asideLabel: App.i18n.translateContent('Back to Login'), title: App.i18n.translateContent('Forgot your password?'), subtitle: App.i18n.translateContent('Enter the email or username of your account. We will send you instructions to reset your password.')) %>
       <form class="siska-auth-form js-passwordForm">
         <div class="js-password"></div>
+        <p class="siska-auth-text siska-auth-small is-start"><%- @T('Do not forget to check your spam folder.') %></p>
         <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Submit') %></button>
       </form>
-      <p class="siska-auth-back"><a href="#login" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Back to sign in') %></a></p>
     </div>
     <%- App.view('siska_auth/footer')(public_links: @public_links) %>
   </main>

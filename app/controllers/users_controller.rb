@@ -896,6 +896,12 @@ curl http://localhost/api/v1/users/avatar -v -u #{login}:#{password} -H "Content
       raise Exceptions::UnprocessableContent, __("The required attribute 'email' is missing.")
     end
 
+    # Redesign login/register SISKA -- Tahap 1: catat permintaan kode
+    # OTP register SERAGAM (email baru maupun yg sudah terdaftar), supaya
+    # layar kode berikutnya tidak membocorkan email mana yg terdaftar.
+    otp = Siska::AuthOtp.new(purpose: 'signup', email: new_params[:email])
+    otp.register_request!
+
     begin
       Service::User::Deprecated::Signup.execute(user_data: new_params)
     rescue PasswordPolicy::Error => e
@@ -905,7 +911,7 @@ curl http://localhost/api/v1/users/avatar -v -u #{login}:#{password} -H "Content
       raise Exceptions::UnprocessableContent, e.message
     end
 
-    render json: { message: 'ok' }, status: :created
+    render json: { message: 'ok', otp: { expires_in_minutes: Siska::AuthOtp.expiry_minutes, cooldown_seconds: Siska::AuthOtp.cooldown_seconds, max_attempts: Siska::AuthOtp.max_attempts } }, status: :created
   end
 
   # @summary          Creates a User record with the provided attribute values.

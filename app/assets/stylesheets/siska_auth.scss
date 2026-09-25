@@ -19,13 +19,15 @@ $sa-secondary: #5b6b79;
 $sa-muted: rgba(33, 37, 41, 0.75);
 $sa-border: #e7eaee;
 $sa-input-border: #bec8d0;
-$sa-danger: #dd2727;
+$sa-danger: #dd2727;        // danger-500 kit
+$sa-danger-800: #cd1516;    // danger-800 kit (teks alert)
 $sa-danger-tint: rgba(221, 39, 39, 0.08);
-$sa-success: #1a8c61;
+$sa-success: #1a8c61;       // success-800 kit
 $sa-success-tint: rgba(42, 167, 126, 0.1);
-$sa-warning: #b34c00;
-$sa-warning-tint: rgba(210, 89, 0, 0.08);
-$sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
+$sa-warning: #da6d00;       // warning-800 kit
+$sa-warning-tint: rgba(228, 137, 0, 0.2);
+$sa-placeholder: #bec8d0;   // forms.css kit: placeholder:text-[#bec8d0]
+$sa-side-breakpoint: 1024px; // kit: gambar samping `hidden lg:block` (lg = 64rem)
 
 .siska-auth.siska-auth {
   position: absolute;
@@ -94,12 +96,15 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 32px 24px 72px;
+  // Bug dilaporkan user (screenshot register): `justify-content:
+  // center` memotong bagian ATAS konten (logo) saat konten lebih tinggi
+  // dari layar, & footer absolut menimpa tombol. Kini dipusatkan lewat
+  // margin otomatis kartu + footer mengalir di bawah konten.
+  padding: 32px 24px 24px;
   position: relative;
 
   @media (max-width: 767px) {
-    padding: 24px 16px 72px;
+    padding: 24px 16px 16px;
   }
 }
 
@@ -119,6 +124,7 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-top: auto;
 
   @media (max-width: 767px) {
     padding: 16px 0 16px;
@@ -160,12 +166,45 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
   }
 }
 
+// Kit login-v2/register-v2: `h4.font-medium` (20px, 500).
 .siska-auth .siska-auth-title {
   margin: 4px 0 0;
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 500;
   line-height: 1.3;
   color: $sa-headings;
+}
+
+// Kit code-verification-v2 / forgot-password-v2: logo & judul rata
+// kiri, judul `h3 > b` (24px tebal), link "Back to Login" di kanan
+// judul (`flex justify-between items-end`).
+.siska-auth-brand.is-start {
+  align-items: stretch;
+  text-align: left;
+
+  .siska-auth-logo {
+    align-self: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .siska-auth-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+}
+
+.siska-auth-titlebar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+
+  .siska-auth-link {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 400;
+  }
 }
 
 .siska-auth .siska-auth-subtitle,
@@ -194,28 +233,37 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
     margin: 0;
   }
 
-  // Form generik: satu grup per field, jarak antar grup.
+  // Form generik (lupa password, login admin): satu grup per field,
+  // jarak antar grup. (Grup di form login sendiri sudah berjarak lewat
+  // `gap` `.siska-auth-form` -- bug dilaporkan user: selektor
+  // `.form-group + .form-group` di sini dulu membuat grup KEDUA jadi
+  // flex ber-gap 16px, jarak label->field "Password" 24px vs 8px.)
   .js-password,
-  .js-adminPassword,
-  .siska-auth-form > fieldset,
-  .siska-auth-form > .form-group + .form-group {
+  .js-adminPassword {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
 
+  // Kit forms.css `.form-label`: `mb-2 inline-block text-theme-headings`
+  // -- 14px (mewarisi `text-base`), ketebalan normal, jarak 8px.
   .formGroup-label {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding: 0; // Zammad: `padding: 0 2px` (label bergeser 2px dari tepi field)
 
     label {
-      font-size: 13px;
-      font-weight: 600;
+      display: inline-block;
+      margin: 0;
+      padding: 0;
+      font-size: 14px;
+      font-weight: 400;
       color: $sa-headings;
       text-transform: none;
       letter-spacing: 0;
     }
   }
 
+  &.siska-auth .form-control,
   .form-control {
     height: auto;
     width: 100%;
@@ -230,12 +278,13 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
     &::placeholder {
-      color: #97a2ac;
+      color: $sa-placeholder;
     }
 
+    // Kit: `focus:outline-none focus:border-primary-500` (tanpa cincin).
     &:focus {
       border-color: $sa-primary;
-      box-shadow: 0 0 0 3px rgba(70, 128, 255, 0.15);
+      box-shadow: none;
       outline: none;
     }
   }
@@ -290,9 +339,14 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 44px;
+    // Kit buttons.css `.btn`: `py-2 px-4` + `text-base` (14px, leading
+    // 1.5) + border 1px = tinggi ±39px (atas permintaan user, disamakan
+    // dgn kit; sebelumnya min. 44px).
+    height: auto;
+    min-height: 0;
     margin: 0;
-    padding: 10px 20px;
+    padding: 8px 16px;
+    line-height: 1.5;
     border: 1px solid $sa-primary;
     border-radius: 20px;
     background: $sa-primary;
@@ -308,6 +362,12 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
       background: $sa-primary-600;
       border-color: $sa-primary-600;
       color: #fff;
+    }
+
+    // Kit: `active:bg-primary-700`.
+    &:active {
+      background: #386eff;
+      border-color: #386eff;
     }
 
     &:focus-visible {
@@ -326,13 +386,103 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 
   .checkbox-replacement {
     margin: 0;
-    font-size: 13px;
-    color: $sa-secondary;
+    font-size: 14px;
+    color: $sa-muted;
 
     .icon {
       fill: $sa-primary;
     }
   }
+
+  // Kit forms.css `.form-check-input[type=checkbox]`: 1.25em, border
+  // input, `rounded` (4px), dicentang = latar primary-500 + ikon
+  // centang putih (`--checkbox-bg` kit). Label `text-muted`.
+  // `label` global Zammad: uppercase + letter-spacing + display block
+  // -- dinetralkan (kit: teks biasa).
+  .form-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+    color: $sa-muted;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+  }
+
+  .form-check-input {
+    flex-shrink: 0;
+    width: 1.25em;
+    height: 1.25em;
+    margin: 0;
+    appearance: none;
+    border: 1px solid $sa-input-border;
+    border-radius: 4px;
+    background-color: #fff;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:checked {
+      border-color: $sa-primary;
+      background-color: $sa-primary;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10l3 3l6-6'/%3e%3c/svg%3e");
+    }
+
+    &:focus-visible {
+      outline: 2px solid $sa-primary;
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Form generik (register): atribut User SISKA ber-`item_class:
+// formGroup--halfSize` (lebar 50% di form Zammad). Di halaman auth:
+// grid 2 kolom -- nama depan & belakang berdampingan (mockup), field
+// lain selebar penuh. Field tersembunyi (`shown: false`, kelas `hide`)
+// tetap tidak tampil.
+.siska-auth .siska-auth-form > fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 12px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  > .form-group {
+    grid-column: 1 / -1;
+    width: auto;
+    float: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  > .form-group[data-attribute-name='firstname'],
+  > .form-group[data-attribute-name='lastname'] {
+    grid-column: auto;
+  }
+
+  > .siska-auth-rules {
+    grid-column: 1 / -1;
+    margin-top: -8px;
+  }
+
+  @media (max-width: 380px) {
+    > .form-group[data-attribute-name='firstname'],
+    > .form-group[data-attribute-name='lastname'] {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.siska-auth .siska-auth-form .js-danger.hide {
+  display: none;
 }
 
 .siska-auth-password {
@@ -378,8 +528,8 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 }
 
 .siska-auth .siska-auth-link {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   color: $sa-primary;
 
   &:hover {
@@ -393,29 +543,35 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 .siska-auth-alert,
 .siska-auth .alert {
   margin: 0;
-  padding: 10px 14px;
-  border: 0;
+  padding: 12px 20px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   text-align: left;
 }
 
+// Kit alerts.css: danger/warning = `-500/20` latar & border + teks
+// `-800`; success = `-500/10` + teks `-800`.
 .siska-auth-alert.is-danger,
 .siska-auth .alert--danger {
-  color: $sa-danger;
-  background: $sa-danger-tint;
+  color: $sa-danger-800;
+  background: rgba(221, 39, 39, 0.2);
+  border-color: rgba(221, 39, 39, 0.2);
 }
 
 .siska-auth-alert.is-success,
 .siska-auth .alert--success {
   color: $sa-success;
   background: $sa-success-tint;
+  border-color: $sa-success-tint;
 }
 
+.siska-auth-alert.is-warning,
 .siska-auth .alert--warning {
   color: $sa-warning;
   background: $sa-warning-tint;
+  border-color: $sa-warning-tint;
 }
 
 .siska-auth-separator {
@@ -439,7 +595,7 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 // ---------------------------------------------------------------------
 .siska-auth-footer {
   width: 100%;
-  max-width: 400px;
+  max-width: 400px; // = lebar isi kartu (480 - 2x40)
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -457,12 +613,19 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
   }
 }
 
+// Kit: `flex justify-between items-end` -- teks `h6.f-w-500` (14px,
+// 500, warna judul) kiri, link `text-primary-500` kanan, tanpa garis.
 .siska-auth .siska-auth-switch {
   display: flex;
-  justify-content: center;
-  gap: 6px;
-  padding-top: 18px;
-  border-top: 1px solid $sa-border;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+
+  > span {
+    font-weight: 500;
+    color: $sa-headings;
+  }
 }
 
 .siska-auth .siska-auth-back {
@@ -480,15 +643,12 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 }
 
 .siska-auth-copy {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 24px;
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 0 16px;
+  padding: 32px 16px 0;
   font-size: 12px;
   color: $sa-secondary;
   text-align: center;
@@ -508,5 +668,132 @@ $sa-side-breakpoint: 992px; // kit: gambar samping `hidden lg:block`
 @media (prefers-reduced-motion: reduce) {
   .siska-auth .form-control {
     transition: none;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Tahap 1 -- OTP register (views/signup/verify, verified, password_rules)
+// ---------------------------------------------------------------------
+// Kotak kode = kit code-verification-v2: `grid gap-4` + tiap kotak
+// `form-control text-center` (py .8rem, 14px normal, placeholder "0").
+// 6 kotak (kode SISKA 6 digit) alih-alih 4 di kit.
+.siska-auth-otp {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+
+  @media (max-width: 420px) {
+    gap: 8px;
+  }
+}
+
+.siska-auth.siska-auth .siska-auth-otp-digit {
+  width: 100%;
+  height: auto;
+  padding: 0.8rem 4px;
+  border: 1px solid $sa-input-border;
+  border-radius: 8px;
+  background: #fff;
+  color: $sa-body;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  box-shadow: none;
+
+  &::placeholder {
+    color: $sa-placeholder;
+  }
+
+  &:focus {
+    border-color: $sa-primary;
+    box-shadow: none;
+    outline: none;
+  }
+
+  &:disabled {
+    background: rgba(91, 107, 121, 0.02);
+  }
+}
+
+// Kit: paragraf "We've send you code on ..." -- warna teks biasa.
+.siska-auth .siska-auth-sentto {
+  margin-top: -8px;
+  font-size: 14px;
+  color: $sa-body;
+}
+
+.siska-auth-otp.is-invalid .siska-auth-otp-digit {
+  border-color: $sa-danger;
+}
+
+.siska-auth .siska-auth-resend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: $sa-secondary;
+
+  .siska-auth-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:disabled {
+      color: #97a2ac;
+      cursor: default;
+      text-decoration: none;
+    }
+  }
+}
+
+.siska-auth .siska-auth-resend.is-start {
+  justify-content: flex-start;
+  font-size: 14px;
+}
+
+.siska-auth .siska-auth-small {
+  font-size: 12px;
+}
+
+.siska-auth .siska-auth-text.is-start {
+  text-align: left;
+}
+
+.siska-auth-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: -6px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.siska-auth-rule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $sa-secondary;
+
+  .siska-auth-rule-ok {
+    display: none;
+  }
+
+  &.is-ok {
+    color: $sa-success;
+
+    .siska-auth-rule-ok {
+      display: inline;
+    }
+
+    .siska-auth-rule-todo {
+      display: none;
+    }
   }
 }

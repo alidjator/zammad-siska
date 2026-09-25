@@ -1,0 +1,13 @@
+<!-- Redesign register SISKA -- Tahap 1 (mockup Register-Sukses.dc.html):
+kode OTP benar -> akun terverifikasi & sudah login; dialihkan otomatis. -->
+<div class="siska-auth signup">
+  <%- App.view('siska_auth/side')() %>
+  <main class="siska-auth-main">
+    <div class="siska-auth-card hero-unit">
+      <%- App.view('siska_auth/brand')(icon: 'check', iconTone: 'success', title: App.i18n.translateContent('Your account is ready'), subtitle: App.i18n.translateContent('%s is verified. You are signed in and will be taken to your tickets.', App.Utils.htmlEscape(@email))) %>
+      <a href="#" class="btn btn--primary siska-auth-submit js-goHome"><%- @T('Continue') %></a>
+      <p class="siska-auth-text siska-auth-small" role="status"><%- @T('Redirecting…') %></p>
+    </div>
+    <%- App.view('siska_auth/footer')(public_links: @public_links) %>
+  </main>
+</div>

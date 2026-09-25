@@ -2,7 +2,13 @@ Konfirmasi akun #{config.product_name} Anda, #{user.firstname} #{user.lastname}
 
 <div>Hai #{user.firstname},</div>
 <br>
-<div>Konfirmasi alamat email Anda untuk menyelesaikan akun #{config.product_name} Anda. Mudah, cukup klik tautan di bawah ini.</div>
+<div>Masukkan kode verifikasi berikut di halaman pendaftaran untuk menyelesaikan akun #{config.product_name} Anda:</div>
+<br>
+<div style="font-size: 28px; font-weight: bold; letter-spacing: 6px;">#{otp_code}</div>
+<br>
+<div>Kode ini berlaku selama #{otp_expiry_minutes} menit. Kalau Anda tidak membuat akun ini, abaikan email ini.</div>
+<br>
+<div>Sudah menutup halamannya? Anda juga bisa mengonfirmasi alamat email dengan mengklik tautan di bawah ini.</div>
 <br>
 <div><a href="#{url}">#{url}</a></div>
 <br>

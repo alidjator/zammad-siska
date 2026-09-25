@@ -481,3 +481,112 @@ msgstr "Masukkan email atau nama pengguna akun Anda. Kami akan mengirim petunjuk
 
 msgid "Send again"
 msgstr "Kirim ulang"
+
+# Redesign register -- Tahap 1 (OTP register)
+msgid "Verify your email"
+msgstr "Verifikasi email Anda"
+
+msgid "We sent a 6-digit code to %s to activate your account."
+msgstr "Kami mengirim kode 6 digit ke %s untuk mengaktifkan akun Anda."
+
+msgid "The code is incorrect. %s attempts left."
+msgstr "Kode salah. Sisa %s percobaan."
+
+msgid "This code has expired. Request a new code to continue."
+msgstr "Kode ini sudah kedaluwarsa. Minta kode baru untuk melanjutkan."
+
+msgid "Too many incorrect attempts. Request a new code to try again."
+msgstr "Terlalu banyak percobaan salah. Minta kode baru untuk mencoba lagi."
+
+msgid "A new code has been sent."
+msgstr "Kode baru sudah dikirim."
+
+msgid "Too many codes requested. Please wait a few minutes before requesting a new one."
+msgstr "Terlalu banyak permintaan kode. Tunggu beberapa menit sebelum meminta kode baru."
+
+msgid "Verification code"
+msgstr "Kode verifikasi"
+
+msgid "Digit %s"
+msgstr "Digit %s"
+
+msgid "The code is valid for %s minutes."
+msgstr "Kode berlaku selama %s menit."
+
+msgid "You can paste the whole code."
+msgstr "Anda bisa menempel seluruh kode sekaligus."
+
+msgid "Verify & continue"
+msgstr "Verifikasi & lanjutkan"
+
+msgid "Didn't get the email?"
+msgstr "Tidak menerima email?"
+
+msgid "Resend code in %s"
+msgstr "Kirim ulang kode dalam %s"
+
+msgid "Resend code"
+msgstr "Kirim ulang kode"
+
+msgid "Check your junk or spam folder. The email also contains a link you can use instead of the code."
+msgstr "Periksa folder junk atau spam. Email tersebut juga berisi tautan yang bisa dipakai sebagai pengganti kode."
+
+msgid "Use a different email"
+msgstr "Gunakan email lain"
+
+msgid "Your account is ready"
+msgstr "Akun Anda sudah siap"
+
+msgid "%s is verified. You are signed in and will be taken to your tickets."
+msgstr "%s sudah terverifikasi. Anda sudah masuk dan akan diarahkan ke tiket Anda."
+
+msgid "Redirecting…"
+msgstr "Mengalihkan…"
+
+msgid "We will send a verification code to your email."
+msgstr "Kami akan mengirim kode verifikasi ke email Anda."
+
+msgid "At least %s characters"
+msgstr "Minimal %s karakter"
+
+msgid "Contains a number"
+msgstr "Mengandung angka"
+
+msgid "2 lowercase & 2 uppercase letters"
+msgstr "2 huruf kecil & 2 huruf besar"
+
+msgid "Contains a special character"
+msgstr "Mengandung karakter khusus"
+
+# Redesign login/register -- placeholder
+msgid "Email or username"
+msgstr "Email atau nama pengguna"
+
+msgid "Enter your password"
+msgstr "Masukkan kata sandi Anda"
+
+msgid "e.g. Budi"
+msgstr "mis. Budi"
+
+msgid "e.g. Santoso"
+msgstr "mis. Santoso"
+
+msgid "Create a password"
+msgstr "Buat kata sandi"
+
+msgid "Repeat your password"
+msgstr "Ulangi kata sandi Anda"
+
+# Redesign auth -- penyesuaian kit
+msgid "Back to Login"
+msgstr "Kembali ke halaman masuk"
+
+msgid "Do not forget to check your spam folder."
+msgstr "Jangan lupa periksa folder spam Anda."
+
+# Redesign register -- layar kode sesuai kit
+msgid "We sent you a verification code by email."
+msgstr "Kami mengirim kode verifikasi ke email Anda."
+
+msgid "We sent the code to %s."
+msgstr "Kode dikirim ke %s."

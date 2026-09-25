@@ -37,7 +37,7 @@ link "Forgot password?". -->
             <div class="formGroup-label">
               <label for="username"><%- @Ti('Username / email') %></label>
             </div>
-            <input id="username" name="username" type="text" class="form-control" value="<%= @item.formPayload?.username %>" autocapitalize="off" autocomplete="username" />
+            <input id="username" name="username" type="text" class="form-control" value="<%= @item.formPayload?.username %>" placeholder="<%- @Ti('Email or username') %>" autocapitalize="off" autocomplete="username" />
           </div>
 
           <div class="form-group">
@@ -45,7 +45,7 @@ link "Forgot password?". -->
               <label for="password"><%- @Ti('Password') %></label>
             </div>
             <div class="siska-auth-password">
-              <input id="password" name="password" type="password" class="form-control" autocomplete="current-password"/>
+              <input id="password" name="password" type="password" class="form-control" placeholder="<%- @Ti('Enter your password') %>" autocomplete="current-password"/>
               <button type="button" class="siska-auth-eye js-togglePassword" aria-label="<%- @Ti('Show password') %>" aria-pressed="false">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
@@ -53,11 +53,9 @@ link "Forgot password?". -->
           </div>
 
           <div class="siska-auth-row">
-            <label class="inline-label checkbox-replacement">
-              <input name="remember_me" value="1" type="checkbox">
-              <%- @Icon('checkbox', 'icon-unchecked') %>
-              <%- @Icon('checkbox-checked', 'icon-checked') %>
-              <span class="label-text"><%- @T('Remember me') %></span>
+            <label class="form-check">
+              <input class="form-check-input" name="remember_me" value="1" type="checkbox">
+              <span class="form-check-label"><%- @T('Remember me') %></span>
             </label>
             <% if @C('user_lost_password'): %>
               <a href="#password_reset" class="siska-auth-link"><%- @T('Forgot password?') %></a>

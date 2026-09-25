@@ -36,6 +36,13 @@ class Service::User::Signup < Service::Base
 
     result[:url] = "#{Setting.get('http_type')}://#{Setting.get('fqdn')}/#{@path[:signup]}#{result[:token].token}"
 
+    # Redesign login/register SISKA -- Tahap 1: email verifikasi kini
+    # berisi kode OTP 6 digit (dimasukkan di layar setelah daftar) DAN
+    # tetap link verifikasi sbg cadangan (keputusan K3). Lihat
+    # Siska::AuthOtp & template app/views/mailer/signup/*.
+    result[:otp_code]           = Siska::AuthOtp.new(purpose: 'signup', email: user.email).issue_code!(user)
+    result[:otp_expiry_minutes] = Siska::AuthOtp.expiry_minutes
+
     NotificationFactory::Mailer.notification(
       template: 'signup',
       user:     user,

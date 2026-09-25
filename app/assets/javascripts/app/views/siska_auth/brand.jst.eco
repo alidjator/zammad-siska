@@ -1,7 +1,11 @@
-<!-- Kepala kartu auth: logo produk ATAU ikon bulat (key/mail/check/
-alert), judul, subjudul. `@title`/`@subtitle` sudah diterjemahkan &
-di-escape oleh pemanggil. -->
-<div class="siska-auth-brand">
+<!-- Kepala kartu auth. Dua varian, mengikuti kit Able Pro v2:
+- tengah (default, login-v2/register-v2): logo/ikon bulat, judul h4
+  20px medium, subjudul;
+- `@align is 'start'` (code-verification-v2 / forgot-password-v2):
+  logo rata kiri, judul h3 24px tebal, opsional link `@asideHref`/
+  `@asideLabel` di kanan judul ("Back to Login"), subjudul abu2.
+`@title`/`@subtitle` sudah diterjemahkan & di-escape oleh pemanggil. -->
+<div class="siska-auth-brand<%= ' is-start' if @align is 'start' %>">
   <% if @logoUrl: %>
     <img class="siska-auth-logo" src="<%= @logoUrl %>" alt="<%= @C('product_name') %>">
   <% else if @icon: %>
@@ -17,7 +21,14 @@ di-escape oleh pemanggil. -->
       </svg>
     </span>
   <% end %>
-  <h1 class="siska-auth-title"><%- @title %></h1>
+  <% if @asideHref: %>
+    <div class="siska-auth-titlebar">
+      <h1 class="siska-auth-title"><%- @title %></h1>
+      <a href="<%= @asideHref %>" class="siska-auth-link js-cancel"><%- @asideLabel %></a>
+    </div>
+  <% else: %>
+    <h1 class="siska-auth-title"><%- @title %></h1>
+  <% end %>
   <% if @subtitle: %>
     <p class="siska-auth-subtitle"><%- @subtitle %></p>
   <% end %>

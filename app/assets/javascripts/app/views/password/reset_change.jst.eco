@@ -5,12 +5,11 @@ JS (kelas js-*, `form`, `.retry`) tidak diubah. Dirender PasswordResetVerify (li
   <%- App.view('siska_auth/side')() %>
   <main class="siska-auth-main">
     <div class="siska-auth-card hero-unit">
-      <%- App.view('siska_auth/brand')(icon: 'lock', title: App.i18n.translateContent('Choose your new password.')) %>
+      <%- App.view('siska_auth/brand')(align: 'start', logoUrl: "/api/v1/system_assets/product_logo/#{@C('product_logo')}", asideHref: '#/', asideLabel: App.i18n.translateContent('Back to Login'), title: App.i18n.translateContent('Choose your new password.')) %>
       <form class="siska-auth-form js-passwordForm">
         <div class="js-password"></div>
         <button class="btn btn--primary siska-auth-submit js-submit"><%- @T('Submit') %></button>
       </form>
-      <p class="siska-auth-back"><a href="#/" class="siska-auth-link js-cancel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><%- @T('Cancel & Go Back') %></a></p>
     </div>
     <%- App.view('siska_auth/footer')(public_links: @public_links) %>
   </main>
