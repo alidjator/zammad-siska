@@ -54,6 +54,12 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
     # mengirim nama tetap dihormati.
     name     = @payload['data']['name'].to_s.strip.presence || Chat::Session.name_from_email(email)
     category = @payload['data']['category'].to_s.strip
+    # Subject pesan offline SEKARANG diisi di prechat (dipindah dari
+    # form compose, atas permintaan user) -- disimpan di sesi, dipakai
+    # `chat_offline_message_send.rb` sbg judul tiket. Kosong TIDAK
+    # ditolak di sini: widget lama (masih ter-cache) masih mengirim
+    # subject belakangan, di form compose.
+    subject  = @payload['data']['subject'].to_s.squish.truncate(Sessions::Event::ChatSessionInit::SUBJECT_MAX, omission: '')
 
     # Atas permintaan user (field Category, wajib sama spt di jalur
     # chat biasa `chat_session_init.rb`) -- sumber kebenaran opsi yang
@@ -76,6 +82,7 @@ class Sessions::Event::ChatOfflineSessionInit < Sessions::Event::ChatBase
       preferences: {
         url:          @payload['data']['url'],
         participants: [@client_id],
+        subject:      subject.presence,
       },
     )
 

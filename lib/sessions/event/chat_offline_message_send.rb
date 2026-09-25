@@ -55,7 +55,10 @@ class Sessions::Event::ChatOfflineMessageSend < Sessions::Event::ChatBase
     # PENTING: validasi mandatory diulang DI SINI juga (bukan cuma
     # dipercaya dari UI) -- pola SAMA dgn validasi OTP/pesan kosong di
     # atas.
-    subject = @payload['data']['subject'].to_s.strip
+    # Subject dari prechat (disimpan di sesi oleh
+    # chat_offline_session_init.rb); `subject` di payload cuma dikirim
+    # widget LAMA (form compose lama masih punya field Subject).
+    subject = @payload['data']['subject'].to_s.strip.presence || chat_session.preferences[:subject].to_s.strip
     if subject.blank?
       return {
         event: 'chat_offline_message_send',

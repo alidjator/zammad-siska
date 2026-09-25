@@ -2496,7 +2496,6 @@ do(window) ->
         email: params.email
         category: params.category
         subject: params.subject
-        showSubject: !@offlineMode
         subjectMax: @PRECHAT_SUBJECT_MAX
       )
       @el.querySelector('.zammad-chat-prechat-form').addEventListener 'submit', @submitPrechatForm
@@ -2607,15 +2606,14 @@ do(window) ->
       # `value` sungguhan yang dikirim ke server).
       category = @el.querySelector('.js-prechat-category-input')?.value?.trim()
 
-      # Subject (judul tiket) -- cuma ditanya di mode online, lihat
-      # catatan `@showSubject` di views/prechat.eco.
+      # Subject (judul tiket) -- wajib di mode online MAUPUN offline
+      # (atas permintaan user, dipindah dari form compose offline).
       subject  = @el.querySelector('.zammad-chat-prechat-subject')?.value?.trim()
-      needSubject = !@offlineMode
 
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-      if !email || !emailFormat.test(email) || !category || (needSubject && !subject)
+      if !email || !emailFormat.test(email) || !category || !subject
         @showPrechatForm
-          error:    (if needSubject then @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.') else @T('Please provide a valid email and category.'))
+          error:    @T(@phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.')
           email:    email
           category: category
           subject:  subject
@@ -2646,6 +2644,7 @@ do(window) ->
           name:     name
           email:    email
           category: category
+          subject:  subject
         )
       else
         @showLoader()
@@ -2842,21 +2841,13 @@ do(window) ->
     showOfflineCompose: =>
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_compose')(email: @customerEmail)
 
-    # Atas permintaan user ("subject ini mandatory harus diisi") --
-    # mirror persis dari chat.coffee: divalidasi DULUAN (sebelum isi
-    # pesan, urutan field atas-ke-bawah), backend mengulang validasi
-    # yg sama.
+    # Subject TIDAK lagi ditanya di sini -- sudah diisi di prechat dan
+    # disimpan server di sesi (`preferences[:subject]`, lihat
+    # chat_offline_session_init.rb). Form compose tinggal isi pesan.
     submitOfflineMessage: (event) =>
       event?.preventDefault()
-      subject = @el.querySelector('.js-offline-subject')?.value?.trim()
       content = @el.querySelector('.js-offline-message')?.value?.trim()
       errorEl = @el.querySelector('.js-offline-compose-error')
-
-      if !subject
-        if errorEl
-          errorEl.textContent = @T(@phrases['chat_phrase_offline_compose_subject_empty_error'] || 'Please enter a subject.')
-          errorEl.classList.remove('zammad-chat-is-hidden')
-        return
 
       if !content
         if errorEl
@@ -2866,7 +2857,7 @@ do(window) ->
 
       errorEl?.classList.add('zammad-chat-is-hidden')
       @setButtonLoading(@el.querySelector('.js-offline-compose-submit'), true)
-      @send('chat_offline_message_send', session_id: @sessionId, subject: subject, content: content)
+      @send('chat_offline_message_send', session_id: @sessionId, content: content)
 
     # Item lampiran OfflineCompose (follow-up terpisah dari
     # Enhancement 4 awal) -- mirror persis dari chat.coffee (lihat

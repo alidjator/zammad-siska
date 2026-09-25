@@ -2112,15 +2112,7 @@ window.zammadChatTemplates["offline_compose"] = function(__obj) {
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_verified_suffix'] || 'verified'));
     
-      __out.push('</span>\n  </div>\n\n  <!-- Atas permintaan user ("saya mau menambahkan subject, dan subject\n  ini mandatory") -- subject WAJIB diisi (divalidasi frontend & backend,\n  lihat `submitOfflineMessage`/`chat_offline_message_send.rb`), dipakai\n  jadi JUDUL tiket yang dibuat otomatis (bukan lagi "Live Chat -\n  [nama]" generik, lihat `Chat::Session#create_ticket_for_chat!`). -->\n  <label class="zammad-chat-offline-compose-label">');
-    
-      __out.push(this.T(this.phrases['chat_phrase_offline_compose_subject_label'] || 'Subject'));
-    
-      __out.push('</label>\n  <input type="text" class="zammad-chat-offline-compose-subject-input js-offline-subject" placeholder="');
-    
-      __out.push(this.T(this.phrases['chat_phrase_offline_compose_subject_placeholder'] || "What's this about?"));
-    
-      __out.push('">\n\n  <label class="zammad-chat-offline-compose-label zammad-chat-offline-compose-label--spaced">');
+      __out.push('</span>\n  </div>\n\n  <!-- Subject DIPINDAH ke prechat (views/prechat.eco) atas permintaan\n  user -- form ini tinggal isi pesan (deskripsi) saja. -->\n  <label class="zammad-chat-offline-compose-label">');
     
       __out.push(this.T(this.phrases['chat_phrase_offline_compose_message_label'] || 'Your message'));
     
@@ -2492,37 +2484,49 @@ window.zammadChatTemplates["prechat"] = function(__obj) {
     
       __out.push(__sanitize(this.category || ''));
     
-      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <!-- Atas permintaan user ("untuk live chat judul diambil dari\n    subject, tambahkan input subject dibawah kategori") -- WAJIB, maks.\n    100 karakter, dipakai jadi JUDUL tiket saat agent Accept (lihat\n    `Chat::Session#create_ticket_for_chat!`). Label/placeholder SAMA\n    dgn form pesan offline (views/offline_compose.eco). Disembunyikan\n    di mode offline (`@showSubject` false) -- form offline sudah\n    menanyakan Subject sendiri, jangan ditanya dua kali. -->\n    ');
+      __out.push('">\n      <div class="zammad-chat-prechat-category-menu js-prechat-category-menu zammad-chat-is-hidden"></div>\n    </div>\n    <!-- Atas permintaan user ("untuk live chat judul diambil dari\n    subject, tambahkan input subject dibawah kategori") -- WAJIB, maks.\n    100 karakter, dipakai jadi JUDUL tiket saat agent Accept (lihat\n    `Chat::Session#create_ticket_for_chat!`). Dipakai JUGA di mode\n    offline (atas permintaan user: Subject pesan offline dipindah ke\n    sini, form compose offline tinggal isi pesan saja). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
-      if (this.showSubject) {
-        __out.push('\n      <div class="zammad-chat-prechat-field">\n        <label>');
-        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_label'] || 'Subject'));
-        __out.push('</label>\n        <input type="text" class="zammad-chat-prechat-subject');
-        if (this.error && !this.subject) {
-          __out.push(__sanitize(' zammad-chat-field-invalid'));
-        }
-        __out.push('" value="');
-        __out.push(__sanitize(this.subject || ''));
-        __out.push('" maxlength="');
-        __out.push(__sanitize(this.subjectMax));
-        __out.push('" placeholder="');
-        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_placeholder'] || "What's this about?"));
-        __out.push('" required>\n        <div class="zammad-chat-prechat-field-meta');
-        if (this.error && !this.subject) {
-          __out.push(__sanitize(' is-invalid'));
-        }
-        __out.push('">\n          <span>');
-        if (this.error && !this.subject) {
-          __out.push(this.T(this.phrases['chat_phrase_prechat_subject_required'] || 'Please enter a subject.'));
-        }
-        __out.push('</span>\n          <span class="js-prechat-subject-count">');
-        __out.push(__sanitize((this.subject || '').length));
-        __out.push('/');
-        __out.push(__sanitize(this.subjectMax));
-        __out.push('</span>\n        </div>\n      </div>\n    ');
+      __out.push(this.T(this.phrases['chat_phrase_prechat_subject_label'] || 'Subject'));
+    
+      __out.push('</label>\n      <input type="text" class="zammad-chat-prechat-subject');
+    
+      if (this.error && !this.subject) {
+        __out.push(__sanitize(' zammad-chat-field-invalid'));
       }
     
-      __out.push('\n    <!-- Field "Your name" DIHAPUS atas permintaan user -- nama diisi\n    sistem dari bagian depan email (lihat `nameFromEmail` di\n    chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
+      __out.push('" value="');
+    
+      __out.push(__sanitize(this.subject || ''));
+    
+      __out.push('" maxlength="');
+    
+      __out.push(__sanitize(this.subjectMax));
+    
+      __out.push('" placeholder="');
+    
+      __out.push(this.T(this.phrases['chat_phrase_prechat_subject_placeholder'] || "What's this about?"));
+    
+      __out.push('" required>\n      <div class="zammad-chat-prechat-field-meta');
+    
+      if (this.error && !this.subject) {
+        __out.push(__sanitize(' is-invalid'));
+      }
+    
+      __out.push('">\n        <span>');
+    
+      if (this.error && !this.subject) {
+        __out.push(this.T(this.phrases['chat_phrase_prechat_subject_required'] || 'Please enter a subject.'));
+      }
+    
+      __out.push('</span>\n        <span class="js-prechat-subject-count">');
+    
+      __out.push(__sanitize((this.subject || '').length));
+    
+      __out.push('/');
+    
+      __out.push(__sanitize(this.subjectMax));
+    
+      __out.push('</span>\n      </div>\n    </div>\n    <!-- Field "Your name" DIHAPUS atas permintaan user -- nama diisi\n    sistem dari bagian depan email (lihat `nameFromEmail` di\n    chat-no-jquery.coffee & `Chat::Session.name_from_email`). -->\n    <div class="zammad-chat-prechat-field">\n      <label>');
     
       __out.push(this.T(this.phrases['chat_phrase_prechat_email_label'] || 'Your email'));
     
@@ -6094,7 +6098,6 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         email: params.email,
         category: params.category,
         subject: params.subject,
-        showSubject: !this.offlineMode,
         subjectMax: this.PRECHAT_SUBJECT_MAX
       });
       this.el.querySelector('.zammad-chat-prechat-form').addEventListener('submit', this.submitPrechatForm);
@@ -6196,16 +6199,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     ZammadChat.prototype.PRECHAT_SUBJECT_MAX = 100;
 
     ZammadChat.prototype.submitPrechatForm = function(event) {
-      var category, email, emailFormat, name, needSubject, ref, ref1, ref2, ref3, ref4, ref5, subject;
+      var category, email, emailFormat, name, ref, ref1, ref2, ref3, ref4, ref5, subject;
       event.preventDefault();
       email = (ref = this.el.querySelector('.zammad-chat-prechat-email')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
       category = (ref2 = this.el.querySelector('.js-prechat-category-input')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
       subject = (ref4 = this.el.querySelector('.zammad-chat-prechat-subject')) != null ? (ref5 = ref4.value) != null ? ref5.trim() : void 0 : void 0;
-      needSubject = !this.offlineMode;
       emailFormat = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-      if (!email || !emailFormat.test(email) || !category || (needSubject && !subject)) {
+      if (!email || !emailFormat.test(email) || !category || !subject) {
         this.showPrechatForm({
-          error: (needSubject ? this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.') : this.T('Please provide a valid email and category.')),
+          error: this.T(this.phrases['chat_phrase_prechat_validation_error'] || 'Please provide a valid email, category, and subject.'),
           email: email,
           category: category,
           subject: subject
@@ -6222,7 +6224,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           url: window.location.href,
           name: name,
           email: email,
-          category: category
+          category: category,
+          subject: subject
         });
       } else {
         this.showLoader();
@@ -6457,20 +6460,12 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.submitOfflineMessage = function(event) {
-      var content, errorEl, ref, ref1, ref2, ref3, subject;
+      var content, errorEl, ref, ref1;
       if (event != null) {
         event.preventDefault();
       }
-      subject = (ref = this.el.querySelector('.js-offline-subject')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
-      content = (ref2 = this.el.querySelector('.js-offline-message')) != null ? (ref3 = ref2.value) != null ? ref3.trim() : void 0 : void 0;
+      content = (ref = this.el.querySelector('.js-offline-message')) != null ? (ref1 = ref.value) != null ? ref1.trim() : void 0 : void 0;
       errorEl = this.el.querySelector('.js-offline-compose-error');
-      if (!subject) {
-        if (errorEl) {
-          errorEl.textContent = this.T(this.phrases['chat_phrase_offline_compose_subject_empty_error'] || 'Please enter a subject.');
-          errorEl.classList.remove('zammad-chat-is-hidden');
-        }
-        return;
-      }
       if (!content) {
         if (errorEl) {
           errorEl.textContent = this.T(this.phrases['chat_phrase_offline_compose_empty_error'] || 'Please write a message.');
@@ -6484,7 +6479,6 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.setButtonLoading(this.el.querySelector('.js-offline-compose-submit'), true);
       return this.send('chat_offline_message_send', {
         session_id: this.sessionId,
-        subject: subject,
         content: content
       });
     };
