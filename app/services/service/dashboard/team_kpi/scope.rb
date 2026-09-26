@@ -16,6 +16,13 @@
 # dashboard's rule (compare: 'auto'): windows under a year compare with
 # the equally long period right before, 1 year compares with the same
 # period last year, and 2 years (max window) has no comparison.
+#
+# Production keeps only ~2 years of tickets (= team_kpi_max_window_days),
+# so any comparison range that starts before that history horizon is
+# dropped (nil), whatever the mode -- otherwise it would be computed on a
+# partly missing period and look like a real drop. Staging holds data
+# back to 2020 and would not show the problem. One day of tolerance
+# keeps "1 year vs last year" available across a leap day.
 class Service::Dashboard::TeamKpi::Scope
   COMPARE_MODES = %w[auto previous yoy none].freeze
 
@@ -55,8 +62,23 @@ class Service::Dashboard::TeamKpi::Scope
     (now - days.days)...now
   end
 
+  HORIZON_TOLERANCE = 1.day
+
   # @return [Hash, nil] { mode:, range: } or nil when there is no comparison
   def self.comparison(range, days, mode: 'auto')
+    result = comparison_range(range, days, mode)
+    return nil if result.nil?
+    return nil if result[:range].begin < history_start(range.end)
+
+    result
+  end
+
+  # Oldest point the comparison may reach back to.
+  def self.history_start(now)
+    now - Service::Dashboard::TeamKpi.max_window_days.days - HORIZON_TOLERANCE
+  end
+
+  def self.comparison_range(range, days, mode)
     mode = COMPARE_MODES.include?(mode.to_s) ? mode.to_s : 'auto'
     if mode == 'auto'
       mode = if days >= Service::Dashboard::TeamKpi.max_window_days

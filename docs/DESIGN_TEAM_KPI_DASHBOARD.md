@@ -181,7 +181,11 @@ Latar belakang: gap analysis mockup KPI Tim sebagai dashboard BI (arah B di kanv
 
 `auto` mengikuti keputusan desain dashboard: < 1 tahun → periode sebelumnya dengan panjang sama; 1 tahun → periode sama tahun lalu (`yoy`); 2 tahun (= `team_kpi_max_window_days`) → tanpa pembanding. Metrik periode (FRT, CSAT, resolusi, reopen) dihitung ulang untuk rentang pembanding dan dikembalikan di `comparison`. Snapshot real-time (New/Open/Escalated/Eskalasi/backlog) **tidak punya pembanding** — nilai masa lalunya tidak tersimpan (butuh job snapshot berkala, belum ada).
 
-Catatan data: staging menyimpan tiket sejak 2020-09, jadi secara data pembanding untuk 2 tahun sebenarnya tersedia; `none` untuk 2 tahun adalah keputusan tampilan, bisa diganti lewat `compare=yoy`.
+**Batas histori 2 tahun**: production hanya menyimpan data ±2 tahun (= `team_kpi_max_window_days`). Karena itu, apa pun mode-nya, pembanding **dibuang (`null`)** kalau rentangnya mulai sebelum `sekarang − team_kpi_max_window_days` (toleransi 1 hari supaya "1 tahun vs tahun lalu" tetap tersedia saat melewati tahun kabisat) — `Scope.comparison` / `Scope.history_start`. Tanpa ini, pembanding untuk rentang panjang (mis. rentang bebas 500 hari, atau `compare=yoy` di 2 tahun) akan dihitung dari periode yang sebagian datanya tidak ada dan terlihat seperti penurunan sungguhan.
+
+Hasilnya: < 1 tahun → periode sebelumnya; tepat 1 tahun → tahun lalu; di atas 1 tahun (termasuk 2 tahun) → tanpa pembanding.
+
+> **Hati-hati saat menguji di staging**: staging menyimpan tiket sejak 2020-09 (±6 tahun), jadi query yang mengabaikan batas ini tetap terlihat wajar di staging tapi akan salah di production.
 
 ### 10.3 Tambahan di `GET /api/v1/team_kpi`
 
