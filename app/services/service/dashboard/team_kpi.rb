@@ -46,11 +46,29 @@
 #     (Ticket#escalation_deadline_at, computed by
 #     Service::Escalation::CalculateDeadlines) -- a ticket can breach one
 #     without the other.
+# Fase 2 (BI): every query runs on Service::Dashboard::TeamKpi::Scope --
+# limited to the requesting user's readable groups plus optional filters
+# -- and period metrics come with a sample size and, per the dashboard's
+# comparison rule, the same metrics for the comparison period. Trend,
+# heatmap and per-agent breakdowns live in TeamKpi::Trend / ::Heatmap /
+# ::Agents.
 # See docs/DESIGN_TEAM_KPI_DASHBOARD.md for the full rationale and the
 # calibration data behind these thresholds.
 class Service::Dashboard::TeamKpi
-  def self.call(window_days: default_window_days)
-    new(window_days).call
+  # Same buckets as native lib/stats/ticket_reopen.rb (rate, higher is worse).
+  REOPEN_BUCKETS = { 'good_min' => 20, 'ok_min' => 40, 'bad_min' => 65, 'superbad_min' => 90 }.freeze
+
+  # Age buckets for tickets that are still open, in days: [key, from, to).
+  BACKLOG_BUCKETS = [
+    ['lt_1d',   0,  1],
+    ['d1_3',    1,  3],
+    ['d3_7',    3,  7],
+    ['d7_30',   7,  30],
+    ['gte_30d', 30, nil],
+  ].freeze
+
+  def self.call(window_days: default_window_days, user: nil, filters: {}, compare: 'auto')
+    new(window_days, user: user, filters: filters, compare: compare).call
   end
 
   def self.default_window_days
@@ -61,14 +79,19 @@ class Service::Dashboard::TeamKpi
     Setting.get('team_kpi_max_window_days').to_i
   end
 
-  def initialize(window_days)
-    @window_days = window_days.to_i.clamp(1, self.class.max_window_days)
+  def self.window_days(value)
+    (value.presence || default_window_days).to_i.clamp(1, max_window_days)
+  end
+
+  def initialize(window_days, user: nil, filters: {}, compare: 'auto')
+    @window_days = self.class.window_days(window_days)
+    @scope       = Service::Dashboard::TeamKpi::Scope.new(user: user, filters: filters)
+    @range       = Service::Dashboard::TeamKpi::Scope.window_range(@window_days)
+    @comparison  = Service::Dashboard::TeamKpi::Scope.comparison(@range, @window_days, mode: compare)
   end
 
   def call
-    frt         = frt_median_minutes
-    frt_mean    = frt_mean_minutes
-    csat        = csat_average
+    period      = period_metrics(@range)
     new_count   = ticket_count_by_state_type('new')
     open_count  = ticket_count_by_state_type('open')
     escalated   = ticket_escalated_count
@@ -78,11 +101,21 @@ class Service::Dashboard::TeamKpi
     eskalasi_breach_rate = eskalasi_breach_rate_percent(eskalasi_breached, eskalasi_active)
 
     {
-      frt_median_minutes:     frt,
-      frt_mean_minutes:       frt_mean,
-      frt_state:              frt_state(frt),
-      csat_average:           csat,
-      csat_state:             csat_state(csat),
+      frt_median_minutes:     period[:frt_median_minutes],
+      frt_mean_minutes:       period[:frt_mean_minutes],
+      frt_count:              period[:frt_count],
+      frt_state:              frt_state(period[:frt_median_minutes]),
+      csat_average:           period[:csat_average],
+      csat_count:             period[:csat_count],
+      csat_state:             csat_state(period[:csat_average]),
+      resolution_median_minutes: period[:resolution_median_minutes],
+      resolution_mean_minutes:   period[:resolution_mean_minutes],
+      resolution_count:          period[:resolution_count],
+      reopen_count:           period[:reopen_count],
+      reopen_closed_count:    period[:reopen_closed_count],
+      reopen_rate_percent:    period[:reopen_rate_percent],
+      reopen_state:           rate_state(period[:reopen_rate_percent], REOPEN_BUCKETS),
+      sla_by_priority:        sla_by_priority(@range),
       ticket_new:             new_count,
       ticket_open:            open_count,
       ticket_escalated:       escalated,
@@ -92,70 +125,143 @@ class Service::Dashboard::TeamKpi
       eskalasi_breached:          eskalasi_breached,
       eskalasi_breach_rate_percent: eskalasi_breach_rate,
       eskalasi_breach_state:      eskalasi_breach_state(eskalasi_breach_rate),
+      backlog_aging:          backlog_aging,
       window_days:            @window_days,
+      period:                 range_json(@range),
+      comparison:             comparison_json,
+      filters:                @scope.filters,
+      group_ids_count:        @scope.group_ids&.size,
       generated_at:           Time.zone.now.iso8601,
     }
   end
 
   private
 
-  def since
-    @since ||= @window_days.days.ago
+  def tickets
+    @scope.tickets
+  end
+
+  def range_json(range)
+    { from: range.begin.iso8601, to: range.end.iso8601 }
+  end
+
+  def comparison_json
+    return nil if !@comparison
+
+    range_json(@comparison[:range]).merge(mode: @comparison[:mode]).merge(period_metrics(@comparison[:range]))
+  end
+
+  # Everything that depends on the selected period (so it has a
+  # comparison-period counterpart). Real-time snapshots are not here.
+  def period_metrics(range)
+    frt_median, frt_mean, frt_count = frt(range)
+    csat_avg, csat_count            = csat(range)
+    res_median, res_mean, res_count = resolution(range)
+    reopen_count, closed_count      = reopen(range)
+
+    {
+      frt_median_minutes:        frt_median,
+      frt_mean_minutes:          frt_mean,
+      frt_count:                 frt_count,
+      csat_average:              csat_avg,
+      csat_count:                csat_count,
+      resolution_median_minutes: res_median,
+      resolution_mean_minutes:   res_mean,
+      resolution_count:          res_count,
+      reopen_count:              reopen_count,
+      reopen_closed_count:       closed_count,
+      reopen_rate_percent:       closed_count.zero? ? nil : (reopen_count.to_f / closed_count * 100).round(1),
+    }
   end
 
   # Mirrors Report::TicketFirstResponseTime's data-integrity filter (see
   # docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md): exclude tickets where
-  # first_response_at < created_at (known ~7h timezone bug).
-  def frt_median_minutes
-    sql = <<~SQL.squish
-      SELECT percentile_cont(0.5) WITHIN GROUP (
-        ORDER BY EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60
-      )
-      FROM tickets
-      WHERE first_response_at IS NOT NULL
-        AND first_response_at >= created_at
-        AND created_at >= ?
-    SQL
+  # first_response_at < created_at (known ~7h timezone bug). Median is
+  # the headline, mean on the same population flags a long tail of slow
+  # outliers the median alone hides (docs/DESIGN_REPORTING_FRT.md s.3).
+  def frt(range)
+    minutes = 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60'
+    median, mean, count = tickets
+      .where(created_at: range)
+      .where.not(first_response_at: nil)
+      .where('first_response_at >= created_at')
+      .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
 
-    result = ActiveRecord::Base.connection.select_value(
-      ActiveRecord::Base.sanitize_sql_array([sql, since])
-    )
-    result.nil? ? nil : result.to_f.round(1)
+    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i]
   end
 
-  # Mean alongside median, on the same population/filter (see
-  # frt_median_minutes) -- added so the dashboard can show both side by
-  # side. A mean well above the median flags a long tail of slow
-  # outlier tickets that the median alone hides (see
-  # docs/DESIGN_REPORTING_FRT.md Section 3 for the same reasoning
-  # applied to native Reporting).
-  def frt_mean_minutes
-    sql = <<~SQL.squish
-      SELECT AVG(EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60)
-      FROM tickets
-      WHERE first_response_at IS NOT NULL
-        AND first_response_at >= created_at
-        AND created_at >= ?
-    SQL
+  def csat(range)
+    average, count = tickets
+      .where(csat_submitted_at: range)
+      .where.not(csat_score: nil)
+      .pick(Arel.sql('AVG(csat_score)'), Arel.sql('COUNT(*)'))
 
-    result = ActiveRecord::Base.connection.select_value(
-      ActiveRecord::Base.sanitize_sql_array([sql, since])
-    )
-    result.nil? ? nil : result.to_f.round(1)
+    [round_or_nil(average, 2), count.to_i]
   end
 
-  def csat_average
-    sql = <<~SQL.squish
-      SELECT AVG(csat_score)
-      FROM tickets
-      WHERE csat_score IS NOT NULL
-        AND csat_submitted_at >= ?
-    SQL
+  # Created -> first close, for tickets closed in the period.
+  def resolution(range)
+    minutes = 'EXTRACT(EPOCH FROM (close_at - created_at)) / 60'
+    median, mean, count = tickets
+      .where(close_at: range)
+      .where('close_at >= created_at')
+      .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
 
-    result = ActiveRecord::Base.connection.select_value(
-      ActiveRecord::Base.sanitize_sql_array([sql, since])
-    )
-    result.nil? ? nil : result.to_f.round(2)
+    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i]
+  end
+
+  # Team version of native "Reopening rate" (lib/stats/ticket_reopen.rb):
+  # reopen events logged in StatsStore during the period, for tickets in
+  # scope, over tickets closed in the period.
+  def reopen(range)
+    ticket_ids = StatsStore
+      .where(key: 'ticket:reopen', created_at: range)
+      .pluck(:data)
+      .filter_map { |data| data.is_a?(Hash) ? data['ticket_id'] || data[:ticket_id] : nil }
+      .uniq
+
+    reopened = ticket_ids.empty? ? 0 : tickets.where(id: ticket_ids).count
+    [reopened, tickets.where(close_at: range).count]
+  end
+
+  # Solution-time SLA per priority: of the tickets closed in the period
+  # that had a close deadline (close_escalation_at), how many closed on
+  # time. First-response SLA is not configured on this system (no ticket
+  # has first_response_escalation_at), so it is not used here.
+  def sla_by_priority(range)
+    within = 'SUM(CASE WHEN close_at <= close_escalation_at THEN 1 ELSE 0 END)'
+    rows = tickets
+      .where(close_at: range)
+      .where.not(close_escalation_at: nil)
+      .group(:priority_id)
+      .pluck(:priority_id, Arel.sql('COUNT(*)'), Arel.sql(within))
+    names = Ticket::Priority.where(id: rows.map(&:first)).pluck(:id, :name).to_h
+
+    rows.sort_by(&:first).reverse.map do |priority_id, total, ok|
+      {
+        priority_id:    priority_id,
+        priority:       names[priority_id],
+        total:          total.to_i,
+        within_sla:     ok.to_i,
+        within_percent: total.to_i.zero? ? nil : (ok.to_f / total * 100).round(1),
+      }
+    end
+  end
+
+  # Real-time: tickets still open (not closed/merged) by age.
+  def backlog_aging
+    now   = Time.zone.now
+    scope = tickets.where.not(state_id: Ticket::State.by_category(:closed).pluck(:id) + Ticket::State.by_category(:merged).pluck(:id))
+
+    BACKLOG_BUCKETS.map do |key, from_days, to_days|
+      relation = scope.where(created_at: ..(now - from_days.days))
+      relation = relation.where('created_at > ?', now - to_days.days) if to_days
+      { bucket: key, from_days: from_days, to_days: to_days, count: relation.count }
+    end
+  end
+
+  def round_or_nil(value, digits)
+    value.nil? ? nil : value.to_f.round(digits)
   end
 
   # Ticket::State.by_category(:open) lumps together new/open/pending
@@ -163,11 +269,11 @@ class Service::Dashboard::TeamKpi
   # buckets, so query by exact state_type name instead.
   def ticket_count_by_state_type(state_type_name)
     state_ids = Ticket::State.joins(:state_type).where(ticket_state_types: { name: state_type_name }).pluck(:id)
-    Ticket.where(state_id: state_ids).count
+    tickets.where(state_id: state_ids).count
   end
 
   def ticket_escalated_count
-    Ticket
+    tickets
       .where.not(state_id: Ticket::State.by_category(:closed))
       .where.not(escalation_at: nil)
       .where(escalation_at: ..Time.zone.now)
@@ -182,11 +288,11 @@ class Service::Dashboard::TeamKpi
   end
 
   def eskalasi_active_count
-    Ticket.where(state_id: eskalasi_state_id).count
+    tickets.where(state_id: eskalasi_state_id).count
   end
 
   def eskalasi_breached_count
-    Ticket
+    tickets
       .where(state_id: eskalasi_state_id)
       .where.not(escalation_deadline_at: nil)
       .where(escalation_deadline_at: ..Time.zone.now)
@@ -201,6 +307,22 @@ class Service::Dashboard::TeamKpi
     return 0.0 if active.zero?
 
     (breached.to_f / active * 100).round(1)
+  end
+
+  def rate_state(rate_percent, t)
+    return nil if rate_percent.nil?
+
+    if rate_percent >= t['superbad_min'].to_f
+      'superbad'
+    elsif rate_percent >= t['bad_min'].to_f
+      'bad'
+    elsif rate_percent >= t['ok_min'].to_f
+      'ok'
+    elsif rate_percent >= t['good_min'].to_f
+      'good'
+    else
+      'supergood'
+    end
   end
 
   def frt_state(minutes)

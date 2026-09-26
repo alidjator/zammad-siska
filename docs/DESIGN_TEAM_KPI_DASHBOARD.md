@@ -160,3 +160,47 @@ Nilai-nilai kalibrasi yang sebelumnya hardcoded di `team_kpi.rb` sekarang semuan
 Setting dengan 4 field disimpan sebagai satu hash (bukan 4 Setting terpisah) — ini format yang sama dipakai `App.SettingsAreaItem` (renderer generik Admin UI) untuk Setting multi-field, dengan key hash mengikuti `name` tiap field form.
 
 Refresh otomatis ini **silent** (tidak menampilkan indikator loading, dan kalau gagal — mis. jaringan putus sesaat — tetap menampilkan data terakhir yang berhasil dimuat, bukan mengosongkan tampilan) supaya tidak mengganggu user yang sedang melihat dashboard.
+
+## 10. Fase 2 BI: Scope Akses, Filter, Pembanding, dan Endpoint Baru
+
+Latar belakang: gap analysis mockup KPI Tim sebagai dashboard BI (arah B di kanvas desain) menemukan backend hanya mengembalikan satu angka per metrik untuk satu parameter (`days`), dan **query tidak dibatasi akses grup** — setiap agent melihat angka seluruh sistem. Fase 2 menutup gap backend-nya; tampilan (`team_kpi.coffee`) belum diubah dan tetap kompatibel karena semua key respons lama dipertahankan.
+
+### 10.1 Scope akses & filter (`Service::Dashboard::TeamKpi::Scope`)
+
+- Semua endpoint hanya menghitung tiket di grup yang bisa dibaca user (`User#group_ids_access('read')`). **Perubahan perilaku**: angka di tab KPI Tim sekarang bisa berbeda per agent, sesuai grupnya.
+- Filter opsional (array atau dipisah koma), sama di semua endpoint:
+
+| Parameter | Isi | Kolom |
+|---|---|---|
+| `group_ids` | id grup | `group_id` — diiriskan dengan grup yang boleh dibaca, tidak pernah memperluas akses |
+| `priority_ids` | id prioritas | `priority_id` |
+| `channels` | nama tipe artikel pembuat tiket (`email`, `chat`, `web`, `phone`, `sms`, …) | `create_article_type_id` |
+| `categories` | `request`, `complaint`, `information`, `no_category` | `category` |
+
+### 10.2 Pembanding (`compare=auto|previous|yoy|none`, default `auto`)
+
+`auto` mengikuti keputusan desain dashboard: < 1 tahun → periode sebelumnya dengan panjang sama; 1 tahun → periode sama tahun lalu (`yoy`); 2 tahun (= `team_kpi_max_window_days`) → tanpa pembanding. Metrik periode (FRT, CSAT, resolusi, reopen) dihitung ulang untuk rentang pembanding dan dikembalikan di `comparison`. Snapshot real-time (New/Open/Escalated/Eskalasi/backlog) **tidak punya pembanding** — nilai masa lalunya tidak tersimpan (butuh job snapshot berkala, belum ada).
+
+Catatan data: staging menyimpan tiket sejak 2020-09, jadi secara data pembanding untuk 2 tahun sebenarnya tersedia; `none` untuk 2 tahun adalah keputusan tampilan, bisa diganti lewat `compare=yoy`.
+
+### 10.3 Tambahan di `GET /api/v1/team_kpi`
+
+| Field | Keterangan |
+|---|---|
+| `frt_count`, `csat_count` | Ukuran sampel (n) FRT dan CSAT |
+| `resolution_median_minutes`, `resolution_mean_minutes`, `resolution_count` | Waktu penyelesaian: `created_at` → `close_at` (close pertama), tiket yang closed di periode |
+| `reopen_count`, `reopen_closed_count`, `reopen_rate_percent`, `reopen_state` | Versi tim dari "Reopening rate" My Stats: event `ticket:reopen` di `StatsStore` pada periode / tiket closed di periode. Bucket state sama dengan `lib/stats/ticket_reopen.rb` (20/40/65/90%) |
+| `sla_by_priority` | Per prioritas: dari tiket closed di periode yang punya `close_escalation_at`, berapa closed tepat waktu. **SLA penyelesaian**, bukan respons pertama — SLA respons pertama belum dikonfigurasi di sistem ini (tidak ada tiket dengan `first_response_escalation_at`) |
+| `backlog_aging` | Real-time: tiket belum closed/merged per umur (`lt_1d`, `d1_3`, `d3_7`, `d7_30`, `gte_30d`) |
+| `period`, `comparison` | Rentang `{from, to}`; `comparison` = `null` atau `{mode, from, to, …metrik periode}` |
+| `filters`, `group_ids_count` | Filter yang benar-benar dipakai, dan jumlah grup dalam scope |
+
+### 10.4 Endpoint baru
+
+| Endpoint | Isi |
+|---|---|
+| `GET /api/v1/team_kpi/trend?metric=frt\|csat\|volume\|resolution` | Deret waktu per `day` (≤ 30 hari) / `week` (≤ 180) / `month`, zona waktu `timezone_default`, semua bucket ada (yang kosong `value: null`). `comparison.points` sejajar per indeks. Rasio Escalated tidak tersedia sebagai tren (snapshot, lihat 10.2) |
+| `GET /api/v1/team_kpi/heatmap` | 7 × 24 sel (`dow` ISO 1=Senin, `hour` 0–23): `total` tiket masuk dan `avg_per_day` (dibagi jumlah kemunculan hari itu di periode) |
+| `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n, CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `report` atau `admin`** — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
+
+Catatan implementasi: kolom waktu tiket bertipe `timestamptz`, jadi konversi ke waktu lokal cukup `kolom AT TIME ZONE '<tz>'` (konversi ganda `AT TIME ZONE 'UTC' AT TIME ZONE '<tz>'` menggeser 7 jam — sempat terjadi saat pengembangan, tertangkap dari heatmap yang puncaknya jatuh jam 23.00).

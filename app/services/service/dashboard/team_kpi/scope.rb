@@ -1,0 +1,105 @@
+# Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
+
+# Shared ticket scope for every "KPI Tim" endpoint (summary, trend,
+# heatmap, agents) -- see docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 10.
+#
+# Two jobs:
+#   1. Access: tickets are limited to the groups the requesting user can
+#      read (User#group_ids_access('read')). Before this, the KPI tab
+#      counted every ticket in the system for every agent.
+#   2. Filters: optional group_ids / priority_ids / channels
+#      (create_article_type names) / categories, narrowing that scope
+#      further. A filter can never widen access -- group_ids is
+#      intersected with the readable groups.
+#
+# Period ranges are half-open [from, to). Comparison ranges follow the
+# dashboard's rule (compare: 'auto'): windows under a year compare with
+# the equally long period right before, 1 year compares with the same
+# period last year, and 2 years (max window) has no comparison.
+class Service::Dashboard::TeamKpi::Scope
+  COMPARE_MODES = %w[auto previous yoy none].freeze
+
+  attr_reader :user, :filters
+
+  def initialize(user: nil, filters: {})
+    @user    = user
+    @filters = normalize_filters(filters)
+  end
+
+  # Group ids the scope is limited to, or nil for "no restriction" (only
+  # when no user is given, e.g. internal callers / the console).
+  def group_ids
+    return @group_ids if defined?(@group_ids)
+
+    readable = user ? user.group_ids_access('read') : nil
+    wanted   = filters[:group_ids].presence
+
+    @group_ids = if readable && wanted
+                   readable & wanted
+                 else
+                   readable || wanted
+                 end
+  end
+
+  # All tickets the requesting user may see, with filters applied.
+  def tickets
+    relation = Ticket.all
+    relation = relation.where(group_id: group_ids) if !group_ids.nil?
+    relation = relation.where(priority_id: filters[:priority_ids]) if filters[:priority_ids].present?
+    relation = relation.where(create_article_type_id: channel_type_ids) if filters[:channels].present?
+    relation = relation.where(category: filters[:categories]) if filters[:categories].present?
+    relation
+  end
+
+  def self.window_range(days, now: Time.zone.now)
+    (now - days.days)...now
+  end
+
+  # @return [Hash, nil] { mode:, range: } or nil when there is no comparison
+  def self.comparison(range, days, mode: 'auto')
+    mode = COMPARE_MODES.include?(mode.to_s) ? mode.to_s : 'auto'
+    if mode == 'auto'
+      mode = if days >= Service::Dashboard::TeamKpi.max_window_days
+               'none'
+             elsif days >= 365
+               'yoy'
+             else
+               'previous'
+             end
+    end
+
+    case mode
+    when 'none'
+      nil
+    when 'yoy'
+      { mode: 'yoy', range: (range.begin - 1.year)...(range.end - 1.year) }
+    else
+      length = range.end - range.begin
+      { mode: 'previous', range: (range.begin - length)...range.begin }
+    end
+  end
+
+  private
+
+  def channel_type_ids
+    Ticket::Article::Type.where(name: filters[:channels]).pluck(:id)
+  end
+
+  def normalize_filters(raw)
+    raw = (raw || {}).to_h.symbolize_keys
+    {
+      group_ids:    int_list(raw[:group_ids]),
+      priority_ids: int_list(raw[:priority_ids]),
+      channels:     str_list(raw[:channels]),
+      categories:   str_list(raw[:categories]),
+    }
+  end
+
+  def int_list(value)
+    Array(value).flat_map { |v| v.to_s.split(',') }.map(&:strip).compact_blank.map(&:to_i).select(&:positive?).uniq
+  end
+
+  def str_list(value)
+    Array(value).flat_map { |v| v.to_s.split(',') }.map(&:strip).compact_blank.uniq
+  end
+end
