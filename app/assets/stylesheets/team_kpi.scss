@@ -45,6 +45,9 @@ $kpi-radius-sm: 8px;
 $kpi-radius-pill: 20px;
 
 .team-kpi {
+  // lebar area dashboard berbeda-beda (Activity Stream, layar), jadi grid
+  // kartu mengikuti lebar kontainer, bukan viewport
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -343,10 +346,19 @@ $kpi-radius-pill: 20px;
 
   // ------------------------------------------------------------ kartu KPI
 
+  // 6 kartu: 2 / 3 / 6 kolom -- tidak pernah 5 + 1 atau 4 + 2
   .team-kpi-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
+
+    @container (min-width: 700px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @container (min-width: 1450px) {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
   }
 
   .team-kpi-score {
