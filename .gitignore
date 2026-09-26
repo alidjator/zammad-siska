@@ -137,3 +137,7 @@ schema.graphql
 /.agents/skills
 /.claude/skills
 /.claude/settings.local.json
+
+# SISKA -- artefak build widget (pnpm) yg tidak perlu masuk repo
+/.pnpm-store/
+/public/assets/chat/pnpm-workspace.yaml
