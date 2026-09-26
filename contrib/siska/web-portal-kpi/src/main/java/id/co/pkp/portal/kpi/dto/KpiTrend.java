@@ -19,7 +19,11 @@ public record KpiTrend(
     int windowDays,
     KpiSummary.Period period,
     List<Point> points,
-    Comparison comparison) {
+    Comparison comparison,
+    /** hanya metric escalated: snapshot tertua (null = belum ada snapshot) */
+    java.time.OffsetDateTime historySince,
+    /** hanya metric escalated: "filters" kalau tidak tersedia dengan filter aktif */
+    String unavailable) {
 
   /** value null = tidak ada data di bucket itu (volume selalu angka, 0 = tidak ada tiket). */
   @JsonIgnoreProperties(ignoreUnknown = true)
@@ -29,6 +33,10 @@ public record KpiTrend(
   @JsonIgnoreProperties(ignoreUnknown = true)
   public record Comparison(String mode, KpiSummary.Period period, List<Point> points) {}
 
-  /** Metrik yang tersedia. Rasio Escalated tidak punya tren (snapshot real-time). */
-  public enum Metric { frt, csat, volume, resolution }
+  /**
+   * Metrik yang tersedia. escalated = Rasio Escalated (%) dari snapshot per jam: riwayatnya baru
+   * ada sejak job snapshot berjalan (historySince), dan tidak tersedia (unavailable = "filters")
+   * kalau filter prioritas/channel/kategori dipakai.
+   */
+  public enum Metric { frt, csat, volume, resolution, escalated }
 }

@@ -24,6 +24,7 @@ class Service::Dashboard::TeamKpi::Export
     ['csat',       'CSAT (1-5)'],
     ['volume',     'Tiket masuk'],
     ['resolution', 'Penyelesaian median (menit)'],
+    ['escalated',  'Rasio Escalated (%)'],
   ].freeze
 
   BACKLOG_LABELS = {
@@ -164,6 +165,8 @@ class Service::Dashboard::TeamKpi::Export
     row   = sheet_head(sheet, 'KPI Tim -- Ringkasan')
     s     = @summary
     c     = s[:comparison] || {}
+    rc    = s[:realtime_comparison] || {}
+    r     = rc[:available] ? rc : {}
 
     records = [
       ['First Response Time (median)', s[:frt_median_minutes], 'menit', s[:frt_count], state(s[:frt_state]), c[:frt_median_minutes], delta(s[:frt_median_minutes], c[:frt_median_minutes]), 'Periode'],
@@ -172,17 +175,23 @@ class Service::Dashboard::TeamKpi::Export
       ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], nil, c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
       ['Waktu penyelesaian (mean)', s[:resolution_mean_minutes], 'menit', s[:resolution_count], nil, c[:resolution_mean_minutes], delta(s[:resolution_mean_minutes], c[:resolution_mean_minutes]), 'Periode'],
       ['Reopening rate', s[:reopen_rate_percent], '%', s[:reopen_closed_count], state(s[:reopen_state]), c[:reopen_rate_percent], delta(s[:reopen_rate_percent], c[:reopen_rate_percent]), 'Periode'],
-      ['Tiket New', s[:ticket_new], 'tiket', nil, nil, nil, nil, 'Real-time'],
-      ['Tiket Open', s[:ticket_open], 'tiket', nil, nil, nil, nil, 'Real-time'],
-      ['Tiket Escalated (lewat SLA)', s[:ticket_escalated], 'tiket', nil, nil, nil, nil, 'Real-time'],
-      ['Rasio Escalated', s[:escalation_rate_percent], '% dari New+Open', nil, state(s[:escalated_state]), nil, nil, 'Real-time'],
-      ['Eskalasi aktif', s[:eskalasi_active], 'tiket', nil, nil, nil, nil, 'Real-time'],
-      ['Breach eskalasi', s[:eskalasi_breached], 'tiket', nil, state(s[:eskalasi_breach_state]), nil, nil, 'Real-time'],
-      ['Breach eskalasi (rate)', s[:eskalasi_breach_rate_percent], '% dari eskalasi aktif', nil, nil, nil, nil, 'Real-time'],
+      ['Tiket New', s[:ticket_new], 'tiket', nil, nil, r[:ticket_new], delta(s[:ticket_new], r[:ticket_new]), 'Real-time'],
+      ['Tiket Open', s[:ticket_open], 'tiket', nil, nil, r[:ticket_open], delta(s[:ticket_open], r[:ticket_open]), 'Real-time'],
+      ['Tiket Escalated (lewat SLA)', s[:ticket_escalated], 'tiket', nil, nil, r[:ticket_escalated], delta(s[:ticket_escalated], r[:ticket_escalated]), 'Real-time'],
+      ['Rasio Escalated', s[:escalation_rate_percent], '% dari New+Open', nil, state(s[:escalated_state]), r[:escalation_rate_percent], delta(s[:escalation_rate_percent], r[:escalation_rate_percent]), 'Real-time'],
+      ['Eskalasi aktif', s[:eskalasi_active], 'tiket', nil, nil, r[:eskalasi_active], delta(s[:eskalasi_active], r[:eskalasi_active]), 'Real-time'],
+      ['Breach eskalasi', s[:eskalasi_breached], 'tiket', nil, state(s[:eskalasi_breach_state]), r[:eskalasi_breached], delta(s[:eskalasi_breached], r[:eskalasi_breached]), 'Real-time'],
+      ['Breach eskalasi (rate)', s[:eskalasi_breach_rate_percent], '% dari eskalasi aktif', nil, nil, r[:eskalasi_breach_rate_percent], delta(s[:eskalasi_breach_rate_percent], r[:eskalasi_breach_rate_percent]), 'Real-time'],
     ]
     row = write_table(sheet, row, ['Metrik', 'Nilai', 'Satuan', 'n', 'Status', 'Pembanding', 'Selisih', 'Dasar waktu'], records,
                       widths: [32, 12, 20, 10, 14, 12, 10, 12])
-    sheet.write_string(row + 1, 0, 'n = ukuran sampel. Real-time = kondisi saat ekspor, tidak ikut filter periode dan tidak punya pembanding.', @f_note)
+    realtime_note = if rc[:available]
+                      "Pembanding baris Real-time = snapshot per jam #{local(rc[:captured_at])} (kemarin, jam sama)."
+                    else
+                      'Baris Real-time tanpa pembanding: snapshot kemarin belum ada atau filter prioritas/channel/kategori aktif.'
+                    end
+    sheet.write_string(row + 1, 0, 'n = ukuran sampel. Real-time = kondisi saat ekspor, tidak ikut filter periode.', @f_note)
+    sheet.write_string(row + 2, 0, realtime_note, @f_note)
   end
 
   def sheet_trend

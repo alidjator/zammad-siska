@@ -46,7 +46,7 @@ class ZammadKpiClientTest extends TestCase
     public function test_trend_rejects_unknown_metric(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->client()->trend('escalated', new KpiQuery);
+        $this->client()->trend('backlog', new KpiQuery);
     }
 
     public function test_export_keeps_filename(): void

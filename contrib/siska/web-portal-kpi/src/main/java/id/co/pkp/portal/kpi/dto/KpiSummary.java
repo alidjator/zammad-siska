@@ -40,6 +40,7 @@ public record KpiSummary(
     double eskalasiBreachRatePercent,
     String eskalasiBreachState,
     List<BacklogBucket> backlogAging,
+    RealtimeComparison realtimeComparison,
     // Konteks
     int windowDays,
     Period period,
@@ -68,6 +69,25 @@ public record KpiSummary(
       int reopenCount,
       int reopenClosedCount,
       Double reopenRatePercent) {}
+
+  /**
+   * Angka real-time ±24 jam lalu dari snapshot per jam (delta "vs kemarin, jam sama").
+   * available = false + reason (filters | no_snapshot | no_history) kalau tidak ada.
+   */
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+  public record RealtimeComparison(
+      boolean available,
+      String reason,
+      OffsetDateTime historySince,
+      OffsetDateTime capturedAt,
+      Integer ticketNew,
+      Integer ticketOpen,
+      Integer ticketEscalated,
+      Double escalationRatePercent,
+      Integer eskalasiActive,
+      Integer eskalasiBreached,
+      Double eskalasiBreachRatePercent) {}
 
   /** SLA penyelesaian per prioritas (close_escalation_at). */
   @JsonIgnoreProperties(ignoreUnknown = true)

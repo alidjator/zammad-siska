@@ -126,6 +126,7 @@ class Service::Dashboard::TeamKpi
       eskalasi_breach_rate_percent: eskalasi_breach_rate,
       eskalasi_breach_state:      eskalasi_breach_state(eskalasi_breach_rate),
       backlog_aging:          backlog_aging,
+      realtime_comparison:    realtime_comparison(new_count, open_count, escalated, eskalasi_active, eskalasi_breached),
       window_days:            @window_days,
       period:                 range_json(@range),
       comparison:             comparison_json,
@@ -140,6 +141,35 @@ class Service::Dashboard::TeamKpi
 
   def tickets
     @scope.tickets
+  end
+
+  # Real-time numbers ~24 hours ago from the hourly snapshots (Section 13),
+  # for the "vs kemarin, jam sama" delta. available: false with a reason
+  # when there is nothing to compare: filters the snapshots are not split
+  # by, or no snapshot around that time yet (history starts when the job
+  # started).
+  def realtime_comparison(new_count, open_count, escalated, eskalasi_active, eskalasi_breached)
+    snapshot = Service::Dashboard::TeamKpi::Snapshot
+    return { available: false, reason: 'filters' } if !snapshot.supported?(@scope)
+
+    at   = Time.zone.now - 24.hours
+    past = snapshot.nearest(@scope, at)
+    if !past
+      since = snapshot.history_since
+      return { available: false, reason: since ? 'no_snapshot' : 'no_history', history_since: since&.iso8601 }
+    end
+
+    {
+      available:                    true,
+      captured_at:                  past[:captured_at].iso8601,
+      ticket_new:                   past[:ticket_new],
+      ticket_open:                  past[:ticket_open],
+      ticket_escalated:             past[:ticket_escalated],
+      escalation_rate_percent:      escalation_rate_percent(past[:ticket_escalated], past[:ticket_new], past[:ticket_open]),
+      eskalasi_active:              past[:eskalasi_active],
+      eskalasi_breached:            past[:eskalasi_breached],
+      eskalasi_breach_rate_percent: eskalasi_breach_rate_percent(past[:eskalasi_breached], past[:eskalasi_active]),
+    }
   end
 
   # The cutoffs behind every *_state, so a UI can label its scale

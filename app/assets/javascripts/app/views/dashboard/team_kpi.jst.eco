@@ -119,21 +119,21 @@
       <span class="team-kpi-live-dot"></span>
       <div>
         <b><%- @T('Antrian real-time') %></b>
-        <div class="team-kpi-muted"><%- @T('Tidak ikut filter periode') %></div>
+        <div class="team-kpi-muted"><%= @queue.note %></div>
       </div>
     </div>
     <div class="team-kpi-queue-items">
       <a href="#ticket/view/all_open" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket aktif') %>">
-        <span><%- @T('Total aktif') %></span><b><%= @queue.total %></b>
+        <span><%- @T('Total aktif') %></span><b><%= @queue.total %></b><% if @queue.dTotal: %><em class="<%= @queue.dTotal.cls %>"><%= @queue.dTotal.text %></em><% end %>
       </a>
       <a href="#ticket/view/new" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket New') %>">
-        <span><%- @T('New') %></span><b><%= @queue.new %></b><small><%= @queue.newPct %>%</small>
+        <span><%- @T('New') %></span><b><%= @queue.new %></b><small><%= @queue.newPct %>%</small><% if @queue.dNew: %><em class="<%= @queue.dNew.cls %>"><%= @queue.dNew.text %></em><% end %>
       </a>
       <a href="#ticket/view/all_open" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket Open') %>">
-        <span><%- @T('Open') %></span><b><%= @queue.open %></b><small><%= @queue.openPct %>%</small>
+        <span><%- @T('Open') %></span><b><%= @queue.open %></b><small><%= @queue.openPct %>%</small><% if @queue.dOpen: %><em class="<%= @queue.dOpen.cls %>"><%= @queue.dOpen.text %></em><% end %>
       </a>
       <a href="#ticket/view/all_escalated" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket yang lewat SLA') %>">
-        <span><%- @T('Escalated') %></span><b class="is-bad"><%= @queue.escalated %></b><small><%- @T('lewat SLA') %></small>
+        <span><%- @T('Escalated') %></span><b class="is-bad"><%= @queue.escalated %></b><small><%- @T('lewat SLA') %></small><% if @queue.dEsc: %><em class="<%= @queue.dEsc.cls %>"><%= @queue.dEsc.text %></em><% end %>
       </a>
     </div>
   </div>
@@ -143,7 +143,7 @@
       <div>
         <div class="team-kpi-section-title">
           <%- @T('Tren') %>
-          <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Nilai per hari/minggu/bulan di periode terpilih (garis biru), dibanding periode pembanding (garis putus-putus). Rasio Escalated tidak punya tren karena nilai masa lalunya tidak tersimpan.') %>"><%- @SiskaIcon('info', 14) %></span>
+          <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Nilai per hari/minggu/bulan di periode terpilih (garis biru), dibanding periode pembanding (garis putus-putus). Rasio Escalated dihitung dari snapshot per jam, jadi riwayatnya baru ada sejak snapshot mulai dikumpulkan.') %>"><%- @SiskaIcon('info', 14) %></span>
         </div>
         <div class="team-kpi-muted"><%= @trend.subtitle || @basis %></div>
       </div>
@@ -177,10 +177,10 @@
             <line x1="0" y1="160" x2="1000" y2="160" class="grid"></line>
             <line x1="0" y1="210" x2="1000" y2="210" class="axis"></line>
             <% for line in @trend.prevLines: %>
-              <polyline points="<%= line %>" class="compare"></polyline>
+              <polyline points="<%= line.points %>" class="compare <% if line.dot: %>is-dot<% end %>"></polyline>
             <% end %>
             <% for line in @trend.curLines: %>
-              <polyline points="<%= line %>" class="current"></polyline>
+              <polyline points="<%= line.points %>" class="current <% if line.dot: %>is-dot<% end %>"></polyline>
             <% end %>
           </svg>
           <div class="team-kpi-chart-x">

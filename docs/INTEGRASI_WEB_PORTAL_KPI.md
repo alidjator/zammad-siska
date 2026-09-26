@@ -35,7 +35,7 @@ Rotasi token: buat token baru (`rails runner script/create_kpi_integration_accou
 | Zammad | Portal (kode referensi) | Isi |
 |---|---|---|
 | `GET /api/v1/team_kpi` | `GET /api/portal/kpi/summary` | Kartu KPI, antrian real-time, SLA, backlog, pembanding |
-| `GET /api/v1/team_kpi/trend?metric=frt\|csat\|volume\|resolution` | `GET /api/portal/kpi/trend?metric=` | Grafik tren + pembanding (sejajar per indeks) |
+| `GET /api/v1/team_kpi/trend?metric=frt\|csat\|volume\|resolution\|escalated` | `GET /api/portal/kpi/trend?metric=` | Grafik tren + pembanding (sejajar per indeks) |
 | `GET /api/v1/team_kpi/heatmap` | `GET /api/portal/kpi/heatmap` | Beban per hari × jam |
 | `GET /api/v1/team_kpi/export` | `GET /api/portal/kpi/export` | Unduhan `.xlsx` (tidak di-cache) |
 
@@ -77,3 +77,4 @@ Terakhir diuji 2026-09-26 ke staging dengan token akun integrasi: semua lolos.
 - FRT dihitung hanya dari tiket yang **dibuka customer** (lihat DESIGN Section 1). Tiket yang dibuat agent (email keluar, telepon dicatat agent) tidak masuk.
 - Tampilkan `n` di samping median/rata-rata; `n` kecil = angka belum bisa diandalkan.
 - Tren `volume`: bucket tanpa tiket = `0`; metrik lain: bucket tanpa data = `null` (putus garis, jangan tarik ke 0).
+- Kartu real-time: `realtime_comparison` (snapshot per jam ±24 jam lalu) untuk delta "vs kemarin, jam sama"; `available: false` + `reason` kalau belum ada. Tren `escalated` baru berisi sejak snapshot mulai dikumpulkan (`historySince`). Lihat DESIGN Section 13.

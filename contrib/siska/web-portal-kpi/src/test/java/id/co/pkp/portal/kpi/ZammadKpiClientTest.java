@@ -33,6 +33,7 @@ class ZammadKpiClientTest {
        "ticket_new":140,"ticket_open":79,"ticket_escalated":169,"escalation_rate_percent":77.2,"escalated_state":"bad",
        "eskalasi_active":3,"eskalasi_breached":3,"eskalasi_breach_rate_percent":100.0,"eskalasi_breach_state":"superbad",
        "backlog_aging":[{"bucket":"lt_1d","from_days":0,"to_days":1,"count":12},{"bucket":"gte_30d","from_days":30,"to_days":null,"count":138}],
+       "realtime_comparison":{"available":true,"captured_at":"2026-09-25T22:00:00Z","ticket_new":130,"ticket_open":80,"ticket_escalated":161,"escalation_rate_percent":76.7,"eskalasi_active":3,"eskalasi_breached":1,"eskalasi_breach_rate_percent":33.3},
        "window_days":7,"period":{"from":"2026-09-19T15:26:57Z","to":"2026-09-26T15:26:57Z"},
        "comparison":{"from":"2026-09-12T15:26:57Z","to":"2026-09-19T15:26:57Z","mode":"previous","frt_median_minutes":0.0,
          "frt_mean_minutes":220.1,"frt_count":43,"csat_average":null,"csat_count":0,"resolution_median_minutes":null,
@@ -70,6 +71,8 @@ class ZammadKpiClientTest {
     assertThat(s.comparison().mode()).isEqualTo("previous");
     assertThat(s.comparison().csatAverage()).isNull();
     assertThat(s.groupIdsCount()).isEqualTo(34);
+    assertThat(s.realtimeComparison().available()).isTrue();
+    assertThat(s.realtimeComparison().escalationRatePercent()).isEqualTo(76.7);
     server.verify();
   }
 

@@ -16,8 +16,11 @@ use InvalidArgumentException;
  */
 class ZammadKpiClient
 {
-    /** Rasio Escalated tidak punya tren (snapshot real-time). */
-    public const TREND_METRICS = ['frt', 'csat', 'volume', 'resolution'];
+    /**
+     * escalated = Rasio Escalated (%) dari snapshot per jam: riwayat baru ada sejak job snapshot
+     * berjalan (history_since); unavailable = 'filters' dengan filter prioritas/channel/kategori.
+     */
+    public const TREND_METRICS = ['frt', 'csat', 'volume', 'resolution', 'escalated'];
 
     public function __construct(private readonly HttpFactory $http, private readonly array $config) {}
 

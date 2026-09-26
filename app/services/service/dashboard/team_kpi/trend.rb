@@ -6,14 +6,18 @@
 # (Setting timezone_default), plus the comparison period's series aligned
 # by bucket index (same rule as the summary: previous / yoy / none).
 #
-# Escalated rate has no trend: it is a real-time snapshot and past values
-# are not stored anywhere (would need a periodic snapshot job).
+# Escalated rate comes from the hourly snapshots (TeamKpi::Snapshot, Section
+# 13): per bucket, sum(escalated) / sum(new + open) over the snapshot hours
+# in it -- so its history only starts when the snapshot job started
+# (`history_since`), and it is unavailable with priority/channel/category
+# filters (snapshots are only split by group).
 class Service::Dashboard::TeamKpi::Trend
   METRICS = {
     'frt'        => { column: 'created_at',        agg: :median, value: 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60' },
     'csat'       => { column: 'csat_submitted_at', agg: :avg,    value: 'csat_score' },
     'volume'     => { column: 'created_at',        agg: :count,  value: nil },
     'resolution' => { column: 'close_at',          agg: :median, value: 'EXTRACT(EPOCH FROM (close_at - created_at)) / 60' },
+    'escalated'  => { column: 'captured_at',       agg: :snapshot_rate, value: nil },
   }.freeze
 
   def self.call(...)
@@ -42,7 +46,7 @@ class Service::Dashboard::TeamKpi::Trend
   end
 
   def call
-    {
+    result = {
       metric:      @metric,
       bucket:      @bucket,
       timezone:    timezone,
@@ -51,6 +55,10 @@ class Service::Dashboard::TeamKpi::Trend
       points:      series(@range),
       comparison:  comparison,
     }
+    return result if !snapshot?
+
+    snapshot = Service::Dashboard::TeamKpi::Snapshot
+    result.merge(history_since: snapshot.history_since&.iso8601, unavailable: snapshot.supported?(@scope) ? nil : 'filters')
   end
 
   private
@@ -81,6 +89,8 @@ class Service::Dashboard::TeamKpi::Trend
   # one less bucket (e.g. 90 days = 14 vs 13 weeks).
   def series(range, count: nil)
     bucket_sql = "date_trunc('#{@bucket}', #{local(config[:column])})"
+    return snapshot_series(range, bucket_sql, count) if snapshot?
+
     values = relation(range)
       .group(Arel.sql(bucket_sql))
       .pluck(Arel.sql(bucket_sql), Arel.sql(aggregate_sql), Arel.sql('COUNT(*)'))
@@ -92,6 +102,39 @@ class Service::Dashboard::TeamKpi::Trend
       value, count = values[start]
       value = 0 if value.nil? && config[:agg] == :count # no tickets = 0, not "no data"
       { bucket_start: start.iso8601, value: value.nil? ? nil : value.to_f.round(2), count: count.to_i }
+    end
+  end
+
+  def snapshot?
+    config[:agg] == :snapshot_rate
+  end
+
+  # Rate per bucket over the snapshot hours in it; buckets without any
+  # snapshot hour are null (no data), hours with no ticket in scope are 0.
+  def snapshot_series(range, bucket_sql, count)
+    snapshot = Service::Dashboard::TeamKpi::Snapshot
+    supported = snapshot.supported?(@scope)
+    hours = TeamKpiSnapshot.markers.where(captured_at: range)
+      .group(Arel.sql(bucket_sql)).pluck(Arel.sql(bucket_sql), Arel.sql('COUNT(*)'))
+      .to_h { |start, n| [start.to_date, n.to_i] }
+    sums = snapshot.rows_in_scope(@scope).where(captured_at: range)
+      .group(Arel.sql(bucket_sql))
+      .pluck(Arel.sql(bucket_sql), Arel.sql('SUM(ticket_escalated)'), Arel.sql('SUM(ticket_new + ticket_open)'))
+      .to_h { |start, esc, denom| [start.to_date, [esc.to_i, denom.to_i]] }
+
+    starts = bucket_starts(range)
+    starts = starts.first(count) + (starts.size...count).map { |i| advance(starts.first, i) } if count
+    starts.map do |start|
+      n = hours[start].to_i
+      esc, denom = sums[start]
+      value = if !supported || n.zero?
+                nil
+              elsif denom.to_i.zero?
+                0.0
+              else
+                (esc.to_f / denom * 100).round(2)
+              end
+      { bucket_start: start.iso8601, value: value, count: supported ? n : 0 }
     end
   end
 

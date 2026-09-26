@@ -288,3 +288,32 @@ Kondisi data (artboard `TeamKpi-KitB-States`): skeleton saat pertama dimuat; kal
 Perbedaan dari mockup (keputusan saat implementasi): tanpa rentang tanggal bebas (API hanya menerima `days`), tanpa sparkline per kartu (tren sudah ada di grafik utama, menghemat 5 request per refresh), kartu "tiket breach" diganti umur backlog, target SLA per prioritas tidak digambar (belum ada Setting targetnya).
 
 Diuji tanpa browser (Playwright ditunda): controller + template hasil compile dijalankan di Node dengan data API asli staging — 3 periode × 4 metrik × (report / agent biasa), gagal sebagian, gagal total, URL ekspor — tidak ada teks `undefined`/`NaN`, agents tidak diminta tanpa `report`, 2 tahun tanpa pembanding. **Tampilan visual belum diperiksa di browser.**
+
+## 13. Snapshot Per Jam: Tren Rasio Escalated & Delta "vs Kemarin"
+
+Angka real-time (New, Open, Escalated, Eskalasi aktif/breach) adalah kondisi "saat ini" — nilai masa lalunya tidak tersimpan di mana pun, jadi tanpa rekaman berkala tidak ada tren Rasio Escalated dan tidak ada pembanding untuk kartu real-time. Sekarang direkam per jam.
+
+| Komponen | File |
+|---|---|
+| Tabel `team_kpi_snapshots` | `db/migrate/20260927000001_create_team_kpi_snapshots.rb`, model `TeamKpiSnapshot` (ActiveRecord biasa, bukan ApplicationModel — data statistik internal, ditulis massal) |
+| Capture, pencarian, retensi | `Service::Dashboard::TeamKpi::Snapshot` |
+| Job | Scheduler **"KPI Tim: snapshot per jam"** (`script/create_team_kpi_snapshot_scheduler.rb`), tiap 15 menit, aktif |
+
+- **Isi**: satu baris per (jam, grup) untuk grup yang punya angka, plus **baris penanda** `group_id = 0` berisi total seluruh sistem — menandai jam yang sudah direkam, sehingga "jam ini semua nol" bisa dibedakan dari "tidak ada snapshot". Definisi hitungan sama persis dengan ringkasan (diverifikasi: 275 / 167 / 310 / 3 / 3 identik).
+- **Sekali per jam**: job jalan tiap 15 menit tapi tidak menulis kalau penanda jam ini sudah ada (`capture(force: true)` untuk menimpa). Job terlambat/restart tetap mengisi jamnya.
+- **Per grup**, supaya pembatasan akses grup (Section 10.1) tetap berlaku. **Tidak dipisah per prioritas/channel/kategori** — dengan filter itu, delta dan tren Escalated dinyatakan tidak tersedia (`reason`/`unavailable: 'filters'`), bukan dihitung salah.
+- **Retensi**: dihapus kalau lebih tua dari `team_kpi_max_window_days` + 2 hari (±17 ribu baris per tahun di staging: 14 grup × 24 jam × 365 + penanda — ukuran kecil, relevan dengan catatan disk 11.2).
+- **Riwayat mulai dari nol**: tidak bisa direkonstruksi ke belakang. Staging mulai 2026-09-26 22:00 UTC (27 Sep 05:00 WIB); di production mulai saat migration + script dijalankan. Tren Escalated 1 tahun baru "penuh" setahun setelahnya.
+- Kolom `timestamptz` seperti kolom waktu tickets (sempat dibuat `timestamp` biasa, diperbaiki sebelum ada data — dengan `timestamp` konversi `AT TIME ZONE` di tren akan bergeser 7 jam).
+
+API:
+
+| Endpoint | Tambahan |
+|---|---|
+| `/team_kpi` | `realtime_comparison`: `{available: true, captured_at, ticket_new, ticket_open, ticket_escalated, escalation_rate_percent, eskalasi_active, eskalasi_breached, eskalasi_breach_rate_percent}` dari snapshot terdekat ke 24 jam lalu (toleransi ±2 jam), atau `{available: false, reason: filters \| no_snapshot \| no_history, history_since}` |
+| `/team_kpi/trend?metric=escalated` | Per bucket: Σ escalated / Σ (new + open) × 100 atas jam-jam snapshot di bucket itu; `count` = jumlah jam snapshot; bucket tanpa snapshot = `null`. Tambahan `history_since` dan `unavailable` |
+| `/team_kpi/export` | Kolom Pembanding/Selisih baris Real-time di sheet Ringkasan diisi dari snapshot kemarin; sheet Tren dapat kolom Rasio Escalated |
+
+Tampilan tab KPI Tim: kartu Rasio Escalated dan Breach eskalasi menampilkan ▲▼ "vs kemarin, jam sama" (atau alasan kenapa belum ada), strip antrian menampilkan perubahan New/Open/Escalated vs kemarin, dan grafik tren punya tab **Rasio Escalated** (pesan "baru dikumpulkan sejak …" selama riwayat belum ada). Titik data tunggal digambar sebagai bulatan (polyline satu titik tidak terlihat). Klien Spring Boot (`KpiTrend.Metric.escalated`, `KpiSummary.realtimeComparison`) dan Laravel (`TREND_METRICS` + `escalated`) ikut diperbarui; uji unit & live keduanya lolos.
+
+**Deploy ke production** (urutan): migration (`rails db:migrate`) → `rails runner script/create_team_kpi_snapshot_scheduler.rb` → pastikan kode ada di container/proses **scheduler** juga (job berjalan di sana, bukan di web) → restart scheduler.

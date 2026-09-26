@@ -607,6 +607,12 @@ $kpi-radius-pill: 20px;
       font-size: 11.5px;
       color: $kpi-muted;
     }
+
+    em {
+      font-size: 11.5px;
+      font-style: normal;
+      font-weight: 600;
+    }
   }
 
   // ------------------------------------------------------------ tren
@@ -728,6 +734,12 @@ $kpi-radius-pill: 20px;
         stroke: $kpi-secondary;
         stroke-width: 1.5;
         stroke-dasharray: 5 4;
+      }
+
+      // titik tunggal: garis nol panjang + ujung bulat = bulatan
+      &.is-dot {
+        stroke-width: 7;
+        stroke-dasharray: none;
       }
     }
   }

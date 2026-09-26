@@ -90,7 +90,7 @@ class KpiController extends Controller
 | Method | Zammad | Isi `->data` |
 |---|---|---|
 | `summary($q)` | `/api/v1/team_kpi` | Kartu KPI, real-time, SLA, backlog, `comparison` |
-| `trend($metric, $q)` | `/team_kpi/trend` | `frt` / `csat` / `volume` / `resolution`; `points` + `comparison.points` sejajar |
+| `trend($metric, $q)` | `/team_kpi/trend` | `frt` / `csat` / `volume` / `resolution` / `escalated` (snapshot per jam, lihat DESIGN Section 13); `points` + `comparison.points` sejajar |
 | `heatmap($q)` | `/team_kpi/heatmap` | 168 sel |
 | `agents($q, $limit)` | `/team_kpi/agents` | Per agent: `name`, `email`, `tickets`, FRT median/mean/n, CSAT/n, `escalated`, `eskalasi_breached`; baris `unassigned` = tiket tanpa owner |
 | `export($q)` | `/team_kpi/export` | `['filename', 'content']` — tidak di-cache |

@@ -30,6 +30,7 @@ class App.DashboardTeamKpi extends App.Controller
     { key: 'csat',       label: 'CSAT',         kind: 'score',    lowerBetter: false }
     { key: 'volume',     label: 'Tiket masuk',  kind: 'count',    lowerBetter: null }
     { key: 'resolution', label: 'Penyelesaian', kind: 'duration', lowerBetter: true }
+    { key: 'escalated',  label: 'Rasio Escalated', kind: 'rate', lowerBetter: true }
   ]
 
   STATES: ['supergood', 'good', 'ok', 'bad', 'superbad']
@@ -203,6 +204,20 @@ class App.DashboardTeamKpi extends App.Controller
     return '' if !date
     "#{@pad2(date.getHours())}:#{@pad2(date.getMinutes())}"
 
+  fmtDateTime: (iso) =>
+    return '' if !iso
+    date = new Date(iso)
+    "#{date.getDate()} #{@MONTHS[date.getMonth()]} #{@fmtTime(date)}"
+
+  # Catatan kenapa kartu/antrian real-time tidak punya delta "vs kemarin"
+  # (lihat realtime_comparison di team_kpi.rb, snapshot per jam Section 13).
+  realtimeNote: (rc) =>
+    return 'Real-time' if !rc
+    switch rc.reason
+      when 'filters'     then 'Real-time · delta tidak tersedia dengan filter ini'
+      when 'no_snapshot' then "Real-time · snapshot kemarin belum ada (dikumpulkan sejak #{@fmtDateTime(rc.history_since)})"
+      else                    'Real-time · snapshot belum dikumpulkan'
+
   periodLabel: =>
     period = _.find(@PERIODS, (p) => p.days is @days)
     "#{period.label} terakhir"
@@ -238,6 +253,7 @@ class App.DashboardTeamKpi extends App.Controller
   cards: (s) =>
     t   = s.thresholds || {}
     cmp = s.comparison
+    rc  = s.realtime_comparison
     cmpLabel = if cmp?.mode is 'yoy' then 'tahun lalu, periode sama' else 'periode sebelumnya'
     basis = @periodLabel()
     frt = @fmtDuration(s.frt_median_minutes)
@@ -250,8 +266,16 @@ class App.DashboardTeamKpi extends App.Controller
       o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       o.empty      = o.value is '—'
       o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
-      if o.live
-        o.deltaNote = 'Real-time · tanpa pembanding'
+      if o.live && rc?.available
+        d = @delta(o.current, o.previous, o.deltaKind, true)
+        if d
+          o.deltaText = d.text
+          o.deltaCls  = d.cls
+          o.deltaVs   = 'vs kemarin, jam sama'
+        else
+          o.deltaNote = 'vs kemarin: belum ada data'
+      else if o.live
+        o.deltaNote = @realtimeNote(rc)
       else if !o.current?
         o.deltaNote = o.emptyNote || 'Belum ada data di periode ini'
       else if !cmp
@@ -304,15 +328,17 @@ class App.DashboardTeamKpi extends App.Controller
       )
       card(
         title: 'Rasio Escalated', basis: 'Real-time', live: true
-        help: 'Tiket belum closed yang batas SLA-nya (escalation_at) sudah lewat, dibagi jumlah tiket New + Open. Real-time, tidak ikut filter periode.'
+        help: 'Tiket belum closed yang batas SLA-nya (escalation_at) sudah lewat, dibagi jumlah tiket New + Open. Real-time, tidak ikut filter periode. Delta dibanding snapshot per jam 24 jam lalu.'
         value: @fmtNumber(s.escalation_rate_percent, 1), unit: '%', state: s.escalated_state
+        current: s.escalation_rate_percent, previous: rc?.escalation_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'escalated'
         footLabel: 'Lewat SLA', footValue: "#{@fmtNumber(s.ticket_escalated, 0)} dari #{@fmtNumber((s.ticket_new || 0) + (s.ticket_open || 0), 0)}"
       )
       card(
         title: 'Breach eskalasi', basis: 'Real-time', live: true
-        help: 'Tiket berstatus Eskalasi yang melewati batas waktu eskalasi (escalation_deadline_at). Status dihitung dari persentasenya terhadap tiket Eskalasi aktif. Real-time.'
+        help: 'Tiket berstatus Eskalasi yang melewati batas waktu eskalasi (escalation_deadline_at). Status dihitung dari persentasenya terhadap tiket Eskalasi aktif. Real-time; delta dibanding snapshot per jam 24 jam lalu.'
         value: @fmtNumber(s.eskalasi_breached, 0), unit: 'tiket', state: s.eskalasi_breach_state
+        current: s.eskalasi_breached, previous: rc?.eskalasi_breached, deltaKind: 'count'
         scaleKind: 'rate', scaleKey: 'eskalasi_breach'
         footLabel: 'Eskalasi aktif', footValue: "#{@fmtNumber(s.eskalasi_active, 0)} (#{@fmtNumber(s.eskalasi_breach_rate_percent, 1)}% breach)"
       )
@@ -320,18 +346,29 @@ class App.DashboardTeamKpi extends App.Controller
 
   # ------------------------------------------------------------- grafik
 
-  trendView: (trend) =>
+  trendView: (trend, failed) =>
     metric = _.find(@METRICS, (m) => m.key is @metric)
     tabs = for m in @METRICS
       { key: m.key, label: m.label, active: m.key is @metric }
     view = { tabs: tabs, metricLabel: metric.label, empty: true, emptyText: 'Memuat…' }
-    return view if !trend || !trend.points
+    if failed
+      view.emptyText = 'Gagal memuat grafik. Coba lagi beberapa saat lagi.'
+      return view
+    # data tren metrik sebelumnya (sesaat setelah ganti tab) tidak ditampilkan
+    return view if !trend || !trend.points || trend.metric isnt @metric
 
     cur  = _.map(trend.points, (p) -> p.value)
     prev = if trend.comparison then _.map(trend.comparison.points, (p) -> p.value) else []
     values = _.filter(cur.concat(prev), (v) -> v?)
     if !_.some(cur, (v) -> v?) || (metric.kind is 'count' && !_.some(cur, (v) -> v > 0))
-      view.emptyText = 'Belum ada data untuk periode dan filter ini.'
+      view.emptyText = if trend.unavailable is 'filters'
+        'Rasio Escalated tidak tersedia dengan filter ini (snapshot hanya dipisah per grup).'
+      else if metric.key is 'escalated' && trend.history_since
+        "Snapshot Rasio Escalated baru dikumpulkan sejak #{@fmtDateTime(trend.history_since)}; tren muncul setelah beberapa jam."
+      else if metric.key is 'escalated'
+        'Snapshot Rasio Escalated belum dikumpulkan.'
+      else
+        'Belum ada data untuk periode dan filter ini.'
       return view
 
     lo  = Math.min.apply(null, values)
@@ -343,16 +380,22 @@ class App.DashboardTeamKpi extends App.Controller
     x = (i) -> if n <= 1 then '500' else (i / (n - 1) * 1000).toFixed(1)
     y = (v) -> (210 - (v - lo) / (hi - lo) * 200).toFixed(1)
     # Garis putus di bucket tanpa data (value null), bukan ditarik ke 0.
+    # Titik yang berdiri sendiri (mis. snapshot pertama) digambar sebagai
+    # bulatan -- polyline satu titik tidak terlihat.
     segments = (series) ->
       out = []
       current = []
+      flush = ->
+        return if !current.length
+        dot = current.length is 1
+        out.push({ points: (if dot then "#{current[0]} #{current[0]}" else current.join(' ')), dot: dot })
+        current = []
       for v, i in series
         if v?
           current.push("#{x(i)},#{y(v)}")
-        else if current.length
-          out.push(current.join(' '))
-          current = []
-      out.push(current.join(' ')) if current.length
+        else
+          flush()
+      flush()
       out
 
     fmt = (v) =>
@@ -360,6 +403,7 @@ class App.DashboardTeamKpi extends App.Controller
       switch metric.kind
         when 'duration' then @fmtDurationText(v)
         when 'score'    then @fmtNumber(v, 2)
+        when 'rate'     then "#{@fmtNumber(v, 1)}%"
         else                 @fmtNumber(v, 0)
     avg = (series) ->
       xs = _.filter(series, (v) -> v?)
@@ -467,6 +511,12 @@ class App.DashboardTeamKpi extends App.Controller
 
     if s
       total = (s.ticket_new || 0) + (s.ticket_open || 0)
+      rc = s.realtime_comparison
+      queueDelta = (now, past) =>
+        return null if !rc?.available || !past?
+        diff = now - past
+        return { text: 'sama', cls: 'is-flat' } if diff is 0
+        { text: "#{if diff > 0 then '▲' else '▼'} #{@fmtNumber(Math.abs(diff), 0)}", cls: if diff > 0 then 'is-worse' else 'is-better' }
       _.extend(view,
         cmpRange:  if s.comparison then "#{@fmtRange(s.comparison)}#{if s.comparison.mode is 'yoy' then ' (tahun lalu)' else ''}" else null
         noCmpNote: if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding'
@@ -477,9 +527,14 @@ class App.DashboardTeamKpi extends App.Controller
           new:       @fmtNumber(s.ticket_new, 0)
           open:      @fmtNumber(s.ticket_open, 0)
           escalated: @fmtNumber(s.ticket_escalated, 0)
+          note:      if rc?.available then "Tidak ikut filter periode · ▲▼ vs kemarin (snapshot #{@fmtDateTime(rc.captured_at)})" else 'Tidak ikut filter periode'
+          dTotal:    queueDelta(total, if rc?.available then (rc.ticket_new || 0) + (rc.ticket_open || 0) else null)
+          dNew:      queueDelta(s.ticket_new, rc?.ticket_new)
+          dOpen:     queueDelta(s.ticket_open, rc?.ticket_open)
+          dEsc:      queueDelta(s.ticket_escalated, rc?.ticket_escalated)
           newPct:    @fmtNumber((s.ticket_new || 0) / Math.max(total, 1) * 100, 1)
           openPct:   @fmtNumber((s.ticket_open || 0) / Math.max(total, 1) * 100, 1)
-        trend:     @trendView(@data.trend)
+        trend:     @trendView(@data.trend, !@loading && _.contains(failed, 'trend'))
         heatmap:   @heatmapView(@data.heatmap)
         sla:       @slaView(s)
         backlog:   @backlogView(s)
