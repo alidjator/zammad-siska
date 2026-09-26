@@ -129,6 +129,7 @@ class Service::Dashboard::TeamKpi
       window_days:            @window_days,
       period:                 range_json(@range),
       comparison:             comparison_json,
+      thresholds:             thresholds,
       filters:                @scope.filters,
       group_ids_count:        @scope.group_ids&.size,
       generated_at:           Time.zone.now.iso8601,
@@ -139,6 +140,20 @@ class Service::Dashboard::TeamKpi
 
   def tickets
     @scope.tickets
+  end
+
+  # The cutoffs behind every *_state, so a UI can label its scale
+  # ("Sangat baik <= 60 min") from the same Settings instead of copying
+  # the numbers. frt/csat: 4 cutoffs for supergood..bad (lower/higher is
+  # better); rate metrics: good_min..superbad_min (higher is worse).
+  def thresholds
+    {
+      frt:             Setting.get('team_kpi_frt_thresholds'),
+      csat:            Setting.get('team_kpi_csat_thresholds'),
+      escalated:       Setting.get('team_kpi_escalated_thresholds'),
+      eskalasi_breach: Setting.get('team_kpi_eskalasi_breach_thresholds'),
+      reopen:          REOPEN_BUCKETS,
+    }
   end
 
   def range_json(range)

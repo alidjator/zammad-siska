@@ -267,3 +267,24 @@ Sekarang populasi FRT ada di satu tempat, `Scope#frt_tickets` (tiket dibuat di p
 ### 11.6 Perbaikan tren: pembanding selalu sejajar
 
 Untuk bucket minggu/bulan, rentang dengan panjang sama bisa jatuh di 14 vs 13 minggu (awal rentang di tengah minggu), sehingga titik ke-n periode ini dan pembanding tidak lagi mewakili posisi yang sama. `Trend#series(range, count:)` sekarang memaksa jumlah bucket pembanding = jumlah bucket periode ini.
+
+## 12. Redesign Tampilan Tab KPI Tim (BI, gaya kit)
+
+Menggantikan tampilan Section 6 (tiru `.stat-widget` My Stats). Acuan: mockup **arah B** di kanvas desain "SISKA Widget - Kit Tailwind Compliance" (artboard `TeamKpi-KitB` + `TeamKpi-KitB-States`), gaya kit Able Pro Tailwind yang sama dengan panel agent (`siska_agent_chat.scss`). File: `team_kpi.coffee` (semua hitungan tampilan), `team_kpi.jst.eco` (markup saja), `team_kpi.scss` (semua aturan dibatasi di bawah `.team-kpi`).
+
+| Bagian | Sumber | Catatan |
+|---|---|---|
+| Filter bar: periode (kit `btn-group`, 7 hari–2 tahun), grup (grup yang bisa dibaca user), "Dibanding: …", waktu diperbarui, **Ekspor .xlsx** | `/team_kpi` + `/team_kpi/export` | Ekspor = navigasi ke URL ekspor dengan filter yang sama (sesi login ikut terkirim) |
+| 6 kartu: FRT, CSAT, Waktu penyelesaian, Reopening rate, Rasio Escalated, Breach eskalasi | `/team_kpi` | Badge state, skala 5 tingkat dengan label ambang dari `thresholds` (Setting server, bukan angka di frontend), delta ▲▼ vs pembanding (hijau = membaik, merah = memburuk sesuai arah metrik), n sampel + peringatan "sampel kecil" kalau n < 30, mean + "Ada outlier" (mean > 3× median) di FRT. Kartu real-time: "Real-time · tanpa pembanding" |
+| Antrian real-time: Total aktif, New, Open, Escalated | `/team_kpi` | Link ke overview `all_open`, `new`, `all_escalated` |
+| Tren: tab FRT / CSAT / Tiket masuk / Penyelesaian | `/team_kpi/trend` | SVG: garis periode ini + putus-putus pembanding, sumbu nilai & tanggal, rata-rata dan selisih. Bucket tanpa data = garis putus (tidak ditarik ke 0). Tanpa tab Rasio Escalated (tidak ada data historis) |
+| Heatmap 7 × 24 jam | `/team_kpi/heatmap` | Level relatif ke `max_avg`, tooltip = rata-rata per hari + total |
+| SLA penyelesaian per prioritas | `/team_kpi` `sla_by_priority` | Label "SLA penyelesaian" (bukan respons pertama, lihat 10.3) |
+| Performa per agent | `/team_kpi/agents` | **Hanya dimuat & tampil untuk `report`/`admin`** (agent biasa tidak memanggil endpoint-nya sama sekali) |
+| Umur backlog | `/team_kpi` `backlog_aging` | Menggantikan kartu "tiket breach" di mockup (belum ada endpoint daftar tiket breach); ≥ 7 hari diberi warna peringatan |
+
+Kondisi data (artboard `TeamKpi-KitB-States`): skeleton saat pertama dimuat; kalau sebagian request gagal, data sebelumnya tetap tampil dengan banner "angka terakhir pukul …" + Coba lagi; kalau semua gagal dan belum ada data, kartu error; angka `null` = "—"; grafik tanpa data = pesan kosong.
+
+Perbedaan dari mockup (keputusan saat implementasi): tanpa rentang tanggal bebas (API hanya menerima `days`), tanpa sparkline per kartu (tren sudah ada di grafik utama, menghemat 5 request per refresh), kartu "tiket breach" diganti umur backlog, target SLA per prioritas tidak digambar (belum ada Setting targetnya).
+
+Diuji tanpa browser (Playwright ditunda): controller + template hasil compile dijalankan di Node dengan data API asli staging — 3 periode × 4 metrik × (report / agent biasa), gagal sebagian, gagal total, URL ekspor — tidak ada teks `undefined`/`NaN`, agents tidak diminta tanpa `report`, 2 tahun tanpa pembanding. **Tampilan visual belum diperiksa di browser.**

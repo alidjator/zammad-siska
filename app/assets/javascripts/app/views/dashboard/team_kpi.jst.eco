@@ -1,89 +1,302 @@
-<div class="team-kpi-filter">
-  <label><%- @T('Periode FRT & CSAT') %></label>
-  <select class="js-kpi-range">
-    <option value="7" <% if @selectedRange is 7: %>selected<% end %>><%- @T('7 hari') %></option>
-    <option value="30" <% if @selectedRange is 30: %>selected<% end %>><%- @T('30 hari') %></option>
-    <option value="90" <% if @selectedRange is 90: %>selected<% end %>><%- @T('90 hari') %></option>
-    <option value="180" <% if @selectedRange is 180: %>selected<% end %>><%- @T('6 bulan') %></option>
-    <option value="365" <% if @selectedRange is 365: %>selected<% end %>><%- @T('1 tahun') %></option>
-    <option value="730" <% if @selectedRange is 730: %>selected<% end %>><%- @T('2 tahun') %></option>
-  </select>
-</div>
-<div class="team-kpi-grid">
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('First Response Time') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Median dan mean waktu respons pertama, dihitung dari periode yang dipilih. Mean jauh di atas median menandakan ada sejumlah kecil tiket yang direspons sangat lambat (long tail), tersembunyi kalau cuma melihat median.') %>" data-placement="bottom"><%- @Icon('help') %></div>
-    </div>
-    <div class="team-kpi-graphic">
-      <%- @Icon('stopwatch', "team-kpi-icon team-kpi-icon--frt #{@frt_state_class}") %>
-    </div>
-    <div class="team-kpi-value-split">
-      <div class="team-kpi-value-split-item">
-        <div class="team-kpi-value-split-label"><%- @T('Median') %></div>
-        <div class="team-kpi-value <%- @frt_state_class %>"><%- @frt_display %></div>
+<div class="team-kpi">
+
+  <div class="team-kpi-bar">
+    <div class="team-kpi-bar-left">
+      <span class="team-kpi-bar-label"><%- @T('Periode') %></span>
+      <div class="team-kpi-btn-group" role="group" aria-label="<%- @T('Periode') %>">
+        <% for p in @periods: %>
+          <button type="button" class="team-kpi-btn js-kpi-period <% if p.active: %>is-active<% end %>" data-days="<%= p.days %>" aria-pressed="<%= if p.active then 'true' else 'false' %>"><%= p.label %></button>
+        <% end %>
       </div>
-      <div class="team-kpi-value-split-sep">|</div>
-      <div class="team-kpi-value-split-item">
-        <div class="team-kpi-value-split-label"><%- @T('Mean') %></div>
-        <div class="team-kpi-value-secondary"><%- @frt_mean_display %></div>
+      <label class="team-kpi-select">
+        <span><%- @T('Grup') %></span>
+        <select class="js-kpi-group">
+          <option value=""><%- @T('Semua grup yang bisa diakses') %></option>
+          <% for g in @groups: %>
+            <option value="<%= g.id %>" <% if g.selected: %>selected<% end %>><%= g.name %></option>
+          <% end %>
+        </select>
+      </label>
+    </div>
+    <div class="team-kpi-bar-right">
+      <span class="team-kpi-muted">
+        <% if @cmpRange: %>
+          <%- @T('Dibanding') %>: <b><%= @cmpRange %></b>
+        <% else if @summary: %>
+          <%= @noCmpNote %>
+        <% end %>
+      </span>
+      <span class="team-kpi-muted team-kpi-updated">
+        <%- @SiskaIcon('clock-counter-clockwise', 14) %>
+        <% if @refreshing || @loading: %><%- @T('Memuat…') %><% else if @updatedAt: %><%- @T('Diperbarui') %> <%= @updatedAt %><% end %>
+      </span>
+      <button type="button" class="team-kpi-btn team-kpi-btn--outline js-kpi-export" title="<%- @T('Unduh .xlsx sesuai filter yang aktif') %>">
+        <%- @SiskaIcon('download-simple', 16) %> <%- @T('Ekspor .xlsx') %>
+      </button>
+    </div>
+  </div>
+
+  <% if @stale: %>
+    <div class="team-kpi-banner is-warning" role="status">
+      <%- @SiskaIcon('warning', 16) %>
+      <span><%- @T('Sebagian data gagal dimuat. Angka yang tampil adalah data terakhir pukul %s.', @updatedAt) %></span>
+      <a href="#" class="js-kpi-retry"><%- @T('Coba lagi') %></a>
+    </div>
+  <% end %>
+
+  <% if @failedAll: %>
+    <div class="team-kpi-card team-kpi-state" role="alert">
+      <span class="team-kpi-state-icon is-danger"><%- @SiskaIcon('x-circle', 22) %></span>
+      <div class="team-kpi-state-title"><%- @T('Gagal memuat KPI Tim') %></div>
+      <div class="team-kpi-muted"><%- @T('Server tidak merespons. Coba beberapa saat lagi.') %></div>
+      <button type="button" class="team-kpi-btn team-kpi-btn--outline js-kpi-retry"><%- @T('Coba lagi') %></button>
+    </div>
+  <% else if @loading: %>
+    <div class="team-kpi-cards" aria-busy="true">
+      <% for i in [1..6]: %>
+        <div class="team-kpi-card team-kpi-skeleton"><span></span><span></span><span></span></div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @summary: %>
+
+  <div class="team-kpi-cards">
+    <% for k in @cards: %>
+      <div class="team-kpi-card team-kpi-score">
+        <div class="team-kpi-score-head">
+          <div class="team-kpi-score-title">
+            <span><%= k.title %></span>
+            <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%= k.help %>" aria-label="<%- @T('Definisi') %> <%= k.title %>"><%- @SiskaIcon('info', 14) %></span>
+          </div>
+          <div class="team-kpi-score-meta">
+            <span class="team-kpi-basis <% if k.live: %>is-live<% end %>"><i></i><%= k.basis %></span>
+            <% if k.stateLabel: %>
+              <span class="team-kpi-badge is-<%= k.stateKey %>" title="state: <%= k.state || '-' %>"><%= k.stateLabel %></span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="team-kpi-value <% if k.state is 'bad' or k.state is 'superbad': %>is-bad<% end %> <% if k.empty: %>is-empty<% end %>">
+          <%= k.value %><% if k.unit: %><small><%= k.unit %></small><% end %>
+        </div>
+
+        <div class="team-kpi-delta">
+          <% if k.deltaText: %>
+            <b class="<%= k.deltaCls %>"><%= k.deltaText %></b> <%= k.deltaVs %>
+          <% else: %>
+            <%= k.deltaNote %>
+          <% end %>
+        </div>
+
+        <% if k.scale: %>
+          <div class="team-kpi-scale">
+            <% for g in k.scale.segs: %>
+              <i class="js-kpi-tip is-<%= g.state %> <% if g.active: %>is-active<% end %>" title="<%= g.tip %>"></i>
+            <% end %>
+          </div>
+          <div class="team-kpi-scale-caption"><span><%= k.scale.first %></span><% if k.n?: %><span>n <%= k.n %> <%= k.nLabel %></span><% end %></div>
+        <% else if k.n?: %>
+          <div class="team-kpi-scale-caption"><span></span><span>n <%= k.n %> <%= k.nLabel %></span></div>
+        <% end %>
+
+        <% if k.small: %>
+          <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Sampel kecil (n < 30), tafsirkan hati-hati') %></div>
+        <% end %>
+
+        <div class="team-kpi-foot">
+          <span><%= k.footLabel %>: <b class="<% if k.outlier: %>is-warning<% end %>"><%= k.footValue %></b></span>
+          <% if k.outlier: %>
+            <span class="team-kpi-chip is-warning js-kpi-tip" title="<%- @T('Rata-rata lebih dari 3× median: ada tiket yang lama tidak dibalas') %>"><%- @T('Ada outlier') %></span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="team-kpi-card team-kpi-queue">
+    <div class="team-kpi-queue-title">
+      <span class="team-kpi-live-dot"></span>
+      <div>
+        <b><%- @T('Antrian real-time') %></b>
+        <div class="team-kpi-muted"><%- @T('Tidak ikut filter periode') %></div>
       </div>
     </div>
-    <div class="team-kpi-caption"><%- @T('%s hari terakhir', @window_days) %></div>
+    <div class="team-kpi-queue-items">
+      <a href="#ticket/view/all_open" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket aktif') %>">
+        <span><%- @T('Total aktif') %></span><b><%= @queue.total %></b>
+      </a>
+      <a href="#ticket/view/new" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket New') %>">
+        <span><%- @T('New') %></span><b><%= @queue.new %></b><small><%= @queue.newPct %>%</small>
+      </a>
+      <a href="#ticket/view/all_open" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket Open') %>">
+        <span><%- @T('Open') %></span><b><%= @queue.open %></b><small><%= @queue.openPct %>%</small>
+      </a>
+      <a href="#ticket/view/all_escalated" class="team-kpi-queue-item" title="<%- @T('Buka daftar tiket yang lewat SLA') %>">
+        <span><%- @T('Escalated') %></span><b class="is-bad"><%= @queue.escalated %></b><small><%- @T('lewat SLA') %></small>
+      </a>
+    </div>
   </div>
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('CSAT Score') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Rata-rata skor kepuasan customer (1-5), dari periode yang dipilih.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+
+  <div class="team-kpi-card team-kpi-trend">
+    <div class="team-kpi-section-head">
+      <div>
+        <div class="team-kpi-section-title">
+          <%- @T('Tren') %>
+          <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Nilai per hari/minggu/bulan di periode terpilih (garis biru), dibanding periode pembanding (garis putus-putus). Rasio Escalated tidak punya tren karena nilai masa lalunya tidak tersimpan.') %>"><%- @SiskaIcon('info', 14) %></span>
+        </div>
+        <div class="team-kpi-muted"><%= @trend.subtitle || @basis %></div>
+      </div>
+      <div class="team-kpi-tabs" role="tablist" aria-label="<%- @T('Metrik tren') %>">
+        <% for tab in @trend.tabs: %>
+          <button type="button" role="tab" class="js-kpi-metric <% if tab.active: %>is-active<% end %>" data-metric="<%= tab.key %>" aria-selected="<%= if tab.active then 'true' else 'false' %>"><%= tab.label %></button>
+        <% end %>
+      </div>
     </div>
-    <div class="team-kpi-graphic">
-      <%- @Icon('thumbs-up', "team-kpi-icon team-kpi-icon--csat #{@csat_state_class}") %>
-    </div>
-    <div class="team-kpi-value <%- @csat_state_class %>"><%- @csat_display %></div>
-    <div class="team-kpi-caption"><%- @T('rata-rata, %s hari terakhir', @window_days) %></div>
+
+    <% if @trend.empty: %>
+      <div class="team-kpi-empty"><%- @SiskaIcon('info', 22) %><span><%= @trend.emptyText %></span></div>
+    <% else: %>
+      <div class="team-kpi-legend">
+        <span><i class="is-current"></i><%- @T('Periode ini') %>: <b><%= @trend.curAvg %></b></span>
+        <% if @trend.hasCmp: %>
+          <span><i class="is-compare"></i><%= @trend.cmpLabel %>: <b><%= @trend.prevAvg %></b></span>
+          <% if @trend.delta: %><span><b class="<%= @trend.delta.cls %>"><%= @trend.delta.text %></b></span><% end %>
+        <% end %>
+        <span class="team-kpi-muted"><%- @T('rata-rata per titik') %></span>
+      </div>
+      <div class="team-kpi-chart">
+        <div class="team-kpi-chart-y">
+          <% for label in @trend.yLabels: %><span><%= label %></span><% end %>
+        </div>
+        <div class="team-kpi-chart-plot">
+          <svg viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="<%- @T('Grafik tren') %> <%= @trend.metricLabel %>">
+            <line x1="0" y1="10" x2="1000" y2="10" class="grid"></line>
+            <line x1="0" y1="60" x2="1000" y2="60" class="grid"></line>
+            <line x1="0" y1="110" x2="1000" y2="110" class="grid"></line>
+            <line x1="0" y1="160" x2="1000" y2="160" class="grid"></line>
+            <line x1="0" y1="210" x2="1000" y2="210" class="axis"></line>
+            <% for line in @trend.prevLines: %>
+              <polyline points="<%= line %>" class="compare"></polyline>
+            <% end %>
+            <% for line in @trend.curLines: %>
+              <polyline points="<%= line %>" class="current"></polyline>
+            <% end %>
+          </svg>
+          <div class="team-kpi-chart-x">
+            <% for label in @trend.xLabels: %><span><%= label %></span><% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
   </div>
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('Tiket New') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus New saat ini (realtime). Angka volume, tidak diberi indikator baik/buruk.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+
+  <div class="team-kpi-row">
+    <div class="team-kpi-card team-kpi-heatmap">
+      <div class="team-kpi-section-head">
+        <div>
+          <div class="team-kpi-section-title"><%- @T('Beban tiket per jam') %></div>
+          <div class="team-kpi-muted"><%- @T('Rata-rata tiket masuk per jam, %s · arahkan kursor untuk jumlah', @basis) %></div>
+        </div>
+        <% if @heatmap?.hasData: %>
+          <div class="team-kpi-heat-legend">
+            <span>0</span><i class="l0"></i><i class="l1"></i><i class="l2"></i><i class="l3"></i><i class="l4"></i><span><%= @heatmap.max %>/<%- @T('hari') %></span>
+          </div>
+        <% else if @heatmap: %>
+          <span class="team-kpi-muted"><%- @T('Belum ada tiket masuk di periode ini') %></span>
+        <% end %>
+      </div>
+      <% if @heatmap: %>
+        <div class="team-kpi-heat">
+          <% for row in @heatmap.rows: %>
+            <div class="team-kpi-heat-row">
+              <span class="team-kpi-heat-day"><%= row.day %></span>
+              <% for c in row.cells: %><i class="l<%= c.level %>" title="<%= c.tip %>"></i><% end %>
+            </div>
+          <% end %>
+          <div class="team-kpi-heat-row team-kpi-heat-hours">
+            <span class="team-kpi-heat-day"></span>
+            <% for h in @heatmap.hours: %><span><%= h %></span><% end %>
+          </div>
+        </div>
+      <% else: %>
+        <div class="team-kpi-empty"><span><%- @T('Belum ada data.') %></span></div>
+      <% end %>
     </div>
-    <div class="team-kpi-graphic">
-      <%- @Icon('email', 'team-kpi-icon team-kpi-icon--new') %>
+
+    <div class="team-kpi-stack">
+      <div class="team-kpi-card team-kpi-bars">
+        <div class="team-kpi-section-title">
+          <%- @T('SLA penyelesaian') %>
+          <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Dari tiket yang closed di periode terpilih dan punya batas penyelesaian SLA, berapa persen yang closed tepat waktu. SLA respons pertama belum dikonfigurasi di sistem ini.') %>"><%- @SiskaIcon('info', 14) %></span>
+        </div>
+        <div class="team-kpi-muted"><%- @T('Persentase tiket closed tepat waktu per prioritas, %s', @basis) %></div>
+        <% if @sla.length: %>
+          <% for row in @sla: %>
+            <div class="team-kpi-bar-row">
+              <div class="team-kpi-bar-row-head"><span><%= row.priority %> <small>· n <%= row.total %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
+              <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
+            </div>
+          <% end %>
+        <% else: %>
+          <div class="team-kpi-empty"><span><%- @T('Belum ada tiket closed ber-SLA di periode ini.') %></span></div>
+        <% end %>
+      </div>
+      <div class="team-kpi-card team-kpi-bars">
+        <div class="team-kpi-section-title">
+          <%- @T('Umur backlog') %>
+          <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Tiket yang belum closed, dikelompokkan menurut umurnya sejak dibuat. Real-time, tidak ikut filter periode.') %>"><%- @SiskaIcon('info', 14) %></span>
+        </div>
+        <div class="team-kpi-muted"><%- @T('Tiket belum closed menurut umur · real-time') %></div>
+        <% for row in @backlog: %>
+          <div class="team-kpi-bar-row">
+            <div class="team-kpi-bar-row-head"><span><%= row.label %></span><b class="<% if row.old: %>is-warning<% end %>"><%= row.count %></b></div>
+            <div class="team-kpi-meter"><i class="<% if row.old: %>is-ok<% else: %>is-primary<% end %>" style="width: <%= row.pct %>%"></i></div>
+          </div>
+        <% end %>
+        <a href="#ticket/view/all_open" class="team-kpi-link"><%- @T('Buka tiket aktif') %> →</a>
+      </div>
     </div>
-    <div class="team-kpi-value"><%- @ticket_new %></div>
-    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
   </div>
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('Tiket Open') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus Open saat ini (realtime). Angka volume, tidak diberi indikator baik/buruk.') %>" data-placement="bottom"><%- @Icon('help') %></div>
+
+  <% if @agents: %>
+    <div class="team-kpi-card team-kpi-agents">
+      <div class="team-kpi-section-head">
+        <div>
+          <div class="team-kpi-section-title"><%- @T('Performa per agent') %></div>
+          <div class="team-kpi-muted"><%- @T('Tiket = dibuat di periode (%s) · Escalated & Breach real-time · hanya tampil untuk permission report/admin', @basis) %></div>
+        </div>
+      </div>
+      <% if @agents.length: %>
+        <div class="team-kpi-table-wrap"><table class="team-kpi-table">
+          <thead>
+            <tr>
+              <th><%- @T('Agent') %></th>
+              <th class="is-wide"><%- @T('Tiket') %></th>
+              <th class="is-num"><%- @T('FRT median') %></th>
+              <th class="is-num"><%- @T('CSAT') %></th>
+              <th class="is-num"><%- @T('Escalated') %></th>
+              <th class="is-num"><%- @T('Breach') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for a in @agents: %>
+              <tr>
+                <td class="team-kpi-agent"><span class="team-kpi-avatar <% if a.unassigned: %>is-muted<% end %>"><%= a.initials %></span><%= a.name %></td>
+                <td><div class="team-kpi-inline-bar"><div class="team-kpi-meter"><i style="width: <%= a.pct %>%"></i></div><b><%= a.tickets %></b></div></td>
+                <td class="is-num"><span class="js-kpi-tip team-kpi-dotted" title="<%= a.frtTip %>"><%= a.frt %></span></td>
+                <td class="is-num"><span class="js-kpi-tip is-<%= a.csatCls %>" title="<%= a.csatTip %>"><%= a.csat %></span></td>
+                <td class="is-num"><%= a.escalated %></td>
+                <td class="is-num <% if a.breachHot: %>is-bad<% end %>"><%= a.breach %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table></div>
+      <% else: %>
+        <div class="team-kpi-empty"><span><%- @T('Belum ada tiket yang ditangani di periode ini.') %></span></div>
+      <% end %>
     </div>
-    <div class="team-kpi-graphic">
-      <%- @Icon('checklist', 'team-kpi-icon team-kpi-icon--open') %>
-    </div>
-    <div class="team-kpi-value"><%- @ticket_open %></div>
-    <div class="team-kpi-caption"><%- @T('saat ini') %></div>
-  </div>
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('Tiket Escalated') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Persentase tiket New+Open yang sudah lewat SLA (realtime).') %>" data-placement="bottom"><%- @Icon('help') %></div>
-    </div>
-    <div class="team-kpi-graphic">
-      <div class="team-kpi-icon team-kpi-icon-glyph <%- @escalated_state_class %>">!</div>
-    </div>
-    <div class="team-kpi-value <%- @escalated_state_class %>"><%- @ticket_escalated %></div>
-    <div class="team-kpi-caption"><%- @T('saat ini, %s% dari New+Open', @escalation_rate_percent) %></div>
-  </div>
-  <div class="team-kpi-card">
-    <div class="team-kpi-title">
-      <%- @T('Tiket Breach Eskalasi') %>
-      <div class="team-kpi-help js-team-kpi-help" title="<%- @T('Jumlah tiket berstatus Eskalasi yang sudah melewati batas waktu (escalation_deadline_at), dari total tiket berstatus Eskalasi saat ini (realtime).') %>" data-placement="bottom"><%- @Icon('help') %></div>
-    </div>
-    <div class="team-kpi-graphic">
-      <div class="team-kpi-icon team-kpi-icon-glyph <%- @eskalasi_breach_state_class %>">!</div>
-    </div>
-    <div class="team-kpi-value <%- @eskalasi_breach_state_class %>"><%- @eskalasi_breached %></div>
-    <div class="team-kpi-caption"><%- @T('saat ini, %s% dari %s tiket Eskalasi', @eskalasi_breach_rate_percent, @eskalasi_active) %></div>
-  </div>
+  <% end %>
+
+  <% end %>
 </div>
