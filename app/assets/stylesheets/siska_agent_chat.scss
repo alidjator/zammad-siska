@@ -665,16 +665,28 @@ $siska-thumb-h: 180px;
   &.hidden { display: none; }
 }
 
-.siska-agent .siska-chat-empty-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  margin-bottom: 8px;
-  border-radius: 100%;
-  background: $siska-primary-tint;
-  color: $siska-primary;
+// Atas permintaan user: lingkaran ikon 64px diganti ilustrasi (mockup
+// opsi B1, lihat `index.jst.eco`). Lebar mengikuti ruang yang ada
+// sampai 320px, dan mengecil sendiri di panel sempit / layar pendek.
+.siska-agent .siska-chat-empty-ill {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin-bottom: 4px;
+}
+
+@media (max-height: 640px) {
+  .siska-agent .siska-chat-empty-ill { max-width: 220px; }
+}
+
+// Atas permintaan user: versi offline dari ilustrasi yang sama. Hanya
+// satu yang tampil, ditentukan class `is-offline` di `.siska-chat-empty`
+// (di-set `renderHeader` mengikuti status on/off agent).
+.siska-agent .siska-chat-empty-ill--offline { display: none; }
+
+.siska-agent .siska-chat-empty.is-offline {
+  .siska-chat-empty-ill--online { display: none; }
+  .siska-chat-empty-ill--offline { display: block; }
 }
 
 // Semua jendela ditumpuk di kartu detail; hanya `.is-selected` yang
@@ -753,6 +765,49 @@ $siska-thumb-h: 180px;
     gap: 18px;
     padding: 20px 24px;
     align-items: stretch;
+  }
+
+  // Atas permintaan user ("sticky di tengah atas jendela chat, sama
+  // seperti pada whatsapp"): pil tanggal mengambang.
+  //
+  // `position: sticky` DI DALAM area yang menggulir, dgn `height: 0`
+  // supaya tidak mendorong pesan pertama ke bawah. BUKAN `position:
+  // absolute`: markup pil ada di dalam `.chat-body-holder`, yaitu
+  // elemen yang MENGGULIR itu sendiri -- anak absolut di dalam
+  // scroller ikut tergulir bersama isinya, jadi pil akan hilang ke
+  // atas begitu digulir. (Widget customer memakai absolute karena di
+  // sana pil ditempel ke `.zammad-chat-tab-body--messages`, yang BUKAN
+  // elemen penggulir; penggulirnya `.zammad-chat-body` di dalamnya.)
+  //
+  // Bug yang dilaporkan user ("teks tidak berada di tengah pill"):
+  // `height: 0` + `align-items` bawaan `stretch` membuat span pil ikut
+  // diregangkan ke tinggi 0, jadi teksnya meluber keluar kotak putih.
+  // `align-items: flex-start` mengembalikan tinggi alami span.
+  .siska-sticky-date {
+    position: sticky;
+    top: 8px;
+    z-index: 3;
+    height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    // Pil ini cuma penanda -- klik/geser harus tembus ke pesan di bawahnya.
+    pointer-events: none;
+
+    // `.hidden` bawaan Bootstrap sudah `display: none !important`, jadi
+    // tidak bisa (dan tidak perlu) di-fade seperti di widget.
+
+    span {
+      padding: 4px 12px;
+      border-radius: $siska-radius-pill;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(19, 25, 32, 0.16);
+      color: $siska-text-secondary;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: nowrap;
+      transition: opacity 150ms ease;
+    }
   }
 
   .chat-timestamp {
@@ -1609,61 +1664,6 @@ $siska-thumb-h: 180px;
   form { margin-top: 12px; }
 }
 
-// Kartu riwayat (klik = buka transkrip lengkap)
-.siska-agent .siska-history {
-  border: 1px solid $siska-border;
-  border-radius: $siska-radius-sm;
-
-  &[open] { border-color: $siska-input-border; }
-}
-
-.siska-agent .siska-history-summary {
-  display: flex;
-  flex-direction: column;
-  padding: 12px 14px;
-  list-style: none;
-  cursor: pointer;
-
-  &::-webkit-details-marker { display: none; }
-}
-
-.siska-agent .siska-history-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.siska-agent .siska-history-date {
-  color: $siska-headings;
-  font-weight: 600;
-}
-
-.siska-agent .siska-history-snippet {
-  margin: 6px 0 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: $siska-text-secondary;
-  font-size: 13px;
-}
-
-.siska-agent .siska-history-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.siska-agent .siska-history-ticket {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: $siska-primary;
-  font-size: 13px;
-  text-decoration: none;
-}
-
 .siska-agent .siska-rating {
   display: inline-flex;
   gap: 2px;
@@ -1674,21 +1674,6 @@ $siska-thumb-h: 180px;
   color: $siska-input-border;
 
   &.is-on { color: $siska-danger; }
-}
-
-.siska-agent .siska-history-transcript {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-  padding: 10px 14px 12px;
-  border-top: 1px solid $siska-border;
-  list-style: none;
-  font-size: 13px;
-  overflow-wrap: anywhere;
-
-  p { display: inline; margin: 0; }
-  .is-agent strong { color: $siska-primary; }
 }
 
 // ---------------------------------------------------------------------

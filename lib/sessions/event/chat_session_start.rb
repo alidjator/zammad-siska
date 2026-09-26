@@ -61,12 +61,6 @@ return is sent as message back to peer
     Chat::Message.where(chat_session_id: chat_session.id).reorder(created_at: :asc).each do |message|
       session_attributes['messages'].push message.attributes
     end
-    # Fase 5 -- fitur tambahan "Riwayat Chat Sebelumnya". Section 5.1.7.
-    # Dipindah jadi method di `Chat::Session` (`previous_sessions_summary`)
-    # supaya jendela chat yang RECONNECT (`Chat.active_chats_by_user_id`,
-    # dipicu reload halaman) juga dapat riwayat ini -- lihat komentar di
-    # model, sebelumnya field ini cuma dikirim sekali di sini saja.
-    session_attributes['previous_sessions'] = chat_session.previous_sessions_summary
     # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md. Disertakan di
     # `session_attributes` (dipakai KEDUA payload di bawah) supaya
     # `ChatWindow` milik USER LOGIN (bukan agent yang di-assign ke
@@ -82,8 +76,7 @@ return is sent as message back to peer
                # Fase 6 -- docs/DESIGN_CHAT_SELF_SERVICE.md Section 5.5.
                # Customer di sini adalah App.ChatWindow, KOMPONEN YANG
                # SAMA PERSIS dipakai agent -- butuh bentuk payload
-               # LENGKAP yang sama seperti agent terima (termasuk
-               # previous_sessions untuk riwayat), BUKAN payload datar
+               # LENGKAP yang sama seperti agent terima, BUKAN payload datar
                # ala widget publik anonim di bawah (yang punya parser
                # JS sendiri, cuma butuh field-field itu).
                {

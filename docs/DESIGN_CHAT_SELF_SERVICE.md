@@ -171,6 +171,12 @@ Ini SATU-SATUNYA perubahan di file ini. Karena jalur follow-up SUDAH mengisi `ti
 
 ### 5.5 Riwayat chat sebelumnya ditampilkan di KEDUA sisi (user & agent)
 
+> **Status (25 Sep 2026): blok riwayat di panel meta DIHAPUS atas permintaan user**, di sisi agent
+> maupun di jendela Live Chat (`my_chat`) — berikut field `previous_sessions` di payload. Cabang
+> payload `{ session: session_attributes }` untuk self-service TETAP dipakai (memang dibutuhkan
+> `App.ChatWindow`, bukan cuma untuk riwayat). Riwayat sekarang tampil DI DALAM jendela
+> percakapan lewat `chat_session_history` (gulir ke atas), tetap untuk kedua sisi.
+
 Atas permintaan user: berbeda dari Fase 5 Item 5.1.7 (yang SENGAJA cuma sisi agent, karena waktu itu "customer"-nya visitor anonim tanpa akun) — untuk Fase 6, karena "customer"-nya adalah USER YANG LOGIN dengan akun & email asli, tidak ada alasan lagi menyembunyikan riwayatnya dari dirinya sendiri. Jadi panel riwayat ("Previous chats from this visitor:", lengkap dengan transkrip & link tiket, sudah ada sejak Fase 5 entry 100-102) harus muncul di jendela `ChatWindow` KEDUA belah pihak untuk sesi follow-up.
 
 **Ditemukan celah desain saat menelusuri ini**: payload `chat_session_start` yang dikirim ke sisi CUSTOMER (blok `if session_attributes['messages'].blank?` di `ChatSessionStart#run`) TERNYATA berbentuk BEDA dari yang dikirim ke agent — cuma field datar (`state`, `agent`, `session_id`, `chat_id`, `attachment_enabled`), BUKAN `{ session: session_attributes }` yang berisi SEMUA atribut sesi (termasuk `previous_sessions`). Ini karena widget publik anonim (Fase 5) punya parser JS SENDIRI yang memang cuma butuh field-field itu. Padahal `App.ChatWindow` (dipakai Fase 6 di KEDUA sisi) butuh bentuk `{ session: {...} }` yang lengkap, PERSIS seperti yang diterima agent -- gap ini HARUS diperbaiki supaya Fase 6 bisa jalan sama sekali (bukan cuma soal riwayat), riwayat cuma menyingkap gap ini lebih awal.

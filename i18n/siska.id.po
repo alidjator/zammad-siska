@@ -17,10 +17,6 @@ msgid "%s chats"
 msgstr "%s percakapan"
 
 #: app/assets/javascripts/app/controllers/chat.coffee
-msgid "%s conversations from this email"
-msgstr "%s percakapan dari email ini"
-
-#: app/assets/javascripts/app/controllers/chat.coffee
 msgid "%s h %s min"
 msgstr "%s j %s mnt"
 
@@ -43,10 +39,6 @@ msgstr "%s belum dibaca"
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "%s waiting"
 msgstr "%s menunggu"
-
-#: app/assets/javascripts/app/controllers/chat.coffee
-msgid "(no messages)"
-msgstr "(tidak ada pesan)"
 
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "Accept next"
@@ -201,10 +193,6 @@ msgid "No conversation selected"
 msgstr "Belum ada percakapan dipilih"
 
 #: app/assets/javascripts/app/controllers/chat.coffee
-msgid "No earlier conversations from this email"
-msgstr "Belum ada percakapan sebelumnya dari email ini"
-
-#: app/assets/javascripts/app/controllers/chat.coffee
 msgid "No matching chats"
 msgstr "Tidak ada chat yang cocok"
 
@@ -227,14 +215,6 @@ msgstr "Halaman"
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "Pick a chat from the list, or accept a waiting customer."
 msgstr "Pilih chat dari daftar, atau terima pelanggan yang menunggu."
-
-#: app/assets/javascripts/app/controllers/chat.coffee
-msgid "Previous chats"
-msgstr "Riwayat chat sebelumnya"
-
-#: app/assets/javascripts/app/controllers/chat.coffee
-msgid "Previous chats from this visitor:"
-msgstr "Chat sebelumnya dari pengunjung ini:"
 
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "Processing…"
@@ -371,6 +351,10 @@ msgstr "Pengunjung"
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "Waiting for agent"
 msgstr "Menunggu agen"
+
+#: app/assets/javascripts/app/lib/app_post/siska_format.coffee
+msgid "Yesterday"
+msgstr "Kemarin"
 
 #: app/assets/javascripts/app/controllers/chat.coffee
 msgid "You"

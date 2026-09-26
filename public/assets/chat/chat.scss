@@ -577,6 +577,12 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
   border-radius: 100%;
   width: 38px;
   height: 38px;
+  // Foto profil agent (bawaan Zammad: `user.image`, dikirim
+  // `Chat::Session#agent_user` selama Setting Avatar agent tidak
+  // 'disabled'). Kotaknya dipatok 38x38 -- tanpa `object-fit` foto
+  // yang tidak persegi akan GEPENG di lingkaran ini (bawaan Zammad
+  // tidak mematok tinggi, jadi masalahnya tidak muncul di sana).
+  object-fit: cover;
 }
 
 .zammad-chat-agent-avatar--initials {
@@ -760,6 +766,40 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
   display: block;
 }
 
+// Atas permintaan user ("sticky di tengah atas jendela chat, sama
+// seperti pada whatsapp"): pil tanggal mengambang di atas daftar pesan.
+// Diposisikan ke `.zammad-chat-tab-body--messages` (BUKAN ke daftar
+// pesan yang menggulir), supaya tetap diam saat isinya digulir.
+.zammad-chat-sticky-date {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  // Pil ini cuma penanda -- klik/geser harus tembus ke pesan di bawahnya.
+  pointer-events: none;
+  transition: opacity 150ms ease;
+
+  &.zammad-chat-is-hidden {
+    display: flex;
+    opacity: 0;
+  }
+
+  span {
+    padding: 4px 12px;
+    // Pil (widget tidak punya token radius pill sendiri).
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(19, 25, 32, 0.16);
+    color: $siska-text-secondary;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+}
+
 .zammad-chat-timestamp {
   text-align: center;
   color: $siska-text-secondary;
@@ -806,6 +846,72 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
 .zammad-chat-message--customer {
   margin-left: auto;
   justify-content: flex-end;
+}
+
+// Atas permintaan user (screenshot panel agent beranotasi): avatar +
+// nama pengirim di tiap bubble, & label "You" di pesan sendiri. Bawaan
+// Zammad tidak punya ini di widget; sisi agent SUDAH punya, jadi ini
+// menyamakan keduanya. Kolom `-main` membungkus nama + baris bubble
+// supaya avatar bisa berdiri sendiri di kiri (pesan agent).
+// Atas permintaan user: bubble GAMBAR maksimal setengah lebar daftar
+// pesan. `.zammad-chat-message` adalah anak langsung `.zammad-chat-body`,
+// jadi persentasenya memang relatif terhadap lebar area chat. Pesan agent
+// dapat tambahan selebar kolom avatar (28px + jarak 8px) supaya KARTUNYA
+// sama-sama ~50%, bukan 50% dikurangi avatar.
+.zammad-chat-message--media {
+  max-width: 50%;
+}
+
+.zammad-chat-message--media.zammad-chat-message--agent {
+  max-width: calc(50% + 36px);
+}
+
+.zammad-chat-message-main {
+  display: flex;
+  flex-direction: column;
+  // `min-width: 0` -- alasan SAMA spt `.zammad-chat-message-row`: tanpa
+  // ini, kartu lampiran (`white-space: nowrap` + ellipsis) memaksa
+  // kolom ini selebar nama file penuh.
+  min-width: 0;
+  max-width: 100%;
+}
+
+.zammad-chat-message--customer .zammad-chat-message-main {
+  align-items: flex-end;
+}
+
+.zammad-chat-message-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 28px;
+  height: 28px;
+  margin-right: 8px;
+  border-radius: 100%;
+  background: $siska-primary-tint;
+  color: $siska-primary;
+  // Skala huruf kit: 12 / 14 / 16 / 20 -- 11px dilarang (harness audit).
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
+    // Sama spt avatar header: foto tidak persegi dipangkas, bukan gepeng.
+    object-fit: cover;
+  }
+}
+
+.zammad-chat-message-author {
+  margin: 0 2px 2px;
+  color: $siska-text-secondary;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 // Atas permintaan user (mockup `Messages.dc.html` direvisi: "ikon
@@ -1001,6 +1107,13 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
 
 .zammad-chat-message--typing .zammad-chat-message-body {
   white-space: normal;
+}
+
+// Indikator mengetik tidak punya avatar (markupnya statis), jadi
+// digeser selebar avatar + gap supaya sejajar dgn bubble agent yang
+// sekarang beravatar (28 + 8).
+.zammad-chat-message--typing {
+  margin-left: 36px;
 }
 
 // Atas permintaan user (mockup "SISKA Widget Mockup" board
@@ -3565,8 +3678,12 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
 .zammad-chat-image-open {
   position: relative;
   display: block;
-  width: 240px;
-  height: 180px;
+  // Tinggi MENGIKUTI lebar (rasio asli gambar), bukan lagi kotak
+  // 240x180 yang memangkas gambar. `min-height` cuma menjaga kotak
+  // latar tetap terlihat selama gambar dimuat.
+  width: 100%;
+  height: auto;
+  min-height: 56px;
   max-width: 100%;
   padding: 0;
   margin: 0;
@@ -3586,9 +3703,8 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
 .zammad-chat-image-thumb {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  // Rasio asli dipertahankan (dulu `height: 100%` + `cover` = dipangkas).
+  height: auto;
 }
 
 .zammad-chat-image-meta {
@@ -4180,7 +4296,12 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
 // terpotong; sudut atas gambar dibulatkan sendiri.
 // ---------------------------------------------------------------------
 .zammad-chat-message-body.zammad-chat-image-card {
-  width: 242px;
+  // Atas permintaan user ("ukuran gambar diperkecil lagi, maksimal 50%
+  // dari lebar area chat, tinggi menyesuaikan lebar"): kartu mengisi
+  // lebar bubble, dan BATASNYA dipasang di pembungkus pesan
+  // (`.zammad-chat-message--media`) yang lebarnya memang relatif
+  // terhadap daftar pesan. Dulu kartu dipatok 242px.
+  width: 100%;
   max-width: 100%;
   padding: 0;
   // K1: warna garis SAMA dgn panel agent (theme-border kit).

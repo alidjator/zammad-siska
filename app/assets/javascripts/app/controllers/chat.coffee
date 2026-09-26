@@ -314,6 +314,11 @@ class App.CustomerChat extends App.Controller
     @onlineSwitch.prop('checked', active)
     @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
     @offlineBanner.toggleClass('hidden', !@metaLoaded || active)
+    # Atas permintaan user: ilustrasi empty state ikut status agent --
+    # versi abu-abu dgn lambang daya saat offline. Sebelum status
+    # pertama tiba (`@metaLoaded` masih false) tetap versi online,
+    # supaya tidak berkedip abu-abu sesaat saat halaman dibuka.
+    @detailEmpty?.toggleClass('is-offline', @metaLoaded && !active)
 
   onGoOnline: (e) =>
     e.preventDefault()
@@ -730,6 +735,9 @@ class App.ChatWindow extends App.Controller
 
     @showTimeEveryXMinutes = 2
     @lastTimestamp
+    # Label hari cuma sekali per hari (lihat `maybeAddTimestamp`).
+    @lastTimestampDay = null
+    @lastTimestampLabel = null
     @lastAddedType
     @isTyping = false
     @isAgentTyping = false
@@ -907,11 +915,15 @@ class App.ChatWindow extends App.Controller
         name: @name
         session: @session
         chats: App.Chat.all()
-        previousSessions: @session.previous_sessions
       )
 
     @el.one('transitionend', @onTransitionend)
     @scrollHolder.on('scroll', @detectScrolledtoBottom)
+
+    # Pil tanggal mengambang (gaya WhatsApp) -- lihat `updateStickyDate`.
+    if @siska
+      @stickyDateEl = @$('.js-stickyDate')
+      @scrollHolder.on('scroll', @updateStickyDate)
 
     # Fase 5 -- Item No. 6, fitur tambahan enable/disable attachment
     # global+per-agent. Section 5.2.6. Sembunyikan tombol attach kalau
@@ -1254,9 +1266,6 @@ class App.ChatWindow extends App.Controller
     details.push(label: __('Location'), value: geo) if geo
     details.push(label: __('IP'), value: prefs.remote_ip) if prefs.remote_ip
 
-    previous = for entry in (session.previous_sessions || [])
-      _.extend({}, entry, dateLabel: App.i18n.translateTimestamp(entry.created_at))
-
     name:             @name
     session:          session
     initials:         App.SiskaFormat.initials(@name)
@@ -1264,8 +1273,6 @@ class App.ChatWindow extends App.Controller
     subline:          _.compact([session.email, session.category, App.i18n.translatePlain('session #%s', session.id)]).join(' · ')
     transferChats:    ({ id: chat.id, name: chat.displayName() } for chat in App.Chat.all() when chat.id isnt session.chat_id)
     details:          details
-    previousSessions: previous
-    showRating:       App.Config.get('chat_agent_show_rating') isnt false
 
   # Pemisah "Chat ended by … · HH:MM" (teks di-escape oleh template).
   movedToTicketText: (ticketNumber) =>
@@ -1935,39 +1942,96 @@ class App.ChatWindow extends App.Controller
   # B2 (docs/INVENTORY_AGENT_CHAT.md): `at` = waktu pesan yang dirender.
   # Dulu selalu Date.now(), jadi saat jendela dirender ulang (reload) pil
   # menampilkan jam render, bukan jam pesan. Tanpa `at` = pesan baru (now).
+  # Atas permintaan user ("untuk chat today cukup tulis today pada awal
+  # chat di hari itu, setelahnya hanya tulis jamnya, untuk selain today
+  # ... di group by tanggalnya"): label hari HANYA di pemisah PERTAMA
+  # hari itu, pemisah berikutnya cukup jam. Bawaan Zammad mengulang
+  # "today HH:MM" tiap `showTimeEveryXMinutes`. Aturan yang SAMA dipakai
+  # widget customer (`maybeAddTimestamp` di chat-no-jquery.coffee).
   maybeAddTimestamp: (at) ->
     date = if at then new Date(at) else new Date()
     date = new Date() if isNaN(date.getTime())
     timestamp = date.getTime()
+    day = date.toDateString()
+    dayChanged = day isnt @lastTimestampDay
 
-    if !@lastTimestamp or timestamp - @lastTimestamp > @showTimeEveryXMinutes * 60000
-      label = if date.toDateString() is new Date().toDateString()
-        App.i18n.translateInline('today')
-      else
-        App.i18n.translateDate(date.toISOString())
-      time = date.toTimeString().substr(0,5)
-      if @lastAddedType is 'timestamp'
-        # update last time
-        @updateLastTimestamp label, time
-        @lastTimestamp = timestamp
-      else
-        @addTimestamp label, time
-        @lastTimestamp = timestamp
-        @lastAddedType = 'timestamp'
+    return if !dayChanged && @lastTimestamp && timestamp - @lastTimestamp <= @showTimeEveryXMinutes * 60000
 
-  addTimestamp: (label, time) =>
+    time = date.toTimeString().substr(0,5)
+    # Pemisah terakhir diganti (dua pemisah beruntun tanpa pesan di
+    # antaranya): labelnya DIPERTAHANKAN, kalau tidak penanda hari itu
+    # ikut hilang.
+    # Label hari gaya WhatsApp (Today / Yesterday / nama hari / tanggal)
+    # -- satu sumber yang SAMA dipakai pil tanggal thread riwayat.
+    # `dayLabel` SELALU diisi (walau label yang TAMPIL kosong) -- dipakai
+    # pil tanggal mengambang saat digulir (`updateStickyDate`).
+    dayLabel = App.SiskaFormat.dayLabel(date)
+    label = if dayChanged
+      dayLabel
+    else if @lastAddedType is 'timestamp'
+      @lastTimestampLabel || ''
+    else
+      ''
+
+    if @lastAddedType is 'timestamp'
+      @updateLastTimestamp label, time, dayLabel
+    else
+      @addTimestamp label, time, dayLabel
+      @lastAddedType = 'timestamp'
+
+    @lastTimestamp = timestamp
+    @lastTimestampDay = day
+    @lastTimestampLabel = label
+
+  # Atas permintaan user ("today, yesterday, nama hari ... pada saat di
+  # scroll `sticky` di tengah atas jendela chat, sama seperti pada
+  # whatsapp"): pil tanggal mengambang di tengah-atas percakapan.
+  # Isinya = hari dari pemisah TERAKHIR yang sudah terlewat ke atas
+  # (kalau belum ada, hari pemisah pertama). Penanda `data-day-label`
+  # ADA di SEMUA pemisah waktu (termasuk yang cuma menampilkan jam)
+  # & pil tanggal riwayat dalam jendela, jadi satu jalur yang sama.
+  updateStickyDate: =>
+    return if !@stickyDateEl or !@stickyDateEl.length or !@scrollHolder
+    # Jangan berkedip saat jendela menggulir SENDIRI ke bawah (pesan baru).
+    return @hideStickyDate() if @suppressStickyUntil && Date.now() < @suppressStickyUntil
+
+    markers = @scrollHolder.find('[data-day-label]')
+    return @hideStickyDate() if !markers.length
+
+    holderTop = @scrollHolder.get(0).getBoundingClientRect().top
+    current = markers.get(0)
+    for marker in markers.get()
+      break if marker.getBoundingClientRect().top - holderTop > 8
+      current = marker
+    label = current.getAttribute('data-day-label')
+    return @hideStickyDate() if !label
+
+    @stickyDateEl.find('.js-stickyDateText').text(label)
+    @stickyDateEl.removeClass('hidden')
+    clearTimeout(@stickyDateTimeout) if @stickyDateTimeout
+    # Sembunyi sendiri sesudah gulir berhenti, spt WhatsApp.
+    @stickyDateTimeout = setTimeout(@hideStickyDate, 1200)
+
+  hideStickyDate: =>
+    clearTimeout(@stickyDateTimeout) if @stickyDateTimeout
+    @stickyDateTimeout = undefined
+    @stickyDateEl?.addClass('hidden')
+
+  addTimestamp: (label, time, dayLabel) =>
     @body.append App.view('customer_chat/chat_timestamp')(
       label: label
       time: time
+      dayLabel: dayLabel
     )
 
-  updateLastTimestamp: (label, time) ->
+  updateLastTimestamp: (label, time, dayLabel) ->
     @body
       .find('.js-timestamp')
       .last()
       .replaceWith App.view('customer_chat/chat_timestamp')(
         label: label
         time: time
+        dayLabel: dayLabel
       )
 
   addStatusMessage: (message, args, useMaybeAddTimestamp = true) ->
@@ -2020,6 +2084,9 @@ class App.ChatWindow extends App.Controller
 
   scrollToBottom: ({ showHint } = { showHint: false }) ->
     if @scrolledToBottom
+      # Gulir otomatis: pil tanggal ditahan sebentar supaya tidak
+      # berkedip tiap pesan baru (lihat `updateStickyDate`).
+      @suppressStickyUntil = Date.now() + 400
       @scrollHolder.scrollTop(@scrollHolder.prop('scrollHeight'))
     else if showHint
       @showScrollHint()

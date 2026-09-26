@@ -104,6 +104,11 @@ sini. Escape = minimize (`onPanelKeydown`). -->
 
   <div class="zammad-chat-tab-body zammad-chat-tab-body--messages">
     <div class="zammad-chat-modal"></div>
+    <!-- Atas permintaan user ("today, yesterday, nama hari ... pada saat di
+    scroll sticky di tengah atas jendela chat, sama seperti pada whatsapp"):
+    pil tanggal mengambang. Isinya diisi `updateStickyDate` dari penanda
+    `data-day-label` pemisah waktu / pil tanggal riwayat yang sedang lewat. -->
+    <div class="zammad-chat-sticky-date js-sticky-date zammad-chat-is-hidden" aria-hidden="true"><span class="js-sticky-date-text"></span></div>
     <div class="zammad-scroll-hint is-hidden">
       <%- @icon('arrow-circle-down', 20, class: 'zammad-scroll-hint-icon') %>
       <%- @T(@scrollHint) %>

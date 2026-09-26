@@ -353,6 +353,9 @@ do(window) ->
     stopBlinOnlineStateTimeout: null
     showTimeEveryXMinutes: 2
     lastTimestamp: null
+    # Label hari cuma sekali per hari (lihat `maybeAddTimestamp`).
+    lastTimestampDay: null
+    lastTimestampLabel: null
     lastAddedType: null
     inputDisabled: false
     inputTimeout: null
@@ -542,6 +545,7 @@ do(window) ->
         'Since you didn\'t respond in the last %s minutes your conversation with <strong>%s</strong> was closed.': 'Karena Anda tidak membalas dalam %s menit terakhir, percakapan Anda dengan <strong>%s</strong> ditutup.'
         'Start new conversation': 'Mulai percakapan baru'
         'Today': 'Hari ini'
+        'Yesterday': 'Kemarin'
         'We are sorry, it is taking longer than expected to get a slot. Please try again later or send us an email. Thank you!': 'Kami minta maaf, proses ini memakan waktu lebih lama dari yang diharapkan untuk mendapatkan slot. Silakan coba lagi nanti atau kirimkan email ke kami. Terima kasih!'
         'You are on waiting list position <strong>%s</strong>.': 'Anda berada di posisi daftar tunggu <strong>%s</strong>.'
       'it':
@@ -1052,6 +1056,10 @@ do(window) ->
 
       @input = @el.querySelector('.zammad-chat-input')
       @body = @el.querySelector('.zammad-chat-body')
+
+      # Pil tanggal mengambang (gaya WhatsApp) -- lihat `updateStickyDate`.
+      @stickyDateEl = @el.querySelector('.js-sticky-date')
+      @body.addEventListener('scroll', @onStickyDateScroll)
 
       # start bindings
       # Atas permintaan user -- mirror persis dari chat.coffee: X di
@@ -1914,6 +1922,10 @@ do(window) ->
           isAgentMessage = !!message.created_by_id
           time = @formatTime(message.created_at)
 
+          # Pengelompokan tanggal utk pesan yang diputar ulang (sesi bisa
+          # melintasi hari) -- pakai waktu PESAN, bukan waktu render.
+          @maybeAddTimestamp(message.created_at)
+
           # Bug KEDUA ditemukan lewat pengujian langsung -- mirror
           # persis dari chat.coffee: pesan attachment di riwayat
           # SEBELUMNYA di-render sbg bubble teks "[attachment]" TANPA
@@ -1928,7 +1940,7 @@ do(window) ->
           if message.filename
             # Fitur kirim gambar: gambar -> bubble gambar (jalur riwayat
             # kini membawa `content_type`, lihat Chat::Session).
-            @body.insertAdjacentHTML 'beforeend', @view(@attachmentView(message.content_type, message.display))(
+            @body.insertAdjacentHTML 'beforeend', @view(@attachmentView(message.content_type, message.display)) @withSender(
               from: if isAgentMessage then 'agent' else 'customer'
               id: message.id
               filename: message.filename
@@ -2027,13 +2039,14 @@ do(window) ->
       # G3: id lokal sementara; diganti id server oleh `confirmOwnMessage`
       localId = "local-#{@_messageCount++}"
       (@pendingOwnMessages ||= []).push(localId)
-      messageElement = @view('message')
+      messageElement = @view('message') @withSender(
         message: message
         from: 'customer'
         id: localId
         unreadClass: ''
         replyTo: replyToSnippet
         time: @formatTime()
+      )
 
       @maybeAddTimestamp()
 
@@ -2105,10 +2118,34 @@ do(window) ->
       playPromise?.catch (e) =>
         @log.debug 'playMessageSound: diblokir kebijakan autoplay browser', e
 
+    # Atas permintaan user (screenshot panel agent beranotasi: lingkaran
+    # inisial + nama pengirim, dan label "You" di pesan sendiri) --
+    # identitas pengirim di SETIAP bubble percakapan BERJALAN. Bawaan
+    # Zammad tidak punya ini di widget sama sekali (bubble polos); sisi
+    # agent SUDAH punya, jadi ini menyamakan keduanya.
+    #
+    # Thread RIWAYAT (setelah OTP) sengaja TIDAK memakai ini -- di sana
+    # nama agent sudah punya baris sendiri per rentetan
+    # (`renderCustomerHistory`, item bertipe 'author') & bubble-nya
+    # dirender lewat `historyMessageHtml`, bukan lewat helper ini.
+    withSender: (data) =>
+      return data if !data
+      if data.from is 'agent'
+        name = @agent?.name
+        data.author   = name || @T('Agent')
+        # Foto profil agent (bawaan Zammad: `user.image`, dikirim server
+        # selama Setting Avatar agent tidak 'disabled'); tidak ada foto
+        # -> lingkaran inisial, sama dgn avatar di header panel.
+        data.avatar   = @agent?.avatar
+        data.initials = @initialsOf(name) || '?'
+      else
+        data.author = @T('You')
+      data
+
     renderMessage: (data) =>
       @lastAddedType = "message--#{ data.from }"
       data.unreadClass = if document.hidden then ' zammad-chat-message--unread' else ''
-      @body.insertAdjacentHTML('beforeend', @view('message')(data))
+      @body.insertAdjacentHTML('beforeend', @view('message')(@withSender(data)))
 
     # Fitur tambahan "Reply ke Pesan Spesifik (Seperti WhatsApp)" --
     # docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md Section 5.3.
@@ -2381,7 +2418,7 @@ do(window) ->
     # terdapat reply?") -- mirror persis dari chat.coffee.
     addAttachmentMessage: (data, from) =>
       viewName = @attachmentView(data.content_type, data.display)
-      html = @view(viewName)(
+      html = @view(viewName) @withSender(
         from: from
         id: data.id
         filename: data.filename
@@ -2438,6 +2475,7 @@ do(window) ->
         uploadId: uploadId
         previewUrl: @imageUploadUrls[uploadId]
         filename: file.name
+        author: @T('You')
       )
       @scrollToBottom showHint: true
       uploadId
@@ -2450,6 +2488,7 @@ do(window) ->
       @body.insertAdjacentHTML 'beforeend', @view('file_upload')(
         uploadId: uploadId
         filename: file.name
+        author: @T('You')
       )
       @scrollToBottom showHint: true
       uploadId
@@ -3419,32 +3458,103 @@ do(window) ->
       @send 'chat_session_leave_temporary',
         session_id: @sessionId
 
-    maybeAddTimestamp: ->
-      timestamp = Date.now()
+    # Atas permintaan user ("untuk chat today cukup tulis today pada awal
+    # chat di hari itu, setelahnya hanya tulis jamnya, untuk selain today
+    # ... di group by tanggalnya"): label hari cuma dipasang di pemisah
+    # PERTAMA hari itu, pemisah berikutnya cukup jam. Bawaan Zammad
+    # selalu mengulang "Today HH:MM" tiap `showTimeEveryXMinutes`.
+    #
+    # Parameter `at` BARU (bawaan widget selalu `Date.now()`): dipakai
+    # jalur replay sesi (reconnect/reload halaman) supaya pesan lama
+    # dikelompokkan menurut TANGGAL PESANNYA, bukan waktu render.
+    maybeAddTimestamp: (at) ->
+      date = if at then new Date(at) else new Date()
+      date = new Date() if isNaN(date.getTime())
+      timestamp = date.getTime()
+      day = date.toDateString()
+      dayChanged = day isnt @lastTimestampDay
 
-      if !@lastTimestamp or (timestamp - @lastTimestamp) > @showTimeEveryXMinutes * 60000
-        label = @T('Today')
-        time = new Date().toTimeString().substr 0,5
-        if @lastAddedType is 'timestamp'
-          # update last time
-          @updateLastTimestamp label, time
-          @lastTimestamp = timestamp
-        else
-          # add new timestamp
-          @body.insertAdjacentHTML 'beforeend', @view('timestamp')
-            label: label
-            time: time
-          @lastTimestamp = timestamp
-          @lastAddedType = 'timestamp'
-          @scrollToBottom()
+      return if !dayChanged and @lastTimestamp and (timestamp - @lastTimestamp) <= @showTimeEveryXMinutes * 60000
 
-    updateLastTimestamp: (label, time) ->
+      time = date.toTimeString().substr 0,5
+      # `dayLabel` SELALU diisi (walau label yang TAMPIL kosong) -- dipakai
+      # pil tanggal mengambang saat digulir (`updateStickyDate`), yang perlu
+      # tahu hari tiap pemisah, bukan cuma pemisah pertama tiap hari.
+      dayLabel = @historyDateLabel(date)
+      # Ganti pemisah terakhir (dua pemisah beruntun tanpa pesan di
+      # antaranya): labelnya DIPERTAHANKAN, kalau tidak penanda hari
+      # itu ikut hilang saat diganti.
+      label = if dayChanged
+        dayLabel
+      else if @lastAddedType is 'timestamp'
+        @lastTimestampLabel || ''
+      else
+        ''
+
+      if @lastAddedType is 'timestamp'
+        @updateLastTimestamp label, time, dayLabel
+      else
+        @body.insertAdjacentHTML 'beforeend', @view('timestamp')
+          label: label
+          time: time
+          dayLabel: dayLabel
+        @lastAddedType = 'timestamp'
+        @scrollToBottom()
+
+      @lastTimestamp = timestamp
+      @lastTimestampDay = day
+      @lastTimestampLabel = label
+
+    # Atas permintaan user ("today, yesterday, nama hari ... pada saat di
+    # scroll `sticky` di tengah atas jendela chat, sama seperti pada
+    # whatsapp"): pil tanggal mengambang di tengah-atas daftar pesan.
+    # Isinya = hari dari pemisah TERAKHIR yang sudah terlewat ke atas
+    # (kalau belum ada, hari pemisah pertama), jadi saat menggulir ke
+    # riwayat lama pil ikut berganti "Today" -> "Yesterday" -> nama hari.
+    #
+    # Penanda diambil dari atribut `data-day-label` -- ADA di SEMUA
+    # pemisah waktu (termasuk yang cuma menampilkan jam) & pil tanggal
+    # thread riwayat, jadi satu jalur yang sama untuk keduanya.
+    onStickyDateScroll: =>
+      @updateStickyDate()
+
+    updateStickyDate: =>
+      return if !@stickyDateEl or !@body
+      # Jangan berkedip saat widget menggulir SENDIRI ke bawah (pesan
+      # baru masuk) -- hanya gulir oleh pengguna yang memunculkan pil.
+      return @hideStickyDate() if @suppressStickyUntil and Date.now() < @suppressStickyUntil
+
+      markers = @body.querySelectorAll('[data-day-label]')
+      return @hideStickyDate() if !markers.length
+
+      bodyTop = @body.getBoundingClientRect().top
+      current = markers[0]
+      for marker in markers
+        break if marker.getBoundingClientRect().top - bodyTop > 8
+        current = marker
+      label = current.getAttribute('data-day-label')
+      return @hideStickyDate() if !label
+
+      textEl = @stickyDateEl.querySelector('.js-sticky-date-text')
+      textEl.textContent = label if textEl
+      @stickyDateEl.classList.remove('zammad-chat-is-hidden')
+      clearTimeout(@stickyDateTimeout) if @stickyDateTimeout
+      # Sembunyi sendiri sesudah gulir berhenti, spt WhatsApp.
+      @stickyDateTimeout = setTimeout(@hideStickyDate, 1200)
+
+    hideStickyDate: =>
+      clearTimeout(@stickyDateTimeout) if @stickyDateTimeout
+      @stickyDateTimeout = undefined
+      @stickyDateEl?.classList.add('zammad-chat-is-hidden')
+
+    updateLastTimestamp: (label, time, dayLabel) ->
       return if !@el
       timestamps = @el.querySelectorAll('.zammad-chat-body .zammad-chat-timestamp')
       return if !timestamps
       timestamps[timestamps.length - 1].outerHTML = @view('timestamp')
         label: label
         time: time
+        dayLabel: dayLabel
 
     addStatus: (status) ->
       return if !@el
@@ -3539,6 +3649,9 @@ do(window) ->
 
     scrollToBottom: ({ showHint } = { showHint: false }) ->
       if @scrolledToBottom
+        # Gulir otomatis: pil tanggal ditahan sebentar supaya tidak
+        # berkedip tiap pesan baru (lihat `updateStickyDate`).
+        @suppressStickyUntil = Date.now() + 400
         @body.scrollTop = @body.scrollHeight
       else if showHint
         @showScrollHint()
@@ -3720,6 +3833,13 @@ do(window) ->
 
       # empty old messages
       @body.innerHTML = ''
+      # Pemisah waktu ikut mulai dari nol -- kalau tidak, pesan pertama
+      # sesi baru kehilangan label harinya (penanda hari masih tercatat
+      # dari sesi sebelumnya).
+      @lastTimestamp = null
+      @lastTimestampDay = null
+      @lastTimestampLabel = null
+      @lastAddedType = null
       # Riwayat chat dari email yang sama (terkunci OTP), selalu paling atas
       @initCustomerHistory()
 
@@ -3929,21 +4049,38 @@ do(window) ->
       box.value = pasted.charAt(i) || '' for box, i in boxes
       if pasted.length >= boxes.length then @submitHistoryOtp() else boxes[pasted.length]?.focus()
 
+    # Atas permintaan user ("grouping nya seperti ini, today, yesterday,
+    # nama hari, dan seterusnya seperti pada whatsapp"): hari ini ->
+    # "Today", kemarin -> "Yesterday", 2-6 hari lalu -> NAMA HARI
+    # (Senin/Selasa, dilokalkan browser), lebih lama -> tanggal.
+    # Dipakai pemisah waktu percakapan berjalan MAUPUN pil tanggal di
+    # thread riwayat, jadi keduanya selalu seragam. Aturan yang SAMA
+    # ada di `App.SiskaFormat.dayLabel` (panel agent).
     historyDateLabel: (time) ->
-      date = new Date(time)
+      date = if time instanceof Date then time else new Date(time)
       return '' if isNaN(date.getTime())
-      return @T('Today') if date.toDateString() is new Date().toDateString()
+      # Selisih HARI KALENDER (bukan 24 jam): pesan jam 23:50 kemarin &
+      # jam 00:10 hari ini tetap beda hari.
+      midnight = (d) -> new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      days = Math.round((midnight(new Date()) - midnight(date)) / 86400000)
+      return @T('Today') if days is 0
+      return @T('Yesterday') if days is 1
+      if days > 1 and days < 7
+        weekday = @localeDate(date, weekday: 'long')
+        return weekday if weekday
+      @localeDate(date, { day: 'numeric', month: 'short', year: 'numeric' }) || date.toDateString()
+
+    localeDate: (date, options) ->
       try
-        date.toLocaleDateString(@options.lang || undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+        date.toLocaleDateString(@options.lang || undefined, options)
       catch
-        date.toDateString()
+        ''
 
     renderCustomerHistory: =>
       return if !@historyEl
       items = []
       lastDay = null
       lastSession = null
-      lastAuthor = null
       messages = @history.messages
       pushEnd = (session, lastMessage) =>
         return if !session or !lastMessage or session.state isnt 'closed'
@@ -3968,11 +4105,10 @@ do(window) ->
           meta = (part for part in [session.agent_name, range] when part).join(' · ')
           items.push(type: 'session', id: session.id, meta: meta)
           lastSession = session
-          lastAuthor = null
         from = if message.is_from_agent then 'agent' else 'customer'
-        if from is 'agent' and session.agent_name and lastAuthor isnt session.agent_name
-          items.push(type: 'author', name: session.agent_name)
-        lastAuthor = if from is 'agent' then session.agent_name else null
+        # Baris nama agent terpisah (dulu sekali per rentetan) DIHAPUS --
+        # nama & avatar sekarang menempel di tiap bubble, spt percakapan
+        # berjalan, jadi baris itu akan dobel.
         items.push(type: 'message', html: @historyMessageHtml(message, session, from))
       pushEnd(lastSession, messages[messages.length - 1]) if lastSession
       state = if @history.loading then 'loading' else if @history.hasMore then 'ready' else if items.length then 'end' else 'empty'
@@ -3984,10 +4120,27 @@ do(window) ->
 
     # Bubble riwayat memakai template pesan yang sama TANPA id (jadi tanpa
     # menu/reply/reaksi); lampiran memakai session_id sesi asalnya.
+    # Atas permintaan user ("di history avatar agen tidak muncul, dan
+    # tulisan `You` tidak muncul"): bubble riwayat memakai identitas yang
+    # SAMA dgn percakapan berjalan. Bedanya, identitasnya diambil per
+    # SESI LAMA (`session.agent_name`/`agent_avatar`, bisa agent yang
+    # berbeda tiap sesi), bukan dari `@agent` yang sedang melayani.
+    # Pola yang sama sudah dipakai panel agent (`historyMessageHtml` di
+    # app/assets/javascripts/app/controllers/chat.coffee).
+    historySender: (data, session, from) =>
+      if from is 'agent'
+        name = session?.agent_name
+        data.author   = name || @T('Agent')
+        data.avatar   = session?.agent_avatar
+        data.initials = @initialsOf(name) || '?'
+      else
+        data.author = @T('You')
+      data
+
     historyMessageHtml: (message, session, from) =>
       time = @formatTime(message.created_at)
       if message.filename
-        @view(@attachmentView(message.content_type, message.display))(
+        @view(@attachmentView(message.content_type, message.display)) @historySender(
           from: from
           filename: message.filename
           metaLabel: @attachmentMeta(message.filename, message.size)
@@ -3996,16 +4149,16 @@ do(window) ->
           unreadClass: ''
           time: time
           isRead: !!message.read_at
-        )
+        , session, from)
       else
-        @view('message')(
+        @view('message') @historySender(
           message: message.content
           from: from
           time: time
           isRead: !!message.read_at
           replyTo: message.reply_to?.content
           unreadClass: ''
-        )
+        , session, from)
 
     showWelcomeGreeting: (createdAt) =>
       greeting = @phrases['chat_phrase_messages_welcome_greeting']
@@ -4035,14 +4188,39 @@ do(window) ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('customer_timeout')
         agent: @escapeHtml(@agent.name)
         delay: parseInt(@options.inactiveTimeout, 10) || @options.inactiveTimeout
-      @el.querySelector('.js-restart').addEventListener 'click', -> location.reload()
+      @el.querySelector('.js-restart').addEventListener 'click', @onRestartConversation
       @sessionClose()
 
     showWaitingListTimeout: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('waiting_list_timeout')
         delay: @options.watingListTimeout
-      @el.querySelector('.js-restart').addEventListener 'click', -> location.reload()
+      @el.querySelector('.js-restart').addEventListener 'click', @onRestartConversation
       @sessionClose()
+
+    # Atas permintaan user: tombol "Start new conversation" di layar
+    # timeout (tidak ada balasan / antrean kedaluwarsa) dulu memanggil
+    # `location.reload()` -- itu memuat ulang HALAMAN SITUS pelanggan,
+    # jadi panel widget ikut tertutup & visitor harus membuka launcher
+    # lagi dari nol. Sekarang widget kembali ke tab Home dengan panel
+    # TETAP TERBUKA, lewat `goToStartChat()` yang SUDAH ADA (jalur yang
+    # SAMA dipakai akhir alur feedback) -- bukan reset baru sendiri.
+    onRestartConversation: (event) =>
+      event?.preventDefault()
+      @inQueue = false
+      # Percakapan lama dibersihkan DI SINI (biasanya baru dibersihkan
+      # `onConnectionEstablished` saat sesi berikutnya tersambung) supaya
+      # visitor yang membuka tab Messages sebelum memulai chat baru tidak
+      # melihat transkrip sesi yang sudah ditutup.
+      @body.innerHTML = ''
+      @lastTimestamp = null
+      @lastTimestampDay = null
+      @lastTimestampLabel = null
+      @lastAddedType = null
+      @goToStartChat()
+      # `switchTab` di `goToStartChat` berhenti lebih awal kalau tab Home
+      # memang sedang aktif -- header (avatar + "Active now" agent lama)
+      # ikut diperbarui di sini supaya tidak tertinggal dalam kasus itu.
+      @updateHeader()
 
     showLoader: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('loader')()

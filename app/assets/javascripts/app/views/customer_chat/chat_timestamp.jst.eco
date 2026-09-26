@@ -1,1 +1,3 @@
-<div class="chat-timestamp js-timestamp"><span class="chat-timestamp-label"><%= @label %></span> <%= @time %></div>
+<!-- Atas permintaan user: label hari HANYA di pemisah pertama hari itu
+     (`maybeAddTimestamp`), pemisah berikutnya cukup jam. -->
+<div class="chat-timestamp js-timestamp" data-day-label="<%= @dayLabel %>"><% if @label: %><span class="chat-timestamp-label"><%= @label %></span> · <% end %><%= @time %></div>

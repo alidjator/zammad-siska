@@ -40,6 +40,11 @@
     <%- @T('Scroll down to see new messages') %>
   </div>
   <div class="chat-body-holder js-scrollHolder">
+    <!-- Atas permintaan user ("sticky di tengah atas jendela chat, sama
+    seperti pada whatsapp"): pil tanggal mengambang. `position: sticky`
+    di dalam area yang menggulir, isinya diisi `updateStickyDate` dari
+    penanda `data-day-label` pemisah waktu / pil tanggal riwayat. -->
+    <div class="siska-sticky-date js-stickyDate hidden" aria-hidden="true"><span class="js-stickyDateText"></span></div>
     <!-- Audit chat agent (aksesibilitas): pesan customer yg masuk
     diumumkan pembaca layar (hanya tambahan). -->
     <div class="chat-body js-body" role="log" aria-live="polite" aria-relevant="additions" aria-label="<%- @Ti('Messages') %>"></div>
@@ -111,52 +116,5 @@
       <summary><%- @T('Edit name & tags') %></summary>
       <form class="js-metaForm"></form>
     </details>
-
-    <div>
-      <div class="s-h3"><%- @T('Previous chats') %></div>
-      <div class="s-muted s-small">
-        <% if @previousSessions.length: %>
-          <%- @T('%s conversations from this email', @previousSessions.length) %>
-        <% else: %>
-          <%- @T('No earlier conversations from this email') %>
-        <% end %>
-      </div>
-    </div>
-
-    <% for previous in @previousSessions: %>
-      <details class="siska-history">
-        <summary class="siska-history-summary">
-          <span class="siska-history-top">
-            <span class="siska-history-date"><%= previous.dateLabel %></span>
-            <% if previous.agent_name: %><span class="s-muted"><%= previous.agent_name %></span><% end %>
-          </span>
-          <% if previous.snippet: %><span class="siska-history-snippet">“<%= previous.snippet %>”</span><% end %>
-          <span class="siska-history-bottom">
-            <% if @showRating && previous.csat_score: %>
-              <span class="siska-rating" role="img" aria-label="<%- @Ti('Rating %s of 5', previous.csat_score) %>" title="<%= previous.csat_comment || '' %>">
-                <% for n in [1..5]: %><span class="siska-rating-heart<%= ' is-on' if n <= previous.csat_score %>"><%- @SiskaIcon('heart', 14, tone: 'full') %></span><% end %>
-              </span>
-            <% else: %>
-              <span></span>
-            <% end %>
-            <% if previous.ticket_id: %>
-              <a href="#" class="siska-history-ticket js-openPreviousTicket" data-ticket-id="<%= previous.ticket_id %>"><%- @T('Ticket #%s', previous.ticket_number || previous.ticket_id) %><%- @SiskaIcon('arrow-square-out', 14) %></a>
-            <% end %>
-          </span>
-        </summary>
-        <ul class="siska-history-transcript">
-          <% if previous.messages && previous.messages.length: %>
-            <% for message in previous.messages: %>
-              <li class="<%= if message.is_from_agent then 'is-agent' else 'is-customer' %>">
-                <strong><%- if message.is_from_agent then @T('Agent') else @T('Customer') %>:</strong>
-                <%- message.content %>
-              </li>
-            <% end %>
-          <% else: %>
-            <li class="s-muted"><%- @T('(no messages)') %></li>
-          <% end %>
-        </ul>
-      </details>
-    <% end %>
   </div>
 </aside>

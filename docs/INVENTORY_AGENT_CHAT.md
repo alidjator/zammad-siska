@@ -63,7 +63,7 @@ Legenda status:
 | 2.7 | Meta: **transfer** ke topik lain | `js-transferChat` | ✅ | Tombol ikon Transfer (tersembunyi bila tidak ada topik lain) |
 | 2.8 | Meta: **Created at** (tanggal + jam) | `@Ttimestamp(session.created_at)` | ⚠️ | Hanya jam untuk sesi hari ini; sesi dari hari lain tampil tanggal saja. Detail jam-tanggal lengkap hilang. **Kecil** |
 | 2.9 | Meta: tautan **Open Ticket** selama chat berjalan | `js-openPreviousTicket` | ✅ | Tombol ikon Tiket + baris Ticket (nomor tiket) |
-| 2.10 | Meta: **riwayat chat sebelumnya** + transkrip lengkap (`<details>`) | `previous_sessions` | ✅ | Kartu riwayat + agent, cuplikan, rating, nomor tiket; transkrip tetap bisa dibuka |
+| 2.10 | Meta: **riwayat chat sebelumnya** + transkrip lengkap (`<details>`) | `previous_sessions` | 🔄 | **Dihapus dari panel atas permintaan user (25 Sep 2026)**, berikut field `previous_sessions` di server. Digantikan riwayat DI DALAM jendela chat (`chat_session_history`, gulir ke atas): semua sesi dari email yang sama, bukan cuma 5 terakhir |
 | 2.11 | Meta: **GeoIP** | `preferences.geo_ip` | ✅ | Baris Location |
 | 2.12 | Meta: **IP** | `preferences.remote_ip` | ✅ | |
 | 2.13 | Meta: **DNS name** | `preferences.dns_name` | ❌ | **Hilang**, mudah dikembalikan |

@@ -38,7 +38,95 @@
     </aside>
     <section class="siska-chat-detail">
       <div class="s-card siska-chat-empty js-detailEmpty">
-        <span class="siska-chat-empty-icon"><%- @SiskaIcon('chats', 32, tone: 'full') %></span>
+        <!-- Atas permintaan user ("area ... di buatkan gambar ilustrasi biar
+        kelihatan tidak kosong", mockup opsi B1): ilustrasi datar menggantikan
+        lingkaran ikon 32px. Palet & bahasa visualnya SAMA dgn ilustrasi Home
+        widget (views/chat.eco): biru #4680ff, tint #dbe6ff/#e3ebff, busur
+        titik-titik #a9c1ff, aksen kuning/hijau/merah muda. Dekoratif ->
+        `aria-hidden`, karena judul & subjudul di bawah sudah menjelaskan. -->
+        <svg class="siska-chat-empty-ill siska-chat-empty-ill--online" viewBox="0 0 320 224" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+          <circle cx="160" cy="106" r="84" fill="#f2f6ff"/>
+          <circle cx="160" cy="106" r="102" fill="none" stroke="#e3ebff" stroke-width="2" stroke-dasharray="3 9"/>
+          <ellipse cx="160" cy="196" rx="92" ry="11" fill="#dbe6ff" opacity="0.75"/>
+          <path d="M76 94 C106 44 214 44 244 94" fill="none" stroke="#a9c1ff" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>
+          <path d="M160 16 l3 7.4 7.4 3 -7.4 3 -3 7.4 -3 -7.4 -7.4 -3 7.4 -3z" fill="#ffc15e"/>
+          <path d="M54 58 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#7fd3b3"/>
+          <path d="M268 52 l2.4 6 6 2.4 -6 2.4 -2.4 6 -2.4 -6 -6 -2.4 6 -2.4z" fill="#a9c1ff"/>
+          <path d="M40 148 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#ffb3c7"/>
+          <path d="M288 140 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#ffc15e"/>
+          <circle cx="96" cy="34" r="4" fill="#a9c1ff"/>
+          <circle cx="226" cy="26" r="3" fill="#ffb3c7"/>
+          <circle cx="34" cy="104" r="3.4" fill="#c9d7fb"/>
+          <circle cx="292" cy="98" r="4.4" fill="#dbe6ff"/>
+          <circle cx="70" cy="180" r="3" fill="#7fd3b3"/>
+          <circle cx="252" cy="182" r="3.6" fill="#a9c1ff"/>
+          <circle cx="122" cy="200" r="2.6" fill="#c9d7fb"/>
+          <circle cx="46" cy="76" r="7" fill="none" stroke="#c9d7fb" stroke-width="2"/>
+          <circle cx="276" cy="176" r="9" fill="none" stroke="#dbe6ff" stroke-width="2.4"/>
+          <path d="M64 62 a9 9 0 0 1 9 -9 h30 a9 9 0 0 1 9 9 v12 a9 9 0 0 1 -9 9 h-16 l-9 7 v-7 h-5 a9 9 0 0 1 -9 -9 z" fill="#ffffff" stroke="#d6e2ff" stroke-width="2"/>
+          <circle cx="78" cy="68" r="2.6" fill="#c9d7fb"/>
+          <circle cx="88" cy="68" r="2.6" fill="#c9d7fb"/>
+          <circle cx="98" cy="68" r="2.6" fill="#c9d7fb"/>
+          <path d="M76 100 a14 14 0 0 1 14 -14 h86 a14 14 0 0 1 14 14 v30 a14 14 0 0 1 -14 14 h-62 l-16 13 v-13 h-8 a14 14 0 0 1 -14 -14 z" fill="#d6e2ff"/>
+          <path d="M70 94 a14 14 0 0 1 14 -14 h86 a14 14 0 0 1 14 14 v30 a14 14 0 0 1 -14 14 h-62 l-16 13 v-13 h-8 a14 14 0 0 1 -14 -14 z" fill="#ffffff" stroke="#d6e2ff" stroke-width="2"/>
+          <rect x="88" y="96" width="74" height="8" rx="4" fill="#c9d7fb"/>
+          <rect x="88" y="112" width="48" height="8" rx="4" fill="#e3ebff"/>
+          <path d="M178 140 a13 13 0 0 1 13 -13 h50 a13 13 0 0 1 13 13 v22 a13 13 0 0 1 -13 13 h-6 v11 l-13 -11 h-31 a13 13 0 0 1 -13 -13 z" fill="#4680ff"/>
+          <circle cx="202" cy="151" r="3.8" fill="#ffffff"/>
+          <circle cx="216" cy="151" r="3.8" fill="#ffffff" opacity="0.8"/>
+          <circle cx="230" cy="151" r="3.8" fill="#ffffff" opacity="0.6"/>
+          <path d="M212 62 a8 8 0 0 1 8 -8 h34 a8 8 0 0 1 8 8 v11 a8 8 0 0 1 -8 8 h-4 v7 l-8 -7 h-22 a8 8 0 0 1 -8 -8 z" fill="#e3ebff"/>
+          <rect x="222" y="64" width="26" height="5" rx="2.5" fill="#ffffff"/>
+          <rect x="222" y="72" width="16" height="5" rx="2.5" fill="#ffffff" opacity="0.75"/>
+          <circle cx="252" cy="104" r="15" fill="#2aa77e"/>
+          <path d="M245 104 l5 5 9 -10" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <!-- Atas permintaan user ("ilustrasi ini diganti pada saat offline
+        dengan ilustrasi yang menggambarkan offline"): komposisi yang SAMA,
+        tapi diredupkan ke abu-abu -- gelembung biru jadi abu, busur
+        titik-titik PUTUS di tengah (isyarat terputus), kilau & titik
+        dipucatkan, dan lencana centang hijau diganti lambang daya.
+        Ditampilkan/disembunyikan lewat class `is-offline` di induknya
+        (`renderHeader` di chat.coffee), bukan render ulang template. -->
+        <svg class="siska-chat-empty-ill siska-chat-empty-ill--offline" viewBox="0 0 320 224" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+          <circle cx="160" cy="106" r="84" fill="#f4f5f7"/>
+          <circle cx="160" cy="106" r="102" fill="none" stroke="#edeff2" stroke-width="2" stroke-dasharray="3 9"/>
+          <ellipse cx="160" cy="196" rx="92" ry="11" fill="#e7eaee" opacity="0.75"/>
+          <path d="M76 94 C90 68 112 52 138 46" fill="none" stroke="#cfd4db" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>
+          <path d="M182 46 C208 52 230 68 244 94" fill="none" stroke="#cfd4db" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 7"/>
+          <path d="M160 16 l3 7.4 7.4 3 -7.4 3 -3 7.4 -3 -7.4 -7.4 -3 7.4 -3z" fill="#d7dbe1"/>
+          <path d="M54 58 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#e1e4e9"/>
+          <path d="M268 52 l2.4 6 6 2.4 -6 2.4 -2.4 6 -2.4 -6 -6 -2.4 6 -2.4z" fill="#d7dbe1"/>
+          <path d="M40 148 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#e1e4e9"/>
+          <path d="M288 140 l1.8 4.4 4.4 1.8 -4.4 1.8 -1.8 4.4 -1.8 -4.4 -4.4 -1.8 4.4 -1.8z" fill="#d7dbe1"/>
+          <circle cx="96" cy="34" r="4" fill="#dfe3e8"/>
+          <circle cx="226" cy="26" r="3" fill="#e7eaee"/>
+          <circle cx="34" cy="104" r="3.4" fill="#dfe3e8"/>
+          <circle cx="292" cy="98" r="4.4" fill="#e7eaee"/>
+          <circle cx="70" cy="180" r="3" fill="#dfe3e8"/>
+          <circle cx="252" cy="182" r="3.6" fill="#e1e4e9"/>
+          <circle cx="122" cy="200" r="2.6" fill="#e7eaee"/>
+          <circle cx="46" cy="76" r="7" fill="none" stroke="#e1e4e9" stroke-width="2"/>
+          <circle cx="276" cy="176" r="9" fill="none" stroke="#e7eaee" stroke-width="2.4"/>
+          <path d="M64 62 a9 9 0 0 1 9 -9 h30 a9 9 0 0 1 9 9 v12 a9 9 0 0 1 -9 9 h-16 l-9 7 v-7 h-5 a9 9 0 0 1 -9 -9 z" fill="#ffffff" stroke="#e1e4e9" stroke-width="2"/>
+          <circle cx="78" cy="68" r="2.6" fill="#dfe3e8"/>
+          <circle cx="88" cy="68" r="2.6" fill="#dfe3e8"/>
+          <circle cx="98" cy="68" r="2.6" fill="#dfe3e8"/>
+          <path d="M76 100 a14 14 0 0 1 14 -14 h86 a14 14 0 0 1 14 14 v30 a14 14 0 0 1 -14 14 h-62 l-16 13 v-13 h-8 a14 14 0 0 1 -14 -14 z" fill="#eceff3"/>
+          <path d="M70 94 a14 14 0 0 1 14 -14 h86 a14 14 0 0 1 14 14 v30 a14 14 0 0 1 -14 14 h-62 l-16 13 v-13 h-8 a14 14 0 0 1 -14 -14 z" fill="#ffffff" stroke="#e1e4e9" stroke-width="2"/>
+          <rect x="88" y="96" width="74" height="8" rx="4" fill="#dfe3e8"/>
+          <rect x="88" y="112" width="48" height="8" rx="4" fill="#eef0f3"/>
+          <path d="M178 140 a13 13 0 0 1 13 -13 h50 a13 13 0 0 1 13 13 v22 a13 13 0 0 1 -13 13 h-6 v11 l-13 -11 h-31 a13 13 0 0 1 -13 -13 z" fill="#aeb6c2"/>
+          <circle cx="202" cy="151" r="3.8" fill="#ffffff" opacity="0.9"/>
+          <circle cx="216" cy="151" r="3.8" fill="#ffffff" opacity="0.7"/>
+          <circle cx="230" cy="151" r="3.8" fill="#ffffff" opacity="0.5"/>
+          <path d="M212 62 a8 8 0 0 1 8 -8 h34 a8 8 0 0 1 8 8 v11 a8 8 0 0 1 -8 8 h-4 v7 l-8 -7 h-22 a8 8 0 0 1 -8 -8 z" fill="#eceff3"/>
+          <rect x="222" y="64" width="26" height="5" rx="2.5" fill="#ffffff"/>
+          <rect x="222" y="72" width="16" height="5" rx="2.5" fill="#ffffff" opacity="0.75"/>
+          <circle cx="252" cy="104" r="15" fill="#8c96a3"/>
+          <path d="M252 96 v8" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+          <path d="M246 99 a8 8 0 1 0 12 0" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+        </svg>
         <div class="s-h2"><%- @T('No conversation selected') %></div>
         <div class="s-muted"><%- @T('Pick a chat from the list, or accept a waiting customer.') %></div>
       </div>

@@ -14,11 +14,9 @@
 </div>
 <% for item in @items: %>
   <% if item.type is 'date': %>
-    <div class="zammad-chat-history-date"><span><%= item.label %></span></div>
+    <div class="zammad-chat-history-date" data-day-label="<%= item.label %>"><span><%= item.label %></span></div>
   <% else if item.type is 'session': %>
     <div class="zammad-chat-history-session"><%- @icon('clock-counter-clockwise', 12) %><span><strong><%- @T('Chat #%s', item.id) %></strong><% if item.meta: %> · <%= item.meta %><% end %></span></div>
-  <% else if item.type is 'author': %>
-    <div class="zammad-chat-history-author"><%= item.name %></div>
   <% else if item.type is 'end': %>
     <div class="zammad-chat-history-line"><span><%= item.text %><% if item.score: %> · <span class="zammad-chat-history-rating" role="img" aria-label="<%- @T('Rating %s of 5', item.score) %>"><% for n in [1..5]: %><span class="zammad-chat-history-heart<%= ' is-on' if n <= item.score %>"><%- @icon('heart', 11, tone: 'full') %></span><% end %></span><% end %></span></div>
   <% else: %>

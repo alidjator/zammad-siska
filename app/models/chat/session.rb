@@ -87,31 +87,6 @@ class Chat::Session < ApplicationModel
     !!agent.preferences.dig(:chat, :attachment_enabled)
   end
 
-  # Fase 5 -- Riwayat Chat Sebelumnya. docs/DESIGN_LIVE_CHAT_ENHANCEMENT.md
-  # Section 5.1.7. Dipusatkan DI SINI (bukan cuma method privat di
-  # `Sessions::Event::ChatSessionStart`) -- BUG NYATA ditemukan lewat
-  # laporan user + reproduksi Puppeteer: sebelumnya field ini cuma
-  # dihitung & dikirim SEKALI, saat `ChatSessionStart#run` (agent accept
-  # chat baru). Jendela chat yang RECONNECT (lewat heartbeat/reload
-  # halaman, `Chat.active_chats_by_user_id` di bawah) membangun ulang
-  # data sesi TANPA lewat `ChatSessionStart` sama sekali, sehingga
-  # `previous_sessions` hilang TOTAL begitu agent reload halaman untuk
-  # chat yang masih berjalan -- padahal transkrip lama (isi pesan)
-  # baru pertama kali muncul di titik reload itulah yang paling sering
-  # dicoba user. Dipindah ke method instance di sini supaya BISA
-  # dipanggil dari kedua jalur (accept baru maupun reconnect), bukan
-  # diduplikasi/dibiarkan cuma di satu jalur.
-  def previous_sessions_summary
-    return [] if email.blank?
-
-    Chat::Session
-      .where(email: email)
-      .where.not(id: id)
-      .order(created_at: :desc)
-      .limit(5)
-      .map { |session| session.send(:previous_session_summary_entry) }
-  end
-
   # Enhancement 1 -- Tahap 2 (fondasi). Method ini SEBELUMNYA method
   # PRIVAT di `Sessions::Event::ChatSessionStart` (`create_ticket_for_
   # chat_session`, Fase 5 Item No. 5), dipindah ke sini SUPAYA bisa
@@ -445,6 +420,12 @@ class Chat::Session < ApplicationModel
     }
     if audience == :customer
       summary[:agent_name] = agent_user&.dig(:name)
+      # Atas permintaan user ("di history avatar agen tidak muncul"):
+      # foto agent utk bubble riwayat di widget. Memakai ULANG
+      # `agent_user` -- aturan yang SAMA dgn avatar di header widget
+      # (foto hanya dikirim bila agent punya `image` & Setting Avatar
+      # agent tidak 'disabled'); tidak ada foto -> widget pakai inisial.
+      summary[:agent_avatar] = agent_user&.dig(:avatar)
     else
       summary[:agent_id]   = user_id
       summary[:agent_name] = user_id ? User.lookup(id: user_id)&.fullname : nil
@@ -588,10 +569,6 @@ class Chat::Session < ApplicationModel
       Chat::Message.where(chat_session_id: session.id).reorder(created_at: :asc).each do |message|
         session_attributes['messages'].push enrich_message_attributes(message)
       end
-      # Fase 5 -- lihat komentar `previous_sessions_summary` di atas.
-      # Disertakan JUGA di jalur reconnect ini (bukan cuma accept
-      # pertama kali), supaya bertahan lewat reload halaman.
-      session_attributes['previous_sessions'] = session.previous_sessions_summary
       actice_sessions.push session_attributes
     end
     actice_sessions
@@ -657,41 +634,4 @@ class Chat::Session < ApplicationModel
     attrs
   end
   private_class_method :enrich_message_attributes
-
-  private
-
-  def previous_session_summary_entry
-    messages = self.messages.reorder(created_at: :asc).map do |message|
-      {
-        content:       message.content,
-        is_from_agent: message.created_by_id.present? && message.created_by_id == user_id,
-        created_at:    message.created_at,
-      }
-    end
-
-    entry = {
-      created_at: created_at,
-      ticket_id:  ticket_id,
-      messages:   messages,
-    }
-
-    # Redesign sisi agent (Tahap 3) -- kartu "Riwayat chat sebelumnya" di
-    # panel profil: nama agent yang melayani, cuplikan pesan terakhir, &
-    # nomor tiket (bukan id). Rating CSAT (tersimpan di tiket, lihat
-    # chat_session_feedback_submit.rb) HANYA disertakan kalau Setting
-    # `chat_agent_show_rating` menyala -- kalau dimatikan admin, nilainya
-    # tidak pernah dikirim ke browser agent sama sekali.
-    entry[:agent_name] = User.lookup(id: user_id)&.fullname if user_id
-    last = messages.reverse.find { |message| message[:content].present? && message[:content] != '[attachment]' }
-    entry[:snippet] = last && ActionController::Base.helpers.strip_tags(last[:content]).squish.truncate(120)
-    ticket = self.ticket
-    if ticket
-      entry[:ticket_number] = ticket.number
-      if Setting.get('chat_agent_show_rating') && ticket.try(:csat_score).present?
-        entry[:csat_score]   = ticket.csat_score
-        entry[:csat_comment] = ticket.csat_comment
-      end
-    end
-    entry
-  end
 end

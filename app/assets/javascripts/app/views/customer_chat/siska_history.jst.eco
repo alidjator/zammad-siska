@@ -12,7 +12,7 @@
 </div>
 <% for item in @items: %>
   <% if item.type is 'date': %>
-    <div class="siska-thread-date"><span><%= item.label %></span></div>
+    <div class="siska-thread-date" data-day-label="<%= item.label %>"><span><%= item.label %></span></div>
   <% else if item.type is 'session': %>
     <div class="siska-thread-session">
       <%- @SiskaIcon('clock-counter-clockwise', 14) %>

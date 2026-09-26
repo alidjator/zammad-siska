@@ -26,11 +26,32 @@ class App.SiskaFormat
     "#{pad(date.getHours())}:#{pad(date.getMinutes())}"
 
   # Label pil tanggal: "Today" untuk hari ini, selain itu tanggal lokal.
+  # Atas permintaan user ("grouping nya seperti ini, today, yesterday,
+  # nama hari, dan seterusnya seperti pada whatsapp"): hari ini ->
+  # "Today", kemarin -> "Yesterday", 2-6 hari lalu -> NAMA HARI, lebih
+  # lama -> tanggal. Aturan yang SAMA ada di `historyDateLabel` widget
+  # (chat-no-jquery.coffee), supaya kedua sisi seragam.
   @dayLabel: (time) ->
-    date = new Date(time)
+    date = if time instanceof Date then time else new Date(time)
     return '' if isNaN(date.getTime())
-    return App.i18n.translatePlain('Today') if date.toDateString() is new Date().toDateString()
-    App.i18n.translateDate(time)
+    # Selisih HARI KALENDER (bukan 24 jam): pesan jam 23:50 kemarin &
+    # jam 00:10 hari ini tetap beda hari.
+    midnight = (d) -> new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    days = Math.round((midnight(new Date()) - midnight(date)) / 86400000)
+    return App.i18n.translatePlain('Today') if days is 0
+    return App.i18n.translatePlain('Yesterday') if days is 1
+    if days > 1 and days < 7
+      weekday = @weekdayName(date)
+      return weekday if weekday
+    App.i18n.translateDate(date.toISOString())
+
+  # Nama hari dilokalkan browser (id -> "Senin"), bukan lewat katalog
+  # terjemahan: daftar nama hari sudah disediakan Intl.
+  @weekdayName: (date) ->
+    try
+      date.toLocaleDateString(App.i18n.get() || undefined, weekday: 'long')
+    catch
+      ''
 
   @fileSize: (bytes) ->
     bytes = parseInt(bytes, 10)

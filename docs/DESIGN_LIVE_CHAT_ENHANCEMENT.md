@@ -163,6 +163,15 @@ Titik hook (Section 2.1) tetap `lib/sessions/event/chat_session_start.rb#run`, d
 
 #### 5.1.7 Riwayat Chat Sebelumnya dari Customer yang Sama
 
+> **Status (25 Sep 2026): DIHAPUS atas permintaan user.** Blok "Previous chats" di panel
+> "Profile & history" jendela agent, field `previous_sessions` di payload `chat_session_start`
+> & `Chat::Session.active_chats_by_user_id`, method `previous_sessions_summary`, serta blok
+> serupa di `chat_window.jst.eco` (jendela Live Chat/`my_chat`) semuanya dihapus. Fungsinya
+> sudah digantikan riwayat DI DALAM jendela percakapan (`chat_session_history` +
+> `Chat::Session#history_page`, gulir ke atas): cakupannya SEMUA sesi dari email yang sama,
+> bukan cuma 5 terakhir, dan pesannya tampil di alur percakapan, bukan di panel samping.
+> Bagian di bawah ini disimpan sebagai catatan desain aslinya.
+
 Atas permintaan user -- fitur TAMBAHAN yang baru mungkin dibangun berkat 5.1.2/5.1.3: karena visitor sekarang WAJIB mengisi email sebelum chat mulai, dan `chat_session.email` tersimpan di setiap sesi, agent yang menerima chat BARU dari visitor yang PERNAH chat sebelumnya (email sama) bisa diberi tahu riwayatnya -- bukan cuma melihat percakapan yang sedang berjalan seolah-olah orang itu baru pertama kali kontak.
 
 **Titik hook**: tetap `lib/sessions/event/chat_session_start.rb#run`, PERSIS sesudah 5.1.3 (resolusi customer & pembuatan tiket) -- di titik ini `chat_session.email` sudah pasti terisi (wajib sejak 5.1.2).
