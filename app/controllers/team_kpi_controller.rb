@@ -36,14 +36,28 @@ class TeamKpiController < ApplicationController
     render json: Service::Dashboard::TeamKpi::Agents.call(window_days: params[:days], user: current_user, filters: filters, limit: params[:limit] || 50), status: :ok
   end
 
+  # GET /api/v1/team_kpi/export -- .xlsx of the whole dashboard, same
+  # filters. The per-agent sheet is only included with report/admin.
+  def export
+    result = Service::Dashboard::TeamKpi::Export.call(
+      window_days: params[:days], user: current_user, filters: filters, compare: params[:compare],
+      include_agents: report_access?
+    )
+    send_data(result[:content], filename: result[:filename], type: Service::Dashboard::TeamKpi::Export::CONTENT_TYPE, disposition: 'attachment')
+  end
+
   private
+
+  def report_access?
+    current_user.permissions?(%w[report admin])
+  end
 
   def require_agent
     raise Exceptions::Forbidden if !current_user.permissions?('ticket.agent')
   end
 
   def require_report_access
-    raise Exceptions::Forbidden if !current_user.permissions?(%w[report admin])
+    raise Exceptions::Forbidden if !report_access?
   end
 
   def filters

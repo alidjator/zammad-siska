@@ -58,6 +58,22 @@ class Service::Dashboard::TeamKpi::Scope
     relation
   end
 
+  # First Response Time population, shared by summary, trend and agents:
+  # tickets created in the range that a *customer* opened and that got a
+  # first response. Agent-created tickets (outbound email, phone calls
+  # logged by the agent) get first_response_at = created_at, i.e. 0 min --
+  # ~60% of all tickets here, which pulled the median to 0.0 while
+  # customer-initiated tickets wait ~75 min. first_response_at < created_at
+  # is excluded as in Report::TicketFirstResponseTime (known ~7h timezone
+  # bug, docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md).
+  def frt_tickets(range)
+    tickets
+      .where(created_at: range)
+      .where(create_article_sender_id: customer_sender_id)
+      .where.not(first_response_at: nil)
+      .where('first_response_at >= created_at')
+  end
+
   def self.window_range(days, now: Time.zone.now)
     (now - days.days)...now
   end
@@ -102,6 +118,10 @@ class Service::Dashboard::TeamKpi::Scope
   end
 
   private
+
+  def customer_sender_id
+    @customer_sender_id ||= Ticket::Article::Sender.find_by!(name: 'Customer').id
+  end
 
   def channel_type_ids
     Ticket::Article::Type.where(name: filters[:channels]).pluck(:id)

@@ -10,7 +10,7 @@
 
 | KPI | Perhitungan | Sifat |
 |---|---|---|
-| First Response Time | **Median** menit, dari `created_at` ke `first_response_at` | Rolling window (default 7 hari, bisa difilter s/d 2 tahun) |
+| First Response Time | **Median** menit, dari `created_at` ke `first_response_at`, **hanya tiket yang dibuka customer** (`create_article_sender` = Customer; lihat 11.5) | Rolling window (default 7 hari, bisa difilter s/d 2 tahun) |
 | CSAT Score | **Average** dari `csat_score` (1-5) | Rolling window (sama seperti FRT) |
 | Tiket New | Hitungan tiket dengan state type `new` | Snapshot real-time (tidak terpengaruh filter periode) |
 | Tiket Open | Hitungan tiket dengan state type `open` | Snapshot real-time |
@@ -208,3 +208,62 @@ Hasilnya: < 1 tahun → periode sebelumnya; tepat 1 tahun → tahun lalu; di ata
 | `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n, CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `report` atau `admin`** — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
 
 Catatan implementasi: kolom waktu tiket bertipe `timestamptz`, jadi konversi ke waktu lokal cukup `kolom AT TIME ZONE '<tz>'` (konversi ganda `AT TIME ZONE 'UTC' AT TIME ZONE '<tz>'` menggeser 7 jam — sempat terjadi saat pengembangan, tertangkap dari heatmap yang puncaknya jatuh jam 23.00).
+
+## 11. Fase 3 BI: Ekspor .xlsx, Data Historis 2 Tahun, Web Portal
+
+### 11.1 Ekspor `.xlsx` — `GET /api/v1/team_kpi/export` (gap analysis No. 7)
+
+`Service::Dashboard::TeamKpi::Export` — satu workbook, parameter sama persis dengan dashboard (`days`, filter, `compare`), jadi isi file = yang sedang dilihat. Nama file `kpi_tim_<dari>_<sampai>.xlsx` (tanggal lokal). Dibangun langsung di atas `write_xlsx` (gem yang sudah dipakai Reporting bawaan) karena `ExcelSheet` hanya menulis satu tabel per file.
+
+| Sheet | Isi |
+|---|---|
+| Ringkasan | Blok konteks (periode, pembanding, filter, waktu dibuat — ada di setiap sheet), lalu tabel Metrik / Nilai / Satuan / n / Status / Pembanding / Selisih / Dasar waktu (Periode vs Real-time) |
+| Tren | Per bucket: FRT median + n, CSAT + n, tiket masuk, penyelesaian median + n; tabel kedua untuk periode pembanding (kalau ada) |
+| SLA per prioritas | SLA penyelesaian (`close_escalation_at`), lihat 10.3 |
+| Backlog | Umur tiket belum closed (real-time) |
+| Heatmap | 7 hari × 24 jam, rata-rata tiket masuk per kemunculan hari |
+| Agent | **Hanya untuk permission `report`/`admin`** (sama seperti `/team_kpi/agents`); agent biasa mendapat workbook tanpa sheet ini, bukan error |
+
+Perbaikan yang ikut: bucket tren `volume` yang kosong sekarang `0` (sebelumnya `null`, seolah "tidak ada data").
+
+### 11.2 Data historis 2 tahun
+
+Tidak butuh penyimpanan tambahan: semua angka dihitung langsung dari tabel `tickets` di Postgres saat diminta (tidak lewat Elasticsearch, tidak ada tabel agregat). Diukur di staging (±78 ribu tiket dalam 2 tahun), rentang 730 hari:
+
+| Query | Waktu |
+|---|---|
+| Ringkasan (`/team_kpi`) | ±1,7 s |
+| Tren (per metrik) | 0,1–0,4 s |
+| Heatmap | ±0,2 s |
+| Agent | ±2,0 s |
+| Ekspor lengkap | ±2–4 s |
+
+Index yang ada di `tickets` sudah cukup; tidak ada index baru. Batas histori pembanding: lihat 10.2.
+
+**Catatan disk (bukan dari fitur ini)**: disk host staging terisi 94% (sisa ±8,8 GB dari 130 GB). Fitur KPI tidak menambah beban penyimpanan, tapi kalau nanti ditambah job snapshot harian (untuk tren Escalated / delta real-time) ukurannya kecil (satu baris per hari). Risiko disk tetap perlu ditangani terpisah di level server.
+
+### 11.3 Efek scope grup pada angka (temuan saat Fase 3)
+
+Grup **"QA - Internal Testing"** menampung 223 tiket New/Open dan 141 tiket escalated hasil pengujian. Sebelum Fase 2 tiket ini ikut terhitung di semua angka KPI. Sekarang hanya user yang punya akses ke grup QA (mis. akun uji `siska.chat.agent`) yang melihatnya; akun integrasi `integration-kpi-api@pkp.co.id` (34 dari 35 grup aktif, tanpa QA) mendapat angka operasional saja — contoh 7 hari: New 140 / Open 79 / Escalated 169, bukan 275 / 167 / 310.
+
+### 11.4 Integrasi Web Portal (No. 8)
+
+Keputusan: server Web Portal (Spring Boot) memanggil API ini dengan token akun integrasi; semua staf melihat angka tim yang sama. Panduan lengkap + kode referensi Spring Boot yang sudah diuji ke staging: [`INTEGRASI_WEB_PORTAL_KPI.md`](INTEGRASI_WEB_PORTAL_KPI.md), [`contrib/siska/web-portal-kpi/`](../contrib/siska/web-portal-kpi/).
+
+Aplikasi kedua, **Laravel (PHP)**, memakai akun terpisah `integration-kpi-laravel@pkp.co.id` dengan token `ticket.agent` + `report` (termasuk rekap per agent): [`INTEGRASI_LARAVEL_KPI.md`](INTEGRASI_LARAVEL_KPI.md), [`contrib/siska/laravel-kpi/`](../contrib/siska/laravel-kpi/). Akun integrasi dibuat dengan `script/create_kpi_integration_account.rb` (satu akun per aplikasi, role *Customer Services*, token dibatasi ke `ticket.agent`[`,report`]). Untuk kebutuhan ini `/team_kpi/agents` sekarang juga mengembalikan `email` tiap agent (kunci stabil untuk dicocokkan ke tabel user aplikasi lain; `owner_id` hanya bermakna di Zammad).
+
+### 11.5 Perbaikan definisi FRT: hanya tiket dari customer
+
+Ditemukan saat uji live klien Spring Boot: FRT median akun integrasi **0,0 menit di semua periode** (n 65.597 untuk 2 tahun). Penyebab: ±60% tiket (39.026) **dibuat oleh agent** — email keluar, telepon yang dicatat agent — dan untuk tiket seperti itu `first_response_at` = `created_at`, jadi FRT-nya 0. Tidak ada customer yang menunggu balasan di tiket itu, jadi tidak relevan untuk FRT.
+
+| Dibuat oleh (2 tahun, grup operasional) | Tiket | FRT median |
+|---|---|---|
+| Agent | 39.026 | 0,0 menit |
+| Customer | 26.570 | **74,8 menit** |
+| — email / sms / web / telegram / phone | 16.386 / 5.403 / 2.328 / 2.269 / 184 | 154,7 / 14,0 / 26,0 / 344,5 / 25,6 menit |
+
+Sekarang populasi FRT ada di satu tempat, `Scope#frt_tickets` (tiket dibuat di periode, `create_article_sender` = Customer, punya `first_response_at` ≥ `created_at`), dipakai ringkasan, tren, dan agent. **Angka FRT di dashboard berubah** (contoh 90 hari: sebelumnya ±0 menit, sekarang 13,1 menit n 1.359) — angka contoh FRT 0,2 menit di mockup berasal dari bug ini.
+
+### 11.6 Perbaikan tren: pembanding selalu sejajar
+
+Untuk bucket minggu/bulan, rentang dengan panjang sama bisa jatuh di 14 vs 13 minggu (awal rentang di tengah minggu), sehingga titik ke-n periode ini dan pembanding tidak lagi mewakili posisi yang sama. `Trend#series(range, count:)` sekarang memaksa jumlah bucket pembanding = jumlah bucket periode ini.

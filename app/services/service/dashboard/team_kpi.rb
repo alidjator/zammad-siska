@@ -174,17 +174,12 @@ class Service::Dashboard::TeamKpi
     }
   end
 
-  # Mirrors Report::TicketFirstResponseTime's data-integrity filter (see
-  # docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md): exclude tickets where
-  # first_response_at < created_at (known ~7h timezone bug). Median is
-  # the headline, mean on the same population flags a long tail of slow
-  # outliers the median alone hides (docs/DESIGN_REPORTING_FRT.md s.3).
+  # Population: Scope#frt_tickets (customer-initiated tickets only). Median
+  # is the headline, mean on the same population flags a long tail of
+  # slow outliers the median alone hides (docs/DESIGN_REPORTING_FRT.md s.3).
   def frt(range)
     minutes = 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60'
-    median, mean, count = tickets
-      .where(created_at: range)
-      .where.not(first_response_at: nil)
-      .where('first_response_at >= created_at')
+    median, mean, count = @scope.frt_tickets(range)
       .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
 
     [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i]

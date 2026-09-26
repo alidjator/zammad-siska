@@ -30,14 +30,16 @@ class Service::Dashboard::TeamKpi::Agents
     breach  = breached_by_owner
 
     owner_ids = (handled.keys | frt.keys | csat.keys | escal.keys | breach.keys).compact
-    names     = User.where(id: owner_ids).pluck(:id, :firstname, :lastname).to_h { |id, f, l| [id, "#{f} #{l}".strip] }
+    users     = User.where(id: owner_ids).pluck(:id, :firstname, :lastname, :email).to_h { |id, f, l, e| [id, { name: "#{f} #{l}".strip, email: e.presence }] }
 
     rows = owner_ids.map do |owner_id|
       frt_median, frt_mean, frt_count = frt[owner_id]
       csat_avg, csat_count            = csat[owner_id]
       {
         owner_id:           owner_id,
-        name:               owner_id == UNASSIGNED_ID ? nil : names[owner_id],
+        name:               owner_id == UNASSIGNED_ID ? nil : users.dig(owner_id, :name),
+        # stable key for matching agents in the consuming app's own user table
+        email:              owner_id == UNASSIGNED_ID ? nil : users.dig(owner_id, :email),
         unassigned:         owner_id == UNASSIGNED_ID,
         tickets:            handled[owner_id].to_i,
         frt_median_minutes: frt_median,
@@ -63,10 +65,7 @@ class Service::Dashboard::TeamKpi::Agents
 
   def frt_by_owner
     minutes = 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60'
-    @scope.tickets
-      .where(created_at: @range)
-      .where.not(first_response_at: nil)
-      .where('first_response_at >= created_at')
+    @scope.frt_tickets(@range)
       .group(:owner_id)
       .pluck(:owner_id, Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
       .to_h { |owner_id, median, mean, count| [owner_id, [median&.to_f&.round(1), mean&.to_f&.round(1), count]] }

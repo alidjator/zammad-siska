@@ -59,7 +59,7 @@ class Service::Dashboard::TeamKpi::Trend
     return nil if !@comparison
 
     range = @comparison[:range]
-    { mode: @comparison[:mode], period: { from: range.begin.iso8601, to: range.end.iso8601 }, points: series(range) }
+    { mode: @comparison[:mode], period: { from: range.begin.iso8601, to: range.end.iso8601 }, points: series(range, count: bucket_starts(@range).size) }
   end
 
   def timezone
@@ -75,24 +75,31 @@ class Service::Dashboard::TeamKpi::Trend
     "(#{column} AT TIME ZONE #{ActiveRecord::Base.connection.quote(timezone)})"
   end
 
-  def series(range)
+  # count: force the number of buckets -- the comparison period must line
+  # up index by index with the current one, but a week/month grid over a
+  # range of the same length can start mid-bucket and yield one more or
+  # one less bucket (e.g. 90 days = 14 vs 13 weeks).
+  def series(range, count: nil)
     bucket_sql = "date_trunc('#{@bucket}', #{local(config[:column])})"
     values = relation(range)
       .group(Arel.sql(bucket_sql))
       .pluck(Arel.sql(bucket_sql), Arel.sql(aggregate_sql), Arel.sql('COUNT(*)'))
       .to_h { |start, value, count| [start.to_date, [value, count]] }
 
-    bucket_starts(range).map do |start|
+    starts = bucket_starts(range)
+    starts = starts.first(count) + (starts.size...count).map { |i| advance(starts.first, i) } if count
+    starts.map do |start|
       value, count = values[start]
+      value = 0 if value.nil? && config[:agg] == :count # no tickets = 0, not "no data"
       { bucket_start: start.iso8601, value: value.nil? ? nil : value.to_f.round(2), count: count.to_i }
     end
   end
 
   def relation(range)
+    return @scope.frt_tickets(range) if @metric == 'frt'
+
     relation = @scope.tickets.where(config[:column] => range)
     case @metric
-    when 'frt'
-      relation.where.not(first_response_at: nil).where('first_response_at >= created_at')
     when 'csat'
       relation.where.not(csat_score: nil)
     when 'resolution'
@@ -127,5 +134,13 @@ class Service::Dashboard::TeamKpi::Trend
       first += step
     end
     starts
+  end
+
+  def advance(date, buckets)
+    case @bucket
+    when 'week'  then date + buckets.weeks
+    when 'month' then date + buckets.months
+    else              date + buckets.days
+    end
   end
 end
