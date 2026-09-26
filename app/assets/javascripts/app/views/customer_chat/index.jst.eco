@@ -26,6 +26,14 @@
     <span class="siska-chat-offline-text"><%- @T('You are |offline|. New chats will not be assigned to you until you go online.') %></span>
     <button type="button" class="s-btn s-btn-primary s-btn-sm js-goOnline"><%- @T('Go online') %></button>
   </div>
+  <!-- Auto-offline karena tidak aktif (away timeout): banner kit
+  menggantikan @notify global (toast gelap 24 jam). Tertutup otomatis
+  saat agent kembali online (renderHeader) atau saat tombol X diklik. -->
+  <div class="s-alert s-alert-primary siska-chat-away js-chatView js-awayNotice hidden" role="status">
+    <%- @SiskaIcon('clock', 20) %>
+    <span class="siska-chat-offline-text js-awayNoticeText"></span>
+    <button type="button" class="siska-chat-away-close js-awayDismiss" aria-label="<%- @T('Dismiss') %>"><%- @SiskaIcon('x', 16) %></button>
+  </div>
   <div class="siska-chat-layout js-chatView">
     <aside class="s-card siska-chat-list">
       <div class="siska-chat-list-search">

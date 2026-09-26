@@ -1693,6 +1693,38 @@ $siska-thumb-h: 180px;
 
 .siska-agent .siska-chat-offline-text { flex: 1; }
 
+// Banner auto-offline karena tidak aktif (away timeout) -- varian info
+// (primary tint) supaya beda dgn banner offline (warning oranye) yg
+// tampil bersamaan; keduanya saling melengkapi (alasan + status).
+.siska-agent .siska-chat-away {
+  flex-shrink: 0;
+  padding: 14px 18px;
+  font-size: 14px;
+
+  &.hidden { display: none; }
+}
+
+.siska-agent .siska-chat-away-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $siska-radius-sm;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.06);
+  }
+}
+
 .siska-agent .siska-separator {
   display: flex;
   align-items: center;

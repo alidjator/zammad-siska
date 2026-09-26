@@ -18,6 +18,7 @@ class App.CustomerChat extends App.Controller
     'change .js-onlineSwitch': 'onOnlineSwitch'
     'input .js-listSearch':    'onListSearch'
     'click .js-goOnline':      'onGoOnline'
+    'click .js-awayDismiss':   'dismissAwayNotice'
     'click .js-acceptDismiss': 'dismissAcceptOverlay'
     'click .js-settingsCancel': 'closeSettings'
     'submit .js-settingsForm':  'saveSettings'
@@ -31,6 +32,7 @@ class App.CustomerChat extends App.Controller
     '.js-onlineLabel':  'onlineLabel'
     '.js-detailEmpty':  'detailEmpty'
     '.js-offlineBanner': 'offlineBanner'
+    '.js-awayNotice':    'awayNotice'
     '.js-connectionBanner': 'connectionBanner'
     '.js-acceptOverlay': 'acceptOverlay'
     '.js-settingsView':  'settingsView'
@@ -314,6 +316,11 @@ class App.CustomerChat extends App.Controller
     @onlineSwitch.prop('checked', active)
     @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
     @offlineBanner.toggleClass('hidden', !@metaLoaded || active)
+    # Kembali online -> banner "away timeout" ikut tertutup otomatis
+    # (dipicu tombol Online/Go online yg keduanya lewat `switch` ->
+    # `renderHeader`). Tidak pernah DImunculkan di sini -- hanya `checkAway`
+    # yg menampilkannya.
+    @awayNotice?.addClass('hidden') if active
     # Atas permintaan user: ilustrasi empty state ikut status agent --
     # versi abu-abu dgn lambang daya saat offline. Sebelum status
     # pertama tiba (`@metaLoaded` masih false) tetap versi online,
@@ -641,13 +648,22 @@ class App.CustomerChat extends App.Controller
     return if @windowCount() > 0
     return if Date.now() - @lastActivityAt < @awayTimeoutMinutes * 60000
     @switch(false)
-    @notify(
-      type:    'notice'
-      msg:     App.i18n.translatePlain('Chat set to offline because you were inactive for %s minutes.', @awayTimeoutMinutes)
-      # Agent sedang tidak di tempat -- pesan bertahan sampai diklik
-      # (24 jam), bukan 3,8 dtk bawaan.
-      timeout: 24 * 60 * 60 * 1000
+    # Dulu `@notify` (toast gelap global, bertahan 24 jam). Diganti banner
+    # kit di header (style seragam dgn banner offline), yang tertutup
+    # OTOMATIS saat agent kembali online (lihat `renderHeader`) atau saat
+    # tombol X diklik.
+    @showAwayNotice()
+
+  showAwayNotice: =>
+    return if !@awayNotice
+    @awayNotice.find('.js-awayNoticeText').text(
+      App.i18n.translatePlain('Chat set to offline because you were inactive for %s minutes.', @awayTimeoutMinutes)
     )
+    @awayNotice.removeClass('hidden')
+
+  dismissAwayNotice: (e) =>
+    e?.preventDefault()
+    @awayNotice?.addClass('hidden')
 
   idleTimeoutStart: =>
     return if @idleTimeoutId
