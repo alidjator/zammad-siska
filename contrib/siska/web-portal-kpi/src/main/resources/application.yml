@@ -1,0 +1,13 @@
+# Contoh konfigurasi. Token TIDAK boleh ditulis di file ini / di-commit --
+# isi lewat environment variable atau secret store portal.
+zammad:
+  kpi:
+    base-url: ${ZAMMAD_KPI_BASE_URL:https://helpdesk.satu.solutions}
+    token: ${ZAMMAD_KPI_TOKEN:}
+    connect-timeout: 5s
+    read-timeout: 30s        # ekspor 2 tahun bisa beberapa detik
+    cache-ttl: 5m            # samakan dengan auto-refresh dashboard (team_kpi_auto_refresh_seconds)
+    stale-max-age: 24h       # kalau Zammad gagal, tampilkan data terakhir maksimal selama ini
+
+server:
+  port: ${PORT:8080}
