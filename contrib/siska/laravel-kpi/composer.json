@@ -1,0 +1,38 @@
+{
+    "name": "pkp/siska-zammad-kpi",
+    "description": "Klien Laravel untuk API KPI Tim Zammad SISKA (lihat docs/INTEGRASI_LARAVEL_KPI.md di repo Zammad SISKA).",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.5",
+        "illuminate/cache": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pkp\\SiskaKpi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Pkp\\SiskaKpi\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Pkp\\SiskaKpi\\ZammadKpiServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}
