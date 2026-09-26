@@ -1357,6 +1357,17 @@ $siska-font: 'SISKA Inter', 'Inter var', 'Inter', -apple-system, BlinkMacSystemF
   &:hover {
     background: #c6d7fd; // primary-100
   }
+
+  // Kotak ketik kosong / sesi berakhir -> Send nonaktif. Opacity 0.26
+  // seragam dgn state disabled widget lain (lihat catatan di bawah).
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.26;
+
+    &:hover {
+      background: transparent;
+    }
+  }
 }
 
 .zammad-chat-input:disabled {

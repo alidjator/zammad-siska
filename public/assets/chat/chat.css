@@ -971,6 +971,13 @@
 .zammad-chat-send:hover {
   background: #c6d7fd;
 }
+.zammad-chat-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.26;
+}
+.zammad-chat-send:disabled:hover {
+  background: transparent;
+}
 
 .zammad-chat-input:disabled {
   cursor: not-allowed;

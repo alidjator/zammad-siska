@@ -3404,13 +3404,13 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.ws = new window.WebSocket("" + this.options.host);
       this.ws.onopen = (function(_this) {
         return function(e) {
-          var base;
+          var base1;
           _this.log.debug('onOpen', e);
           if (_this.reconnectAttempts > 0) {
             _this.log.debug("reconnected after " + _this.reconnectAttempts + " attempt(s)");
             _this.reconnectAttempts = 0;
-            if (typeof (base = _this.options).onReconnected === "function") {
-              base.onReconnected();
+            if (typeof (base1 = _this.options).onReconnected === "function") {
+              base1.onReconnected();
             }
           }
           _this.options.onOpen(e);
@@ -3458,26 +3458,26 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     Io.prototype.attemptReconnect = function() {
-      var base, base1, delay;
+      var base1, base2, delay;
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         this.log.debug("gave up after " + this.reconnectAttempts + " reconnect attempts");
         this.reconnectAttempts = 0;
-        if (typeof (base = this.options).onReconnectFailed === "function") {
-          base.onReconnectFailed();
+        if (typeof (base1 = this.options).onReconnectFailed === "function") {
+          base1.onReconnectFailed();
         }
         return;
       }
       this.reconnectAttempts += 1;
       delay = Math.min(this.reconnectBaseDelay * Math.pow(2, this.reconnectAttempts - 1), this.reconnectMaxDelay);
       this.log.debug("reconnect attempt " + this.reconnectAttempts + "/" + this.maxReconnectAttempts + " in " + delay + "ms");
-      if (typeof (base1 = this.options).onReconnecting === "function") {
-        base1.onReconnecting(this.reconnectAttempts, this.maxReconnectAttempts);
+      if (typeof (base2 = this.options).onReconnecting === "function") {
+        base2.onReconnecting(this.reconnectAttempts, this.maxReconnectAttempts);
       }
       return this.reconnectTimeoutId = setTimeout(this.connect, delay);
     };
 
     Io.prototype.close = function() {
-      var base;
+      var base1;
       this.log.debug('close websocket manually');
       this.manualClose = true;
       if (this.reconnectTimeoutId) {
@@ -3489,7 +3489,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         return this.ws.close();
       } else {
         this.manualClose = false;
-        return typeof (base = this.options).onClose === "function" ? base.onClose() : void 0;
+        return typeof (base1 = this.options).onClose === "function" ? base1.onClose() : void 0;
       }
     };
 
@@ -4286,6 +4286,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.onAgentTypingStart = bind(this.onAgentTypingStart, this);
       this.onQueue = bind(this.onQueue, this);
       this.onQueueScreen = bind(this.onQueueScreen, this);
+      this.updateSendState = bind(this.updateSendState, this);
       this.onWebSocketClose = bind(this.onWebSocketClose, this);
       this.onCloseAnimationEnd = bind(this.onCloseAnimationEnd, this);
       this.goToStartChat = bind(this.goToStartChat, this);
@@ -4311,6 +4312,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.submitOfflineMessage = bind(this.submitOfflineMessage, this);
       this.showOfflineCompose = bind(this.showOfflineCompose, this);
       this.onOfflineOtpResendResult = bind(this.onOfflineOtpResendResult, this);
+      this.clearOtpResendCooldown = bind(this.clearOtpResendCooldown, this);
+      this.startOtpResendCooldown = bind(this.startOtpResendCooldown, this);
       this.resendOfflineOtp = bind(this.resendOfflineOtp, this);
       this.onOfflineOtpVerifyResult = bind(this.onOfflineOtpVerifyResult, this);
       this.showOtpError = bind(this.showOtpError, this);
@@ -4608,6 +4611,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.input.addEventListener('input', this.onInput);
       this.input.addEventListener('paste', this.onPaste);
       this.input.addEventListener('drop', this.onDrop);
+      this.updateSendState();
       this.body.addEventListener('click', this.startReply);
       this.body.addEventListener('click', (function(_this) {
         return function(event) {
@@ -5468,7 +5472,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onReady = function() {
-      var base, btn;
+      var base1, btn;
       this.readyDone = true;
       this.log.debug('widget ready for use');
       this.hidePreload();
@@ -5477,8 +5481,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         btn.addEventListener('click', this.open);
         btn.classList.remove(this.options.inactiveClass);
       }
-      if (typeof (base = this.options).onReady === "function") {
-        base.onReady();
+      if (typeof (base1 = this.options).onReady === "function") {
+        base1.onReady();
       }
       if (this.options.show) {
         return this.show();
@@ -5486,7 +5490,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onError = function(message) {
-      var base, btn;
+      var base1, btn;
       this.log.debug(message);
       this.hidePreload();
       this.addStatus(message);
@@ -5504,7 +5508,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
           remove: true
         });
       }
-      return typeof (base = this.options).onError === "function" ? base.onError(message) : void 0;
+      return typeof (base1 = this.options).onError === "function" ? base1.onError(message) : void 0;
     };
 
     ZammadChat.prototype.onReopenSession = function(data) {
@@ -5563,6 +5567,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         }
         if (unfinishedMessage) {
           this.input.innerHTML = unfinishedMessage;
+          this.updateSendState();
         }
       }
       if (data.position) {
@@ -5587,6 +5592,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         message.classList.remove('zammad-chat-message--unread');
       }
       sessionStorage.setItem('unfinished_message', this.input.innerHTML);
+      this.updateSendState();
       return this.onTyping();
     };
 
@@ -5609,7 +5615,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     ZammadChat.prototype.sendMessage = function() {
       var data, localId, message, messageElement, ref, ref1, replyToId, replyToSnippet;
       message = this.input.innerHTML;
-      if (!message) {
+      if (!this.input.textContent.trim()) {
         return;
       }
       this.inactiveTimeout.start();
@@ -5635,6 +5641,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
         this.body.insertAdjacentHTML('beforeend', messageElement);
       }
       this.input.innerHTML = '';
+      this.updateSendState();
       this.scrollToBottom();
       data = {
         content: message,
@@ -6575,6 +6582,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
 
     ZammadChat.prototype.showOfflineOtp = function() {
       var ref;
+      this.clearOtpResendCooldown();
       this.el.querySelector('.zammad-chat-modal').innerHTML = this.view('offline_otp')({
         email: this.customerEmail
       });
@@ -6700,12 +6708,53 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.resendOfflineOtp = function(event) {
+      var btn;
       if (event != null) {
         event.preventDefault();
       }
-      return this.send('chat_offline_otp_resend', {
+      btn = this.el.querySelector('.js-otp-resend');
+      if (btn != null ? btn.disabled : void 0) {
+        return;
+      }
+      this.send('chat_offline_otp_resend', {
         session_id: this.sessionId
       });
+      return this.startOtpResendCooldown(btn);
+    };
+
+    ZammadChat.prototype.startOtpResendCooldown = function(btn, seconds) {
+      var base, remaining;
+      if (seconds == null) {
+        seconds = 30;
+      }
+      if (!btn) {
+        return;
+      }
+      this.clearOtpResendCooldown();
+      base = this.T(this.phrases['chat_phrase_otp_resend_button'] || 'Resend code');
+      remaining = seconds;
+      btn.disabled = true;
+      btn.textContent = base + " (" + remaining + "s)";
+      return this.otpResendTimer = setInterval((function(_this) {
+        return function() {
+          remaining -= 1;
+          if (remaining <= 0) {
+            _this.clearOtpResendCooldown();
+            btn.disabled = false;
+            return btn.textContent = base;
+          } else {
+            return btn.textContent = base + " (" + remaining + "s)";
+          }
+        };
+      })(this), 1000);
+    };
+
+    ZammadChat.prototype.clearOtpResendCooldown = function() {
+      if (!this.otpResendTimer) {
+        return;
+      }
+      clearInterval(this.otpResendTimer);
+      return this.otpResendTimer = null;
     };
 
     ZammadChat.prototype.onOfflineOtpResendResult = function(data) {
@@ -6953,14 +7002,14 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onOpenAnimationEnd = function() {
-      var base;
+      var base1;
       this.el.removeEventListener('transitionend', this.onOpenAnimationEnd);
       this.idleTimeout.stop();
       this.maybeSendRead();
       if (this.isFullscreen) {
         this.disableScrollOnRoot();
       }
-      return typeof (base = this.options).onOpenAnimationEnd === "function" ? base.onOpenAnimationEnd() : void 0;
+      return typeof (base1 = this.options).onOpenAnimationEnd === "function" ? base1.onOpenAnimationEnd() : void 0;
     };
 
     ZammadChat.prototype.sessionClose = function() {
@@ -7076,15 +7125,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onCloseAnimationEnd = function() {
-      var base;
+      var base1;
       this.el.removeEventListener('transitionend', this.onCloseAnimationEnd);
       if (!this.sessionId) {
         this.agent = void 0;
         this.switchTab('home');
       }
       this.isOpen = false;
-      if (typeof (base = this.options).onCloseAnimationEnd === "function") {
-        base.onCloseAnimationEnd();
+      if (typeof (base1 = this.options).onCloseAnimationEnd === "function") {
+        base1.onCloseAnimationEnd();
       }
       return this.io.reconnect();
     };
@@ -7129,7 +7178,17 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     ZammadChat.prototype.enableInput = function() {
       this.inputDisabled = false;
       this.input.setAttribute('contenteditable', true);
-      return this.el.querySelector('.zammad-chat-send').disabled = false;
+      return this.updateSendState();
+    };
+
+    ZammadChat.prototype.updateSendState = function() {
+      var hardDisabled, ref, sendBtn;
+      sendBtn = this.el.querySelector('.zammad-chat-send');
+      if (!sendBtn) {
+        return;
+      }
+      hardDisabled = this.inputDisabled || this.reconnectDisabledInput;
+      return sendBtn.disabled = hardDisabled || !((ref = this.input) != null ? ref.textContent.trim() : void 0);
     };
 
     ZammadChat.prototype.hideModal = function() {
@@ -7469,7 +7528,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onIoReconnected = function() {
-      var base, ref, sendBtn;
+      var base1, ref;
       this.log.debug('reconnected');
       if (!this.isOpen) {
         return;
@@ -7477,18 +7536,15 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.setAgentOnlineState('online');
       this.showConnectionOverlay('restored');
       this.updateLauncherConnectionState(false);
-      if (typeof (base = this.options).onConnectionReestablished === "function") {
-        base.onConnectionReestablished();
+      if (typeof (base1 = this.options).onConnectionReestablished === "function") {
+        base1.onConnectionReestablished();
       }
       if (this.reconnectDisabledInput) {
         this.reconnectDisabledInput = false;
         if ((ref = this.input) != null) {
           ref.setAttribute('contenteditable', true);
         }
-        sendBtn = this.el.querySelector('.zammad-chat-send');
-        if (sendBtn) {
-          return sendBtn.disabled = false;
-        }
+        return this.updateSendState();
       }
     };
 
@@ -7507,7 +7563,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onSessionClosed = function(data) {
-      var base;
+      var base1;
       if (data.closed_by_agent && this.sessionId) {
         this.showClosingGreeting();
       }
@@ -7521,8 +7577,8 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.inactiveTimeout.stop();
       this.agent = void 0;
       this.updateHeader();
-      if (typeof (base = this.options).onSessionClosed === "function") {
-        base.onSessionClosed(data);
+      if (typeof (base1 = this.options).onSessionClosed === "function") {
+        base1.onSessionClosed(data);
       }
       if (data.closed_by_agent && this.sessionId) {
         sessionStorage.removeItem('unfinished_message');
@@ -7587,7 +7643,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onConnectionEstablished = function(data, showGreeting) {
-      var base, j, len, ref, ref1, ref2, selector;
+      var base1, j, len, ref, ref1, ref2, selector;
       if (showGreeting == null) {
         showGreeting = true;
       }
@@ -7631,7 +7687,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       this.waitingListTimeout.stop();
       this.idleTimeout.stop();
       this.inactiveTimeout.start();
-      return typeof (base = this.options).onConnectionEstablished === "function" ? base.onConnectionEstablished(data) : void 0;
+      return typeof (base1 = this.options).onConnectionEstablished === "function" ? base1.onConnectionEstablished(data) : void 0;
     };
 
     ZammadChat.prototype.HISTORY_PAGE_SIZE = 10;
@@ -8272,7 +8328,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
     };
 
     ZammadChat.prototype.onCssLoaded = function() {
-      var base, ref, ref1;
+      var base1, ref, ref1;
       this.cssLoaded = true;
       if ((ref = this.el) != null) {
         ref.style.display = '';
@@ -8286,7 +8342,7 @@ var extend = function(child, parent) { for (var key in parent) { if (hasProp.cal
       if (this.socketReady) {
         this.onReady();
       }
-      return typeof (base = this.options).onCssLoaded === "function" ? base.onCssLoaded() : void 0;
+      return typeof (base1 = this.options).onCssLoaded === "function" ? base1.onCssLoaded() : void 0;
     };
 
     ZammadChat.prototype.startTimeoutObservers = function() {

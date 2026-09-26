@@ -1095,6 +1095,8 @@ do(window) ->
       @input.addEventListener('input', @onInput)
       @input.addEventListener('paste', @onPaste)
       @input.addEventListener('drop', @onDrop)
+      # State awal: kotak ketik kosong -> Send nonaktif.
+      @updateSendState()
 
       # Fitur tambahan "Reply ke Pesan Spesifik" -- Section 5.3. Tidak
       # ada delegasi bawaan seperti jQuery `.on(event, selector, ...)`
@@ -1981,6 +1983,7 @@ do(window) ->
 
         if unfinishedMessage
           @input.innerHTML = unfinishedMessage
+          @updateSendState()
 
       # show wait list
       if data.position
@@ -2009,6 +2012,7 @@ do(window) ->
 
       sessionStorage.setItem 'unfinished_message', @input.innerHTML
 
+      @updateSendState()
       @onTyping()
 
     onTyping: ->
@@ -2026,7 +2030,10 @@ do(window) ->
 
     sendMessage: ->
       message = @input.innerHTML
-      return if !message
+      # `innerHTML` bisa truthy walau kosong secara visual (contenteditable
+      # menyisakan `<br>`/spasi) -> pakai teks yg sudah di-trim sbg patokan
+      # supaya bubble kosong tidak terkirim.
+      return if !@input.textContent.trim()
 
       @inactiveTimeout.start()
 
@@ -2059,6 +2066,7 @@ do(window) ->
         @body.insertAdjacentHTML('beforeend', messageElement)
 
       @input.innerHTML = ''
+      @updateSendState()
       @scrollToBottom()
 
       # send message event
@@ -2887,6 +2895,9 @@ do(window) ->
       @showOfflineOtp()
 
     showOfflineOtp: =>
+      # Layar OTP dirender ulang -> tombol Resend jadi node baru; buang
+      # timer cooldown lama supaya tidak menyisa/salah menonaktifkan.
+      @clearOtpResendCooldown()
       @el.querySelector('.zammad-chat-modal').innerHTML = @view('offline_otp')(email: @customerEmail)
       @el.querySelector('.js-otp-digit')?.focus()
 
@@ -2975,7 +2986,35 @@ do(window) ->
 
     resendOfflineOtp: (event) =>
       event?.preventDefault()
+      # Cegah spam Resend: tiap klik memicu email/SMS OTP baru. Tombol
+      # dimatikan + hitung-mundur, seragam dgn proteksi tombol aksi lain
+      # (`setButtonLoading` di Verify/Submit/dst.).
+      btn = @el.querySelector('.js-otp-resend')
+      return if btn?.disabled
       @send('chat_offline_otp_resend', session_id: @sessionId)
+      @startOtpResendCooldown(btn)
+
+    startOtpResendCooldown: (btn, seconds = 30) =>
+      return if !btn
+      @clearOtpResendCooldown()
+      base = @T(@phrases['chat_phrase_otp_resend_button'] || 'Resend code')
+      remaining = seconds
+      btn.disabled = true
+      btn.textContent = "#{base} (#{remaining}s)"
+      @otpResendTimer = setInterval(=>
+        remaining -= 1
+        if remaining <= 0
+          @clearOtpResendCooldown()
+          btn.disabled = false
+          btn.textContent = base
+        else
+          btn.textContent = "#{base} (#{remaining}s)"
+      , 1000)
+
+    clearOtpResendCooldown: =>
+      return if !@otpResendTimer
+      clearInterval(@otpResendTimer)
+      @otpResendTimer = null
 
     onOfflineOtpResendResult: (data) =>
       if data.state is 'ok'
@@ -3396,7 +3435,15 @@ do(window) ->
     enableInput: ->
       @inputDisabled = false
       @input.setAttribute('contenteditable', true)
-      @el.querySelector('.zammad-chat-send').disabled = false
+      @updateSendState()
+
+    # Tombol Send nonaktif saat kotak ketik kosong (mockup composer),
+    # TANPA menabrak state "keras" (sesi berakhir / sedang reconnect).
+    updateSendState: =>
+      sendBtn = @el.querySelector('.zammad-chat-send')
+      return if !sendBtn
+      hardDisabled = @inputDisabled or @reconnectDisabledInput
+      sendBtn.disabled = hardDisabled or !@input?.textContent.trim()
 
     hideModal: ->
       @el.querySelector('.zammad-chat-modal').innerHTML = ''
@@ -3718,8 +3765,9 @@ do(window) ->
       if @reconnectDisabledInput
         @reconnectDisabledInput = false
         @input?.setAttribute('contenteditable', true)
-        sendBtn = @el.querySelector('.zammad-chat-send')
-        sendBtn.disabled = false if sendBtn
+        # Lewat updateSendState: pulih dari reconnect tetap hormati aturan
+        # "kosong -> Send nonaktif", bukan paksa-aktif.
+        @updateSendState()
 
     # Atas permintaan user (mockup fullpage "Connection lost") --
     # pengganti alur lama `onError('Connection lost...')` yg diam-diam
