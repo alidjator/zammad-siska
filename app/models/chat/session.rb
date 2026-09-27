@@ -122,67 +122,108 @@ class Chat::Session < ApplicationModel
       return
     end
 
-    customer = Channel::Filter::BaseIdentifyUser.user_create(
-      email:     email,
-      firstname: name.presence || email,
-      lastname:  '',
-    )
+    with_ticket_transactions do
+      customer = Channel::Filter::BaseIdentifyUser.user_create(
+        email:     email,
+        firstname: name.presence || email,
+        lastname:  '',
+      )
 
-    # Bug ditemukan lewat pengujian LANGSUNG (rails runner, bukan lewat
-    # WS sungguhan) saat menyiapkan Tahap 3: `Ticket`/`Ticket::Article`
-    # WAJIB `created_by_id`/`updated_by_id` (NOT NULL) -- utk chat
-    # BIASA ini SELALU aman krn dipanggil dari konteks agent yang
-    # sedang login (`UserInfo.current_user_id` ambient TERISI otomatis
-    # oleh dispatcher WS), TAPI utk pesan OFFLINE (Tahap 3) pemanggilnya
-    # visitor ANONIM -- TIDAK ADA user login sama sekali, ambient itu
-    # kosong. `user_id` (agent yang menerima sesi ini, kalau ada) jadi
-    # aktor; fallback ke user System (id 1) kalau kosong -- preseden
-    # SAMA PERSIS dgn `chat_attachments_controller.rb`.
-    actor_id = user_id.presence || 1
+      # Bug ditemukan lewat pengujian LANGSUNG (rails runner, bukan lewat
+      # WS sungguhan) saat menyiapkan Tahap 3: `Ticket`/`Ticket::Article`
+      # WAJIB `created_by_id`/`updated_by_id` (NOT NULL) -- utk chat
+      # BIASA ini SELALU aman krn dipanggil dari konteks agent yang
+      # sedang login (`UserInfo.current_user_id` ambient TERISI otomatis
+      # oleh dispatcher WS), TAPI utk pesan OFFLINE (Tahap 3) pemanggilnya
+      # visitor ANONIM -- TIDAK ADA user login sama sekali, ambient itu
+      # kosong. `user_id` (agent yang menerima sesi ini, kalau ada) jadi
+      # aktor; fallback ke user System (id 1) kalau kosong -- preseden
+      # SAMA PERSIS dgn `chat_attachments_controller.rb`.
+      actor_id = user_id.presence || 1
 
-    ticket = Ticket.create!(
-      title:         title.presence || preferences[:subject].presence || "Live Chat - #{name.presence || email}",
-      group_id:      group_id,
-      customer_id:   customer.id,
-      # Atas permintaan user (field Category Prechat) -- `category`
-      # kolom NYATA custom field Ticket yang SUDAH ADA (`no_category`
-      # = kosong/default), diisi dari nilai yang visitor pilih di
-      # Prechat/OfflineHome (`Chat::Session#category`, lihat migration
-      # 20260922000001). `nil`-safe: sesi lama (sebelum field ini ada)
-      # & jalur follow-up user login (`self_service_init`, TIDAK
-      # pernah lewat Prechat) tetap `category: nil` -- Ticket sendiri
-      # SUDAH menerima kosong (bukan field yang divalidasi WAJIB di
-      # level model Ticket, cuma wajib di layar Admin/Edit agent).
-      category:      category,
-      created_by_id: actor_id,
-      updated_by_id: actor_id,
-    )
+      ticket = Ticket.create!(
+        title:         title.presence || preferences[:subject].presence || "Live Chat - #{name.presence || email}",
+        group_id:      group_id,
+        customer_id:   customer.id,
+        # Atas permintaan user (field Category Prechat) -- `category`
+        # kolom NYATA custom field Ticket yang SUDAH ADA (`no_category`
+        # = kosong/default), diisi dari nilai yang visitor pilih di
+        # Prechat/OfflineHome (`Chat::Session#category`, lihat migration
+        # 20260922000001). `nil`-safe: sesi lama (sebelum field ini ada)
+        # & jalur follow-up user login (`self_service_init`, TIDAK
+        # pernah lewat Prechat) tetap `category: nil` -- Ticket sendiri
+        # SUDAH menerima kosong (bukan field yang divalidasi WAJIB di
+        # level model Ticket, cuma wajib di layar Admin/Edit agent).
+        category:      category,
+        # Atas permintaan user (27 Sep 2026, docs/DESIGN_TEAM_KPI_DASHBOARD.md
+        # Section 16): tiket live chat langsung DIPEGANG agent yang menerima
+        # chat (`user_id`), bukan dibiarkan unassigned -- penanggung jawabnya
+        # jelas dan KPI per agent (FRT dll.) ikut benar. Pesan offline tidak
+        # punya agent (`user_id` kosong) -> tetap unassigned (owner 1) spt
+        # tiket email. Agent tanpa akses 'full' ke grup ini dikembalikan ke
+        # owner 1 oleh Ticket#check_owner_active bawaan.
+        owner_id:      user_id.presence || 1,
+        created_by_id: actor_id,
+        updated_by_id: actor_id,
+      )
 
-    article ||= {
-      type_name:   'chat',
-      sender_name: 'System',
-      from:        name.presence || email,
-      body:        __('Live chat dimulai.'),
-    }
+      article ||= {
+        type_name:   'chat',
+        sender_name: 'System',
+        from:        name.presence || email,
+        body:        __('Live chat dimulai.'),
+      }
 
-    Ticket::Article.create!(
-      ticket_id:     ticket.id,
-      type:          Ticket::Article::Type.find_by(name: article[:type_name]),
-      sender:        Ticket::Article::Sender.find_by(name: article[:sender_name]),
-      from:          article[:from],
-      body:          article[:body],
-      internal:      false,
-      created_by_id: actor_id,
-      updated_by_id: actor_id,
-    )
+      Ticket::Article.create!(
+        ticket_id:     ticket.id,
+        type:          Ticket::Article::Type.find_by(name: article[:type_name]),
+        sender:        Ticket::Article::Sender.find_by(name: article[:sender_name]),
+        from:          article[:from],
+        body:          article[:body],
+        internal:      false,
+        created_by_id: actor_id,
+        updated_by_id: actor_id,
+      )
 
-    update!(ticket_id: ticket.id)
+      update!(ticket_id: ticket.id)
 
-    # Enhancement 4 (item lampiran OfflineCompose) -- lihat catatan
-    # panjang di `sync_pending_attachments_to_ticket!` di bawah.
-    sync_pending_attachments_to_ticket!
+      # Enhancement 4 (item lampiran OfflineCompose) -- lihat catatan
+      # panjang di `sync_pending_attachments_to_ticket!` di bawah.
+      sync_pending_attachments_to_ticket!
+    end
   rescue => e
     Rails.logger.error "Live Chat auto-ticket gagal dibuat untuk sesi #{session_id}: #{e.message}"
+  end
+
+  # Trigger, notifikasi & distribusi AUX Zammad (Transaction backends)
+  # hanya jalan saat event yang terkumpul di EventBuffer dikirim lewat
+  # TransactionDispatcher.commit -- request HTTP melakukannya otomatis
+  # (ApplicationController::HandlesTransitions), tapi proses websocket
+  # (Sessions::Event.run) dan job scheduler TIDAK. Akibatnya tiket chat
+  # tidak pernah dibagikan AUX, tidak memicu trigger/notifikasi "tiket
+  # baru" (docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 16). Dipakai HANYA
+  # untuk pembuatan tiket & pengalihan ke tiket -- pesan chat biasa
+  # sengaja tidak, supaya agent tidak dapat notifikasi tiap pesan.
+  #
+  # Buffer milik pemanggil (mis. request HTTP yang sedang berjalan)
+  # disisihkan dulu dan dikembalikan sesudahnya, jadi yang dikirim di
+  # sini hanya event dari blok ini. Handle 'application_server' (bila
+  # belum ada) = perlakuan sama spt aksi agent di UI, termasuk agent
+  # tidak diberi notifikasi atas tindakannya sendiri.
+  def with_ticket_transactions
+    outer = EventBuffer.list('transaction').dup
+    TransactionDispatcher.reset
+    ApplicationHandleInfo.use(ApplicationHandleInfo.current.presence || 'application_server') do
+      result = yield
+      TransactionDispatcher.commit
+      result
+    end
+  ensure
+    # sisa event yang muncul saat commit (mis. perubahan oleh trigger)
+    # ikut dikembalikan, spt perilaku bawaan di request HTTP
+    inner = EventBuffer.list('transaction').dup
+    TransactionDispatcher.reset
+    (outer.to_a + inner).each { |event| EventBuffer.add('transaction', event) }
   end
 
   # Enhancement 4 (item lampiran OfflineCompose) -- diekstrak dari
@@ -200,29 +241,37 @@ class Chat::Session < ApplicationModel
   # dari masa tenggang. Chat DIUBAH JADI TIKET: sesi ditutup, tiket
   # (sudah dibuat saat agent menerima -- dibuat sekarang kalau belum)
   # diberi catatan internal & status open, lalu dilanjutkan lewat
-  # email. Pemilik tiket TIDAK diubah -- tiket chat memang unassigned
-  # di grup chat, jadi diambil agent lain / didistribusikan AUX
-  # (`DistributeTicket.pending_for`) spt tiket biasa.
+  # email. Tiket chat sekarang dipegang agent penerima (lihat
+  # `create_ticket_for_chat!`), jadi pemiliknya DIKOSONGKAN lagi kalau
+  # masih agent yang terputus itu -- supaya diambil agent lain /
+  # didistribusikan AUX (`DistributeTicket.pending_for`) spt tiket biasa.
   def handover_to_ticket!(reason: 'agent_disconnected')
     return false if state == 'closed'
 
-    create_ticket_for_chat!
-    ticket = Ticket.find_by(id: ticket_id)
+    ticket = nil
+    with_ticket_transactions do
+      create_ticket_for_chat!
+      ticket = Ticket.find_by(id: ticket_id)
 
-    if ticket
-      agent_name = agent_user&.dig(:name) || '-'
-      Ticket::Article.create!(
-        ticket_id:     ticket.id,
-        type:          Ticket::Article::Type.find_by(name: 'note'),
-        sender:        Ticket::Article::Sender.find_by(name: 'System'),
-        from:          'System',
-        body:          format(__('Live chat dialihkan ke tiket: agent %s terputus dari live chat lebih dari %s menit. Lanjutkan percakapan dengan membalas customer lewat email (%s).'), agent_name, (Chat::AGENT_DISCONNECT_GRACE / 60).to_i, email.presence || '-'),
-        internal:      true,
-        created_by_id: 1,
-        updated_by_id: 1,
-      )
-      if ticket.state&.name == 'new'
-        ticket.update!(state: Ticket::State.find_by(name: 'open'), updated_by_id: 1)
+      if ticket
+        agent_name = agent_user&.dig(:name) || '-'
+        Ticket::Article.create!(
+          ticket_id:     ticket.id,
+          type:          Ticket::Article::Type.find_by(name: 'note'),
+          sender:        Ticket::Article::Sender.find_by(name: 'System'),
+          from:          'System',
+          body:          format(__('Live chat dialihkan ke tiket: agent %s terputus dari live chat lebih dari %s menit. Lanjutkan percakapan dengan membalas customer lewat email (%s).'), agent_name, (Chat::AGENT_DISCONNECT_GRACE / 60).to_i, email.presence || '-'),
+          internal:      true,
+          created_by_id: 1,
+          updated_by_id: 1,
+        )
+        changes = {}
+        changes[:state] = Ticket::State.find_by(name: 'open') if ticket.state&.name == 'new'
+        changes[:owner_id] = 1 if user_id.present? && ticket.owner_id == user_id
+        ticket.update!(changes.merge(updated_by_id: 1)) if changes.present?
+        # dikosongkan -> langsung bagikan ke agent Available lain (AUX hanya
+        # membagikan otomatis saat tiket DIBUAT, bukan saat diubah)
+        Service::AuxStatus::DistributeTicket.for_new_ticket(ticket) if changes[:owner_id]
       end
     end
 

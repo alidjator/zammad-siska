@@ -23,6 +23,10 @@ class Sessions::Event
       { event: 'error', data: { error: e.message, payload: params[:payload] } }
     end
   ensure
+    # Websocket tidak pernah mengirim EventBuffer (lihat
+    # Chat::Session#with_ticket_transactions) -- tanpa ini event
+    # menumpuk selamanya di thread reaktor.
+    TransactionDispatcher.reset
     UserInfo.current_user_id = nil
     ActiveSupport::CurrentAttributes.clear_all
   end

@@ -395,5 +395,25 @@ Implementasi di satu tempat, `Scope#frt_tickets`:
 
 Dampak di staging: 7 hari (akun QA) sebelumnya n 0, sekarang **median 0,5 menit, n 57**. 90 hari (seluruh sistem) n 1.342 → 1.426 (+84 tiket chat, semuanya di grup QA). Grup operasional tidak berubah selama belum ada chat produksi.
 
-Catatan: tiket chat tidak punya pemilik (sengaja, lihat `handover_to_ticket!`), jadi FRT-nya muncul di baris **"Belum ditugaskan"** pada tab Per agent, bukan di agent yang menerima chat (`chat_sessions.user_id`).
+~~Catatan: tiket chat tidak punya pemilik, jadi FRT-nya muncul di baris "Belum ditugaskan".~~ Diperbaiki di 16.1.
+
+### 16.1 Tiket chat dipegang agent penerima + distribusi AUX untuk tiket chat (28 Sep 2026)
+
+**Pemilik tiket chat.** Keputusan user (opsi 1): tiket live chat dibuat dengan `owner` = agent yang menerima chat (`Chat::Session#user_id`), jadi FRT/KPI per agent ikut benar dan penanggung jawab tiket jelas. Pesan offline (tanpa agent) tetap tanpa pemilik, sama seperti tiket email. Saat chat dialihkan ke tiket karena agent terputus (`handover_to_ticket!`), pemiliknya dikosongkan lagi lalu langsung dibagikan AUX ke agent Available lain. Tiket chat lama (sebelum perubahan) **tidak** diisi ulang.
+
+**Bug: trigger, notifikasi, dan AUX tidak pernah jalan untuk tiket chat.** Transaction backend Zammad (Trigger, Notification, `Transaction::AuxStatusDistribution`, dll.) hanya jalan saat `TransactionDispatcher.commit` dipanggil. Request HTTP melakukannya otomatis (`ApplicationController::HandlesTransitions`), tapi proses websocket (`Sessions::Event.run`) dan job scheduler tidak. Karena tiket chat dibuat dari websocket (kustomisasi SISKA; di Zammad asli chat tidak membuat tiket), 191 dari 198 tiket chat staging tidak pernah dibagikan AUX dan 0 tiket chat memicu notifikasi "tiket baru". Event yang tidak terkirim juga menumpuk selamanya di memori thread websocket.
+
+Perbaikan:
+
+| Bagian | Isi |
+|---|---|
+| `Chat::Session#with_ticket_transactions` | Menyisihkan buffer pemanggil, menjalankan blok, lalu `TransactionDispatcher.commit` dengan handle `application_server` (kalau belum ada), kemudian mengembalikan buffer pemanggil + sisa event. Aman dipanggil dari HTTP, websocket, maupun scheduler, termasuk bersarang |
+| Dipakai di | `create_ticket_for_chat!` (live chat & pesan offline) dan `handover_to_ticket!`. **Pesan chat biasa sengaja tidak**, supaya agent tidak dapat notifikasi untuk setiap pesan customer |
+| `Sessions::Event.run` | `TransactionDispatcher.reset` di `ensure`, supaya buffer websocket tidak menumpuk |
+
+Trigger aktif yang dicek sebelum mengaktifkan: auto-reply "tiket baru" (id 1 & 54) mensyaratkan pengirim artikel Agent/Customer, sedangkan artikel pertama chat dari System, jadi **tidak** mengirim email ke customer. Trigger Help Topic (1696/1699) tidak cocok (help topic chat = Others).
+
+Diuji di staging (rails runner, konteks tanpa handle seperti websocket, grup QA, customer `@example.invalid`, data uji dihapus sesudahnya): live chat → owner = agent penerima; pesan offline → owner kosong lalu dibagikan AUX dalam beberapa detik, notifikasi "create" ke anggota grup; pengalihan → owner pindah ke agent lain, status open, owner baru dapat notifikasi.
+
+**Deploy:** `app/models/chat/session.rb` dan `lib/sessions/event.rb` harus ikut ke **ketiga** proses (app, websocket, scheduler). Di staging ketiga container punya salinan kode sendiri (tidak berbagi volume) dan websocket/scheduler tertinggal dari app. Perlu diselaraskan sebelum deploy production.
 
