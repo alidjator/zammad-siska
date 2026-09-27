@@ -330,4 +330,50 @@ Sidebar Activity Stream bawaan (280px, selalu tampil) memakan ±¼ lebar di tab 
 
 Implementasi: tetap satu `App.DashboardActivityStream` (update websocket bawaan tetap jalan), cukup opsi baru `onLoad` yang dipanggil setiap load; `dashboard.coffee` memasang `.team-kpi-host` di kontainer, `.is-kpi-tab` saat tab KPI Tim aktif, `.is-activity-open` dari preferensi; semua gaya di `team_kpi.scss` di bawah `.team-kpi-host`. Diuji dengan jsdom + jQuery asli + template hasil compile (15 skenario, termasuk badge, Esc, pindah tab, render ulang) — sempat menangkap bug `_.max` pada tanggal ISO (underscore hanya membandingkan angka → `seen_at` tersimpan `null`).
 
-Belum dikerjakan (rekomendasi butir 3 di mockup): menggabungkan aktivitas berturut-turut per tiket, menyembunyikan/melabeli otomatisasi, waktu relatif — menyentuh template item Activity Stream bawaan yang dipakai di tab lain juga.
+**Isi drawer (hanya tab KPI Tim)** — mockup `TeamKpi-Activity-Open`. Sidebar tab My Stats / First Steps tetap memakai daftar bawaan (`activity_stream_item.jst.eco` tidak diubah); di tab KPI Tim daftar bawaan disembunyikan (CSS) dan `dashboard/kpi_activity.jst.eco` dirender dari item `App.DashboardActivityStream` yang sama (`onLoad`, termasuk update websocket):
+- **Kepala** berlatar `primary-50` (`#e2ebfe`, lebih kontras dari highlight baris baru 4%) + ilustrasi "arus aktivitas" (`team_kpi_illus` key `activity`, opasitas 45%), lalu baris "**N baru** sejak dibuka terakhir" + centang **Tampilkan otomatisasi (N)**.
+- **Otomatisasi** = aktor user sistem (id 1, tampil "- updated ticket") atau tanpa nama → label "Otomatisasi" + ikon robot; **disembunyikan default**, diingat per user di preferensi `kpi_activity_show_bots`.
+- **Digabung per (aktor, tiket)** selama berurutan; pesan (`Ticket::Article`) dipetakan ke tiket induknya, karena satu aksi agent biasanya menghasilkan 2 item (pesan + tiket). Kata kerja mewakili aksi paling berarti (buat tiket > eskalasi > tambah pesan > perbarui). Penghitung "N×" tidak dipakai untuk pasangan "buat tiket" (pesan + tiket baru). Dengan otomatisasi disembunyikan, aksi Admin yang tadinya diselingi otomatisasi ikut tergabung.
+- **Waktu relatif** ("5 mnt lalu", "kemarin") + jam (rentang "05:56–05:57" untuk grup), diperbarui tiap menit selama drawer terbuka.
+- **Baru** = lebih baru dari `kpi_activity_seen_at` saat drawer dibuka (bukan yang disimpan saat membuka — kalau tidak, sorotan langsung hilang) dan bukan aktivitas sendiri: latar tipis + titik biru. **Tandai dibaca** menghapus sorotan dan menyimpan `seen_at` terbaru.
+
+Diuji dengan jsdom + jQuery asli + template hasil compile + data Activity Stream asli staging (20 skenario: penggabungan pesan+tiket, otomatisasi tersembunyi/tampil + preferensi, penggabungan Admin yang diselingi otomatisasi, rentang jam, waktu relatif, sorotan baru saat buka, Tandai dibaca, tutup, kosong).
+
+## 15. Rincian di Sub-tab, ApexCharts, dan Ilustrasi Kartu
+
+Halaman KPI Tim sebelumnya menumpuk semua bagian (±3–4 tinggi layar). Mockup: artboard `TeamKpi-Tabs` di kanvas desain.
+
+**Tata letak** (urutan): filter bar → **Antrian real-time** → 6 kartu KPI → **kartu rincian** berisi `nav-tabs` kit (pola `admins/invoice-list.html`: di dalam card, `mr-6 py-4`, `border-b-2`, font-medium, aktif `primary-500`):
+
+| Tab | Isi | Data |
+|---|---|---|
+| Tren (default) | grafik tren + ringkasan rata-rata/delta; metrik dipilih lewat `btn-group` `btn-sm` (sama dengan tombol periode, bukan deret tab ketiga) | `/team_kpi/trend` |
+| Pola beban | heatmap 7 × 24 + ringkasan pola beban | `/team_kpi/heatmap` |
+| SLA & Backlog | SLA penyelesaian \| Umur backlog, dua kolom di dalam kartu yang sama | dari `/team_kpi` |
+| Per agent | tabel agent — tab hanya ada untuk `report`/`admin` | `/team_kpi/agents` |
+
+- **Data per tab**: `load()` mengambil `/team_kpi` + bagian tab aktif saja; tab lain diambil saat dibuka. Setiap bagian disimpan bersama kunci filternya (`partKey`: periode, grup, metrik) — data dengan filter lama tidak ditampilkan tapi diambil ulang ("Memuat…"). Auto-refresh juga hanya ringkasan + tab aktif.
+- **Tab terakhir diingat per user**: preferensi `kpi_detail_tab` (`trend` / `load` / `sla` / `agents`) lewat `PUT /api/v1/users/preferences`, sama dengan drawer Aktivitas (Section 14). Nilai tidak valid, atau `agents` untuk user tanpa `report`, jatuh ke `trend`.
+- **Badge di label tab** (kit `.badge` `-500/10` `rounded-full`): *SLA & Backlog* merah berisi persen SLA kalau SLA < 75%, selain itu oranye berisi jumlah tiket backlog ≥ 30 hari (kalau ada); *Per agent* berisi jumlah agent aktif dari field ringkasan **`agents_active_count`** — hanya dikirim untuk `report`/`admin` (`TeamKpi.call(include_agents: report_access?)`), dihitung dengan `DISTINCT owner_id` (tiket dibuat di periode / FRT di periode / escalated sekarang, tanpa owner 1 "Belum ditugaskan"), sama persis dengan jumlah baris tabel agent (diverifikasi 7/90/730 hari), 50–260 ms vs ±2 detik rekap lengkap. Jadi badge tampil tanpa memuat tabel agent. Tabel tetap maks. 12 baris, dengan keterangan "Menampilkan 12 agent teratas dari N".
+
+**ApexCharts** untuk tren dan heatmap (lingkaran persen & bar tetap SVG/HTML):
+
+- Versi **4.7.0** dari kit (`dist/assets/js/plugins/apexcharts.min.js`), lisensi **MIT** (header file); dikunci — cek ulang lisensi sebelum upgrade.
+- File statis `public/assets/siska/apexcharts/apexcharts-4.7.0.min.js` (576 KB), **tidak** masuk `application.js`: dimuat lazy sekali saat grafik pertama dibutuhkan (`loadApex`, callback diantre). CSP sudah mengizinkan (`script-src 'self'`, `style-src 'unsafe-inline'`).
+- Tren = gaya kit `line-chart-3` (pembanding putus-putus lewat `stroke.dashArray`, tooltip gabungan per titik, sumbu Y memakai satuan metrik, bucket tanpa data = garis putus). Heatmap = gaya kit `heatmap-chart-1` (satu warna `#4680ff`, shade otomatis, tanpa label; tooltip hari·jam, rata-rata, total). Legenda 5 kotak diganti "Makin gelap = makin ramai · maks X tiket/hari".
+- Setiap render ulang (ganti tab/metrik/filter, auto-refresh) chart lama di-`destroy()` dulu; juga di `release`.
+
+**Nilai persen gaya kit** (`team_kpi_pct.jst.eco`, pola `widget/w_statistics.html` "Total Page Views") menggantikan lingkaran progres di kartu **Reopening rate**, **Rasio Escalated**, dan total **SLA penyelesaian** (tab SLA & Backlog):
+- angka besar = **jumlah tiket** (dibuka ulang / lewat SLA / closed tepat waktu);
+- badge `bg-X-500/10 border border-X-500 text-X-500` = **persen**, warna mengikuti **status** (hijau Sangat baik/Baik, oranye Cukup, merah Buruk; SLA ≥ 90 / 75–90 / < 75), ikon tren tabler naik/turun = arah perubahan vs pembanding (tanpa ikon kalau belum ada pembanding, abu "—" kalau tidak ada data);
+- kalimat: "Dibuka ulang dari **6.288** tiket closed. Naik **2,5 poin** vs periode sebelumnya." — angka perubahan hijau kalau membaik, merah kalau memburuk.
+Persen kecil (strip antrian "63,9%", persen per prioritas SLA) tetap seperti sebelumnya.
+
+**Ilustrasi latar** (`team_kpi_illus.jst.eco`, dekorasi `aria-hidden`): adegan duotone palet primary kit + ornamen (cincin, titik, plus, bintang, kilau, gelembung), memudar lewat `<mask>` ke arah isi, **opasitas 45%** supaya tetap latar.
+- Tema: FRT jendela chat + stopwatch · CSAT rating bintang + wajah senyum · Waktu penyelesaian tumpukan tiket + jam pasir · Reopening map "Closed" → "Open" · **Rasio Escalated gauge SLA** (jarum di zona merah) · **Breach eskalasi tangga eskalasi L1–L3** dengan tiket menembus garis tenggat.
+- Pojok **kanan atas** kartu (118 × 94; 80 × 64 di grid 6 kolom). Badge status dipindah sebaris dengan dasar waktu (rata kiri) dan kepala kartu menyisakan ruang kanan, supaya n sampel, skala, chip, dan baris bawah di kanan bawah tidak tertimpa.
+- Strip Antrian real-time **tanpa ilustrasi** (dicoba, lalu dihapus atas keputusan review).
+
+**Filter bar** dua baris: kontrol (Periode + Grup | Ekspor, semuanya setinggi `btn-sm` 31px) lalu keterangan kecil (Dibanding · Diperbarui) di bawah garis putus-putus — tidak terlipat tak beraturan di area sempit.
+
+Diuji dengan jsdom + jQuery asli + template hasil compile + ApexCharts asli + data API asli (35 skenario: urutan tata letak, 2 izin × 3 periode × 4 tab, preferensi, data per tab & kunci filter, badge tab, blok persen kit termasuk data kosong, gagal per tab, loader lazy).

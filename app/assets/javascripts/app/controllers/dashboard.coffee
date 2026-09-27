@@ -5,6 +5,8 @@ class App.Dashboard extends App.Controller
     'click .js-intro': 'clues'
     'click .js-kpiActivityToggle': 'toggleKpiActivity'
     'click .js-kpiActivityClose': 'closeKpiActivity'
+    'change .js-kpiActivityBots': 'toggleKpiBots'
+    'click .js-kpiActivityMarkRead': 'markKpiActivityRead'
 
   constructor: ->
     super
@@ -57,8 +59,16 @@ class App.Dashboard extends App.Controller
 
     # KPI Tim adalah tab awal kalau tersedia (lihat dashboard.jst.eco)
     @el.addClass('team-kpi-host')
+    # batas "baru" di drawer = terakhir dilihat sebelum drawer dibuka
+    @kpiSeenBefore = @kpiPreferences().kpi_activity_seen_at
     @setKpiTab(showTeamKpi)
     @updateKpiActivityBadge(@kpiActivityItems) if @kpiActivityItems
+
+    # waktu relatif ("5 mnt lalu") diperbarui tiap menit selama drawer terbuka
+    clearInterval(@kpiActivityTimer) if @kpiActivityTimer
+    @kpiActivityTimer = setInterval(=>
+      @renderKpiActivity() if @el.hasClass('is-kpi-tab') && @el.hasClass('is-activity-open')
+    , 60000)
 
     $(document).off('keydown.kpiActivity').on('keydown.kpiActivity', (e) =>
       return if e.key isnt 'Escape'
@@ -85,10 +95,13 @@ class App.Dashboard extends App.Controller
     open = !!@kpiPreferences().kpi_activity_open
     @el.toggleClass('is-activity-open', open)
     @$('.js-kpiActivityToggle').attr('aria-expanded', if open && @el.hasClass('is-kpi-tab') then 'true' else 'false')
+    @renderKpiActivity()
 
   toggleKpiActivity: (e) =>
     e?.preventDefault()
-    @saveKpiActivity(!@kpiPreferences().kpi_activity_open)
+    open = !@kpiPreferences().kpi_activity_open
+    @kpiSeenBefore = @kpiPreferences().kpi_activity_seen_at if open
+    @saveKpiActivity(open)
 
   closeKpiActivity: (e) =>
     e?.preventDefault()
@@ -121,6 +134,7 @@ class App.Dashboard extends App.Controller
   # drawer terbuka. Belum pernah dilihat = tanpa badge (bukan 25 sekaligus).
   updateKpiActivityBadge: (items) =>
     @kpiActivityItems = items
+    @renderKpiActivity()
     badge = @$('.js-kpiActivityBadge')
     seenAt = @kpiPreferences().kpi_activity_seen_at
     me = App.Session.get('id')
@@ -131,7 +145,161 @@ class App.Dashboard extends App.Controller
     badge.text(if count > 99 then '99+' else "#{count}")
     badge.attr('aria-label', App.i18n.translateInline('%s aktivitas baru', count))
 
+  # ---- isi drawer (hanya tab KPI Tim; tab lain memakai daftar bawaan) ----
+  # Mockup TeamKpi-Activity-Open. Satu aksi agent biasanya = 2 item (pesan +
+  # tiket), jadi item digabung per (aktor, tiket) selama berurutan. Aktor
+  # tanpa nama / user sistem (id 1, tampil "- updated ticket") = Otomatisasi,
+  # disembunyikan kecuali dicentang (preferensi kpi_activity_show_bots).
+
+  KPI_VERBS:
+    Ticket:
+      create:                  'membuat tiket'
+      update:                  'memperbarui tiket'
+      escalation:              'menandai tiket lewat SLA'
+      escalation_warning:      'menandai tiket hampir lewat SLA'
+      reminder_reached:        'pengingat tiket tercapai'
+      'update.merged_into':    'menggabungkan tiket'
+      'update.received_merge': 'menerima gabungan tiket'
+    TicketArticle:
+      create:            'menambah pesan di tiket'
+      update:            'memperbarui pesan di tiket'
+      'update.reaction': 'memberi reaksi di tiket'
+
+  # urutan kata kerja yang mewakili grup (aksi paling berarti dulu)
+  KPI_VERB_RANK: ['Ticket:create', 'Ticket:escalation', 'Ticket:escalation_warning', 'TicketArticle:create', 'Ticket:update']
+
+  # Item disiapkan sendiri (seperti prepareForObjectListItem): collection
+  # controller hanya menyiapkan item yang dirender ulang, dan record dibuat
+  # baru setiap load -- tanpa ini created_by kosong & semua terbaca otomatisasi.
+  kpiPrepare: (raw) ->
+    item = _.clone(raw)
+    item.object = (item.object || '').replace(/::/g, '')
+    model = App[item.object]
+    if model?.exists?(item.o_id)
+      object = model.findNative(item.o_id)
+      item.objectNative = object
+      item.link         = object.uiUrl?() || ''
+      item.title        = object.displayName?() || '-'
+      item.object_name  = object.objectDisplayName?()
+    item.created_by = if App.User.exists(item.created_by_id) then App.User.findNative(item.created_by_id) else null
+    item
+
+  # user sistem (id 1) atau user tanpa nama ("-"); user yang belum termuat
+  # tidak dianggap otomatisasi
+  kpiIsBot: (item) ->
+    return true if item.created_by_id is 1
+    return false if !item.created_by
+    name = item.created_by.displayName?() || ''
+    !name.replace(/^-$/, '').trim()
+
+  kpiTicketId: (item) ->
+    return item.o_id if item.object is 'Ticket'
+    return item.objectNative?.ticket_id if item.object is 'TicketArticle'
+    null
+
+  kpiVerb: (item) =>
+    @KPI_VERBS[item.object]?[item.type] || (if item.type is 'create' then "membuat #{(item.object_name || item.object).toLowerCase()}" else "memperbarui #{(item.object_name || item.object).toLowerCase()}")
+
+  kpiPad: (n) -> if n < 10 then "0#{n}" else "#{n}"
+
+  kpiRelative: (date, now) ->
+    minutes = Math.floor((now - date) / 60000)
+    return 'baru saja' if minutes < 1
+    return "#{minutes} mnt lalu" if minutes < 60
+    hours = Math.floor(minutes / 60)
+    return "#{hours} jam lalu" if hours < 24
+    return 'kemarin' if hours < 48
+    "#{Math.floor(hours / 24)} hari lalu"
+
+  kpiClock: (date, now) =>
+    time = "#{@kpiPad(date.getHours())}:#{@kpiPad(date.getMinutes())}"
+    return time if date.toDateString() is now.toDateString()
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+    "#{date.getDate()} #{months[date.getMonth()]} #{time}"
+
+  kpiActivityView: (items) =>
+    prefs    = @kpiPreferences()
+    showBots = !!prefs.kpi_activity_show_bots
+    me       = App.Session.get('id')
+    seen     = @kpiSeenBefore
+    now      = new Date()
+    groups   = []
+    botCount = 0
+    sorted = _.sortBy(_.map(items || [], @kpiPrepare), (item) -> item.created_at).reverse()
+    for item in sorted
+      bot = @kpiIsBot(item)
+      botCount += 1 if bot
+      continue if bot && !showBots
+      ticketId = @kpiTicketId(item)
+      key = "#{item.created_by_id}|#{if ticketId then "t#{ticketId}" else "#{item.object}#{item.o_id}"}"
+      last = _.last(groups)
+      if last && last.key is key
+        last.items.push(item)
+      else
+        groups.push({ key: key, ticketId: ticketId, bot: bot, items: [item] })
+
+    rows = for g in groups
+      first  = g.items[0]
+      oldest = _.last(g.items)
+      ticket = if g.ticketId && App.Ticket.exists(g.ticketId) then App.Ticket.findNative(g.ticketId) else null
+      kinds  = _.map(g.items, (i) -> "#{i.object}:#{i.type}")
+      rank   = _.find(@KPI_VERB_RANK, (k) -> _.contains(kinds, k))
+      main   = if rank then _.find(g.items, (i) -> "#{i.object}:#{i.type}" is rank) else first
+      newest = new Date(first.created_at)
+      older  = new Date(oldest.created_at)
+      clock  = @kpiClock(newest, now)
+      clock  = "#{@kpiClock(older, now)}–#{clock.split(' ').pop()}" if g.items.length > 1 && Math.floor(newest / 60000) isnt Math.floor(older / 60000) && newest.toDateString() is older.toDateString()
+      name   = first.created_by?.displayName?() || 'Pengguna'
+      {
+        bot:       g.bot
+        actor:     name
+        initials:  _.map(name.split(/\s+/).slice(0, 2), (w) -> w.charAt(0).toUpperCase()).join('')
+        verb:      @kpiVerb(main)
+        # pesan + tiket dari satu aksi "buat tiket" tidak dihitung sebagai 2×
+        count:     if g.items.length > 1 && !_.contains(kinds, 'Ticket:create') then g.items.length else null
+        title:     ticket?.title || first.title
+        link:      ticket?.uiUrl() || first.link
+        relative:  @kpiRelative(newest, now)
+        clock:     clock
+        timeTitle: newest.toLocaleString()
+        isNew:     !!seen && _.some(g.items, (i) -> i.created_at > seen && i.created_by_id isnt me)
+      }
+
+    {
+      illus:    App.view('dashboard/team_kpi_illus')(key: 'activity')
+      groups:   rows
+      newCount: _.filter(rows, (r) -> r.isNew).length
+      showBots: showBots
+      botCount: botCount
+      # daftar kosong karena semua item otomatisasi yang sedang disembunyikan
+      allHidden: !rows.length && botCount > 0 && !showBots
+    }
+
+  renderKpiActivity: =>
+    el = @$('.js-kpiActivityView')
+    return if !el.length
+    el.html(App.view('dashboard/kpi_activity')(@kpiActivityView(@kpiActivityItems)))
+
+  toggleKpiBots: (e) =>
+    show = $(e.currentTarget).prop('checked')
+    _.extend(@kpiPreferences(), { kpi_activity_show_bots: show })
+    @renderKpiActivity()
+    App.Ajax.request(
+      id:          'preferences_kpi_activity_bots'
+      type:        'PUT'
+      url:         "#{@apiPath}/users/preferences"
+      data:        JSON.stringify(kpi_activity_show_bots: show)
+      processData: true
+    )
+
+  # Semua yang tampil dianggap sudah dibaca (highlight hilang, badge nol).
+  markKpiActivityRead: (e) =>
+    e?.preventDefault()
+    @kpiSeenBefore = @latestKpiActivity()
+    @saveKpiActivity(!!@kpiPreferences().kpi_activity_open)
+
   release: =>
+    clearInterval(@kpiActivityTimer) if @kpiActivityTimer
     $(document).off('keydown.kpiActivity')
 
   mayBeClues: =>

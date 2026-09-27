@@ -1,0 +1,23 @@
+<%# Blok nilai persen gaya kit widget/w_statistics.html ("Total Page Views"): %>
+<%# angka (jumlah tiket) + badge persen bg-X/10 border-X text-X dengan ikon tren, %>
+<%# lalu satu kalimat keterangan. Warna badge = status. Data: pctView (team_kpi.coffee). %>
+<div class="team-kpi-pct-row">
+  <span class="team-kpi-value <% if @empty: %>is-empty<% end %>"><%= @value %><small><%= @unit %></small></span>
+  <span class="team-kpi-pct-badge is-<%= @badge.tone %>" title="<%= @badgeTip %>">
+    <% if @badge.dir is 'up': %><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 17l6 -6l4 4l8 -8"></path><path d="M14 7l7 0l0 7"></path></svg><% else if @badge.dir is 'down': %><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 7l6 6l4 -4l8 8"></path><path d="M21 10l0 7l-7 0"></path></svg><% end %><%= @badge.text %>
+  </span>
+</div>
+<div class="team-kpi-pct-note">
+  <% if @empty: %>
+    <%= @emptyNote %>
+  <% else: %>
+    <%= @baseLabel %> <b><%= @baseCount %></b> <%= @baseUnit %>.
+    <% if @change?.same: %>
+      <%- @T('Sama dengan') %> <%= @change.vs %>.
+    <% else if @change: %>
+      <%= @change.word %> <b class="<%= @change.cls %>"><%= @change.amount %></b> <%= @change.vs %>.
+    <% else if @note: %>
+      <%= @note %>.
+    <% end %>
+  <% end %>
+</div>

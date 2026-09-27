@@ -20,6 +20,9 @@
   <div class="tab-content first-steps-widgets hidden"></div>
 </div>
 <div class="sidebar optional" id="dashboard-activity">
+  <% if @showTeamKpi: %>
+  <div class="team-kpi-activity js-kpiActivityView"></div>
+  <% end %>
   <h2 class="team-kpi-activity-head">
     <span><%- @T('Activity Stream') %></span>
     <% if @showTeamKpi: %>

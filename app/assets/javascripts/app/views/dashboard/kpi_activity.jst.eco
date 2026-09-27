@@ -1,0 +1,52 @@
+<%# Activity Stream versi drawer tab KPI Tim (mockup TeamKpi-Activity-Open). %>
+<%# Data dari item App.DashboardActivityStream yang sama, diolah di %>
+<%# dashboard.coffee (kpiActivityView): digabung per tiket, otomatisasi %>
+<%# diberi label & bisa disembunyikan, waktu relatif. Tab lain: daftar bawaan. %>
+<div class="team-kpi-activity-header">
+  <%- @illus %>
+  <div class="team-kpi-activity-title">
+    <h2><%- @T('Aktivitas') %></h2>
+    <p><%- @T('Perubahan terbaru di tiket yang bisa Anda akses') %></p>
+  </div>
+  <button type="button" class="team-kpi-activity-x js-kpiActivityClose" aria-label="<%- @T('Tutup panel aktivitas') %>"><%- @SiskaIcon('x', 18) %></button>
+</div>
+<div class="team-kpi-activity-bar">
+  <span>
+    <% if @newCount: %><b><%= @newCount %> <%- @T('baru') %></b> <%- @T('sejak dibuka terakhir') %><% else: %><%- @T('Tidak ada aktivitas baru') %><% end %>
+  </span>
+  <%# toggle gaya kit .form-check.form-switch %>
+  <label class="team-kpi-switch">
+    <input type="checkbox" role="switch" class="js-kpiActivityBots" <% if @showBots: %>checked<% end %> aria-checked="<%= if @showBots then 'true' else 'false' %>">
+    <span><%- @T('Tampilkan otomatisasi') %><% if @botCount: %> (<%= @botCount %>)<% end %></span>
+  </label>
+</div>
+<div class="team-kpi-activity-list">
+  <% if @allHidden: %>
+    <div class="team-kpi-activity-empty"><%- @T('Semua %s aktivitas terbaru berasal dari otomatisasi. Aktifkan "Tampilkan otomatisasi" untuk melihatnya.', @botCount) %></div>
+  <% else if !@groups.length: %>
+    <div class="team-kpi-activity-empty"><%- @T('Belum ada aktivitas.') %></div>
+  <% end %>
+  <% for g in @groups: %>
+    <a href="<%= g.link %>" class="team-kpi-activity-item <% if g.isNew: %>is-new<% end %>">
+      <% if g.isNew: %><span class="team-kpi-activity-dot" aria-label="<%- @T('baru') %>"></span><% end %>
+      <% if g.bot: %>
+        <span class="team-kpi-activity-avatar is-bot"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="8" width="16" height="11" rx="3"></rect><path d="M12 4v4M9 13h.01M15 13h.01"></path></svg></span>
+      <% else: %>
+        <span class="team-kpi-activity-avatar"><%= g.initials %></span>
+      <% end %>
+      <span class="team-kpi-activity-body">
+        <span>
+          <% if g.bot: %><span class="team-kpi-activity-bot"><%- @T('Otomatisasi') %></span><% else: %><b><%= g.actor %></b><% end %>
+          <%= g.verb %>
+          <% if g.count: %><span class="team-kpi-activity-count" title="<%- @T('Digabung: %s aktivitas berturut-turut pada tiket yang sama', g.count) %>"><%= g.count %>×</span><% end %>
+        </span>
+        <span class="team-kpi-activity-subject"><%= g.title %></span>
+        <span class="team-kpi-activity-time" title="<%= g.timeTitle %>"><%= g.relative %> · <%= g.clock %></span>
+      </span>
+    </a>
+  <% end %>
+</div>
+<div class="team-kpi-activity-foot">
+  <span><%- @T('Aktivitas berturut-turut pada tiket yang sama digabung') %></span>
+  <% if @newCount: %><a href="#" class="js-kpiActivityMarkRead"><%- @T('Tandai dibaca') %></a><% end %>
+</div>

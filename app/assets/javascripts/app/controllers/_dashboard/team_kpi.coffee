@@ -6,15 +6,33 @@
 #   /team_kpi/trend, /team_kpi/heatmap, /team_kpi/agents (hanya report/admin),
 #   /team_kpi/export (unduhan .xlsx dengan filter yang sama).
 #
-# Semua hitungan tampilan (skala state, delta, titik grafik, level heatmap)
+# Semua hitungan tampilan (skala state, delta, data grafik, ringkasan heatmap)
 # dilakukan di sini; team_kpi.jst.eco hanya menampilkan.
+#
+# Tata letak (artboard TeamKpi-Tabs, Section 15): filter -> antrian real-time
+# -> 6 kartu -> kartu rincian ber-nav-tabs (Tren / Pola beban / SLA & Backlog
+# / Per agent). Tab terakhir diingat per user (preferensi kpi_detail_tab);
+# data tren/heatmap/agent hanya diambil untuk tab yang aktif. Grafik tren &
+# heatmap = ApexCharts 4.7.0 dari kit (public/assets/siska/apexcharts/),
+# dimuat lazy sekali saat dibutuhkan.
 class App.DashboardTeamKpi extends App.Controller
   events:
     'click .js-kpi-period':  'onPeriod'
     'change .js-kpi-group':  'onGroup'
+    'click .js-kpi-tab':     'onTab'
     'click .js-kpi-metric':  'onMetric'
     'click .js-kpi-export':  'onExport'
     'click .js-kpi-retry':   'onRetry'
+
+  # Sub-tab rincian; part = bagian API yang hanya diambil saat tab aktif.
+  TABS: [
+    { key: 'trend',  label: 'Tren',          part: 'trend' }
+    { key: 'load',   label: 'Pola beban',    part: 'heatmap' }
+    { key: 'sla',    label: 'SLA & Backlog', part: null }
+    { key: 'agents', label: 'Per agent',     part: 'agents' }
+  ]
+
+  APEX_URL: '/assets/siska/apexcharts/apexcharts-4.7.0.min.js'
 
   PERIODS: [
     { days: 7,   label: '7 hari' }
@@ -63,9 +81,58 @@ class App.DashboardTeamKpi extends App.Controller
     @groupId = ''
     @metric  = 'frt'
     @canSeeAgents = @permissionCheck('report') || @permissionCheck('admin')
-    @data = {}
+    @tab = @preferences().kpi_detail_tab
+    @tab = 'trend' if !_.find(@availableTabs(), (t) => t.key is @tab)
+    @data    = {}
+    @dataKey = {}   # part -> partKey saat data diambil (data lama tidak dipakai)
+    @charts  = {}
     @load()
     @startAutoRefresh()
+
+  preferences: ->
+    App.Session.get('preferences') || {}
+
+  availableTabs: =>
+    _.filter(@TABS, (t) => t.key isnt 'agents' || @canSeeAgents)
+
+  tabPart: =>
+    _.find(@TABS, (t) => t.key is @tab)?.part
+
+  # Kunci filter per bagian: data yang diambil dengan filter lain dianggap
+  # belum ada (tampil "Memuat…" lalu diambil ulang), bukan ditampilkan.
+  partKey: (part) =>
+    key = $.param(@params())
+    key += "&metric=#{@metric}" if part is 'trend'
+    key
+
+  hasPart: (part) =>
+    !!@data[part] && @dataKey[part] is @partKey(part)
+
+  onTab: (e) =>
+    e.preventDefault()
+    tab = $(e.currentTarget).data('tab')
+    return if tab is @tab || !_.find(@availableTabs(), (t) -> t.key is tab)
+    @tab = tab
+    @saveTab()
+    part = @tabPart()
+    if part && !@hasPart(part)
+      @loadParts([part])
+    else
+      @render()
+
+  # Sama dengan drawer Aktivitas (dashboard.coffee): preferensi user di
+  # server supaya ikut ke perangkat/browser lain.
+  saveTab: =>
+    data = { kpi_detail_tab: @tab }
+    prefs = App.Session.get('preferences')
+    _.extend(prefs, data) if prefs
+    App.Ajax.request(
+      id:          'preferences_kpi_detail_tab'
+      type:        'PUT'
+      url:         "#{@apiPath}/users/preferences"
+      data:        JSON.stringify(data)
+      processData: true
+    )
 
   onPeriod: (e) =>
     e.preventDefault()
@@ -79,7 +146,7 @@ class App.DashboardTeamKpi extends App.Controller
   onMetric: (e) =>
     e.preventDefault()
     @metric = $(e.currentTarget).data('metric')
-    @loadParts(['trend'])
+    if @hasPart('trend') then @render() else @loadParts(['trend'])
 
   onRetry: (e) =>
     e.preventDefault()
@@ -96,9 +163,12 @@ class App.DashboardTeamKpi extends App.Controller
     params.group_ids = @groupId if @groupId
     params
 
+  # Ringkasan (kartu, antrian, SLA, backlog) selalu; tren/heatmap/agent hanya
+  # untuk tab yang sedang aktif -- tab lain diambil saat dibuka.
   load: (silent = false) =>
-    parts = ['summary', 'trend', 'heatmap']
-    parts.push('agents') if @canSeeAgents
+    parts = ['summary']
+    part  = @tabPart()
+    parts.push(part) if part
     @loadParts(parts, silent)
 
   # Semua bagian diambil paralel, render sekali setelah semuanya selesai
@@ -127,6 +197,7 @@ class App.DashboardTeamKpi extends App.Controller
         data = @params()
         data.metric = @metric if part is 'trend'
         data.limit  = 50 if part is 'agents'
+        key = @partKey(part)
         @ajax(
           id:          "team_kpi_#{part}"
           type:        'GET'
@@ -134,8 +205,9 @@ class App.DashboardTeamKpi extends App.Controller
           data:        data
           processData: true
           success: (response) =>
-            @data[part] = response
-            @fetchedAt  = new Date() if part is 'summary'
+            @data[part]    = response
+            @dataKey[part] = key
+            @fetchedAt     = new Date() if part is 'summary'
             done()
           error: =>
             failed.push(part)
@@ -160,6 +232,7 @@ class App.DashboardTeamKpi extends App.Controller
 
   release: =>
     clearInterval(@autoRefreshTimer) if @autoRefreshTimer
+    @destroyCharts()
 
   # ------------------------------------------------------------- format
 
@@ -250,6 +323,51 @@ class App.DashboardTeamKpi extends App.Controller
     better = if lowerBetter then diff < 0 else diff > 0
     { text: "#{arrow} #{text}", cls: if better then 'is-better' else 'is-worse' }
 
+  # Nilai persen gaya kit widget/w_statistics.html: angka = jumlah tiket,
+  # badge = persen (warna status, panah = arah perubahan vs pembanding),
+  # kalimat "Naik/Turun X poin vs ..." (team_kpi_pct.jst.eco).
+  PCT_TONE:
+    supergood: 'success'
+    good:      'success'
+    ok:        'warning'
+    bad:       'danger'
+    superbad:  'danger'
+
+  pctView: (o) =>
+    empty = !o.pct?
+    change = null
+    if !empty && o.prev?
+      diff = o.pct - o.prev
+      if Math.abs(diff) < 0.05
+        change = { same: true, vs: o.vs }
+      else
+        better = if o.lowerBetter then diff < 0 else diff > 0
+        change =
+          word:   if diff > 0 then 'Naik' else 'Turun'
+          amount: "#{@fmtNumber(Math.abs(diff), 1)} poin"
+          cls:    if better then 'is-better' else 'is-worse'
+          vs:     o.vs
+          dir:    if diff > 0 then 'up' else 'down'
+    view =
+      empty:     empty
+      value:     if empty then '—' else @fmtNumber(o.count, 0)
+      unit:      'tiket'
+      badge:     { text: (if empty then '—' else "#{@fmtNumber(o.pct, 1)}%"), tone: (if empty then 'secondary' else o.tone || 'secondary'), dir: change?.dir }
+      badgeTip:  o.badgeTip
+      baseLabel: o.baseLabel
+      baseCount: @fmtNumber(o.baseCount, 0)
+      baseUnit:  o.baseUnit
+      change:    change
+      note:      o.note
+      emptyNote: o.emptyNote
+    App.view('dashboard/team_kpi_pct')(view)
+
+  # Catatan real-time tanpa awalan "Real-time · " (sudah ada di kepala kartu).
+  realtimeReason: (rc) =>
+    note = @realtimeNote(rc).replace(/^Real-time( · )?/, '')
+    return null if !note
+    note.charAt(0).toUpperCase() + note.substr(1)
+
   cards: (s) =>
     t   = s.thresholds || {}
     cmp = s.comparison
@@ -259,13 +377,20 @@ class App.DashboardTeamKpi extends App.Controller
     frt = @fmtDuration(s.frt_median_minutes)
     res = @fmtDuration(s.resolution_median_minutes)
     outlier = s.frt_median_minutes? && s.frt_mean_minutes? && s.frt_mean_minutes > s.frt_median_minutes * 3
+    noCmp   = if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding'
+    active  = (s.ticket_new || 0) + (s.ticket_open || 0)
 
     card = (o) =>
       o.stateKey   = o.state || 'none'
       o.stateLabel = if o.state then @STATE_LABELS[o.state] else (if o.neutral then null else 'Tidak ada data')
       o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       o.empty      = o.value is '—'
+      # tanpa data: placeholder "—" tetap membawa satuan metriknya (— mnt, — / 5)
+      o.unit       = o.emptyUnit if o.empty && o.emptyUnit
+      # baris bawah yang nilainya ikut kosong (mis. mean) tidak menambah informasi
+      o.hideFoot   = o.footValue is '—'
       o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
+      o.illusHtml  = App.view('dashboard/team_kpi_illus')(key: o.illus)
       if o.live && rc?.available
         d = @delta(o.current, o.previous, o.deltaKind, true)
         if d
@@ -292,50 +417,63 @@ class App.DashboardTeamKpi extends App.Controller
 
     [
       card(
-        title: 'First Response Time', basis: basis
+        title: 'First Response Time', basis: basis, illus: 'frt'
         help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih. Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier.'
-        value: frt.value, unit: frt.unit, state: s.frt_state, n: s.frt_count, nLabel: 'tiket'
+        value: frt.value, unit: frt.unit, emptyUnit: 'mnt', state: s.frt_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'frt', scaleKey: 'frt'
         current: s.frt_median_minutes, previous: cmp?.frt_median_minutes, deltaKind: 'duration', lowerBetter: true
         footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.frt_mean_minutes), outlier: outlier
       )
       card(
-        title: 'CSAT', basis: basis
+        title: 'CSAT', basis: basis, illus: 'csat'
         help: 'Rata-rata skor kepuasan pelanggan (1–5) dari rating yang masuk di periode terpilih.'
-        value: @fmtNumber(s.csat_average, 2), unit: (if s.csat_average? then '/ 5' else ''), state: s.csat_state, n: s.csat_count, nLabel: 'rating'
+        value: @fmtNumber(s.csat_average, 2), unit: '/ 5', state: s.csat_state, n: s.csat_count, nLabel: 'rating'
         emptyNote: 'Belum ada rating di periode ini'
         scaleKind: 'csat', scaleKey: 'csat'
         current: s.csat_average, previous: cmp?.csat_average, deltaKind: 'score', lowerBetter: false
         footLabel: 'Rating masuk', footValue: @fmtNumber(s.csat_count, 0)
       )
       card(
-        title: 'Waktu penyelesaian', basis: basis, neutral: true
+        title: 'Waktu penyelesaian', basis: basis, neutral: true, illus: 'resolution'
         help: 'Median waktu dari tiket dibuat sampai pertama kali closed, untuk tiket yang closed di periode terpilih.'
-        value: res.value, unit: res.unit, state: null, n: s.resolution_count, nLabel: 'closed'
+        value: res.value, unit: res.unit, emptyUnit: 'jam', state: null, n: s.resolution_count, nLabel: 'closed'
         emptyNote: 'Belum ada tiket closed di periode ini'
         current: s.resolution_median_minutes, previous: cmp?.resolution_median_minutes, deltaKind: 'duration', lowerBetter: true
         footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.resolution_mean_minutes)
       )
       card(
-        title: 'Reopening rate', basis: basis
+        title: 'Reopening rate', basis: basis, illus: 'reopen'
         help: 'Persentase tiket yang dibuka ulang setelah closed, dari tiket yang closed di periode terpilih. Ambangnya sama dengan widget My Stats.'
-        value: @fmtNumber(s.reopen_rate_percent, 1), unit: (if s.reopen_rate_percent? then '%' else ''), state: s.reopen_state, n: s.reopen_closed_count, nLabel: 'closed'
+        value: @fmtNumber(s.reopen_rate_percent, 1), unit: '%', state: s.reopen_state, n: s.reopen_closed_count, nLabel: 'closed'
         emptyNote: 'Belum ada tiket closed di periode ini'
         scaleKind: 'rate', scaleKey: 'reopen'
         current: s.reopen_rate_percent, previous: cmp?.reopen_rate_percent, deltaKind: 'rate', lowerBetter: true
         footLabel: 'Dibuka ulang', footValue: "#{@fmtNumber(s.reopen_count, 0)} tiket"
+        pctHtml: @pctView(
+          count: s.reopen_count, pct: s.reopen_rate_percent, tone: @PCT_TONE[s.reopen_state]
+          prev: cmp?.reopen_rate_percent, lowerBetter: true, vs: "vs #{cmpLabel}", note: (if cmp then "vs #{cmpLabel}: belum ada data" else noCmp)
+          baseLabel: 'Dibuka ulang dari', baseCount: s.reopen_closed_count, baseUnit: 'tiket closed'
+          badgeTip: 'Reopening rate', emptyNote: 'Belum ada tiket closed di periode ini'
+        )
       )
       card(
-        title: 'Rasio Escalated', basis: 'Real-time', live: true
+        title: 'Rasio Escalated', basis: 'Real-time', live: true, illus: 'escalated'
         help: 'Tiket belum closed yang batas SLA-nya (escalation_at) sudah lewat, dibagi jumlah tiket New + Open. Real-time, tidak ikut filter periode. Delta dibanding snapshot per jam 24 jam lalu.'
         value: @fmtNumber(s.escalation_rate_percent, 1), unit: '%', state: s.escalated_state
         current: s.escalation_rate_percent, previous: rc?.escalation_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'escalated'
         footLabel: 'Lewat SLA', footValue: "#{@fmtNumber(s.ticket_escalated, 0)} dari #{@fmtNumber((s.ticket_new || 0) + (s.ticket_open || 0), 0)}"
+        pctHtml: @pctView(
+          count: s.ticket_escalated, pct: s.escalation_rate_percent, tone: @PCT_TONE[s.escalated_state]
+          prev: (if rc?.available then rc.escalation_rate_percent else null), lowerBetter: true, vs: 'vs kemarin, jam sama'
+          note: (if rc?.available then 'vs kemarin: belum ada data' else @realtimeReason(rc))
+          baseLabel: 'Lewat SLA dari', baseCount: active, baseUnit: 'tiket New + Open'
+          badgeTip: 'Rasio Escalated', emptyNote: 'Tidak ada tiket New/Open saat ini'
+        )
       )
       card(
-        title: 'Breach eskalasi', basis: 'Real-time', live: true
+        title: 'Breach eskalasi', basis: 'Real-time', live: true, illus: 'breach'
         help: 'Tiket berstatus Eskalasi yang melewati batas waktu eskalasi (escalation_deadline_at). Status dihitung dari persentasenya terhadap tiket Eskalasi aktif. Real-time; delta dibanding snapshot per jam 24 jam lalu.'
         value: @fmtNumber(s.eskalasi_breached, 0), unit: 'tiket', state: s.eskalasi_breach_state
         current: s.eskalasi_breached, previous: rc?.eskalasi_breached, deltaKind: 'count'
@@ -346,20 +484,29 @@ class App.DashboardTeamKpi extends App.Controller
 
   # ------------------------------------------------------------- grafik
 
-  trendView: (trend, failed) =>
+  fmtMetric: (v, kind) =>
+    return '—' if !v?
+    switch kind
+      when 'duration' then @fmtDurationText(v)
+      when 'score'    then @fmtNumber(v, 2)
+      when 'rate'     then "#{@fmtNumber(v, 1)}%"
+      else                 @fmtNumber(v, 0)
+
+  # Data untuk ApexCharts line (drawTrend); ringkasan rata-rata + delta di
+  # atas grafik tetap dihitung di sini.
+  trendView: (trend, failed, loading) =>
     metric = _.find(@METRICS, (m) => m.key is @metric)
-    tabs = for m in @METRICS
+    metrics = for m in @METRICS
       { key: m.key, label: m.label, active: m.key is @metric }
-    view = { tabs: tabs, metricLabel: metric.label, empty: true, emptyText: 'Memuat…' }
+    view = { metrics: metrics, metricLabel: metric.label, empty: true, emptyText: 'Memuat…' }
     if failed
       view.emptyText = 'Gagal memuat grafik. Coba lagi beberapa saat lagi.'
       return view
-    # data tren metrik sebelumnya (sesaat setelah ganti tab) tidak ditampilkan
-    return view if !trend || !trend.points || trend.metric isnt @metric
+    # data metrik/filter lain (sesaat setelah ganti) tidak ditampilkan
+    return view if loading || !trend || !trend.points || trend.metric isnt @metric
 
     cur  = _.map(trend.points, (p) -> p.value)
     prev = if trend.comparison then _.map(trend.comparison.points, (p) -> p.value) else []
-    values = _.filter(cur.concat(prev), (v) -> v?)
     if !_.some(cur, (v) -> v?) || (metric.kind is 'count' && !_.some(cur, (v) -> v > 0))
       view.emptyText = if trend.unavailable is 'filters'
         'Rasio Escalated tidak tersedia dengan filter ini (snapshot hanya dipisah per grup).'
@@ -371,40 +518,6 @@ class App.DashboardTeamKpi extends App.Controller
         'Belum ada data untuk periode dan filter ini.'
       return view
 
-    lo  = Math.min.apply(null, values)
-    hi  = Math.max.apply(null, values)
-    pad = (hi - lo) * 0.15 || Math.max(hi * 0.15, 1)
-    lo  = Math.max(0, lo - pad)
-    hi  = hi + pad
-    n   = cur.length
-    x = (i) -> if n <= 1 then '500' else (i / (n - 1) * 1000).toFixed(1)
-    y = (v) -> (210 - (v - lo) / (hi - lo) * 200).toFixed(1)
-    # Garis putus di bucket tanpa data (value null), bukan ditarik ke 0.
-    # Titik yang berdiri sendiri (mis. snapshot pertama) digambar sebagai
-    # bulatan -- polyline satu titik tidak terlihat.
-    segments = (series) ->
-      out = []
-      current = []
-      flush = ->
-        return if !current.length
-        dot = current.length is 1
-        out.push({ points: (if dot then "#{current[0]} #{current[0]}" else current.join(' ')), dot: dot })
-        current = []
-      for v, i in series
-        if v?
-          current.push("#{x(i)},#{y(v)}")
-        else
-          flush()
-      flush()
-      out
-
-    fmt = (v) =>
-      return '—' if !v?
-      switch metric.kind
-        when 'duration' then @fmtDurationText(v)
-        when 'score'    then @fmtNumber(v, 2)
-        when 'rate'     then "#{@fmtNumber(v, 1)}%"
-        else                 @fmtNumber(v, 0)
     avg = (series) ->
       xs = _.filter(series, (v) -> v?)
       return null if !xs.length
@@ -413,55 +526,108 @@ class App.DashboardTeamKpi extends App.Controller
     prevAvg = if trend.comparison then avg(prev) else null
     d = @delta(curAvg, prevAvg, metric.kind, metric.lowerBetter)
 
-    yLabels = for i in [0..4]
-      fmt(hi - (hi - lo) * i / 4)
-    nx = if n <= 8 then n else 6
-    xLabels = for j in [0...nx]
-      idx   = Math.round(j * (n - 1) / Math.max(nx - 1, 1))
-      start = trend.points[idx].bucket_start
+    cats = for p in trend.points
       if trend.bucket is 'month'
-        date = new Date("#{start}T00:00:00")
+        date = new Date("#{p.bucket_start}T00:00:00")
         "#{@MONTHS[date.getMonth()]} #{String(date.getFullYear()).substr(2)}"
       else
-        @fmtDate(start)
+        @fmtDate(p.bucket_start)
     bucketName = { day: 'hari', week: 'minggu', month: 'bulan' }[trend.bucket]
     subtitle = "#{metric.label} per #{bucketName} · #{@fmtRange(trend.period)}"
     subtitle += " vs #{@fmtRange(trend.comparison.period)}" if trend.comparison
+    cmpLabel = if trend.comparison?.mode is 'yoy' then 'Tahun lalu' else 'Periode sebelumnya'
 
     _.extend(view,
-      empty:     false
-      subtitle:  subtitle
-      curLines:  segments(cur)
-      prevLines: segments(prev)
-      hasCmp:    !!trend.comparison
-      cmpLabel:  if trend.comparison?.mode is 'yoy' then 'Tahun lalu' else 'Periode sebelumnya'
-      curAvg:    fmt(curAvg)
-      prevAvg:   fmt(prevAvg)
-      delta:     d
-      yLabels:   yLabels
-      xLabels:   xLabels
+      empty:    false
+      subtitle: subtitle
+      hasCmp:   !!trend.comparison
+      cmpLabel: cmpLabel
+      curAvg:   @fmtMetric(curAvg, metric.kind)
+      prevAvg:  @fmtMetric(prevAvg, metric.kind)
+      delta:    d
+      chart:
+        kind:     metric.kind
+        cats:     cats
+        cur:      cur
+        # deret pembanding disejajarkan per bucket (backend menyamakan jumlahnya)
+        prev:     if trend.comparison then _.first(prev.concat(_.map(cur, -> null)), cur.length) else null
+        cmpLabel: cmpLabel
+        bucket:   { day: 'Hari', week: 'Minggu mulai', month: 'Bulan' }[trend.bucket]
     )
 
-  heatmapView: (heatmap) =>
-    return null if !heatmap || !heatmap.cells
+  # Seri untuk ApexCharts heatmap (drawHeatmap): satu seri per hari,
+  # seri pertama digambar paling bawah -> Minggu dulu supaya Senin di atas.
+  heatmapView: (heatmap, failed, loading) =>
+    return { state: 'failed' } if failed
+    return { state: 'loading' } if loading || !heatmap || !heatmap.cells
     max = heatmap.max_avg || 0
+    return { state: 'empty' } if max <= 0
     byKey = {}
     byKey["#{c.dow}-#{c.hour}"] = c for c in heatmap.cells
-    rows = for dow in [1..7]
-      cells = for hour in [0..23]
+    series = for dow in [7..1]
+      data = for hour in [0..23]
         c = byKey["#{dow}-#{hour}"] || { avg_per_day: 0, total: 0 }
-        level = if max <= 0 || c.avg_per_day <= 0 then 0 else Math.min(4, Math.ceil(c.avg_per_day / max * 4))
-        { level: level, tip: "#{@WEEKDAYS[dow - 1]} #{@pad2(hour)}.00–#{@pad2(hour)}.59 · rata-rata #{@fmtNumber(c.avg_per_day, 1)} tiket masuk/hari (total #{c.total})" }
-      { day: @WEEKDAYS[dow - 1].substr(0, 3), cells: cells }
-    hours = for h in [0..23]
-      if h % 3 is 0 then @pad2(h) else ''
-    { rows: rows, hours: hours, max: @fmtNumber(max, 1), hasData: max > 0 }
+        { x: @pad2(hour), y: c.avg_per_day, total: c.total }
+      { name: @WEEKDAYS[dow - 1].substr(0, 3), full: @WEEKDAYS[dow - 1], data: data }
+    { state: 'ready', series: series, max: @fmtNumber(max, 1), summary: @heatmapSummary(heatmap.cells) }
 
+  # Ringkasan pola beban di bawah grid (untuk jadwal shift). Jam kerja =
+  # Senin-Jumat 08.00-16.59 (asumsi; bukan dari Setting/kalender SLA).
+  heatmapSummary: (cells) =>
+    return null if !cells || !_.some(cells, (c) -> c.total > 0)
+    top = _.max(cells, (c) -> c.avg_per_day)
+    byDay = _.map([1..7], (dow) -> { dow: dow, avg: _.reduce(_.filter(cells, (c) -> c.dow is dow), ((s, c) -> s + c.avg_per_day), 0) })
+    day = _.max(byDay, (d) -> d.avg)
+    byHour = _.map([0..23], (h) -> { hour: h, avg: _.reduce(_.filter(cells, (c) -> c.hour is h), ((s, c) -> s + c.avg_per_day), 0) / 7 })
+    hour = _.max(byHour, (h) -> h.avg)
+    total = _.reduce(cells, ((s, c) -> s + c.total), 0)
+    outside = _.reduce(_.filter(cells, (c) -> c.dow > 5 || c.hour < 8 || c.hour >= 17), ((s, c) -> s + c.total), 0)
+    [
+      { label: 'Jam tersibuk',     value: "#{@WEEKDAYS[top.dow - 1]} #{@pad2(top.hour)}.00", note: "#{@fmtNumber(top.avg_per_day, 1)} tiket/hari" }
+      { label: 'Hari tersibuk',    value: @WEEKDAYS[day.dow - 1], note: "#{@fmtNumber(day.avg, 1)} tiket/hari" }
+      { label: 'Jam paling ramai', value: "#{@pad2(hour.hour)}.00–#{@pad2(hour.hour)}.59", note: "rata-rata #{@fmtNumber(hour.avg, 1)} tiket/hari" }
+      { label: 'Di luar jam kerja', value: "#{@fmtNumber(outside / total * 100, 1)}%", note: "#{@fmtNumber(outside, 0)} dari #{@fmtNumber(total, 0)} tiket", note2: 'jam kerja Sen–Jum 08.00–17.00' }
+    ]
+
+  SLA_MAX_ROWS: 3
+
+  slaClass: (pct) ->
+    if !pct? then 'none' else if pct >= 90 then 'good' else if pct >= 75 then 'ok' else 'bad'
+
+  # Angka utama kartu SLA: semua prioritas (sla_* dari /team_kpi) dalam format
+  # persen kit (tepat waktu + % + perubahan vs pembanding), lalu terlambat /
+  # median keterlambatan.
+  slaTotal: (s) =>
+    return null if !s.sla_total
+    cmp = s.comparison
+    cls = @slaClass(s.sla_within_percent)
+    deltaVs = if cmp?.mode is 'yoy' then 'vs tahun lalu, periode sama' else 'vs periode sebelumnya'
+    {
+      pctHtml:   @pctView(
+        count: s.sla_within, pct: s.sla_within_percent, tone: { good: 'success', ok: 'warning', bad: 'danger' }[cls]
+        prev: cmp?.sla_within_percent, lowerBetter: false, vs: deltaVs
+        note: (if !cmp then (if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding') else 'Pembanding belum ada data')
+        baseLabel: 'Closed tepat waktu dari', baseCount: s.sla_total, baseUnit: 'tiket'
+        badgeTip: 'SLA penyelesaian (tepat waktu)'
+      )
+      late:      @fmtNumber(s.sla_late, 0)
+      lateHot:   s.sla_late > 0
+      lateMed:   @fmtDurationText(s.sla_late_median_minutes)
+    }
+
+  # Maks. SLA_MAX_ROWS prioritas, dari persentase tepat waktu terendah
+  # (paling perlu perhatian) -- tinggi kartu tetap berapa pun jumlah prioritas.
   slaView: (s) =>
-    for row in (s.sla_by_priority || [])
+    rows = _.sortBy(s.sla_by_priority || [], (r) -> if r.within_percent? then r.within_percent else 101)
+    shown = for row in rows.slice(0, @SLA_MAX_ROWS)
       pct = row.within_percent
-      cls = if !pct? then 'none' else if pct >= 90 then 'good' else if pct >= 75 then 'ok' else 'bad'
-      { priority: row.priority, pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), cls: cls }
+      { priority: row.priority, pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), late: @fmtNumber(row.late, 0), cls: @slaClass(pct) }
+    rest = rows.slice(@SLA_MAX_ROWS)
+    {
+      rows: shown
+      more: if rest.length then "+#{rest.length} prioritas lain" else null
+      moreTip: _.map(rest, (r) => "#{r.priority}: #{if r.within_percent? then @fmtNumber(r.within_percent, 1) + '%' else '—'} (n #{@fmtNumber(r.total, 0)})").join(' · ')
+    }
 
   backlogView: (s) =>
     rows = s.backlog_aging || []
@@ -492,11 +658,34 @@ class App.DashboardTeamKpi extends App.Controller
 
   # ------------------------------------------------------------- render
 
+  # Badge di label tab (pola kit invoice-list: badge -500/10 rounded-full):
+  # SLA & Backlog = merah (% SLA) kalau SLA < 75%, oranye (jumlah) kalau ada
+  # backlog >= 30 hari; Per agent = jumlah agent aktif (agents_active_count).
+  tabsView: (s) =>
+    slaBadge = null
+    if s
+      old = _.find(s.backlog_aging || [], (b) -> b.bucket is 'gte_30d')
+      if s.sla_total && s.sla_within_percent? && s.sla_within_percent < 75
+        slaBadge = { text: "#{@fmtNumber(s.sla_within_percent, 1)}%", cls: 'is-danger', tip: "SLA penyelesaian #{@fmtNumber(s.sla_within_percent, 1)}% (di bawah 75%)" }
+      else if old?.count > 0
+        slaBadge = { text: @fmtNumber(old.count, 0), cls: 'is-warning', tip: "#{@fmtNumber(old.count, 0)} tiket backlog berumur ≥ 30 hari" }
+    # dari ringkasan (agents_active_count, hanya report/admin), jadi tampil
+    # tanpa harus memuat tabel agent dulu
+    agentsBadge = null
+    if s?.agents_active_count > 0
+      n = s.agents_active_count
+      agentsBadge = { text: @fmtNumber(n, 0), cls: 'is-primary', tip: "#{@fmtNumber(n, 0)} agent aktif di periode ini" }
+    for t in @availableTabs()
+      badge = if t.key is 'sla' then slaBadge else if t.key is 'agents' then agentsBadge else null
+      { key: t.key, label: t.label, active: t.key is @tab, badge: badge }
+
   render: =>
     s = @data.summary
     failed = @failed || []
     periods = for p in @PERIODS
       { days: p.days, label: p.label, active: p.days is @days }
+    partFailed  = (part) => !@loading && _.contains(failed, part) && !@hasPart(part)
+    partLoading = (part) => !@hasPart(part) && !partFailed(part)
 
     view =
       loading:      @loading && !s
@@ -508,6 +697,8 @@ class App.DashboardTeamKpi extends App.Controller
       stale:        !@loading && failed.length > 0 && !!s
       failedAll:    !@loading && failed.length > 0 && !s
       summary:      !!s
+      tab:          @tab
+      tabs:         @tabsView(s)
 
     if s
       total = (s.ticket_new || 0) + (s.ticket_open || 0)
@@ -534,12 +725,121 @@ class App.DashboardTeamKpi extends App.Controller
           dEsc:      queueDelta(s.ticket_escalated, rc?.ticket_escalated)
           newPct:    @fmtNumber((s.ticket_new || 0) / Math.max(total, 1) * 100, 1)
           openPct:   @fmtNumber((s.ticket_open || 0) / Math.max(total, 1) * 100, 1)
-        trend:     @trendView(@data.trend, !@loading && _.contains(failed, 'trend'))
-        heatmap:   @heatmapView(@data.heatmap)
         sla:       @slaView(s)
+        slaTotal:  @slaTotal(s)
         backlog:   @backlogView(s)
-        agents:    @agentsView(@data.agents)
       )
+      switch @tab
+        when 'trend'  then view.trend   = @trendView(@data.trend, partFailed('trend'), partLoading('trend'))
+        when 'load'   then view.heatmap = @heatmapView(@data.heatmap, partFailed('heatmap'), partLoading('heatmap'))
+        when 'agents'
+          view.agentsState = if partFailed('agents') then 'failed' else if partLoading('agents') then 'loading' else 'ready'
+          view.agents = @agentsView(@data.agents) if view.agentsState is 'ready'
+          # tabel dibatasi 12 baris; badge tab menghitung semua agent aktif
+          shown = _.filter(view.agents || [], (a) -> !a.unassigned).length
+          if s.agents_active_count > shown && shown > 0
+            view.agentsMore = "Menampilkan #{shown} agent teratas dari #{@fmtNumber(s.agents_active_count, 0)} · urut jumlah tiket"
 
+    @destroyCharts()
     @html App.view('dashboard/team_kpi')(view)
     @$('.js-kpi-tip').tooltip(container: 'body')
+    @drawCharts(view)
+
+  # ------------------------------------------------------------- ApexCharts
+
+  # Dimuat sekali per halaman (bukan bagian application.js); callback yang
+  # menunggu dijalankan setelah skrip siap.
+  @apexQueue: null
+  loadApex: (callback) =>
+    return callback() if window.ApexCharts
+    klass = App.DashboardTeamKpi
+    if klass.apexQueue
+      klass.apexQueue.push(callback)
+      return
+    klass.apexQueue = [callback]
+    script = document.createElement('script')
+    script.src = @APEX_URL
+    script.async = true
+    script.onload = ->
+      queue = klass.apexQueue || []
+      klass.apexQueue = null
+      cb() for cb in queue
+    script.onerror = ->
+      klass.apexQueue = null
+      App.Log.error('DashboardTeamKpi', 'ApexCharts gagal dimuat')
+    document.head.appendChild(script)
+
+  destroyCharts: =>
+    for name, chart of @charts || {}
+      try chart.destroy()
+    @charts = {}
+
+  drawCharts: (view) =>
+    trendEl = @$('.js-kpi-trend-chart').get(0)
+    heatEl  = @$('.js-kpi-heat-chart').get(0)
+    return if !trendEl && !heatEl
+    @loadApex =>
+      # render ulang sebelum skrip selesai dimuat -> elemen lama sudah lepas
+      @drawTrend(trendEl, view.trend.chart) if trendEl && document.body.contains(trendEl)
+      @drawHeatmap(heatEl, view.heatmap) if heatEl && document.body.contains(heatEl)
+
+  # Gaya kit line-chart-3: garis pembanding putus-putus (stroke.dashArray),
+  # tooltip gabungan per titik.
+  drawTrend: (el, t) =>
+    few = _.filter(t.cur, (v) -> v?).length <= 2
+    fmt = (v) => @fmtMetric(v, t.kind)
+    series = [{ name: 'Periode ini', data: t.cur }]
+    series.push({ name: t.cmpLabel, data: t.prev }) if t.prev
+    @charts.trend = new ApexCharts(el,
+      chart:      { type: 'line', height: 300, fontFamily: 'inherit', toolbar: { show: false }, zoom: { enabled: false }, animations: { enabled: false } }
+      series:     series
+      colors:     ['#4680ff', '#5b6b79']
+      stroke:     { width: [2.5, 1.5], curve: 'straight', dashArray: [0, 5] }
+      markers:    { size: (if few then 5 else 0), hover: { sizeOffset: 6 } }
+      dataLabels: { enabled: false }
+      legend:     { show: false }
+      grid:       { borderColor: '#e7eaee', strokeDashArray: 0, padding: { left: 8, right: 8 } }
+      xaxis:
+        categories: t.cats
+        tickAmount: Math.min(t.cats.length - 1, 8)
+        labels:     { rotate: 0, hideOverlappingLabels: true, style: { colors: '#5b6b79', fontSize: '11px' } }
+        axisBorder: { color: '#bec8d0' }
+        axisTicks:  { show: false }
+        tooltip:    { enabled: false }
+      yaxis:
+        min: 0
+        forceNiceScale: true
+        labels: { style: { colors: '#5b6b79', fontSize: '11px' }, formatter: fmt }
+      tooltip:
+        shared: true
+        intersect: false
+        x: { formatter: (v, o) -> "#{t.bucket} #{t.cats[o.dataPointIndex]}" }
+        y: { formatter: fmt }
+    )
+    @charts.trend.render()
+
+  # Gaya kit heatmap-chart-1: satu warna #4680ff, shade otomatis, tanpa label.
+  drawHeatmap: (el, h) =>
+    avg = (v) => @fmtNumber(v, 1)
+    @charts.heatmap = new ApexCharts(el,
+      chart:       { type: 'heatmap', height: 380, fontFamily: 'inherit', toolbar: { show: false }, animations: { enabled: false } }
+      series:      _.map(h.series, (s) -> { name: s.name, data: s.data })
+      colors:      ['#4680ff']
+      dataLabels:  { enabled: false }
+      stroke:      { width: 3, colors: ['#ffffff'] }
+      plotOptions: { heatmap: { radius: 4 } }
+      legend:      { show: false }
+      xaxis:
+        labels:     { style: { colors: '#5b6b79', fontSize: '11px' }, formatter: (v) -> if parseInt(v, 10) % 3 is 0 then v else '' }
+        axisBorder: { show: false }
+        axisTicks:  { show: false }
+        tooltip:    { enabled: false }
+      yaxis:
+        labels: { style: { colors: '#5b6b79', fontSize: '12px' } }
+      tooltip:
+        custom: (o) ->
+          s = h.series[o.seriesIndex]
+          d = s.data[o.dataPointIndex]
+          "<div class=\"team-kpi-apex-tip\"><b>#{s.full} #{d.x}.00–#{d.x}.59</b><br>Rata-rata #{avg(d.y)} tiket/hari · total #{d.total}</div>"
+    )
+    @charts.heatmap.render()
