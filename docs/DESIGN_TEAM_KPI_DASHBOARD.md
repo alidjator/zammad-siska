@@ -377,3 +377,23 @@ Persen kecil (strip antrian "63,9%", persen per prioritas SLA) tetap seperti seb
 **Filter bar** dua baris: kontrol (Periode + Grup | Ekspor, semuanya setinggi `btn-sm` 31px) lalu keterangan kecil (Dibanding · Diperbarui) di bawah garis putus-putus — tidak terlipat tak beraturan di area sempit.
 
 Diuji dengan jsdom + jQuery asli + template hasil compile + ApexCharts asli + data API asli (35 skenario: urutan tata letak, 2 izin × 3 periode × 4 tab, preferensi, data per tab & kunci filter, badge tab, blok persen kit termasuk data kosong, gagal per tab, loader lazy).
+
+## 16. FRT Live Chat: Dihitung Sejak Sesi Chat Dimulai (27 Sep 2026)
+
+Ditemukan saat user melihat tab Tren dengan akun `siska.chat.agent`: grafik FRT 7 hari **kosong** padahal ada 57 tiket yang sudah dibalas. Penyebab: tiket live chat dibuat `Chat::Session#create_ticket_for_chat!` dengan artikel pertama **System** ("Live chat dimulai."), bukan Customer, sehingga tersaring oleh definisi 11.5. Padahal tiket chat jelas dibuka customer.
+
+Keputusan user: tiket chat **ikut FRT**, diukur **sejak customer memulai chat** (`chat_sessions.created_at`) sampai `first_response_at`. Tiket baru dibuat saat agent menerima chat, jadi `tickets.created_at` tidak mencakup waktu tunggu di antrian.
+
+Implementasi di satu tempat, `Scope#frt_tickets`:
+
+| Aspek | Aturan |
+|---|---|
+| Populasi | `create_article_sender` = Customer, **atau** `create_article_type` = chat dan punya sesi chat (`chat_sessions.ticket_id`) |
+| Titik mulai (`Scope::FRT_START_SQL`) | `LEAST(COALESCE(sesi chat pertama, tickets.created_at), tickets.created_at)`. Sesi pertama = `MIN(created_at)` per tiket karena satu tiket bisa punya >1 sesi |
+| Rumus menit (`Scope::FRT_MINUTES_SQL`) | Dipakai ringkasan, tren, per agent, dan ekspor (tidak ada salinan rumus lagi) |
+| Filter periode & bucket tren | Tetap `tickets.created_at` |
+
+Dampak di staging: 7 hari (akun QA) sebelumnya n 0, sekarang **median 0,5 menit, n 57**. 90 hari (seluruh sistem) n 1.342 → 1.426 (+84 tiket chat, semuanya di grup QA). Grup operasional tidak berubah selama belum ada chat produksi.
+
+Catatan: tiket chat tidak punya pemilik (sengaja, lihat `handover_to_ticket!`), jadi FRT-nya muncul di baris **"Belum ditugaskan"** pada tab Per agent, bukan di agent yang menerima chat (`chat_sessions.user_id`).
+

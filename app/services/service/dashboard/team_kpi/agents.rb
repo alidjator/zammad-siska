@@ -64,7 +64,7 @@ class Service::Dashboard::TeamKpi::Agents
   private
 
   def frt_by_owner
-    minutes = 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60'
+    minutes = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
     @scope.frt_tickets(@range)
       .group(:owner_id)
       .pluck(:owner_id, Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))

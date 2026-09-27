@@ -13,7 +13,7 @@
 # filters (snapshots are only split by group).
 class Service::Dashboard::TeamKpi::Trend
   METRICS = {
-    'frt'        => { column: 'created_at',        agg: :median, value: 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60' },
+    'frt'        => { column: 'created_at',        agg: :median, value: Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL },
     'csat'       => { column: 'csat_submitted_at', agg: :avg,    value: 'csat_score' },
     'volume'     => { column: 'created_at',        agg: :count,  value: nil },
     'resolution' => { column: 'close_at',          agg: :median, value: 'EXTRACT(EPOCH FROM (close_at - created_at)) / 60' },

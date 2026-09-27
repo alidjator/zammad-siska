@@ -63,15 +63,32 @@ class Service::Dashboard::TeamKpi::Scope
   # first response. Agent-created tickets (outbound email, phone calls
   # logged by the agent) get first_response_at = created_at, i.e. 0 min --
   # ~60% of all tickets here, which pulled the median to 0.0 while
-  # customer-initiated tickets wait ~75 min. first_response_at < created_at
+  # customer-initiated tickets wait ~75 min. first_response_at < start
   # is excluded as in Report::TicketFirstResponseTime (known ~7h timezone
   # bug, docs/BUG_REPORT_TIMEZONE_FIRST_RESPONSE.md).
+  #
+  # Live chat tickets are customer-initiated too, but Chat::Session opens
+  # them with a System article ("Live chat dimulai.") only when an agent
+  # accepts the chat -- so they are included via their chat session, and
+  # the wait starts when the customer started the chat (FRT_START_SQL),
+  # queue time included (docs Section 16).
+  FRT_CHAT_JOIN = <<~SQL.squish.freeze
+    LEFT JOIN (
+      SELECT ticket_id, MIN(created_at) AS started_at
+      FROM chat_sessions WHERE ticket_id IS NOT NULL GROUP BY ticket_id
+    ) frt_chat ON frt_chat.ticket_id = tickets.id
+  SQL
+  FRT_START_SQL   = 'LEAST(COALESCE(frt_chat.started_at, tickets.created_at), tickets.created_at)'.freeze
+  FRT_MINUTES_SQL = "EXTRACT(EPOCH FROM (tickets.first_response_at - #{FRT_START_SQL})) / 60".freeze
+
   def frt_tickets(range)
     tickets
+      .joins(FRT_CHAT_JOIN)
       .where(created_at: range)
-      .where(create_article_sender_id: customer_sender_id)
+      .where('tickets.create_article_sender_id = :customer OR (tickets.create_article_type_id = :chat AND frt_chat.ticket_id IS NOT NULL)',
+             customer: customer_sender_id, chat: chat_type_id)
       .where.not(first_response_at: nil)
-      .where('first_response_at >= created_at')
+      .where("tickets.first_response_at >= #{FRT_START_SQL}")
   end
 
   def self.window_range(days, now: Time.zone.now)
@@ -121,6 +138,10 @@ class Service::Dashboard::TeamKpi::Scope
 
   def customer_sender_id
     @customer_sender_id ||= Ticket::Article::Sender.find_by!(name: 'Customer').id
+  end
+
+  def chat_type_id
+    @chat_type_id ||= Ticket::Article::Type.find_by!(name: 'chat').id
   end
 
   def channel_type_ids

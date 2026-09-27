@@ -233,11 +233,12 @@ class Service::Dashboard::TeamKpi
     }
   end
 
-  # Population: Scope#frt_tickets (customer-initiated tickets only). Median
+  # Population: Scope#frt_tickets (customer-initiated tickets only, live
+  # chat measured from the start of the chat session). Median
   # is the headline, mean on the same population flags a long tail of
   # slow outliers the median alone hides (docs/DESIGN_REPORTING_FRT.md s.3).
   def frt(range)
-    minutes = 'EXTRACT(EPOCH FROM (first_response_at - created_at)) / 60'
+    minutes = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
     median, mean, count = @scope.frt_tickets(range)
       .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
 

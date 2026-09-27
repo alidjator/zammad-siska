@@ -418,7 +418,7 @@ class App.DashboardTeamKpi extends App.Controller
     [
       card(
         title: 'First Response Time', basis: basis, illus: 'frt'
-        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih. Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier.'
+        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih. Live chat dihitung sejak customer memulai chat (waktu antrian ikut). Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier.'
         value: frt.value, unit: frt.unit, emptyUnit: 'mnt', state: s.frt_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'frt', scaleKey: 'frt'
