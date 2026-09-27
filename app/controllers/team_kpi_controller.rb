@@ -13,7 +13,7 @@ class TeamKpiController < ApplicationController
 
   # GET /api/v1/team_kpi
   def show
-    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare]), status: :ok
+    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare], include_agents: report_access?), status: :ok
   end
 
   # GET /api/v1/team_kpi/trend?metric=frt|csat|volume|resolution

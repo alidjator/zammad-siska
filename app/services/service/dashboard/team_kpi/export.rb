@@ -175,6 +175,9 @@ class Service::Dashboard::TeamKpi::Export
       ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], nil, c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
       ['Waktu penyelesaian (mean)', s[:resolution_mean_minutes], 'menit', s[:resolution_count], nil, c[:resolution_mean_minutes], delta(s[:resolution_mean_minutes], c[:resolution_mean_minutes]), 'Periode'],
       ['Reopening rate', s[:reopen_rate_percent], '%', s[:reopen_closed_count], state(s[:reopen_state]), c[:reopen_rate_percent], delta(s[:reopen_rate_percent], c[:reopen_rate_percent]), 'Periode'],
+      ['SLA penyelesaian (tepat waktu)', s[:sla_within_percent], '%', s[:sla_total], nil, c[:sla_within_percent], delta(s[:sla_within_percent], c[:sla_within_percent]), 'Periode'],
+      ['SLA terlambat', s[:sla_late], 'tiket', s[:sla_total], nil, c[:sla_late], delta(s[:sla_late], c[:sla_late]), 'Periode'],
+      ['Median keterlambatan SLA', s[:sla_late_median_minutes], 'menit', s[:sla_late], nil, c[:sla_late_median_minutes], delta(s[:sla_late_median_minutes], c[:sla_late_median_minutes]), 'Periode'],
       ['Tiket New', s[:ticket_new], 'tiket', nil, nil, r[:ticket_new], delta(s[:ticket_new], r[:ticket_new]), 'Real-time'],
       ['Tiket Open', s[:ticket_open], 'tiket', nil, nil, r[:ticket_open], delta(s[:ticket_open], r[:ticket_open]), 'Real-time'],
       ['Tiket Escalated (lewat SLA)', s[:ticket_escalated], 'tiket', nil, nil, r[:ticket_escalated], delta(s[:ticket_escalated], r[:ticket_escalated]), 'Real-time'],
@@ -231,8 +234,8 @@ class Service::Dashboard::TeamKpi::Export
   def sheet_sla
     sheet = @workbook.add_worksheet('SLA per prioritas')
     row   = sheet_head(sheet, 'KPI Tim -- SLA penyelesaian per prioritas')
-    records = @summary[:sla_by_priority].map { |r| [r[:priority], r[:total], r[:within_sla], r[:within_percent]] }
-    row = write_table(sheet, row, ['Prioritas', 'Tiket closed (ber-SLA)', 'Tepat waktu', '% tepat waktu'], records, widths: [16, 22, 14, 14])
+    records = @summary[:sla_by_priority].map { |r| [r[:priority], r[:total], r[:within_sla], r[:late], r[:within_percent], r[:late_median_minutes]] }
+    row = write_table(sheet, row, ['Prioritas', 'Tiket closed (ber-SLA)', 'Tepat waktu', 'Terlambat', '% tepat waktu', 'Median terlambat (menit)'], records, widths: [16, 22, 14, 12, 14, 22])
     sheet.write_string(row + 1, 0, 'Tiket closed di periode yang punya batas penyelesaian (close_escalation_at).', @f_note)
   end
 

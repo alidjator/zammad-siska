@@ -67,8 +67,10 @@ class Service::Dashboard::TeamKpi
     ['gte_30d', 30, nil],
   ].freeze
 
-  def self.call(window_days: default_window_days, user: nil, filters: {}, compare: 'auto')
-    new(window_days, user: user, filters: filters, compare: compare).call
+  # include_agents: true hanya untuk report/admin (TeamKpiController) --
+  # menambah agents_active_count untuk badge tab "Per agent".
+  def self.call(window_days: default_window_days, user: nil, filters: {}, compare: 'auto', include_agents: false)
+    new(window_days, user: user, filters: filters, compare: compare, include_agents: include_agents).call
   end
 
   def self.default_window_days
@@ -83,7 +85,8 @@ class Service::Dashboard::TeamKpi
     (value.presence || default_window_days).to_i.clamp(1, max_window_days)
   end
 
-  def initialize(window_days, user: nil, filters: {}, compare: 'auto')
+  def initialize(window_days, user: nil, filters: {}, compare: 'auto', include_agents: false)
+    @include_agents = include_agents
     @window_days = self.class.window_days(window_days)
     @scope       = Service::Dashboard::TeamKpi::Scope.new(user: user, filters: filters)
     @range       = Service::Dashboard::TeamKpi::Scope.window_range(@window_days)
@@ -115,6 +118,11 @@ class Service::Dashboard::TeamKpi
       reopen_closed_count:    period[:reopen_closed_count],
       reopen_rate_percent:    period[:reopen_rate_percent],
       reopen_state:           rate_state(period[:reopen_rate_percent], REOPEN_BUCKETS),
+      sla_total:              period[:sla_total],
+      sla_within:             period[:sla_within],
+      sla_late:               period[:sla_late],
+      sla_within_percent:     period[:sla_within_percent],
+      sla_late_median_minutes: period[:sla_late_median_minutes],
       sla_by_priority:        sla_by_priority(@range),
       ticket_new:             new_count,
       ticket_open:            open_count,
@@ -134,7 +142,7 @@ class Service::Dashboard::TeamKpi
       filters:                @scope.filters,
       group_ids_count:        @scope.group_ids&.size,
       generated_at:           Time.zone.now.iso8601,
-    }
+    }.tap { |result| result[:agents_active_count] = agents_active_count if @include_agents }
   end
 
   private
@@ -203,6 +211,7 @@ class Service::Dashboard::TeamKpi
     csat_avg, csat_count            = csat(range)
     res_median, res_mean, res_count = resolution(range)
     reopen_count, closed_count      = reopen(range)
+    sla                             = sla_totals(range)
 
     {
       frt_median_minutes:        frt_median,
@@ -216,6 +225,11 @@ class Service::Dashboard::TeamKpi
       reopen_count:              reopen_count,
       reopen_closed_count:       closed_count,
       reopen_rate_percent:       closed_count.zero? ? nil : (reopen_count.to_f / closed_count * 100).round(1),
+      sla_total:                 sla[:total],
+      sla_within:                sla[:within],
+      sla_late:                  sla[:late],
+      sla_within_percent:        sla[:within_percent],
+      sla_late_median_minutes:   sla[:late_median_minutes],
     }
   end
 
@@ -268,22 +282,45 @@ class Service::Dashboard::TeamKpi
   # that had a close deadline (close_escalation_at), how many closed on
   # time. First-response SLA is not configured on this system (no ticket
   # has first_response_escalation_at), so it is not used here.
+  SLA_WITHIN = 'SUM(CASE WHEN close_at <= close_escalation_at THEN 1 ELSE 0 END)'.freeze
+  # How late the late ones were (minutes past the deadline), median.
+  SLA_LATE_MEDIAN = 'percentile_cont(0.5) WITHIN GROUP (ORDER BY EXTRACT(EPOCH FROM (close_at - close_escalation_at)) / 60) ' \
+                    'FILTER (WHERE close_at > close_escalation_at)'.freeze
+
+  def sla_tickets(range)
+    tickets.where(close_at: range).where.not(close_escalation_at: nil)
+  end
+
+  # All priorities together -- the headline of the SLA card, also computed
+  # for the comparison period (period_metrics) so it gets a delta.
+  def sla_totals(range)
+    total, within, late_median = sla_tickets(range).pick(Arel.sql('COUNT(*)'), Arel.sql(SLA_WITHIN), Arel.sql(SLA_LATE_MEDIAN))
+    total  = total.to_i
+    within = within.to_i
+    {
+      total:               total,
+      within:              within,
+      late:                total - within,
+      within_percent:      total.zero? ? nil : (within.to_f / total * 100).round(1),
+      late_median_minutes: round_or_nil(late_median, 1),
+    }
+  end
+
   def sla_by_priority(range)
-    within = 'SUM(CASE WHEN close_at <= close_escalation_at THEN 1 ELSE 0 END)'
-    rows = tickets
-      .where(close_at: range)
-      .where.not(close_escalation_at: nil)
+    rows = sla_tickets(range)
       .group(:priority_id)
-      .pluck(:priority_id, Arel.sql('COUNT(*)'), Arel.sql(within))
+      .pluck(:priority_id, Arel.sql('COUNT(*)'), Arel.sql(SLA_WITHIN), Arel.sql(SLA_LATE_MEDIAN))
     names = Ticket::Priority.where(id: rows.map(&:first)).pluck(:id, :name).to_h
 
-    rows.sort_by(&:first).reverse.map do |priority_id, total, ok|
+    rows.sort_by(&:first).reverse.map do |priority_id, total, ok, late_median|
       {
-        priority_id:    priority_id,
-        priority:       names[priority_id],
-        total:          total.to_i,
-        within_sla:     ok.to_i,
-        within_percent: total.to_i.zero? ? nil : (ok.to_f / total * 100).round(1),
+        priority_id:         priority_id,
+        priority:            names[priority_id],
+        total:               total.to_i,
+        within_sla:          ok.to_i,
+        late:                total.to_i - ok.to_i,
+        within_percent:      total.to_i.zero? ? nil : (ok.to_f / total * 100).round(1),
+        late_median_minutes: round_or_nil(late_median, 1),
       }
     end
   end
@@ -310,6 +347,23 @@ class Service::Dashboard::TeamKpi
   def ticket_count_by_state_type(state_type_name)
     state_ids = Ticket::State.joins(:state_type).where(ticket_state_types: { name: state_type_name }).pluck(:id)
     tickets.where(state_id: state_ids).count
+  end
+
+  # Jumlah agent yang muncul di tabel agent (/team_kpi/agents, filter di
+  # team_kpi.coffee agentsView): pemilik tiket yang punya tiket dibuat di
+  # periode, FRT di periode, atau tiket escalated sekarang -- tanpa owner 1
+  # ("Belum ditugaskan", bukan agent). Cukup DISTINCT owner_id, jauh lebih
+  # ringan dari rekap per agent lengkap, jadi badge bisa tampil tanpa
+  # memuat tabelnya.
+  def agents_active_count
+    ids  = tickets.where(created_at: @range).distinct.pluck(:owner_id)
+    ids |= @scope.frt_tickets(@range).distinct.pluck(:owner_id)
+    ids |= tickets
+      .where.not(state_id: Ticket::State.by_category(:closed))
+      .where.not(escalation_at: nil)
+      .where(escalation_at: ..Time.zone.now)
+      .distinct.pluck(:owner_id)
+    (ids.compact - [Service::Dashboard::TeamKpi::Agents::UNASSIGNED_ID]).size
   end
 
   def ticket_escalated_count
