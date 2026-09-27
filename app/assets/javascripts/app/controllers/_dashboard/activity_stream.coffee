@@ -41,6 +41,8 @@ class App.DashboardActivityStream extends App.CollectionController
     App.Collection.loadAssets(data.assets)
     @items = App.ActivityStream.search(sortBy: 'created_at', order: 'DESC')
     @collectionSync(@items)
+    # SISKA: KPI Tim menghitung badge "aktivitas baru" di tombol drawer
+    @onLoad?(@items)
 
   itemGet: (key) =>
     for item in @items

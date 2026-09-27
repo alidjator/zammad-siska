@@ -7,13 +7,25 @@
     <div class="tab" data-area="first-steps-widgets"><%- @T('First Steps') %></div>
   </div>
   <% if @showTeamKpi: %>
+  <button type="button" class="team-kpi-activity-btn js-kpiActivityToggle" aria-expanded="false" aria-controls="dashboard-activity" title="<%- @T('Tampilkan aktivitas terbaru') %>">
+    <%- @SiskaIcon('clock-counter-clockwise', 16) %>
+    <span><%- @T('Aktivitas') %></span>
+    <span class="team-kpi-activity-badge js-kpiActivityBadge hidden"></span>
+  </button>
+  <% end %>
+  <% if @showTeamKpi: %>
   <div class="tab-content team-kpi-widgets"></div>
   <% end %>
   <div class="tab-content stat-widgets three-columns horizontal<%- ' hidden' if @showTeamKpi %>"></div>
   <div class="tab-content first-steps-widgets hidden"></div>
 </div>
-<div class="sidebar optional">
-  <h2><%- @T('Activity Stream') %></h2>
+<div class="sidebar optional" id="dashboard-activity">
+  <h2 class="team-kpi-activity-head">
+    <span><%- @T('Activity Stream') %></span>
+    <% if @showTeamKpi: %>
+    <button type="button" class="team-kpi-activity-close js-kpiActivityClose" aria-label="<%- @T('Tutup panel aktivitas') %>"><%- @SiskaIcon('x', 18) %></button>
+    <% end %>
+  </h2>
   <div class="activity-description">
     <p><%- @T('Here you will find the latest activities of your system.') %></p>
     <p><%- @T('For example, recently changed tickets, users, or organizations.') %></p>

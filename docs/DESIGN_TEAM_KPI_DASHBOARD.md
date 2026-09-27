@@ -317,3 +317,17 @@ API:
 Tampilan tab KPI Tim: kartu Rasio Escalated dan Breach eskalasi menampilkan ▲▼ "vs kemarin, jam sama" (atau alasan kenapa belum ada), strip antrian menampilkan perubahan New/Open/Escalated vs kemarin, dan grafik tren punya tab **Rasio Escalated** (pesan "baru dikumpulkan sejak …" selama riwayat belum ada). Titik data tunggal digambar sebagai bulatan (polyline satu titik tidak terlihat). Klien Spring Boot (`KpiTrend.Metric.escalated`, `KpiSummary.realtimeComparison`) dan Laravel (`TREND_METRICS` + `escalated`) ikut diperbarui; uji unit & live keduanya lolos.
 
 **Deploy ke production** (urutan): migration (`rails db:migrate`) → `rails runner script/create_team_kpi_snapshot_scheduler.rb` → pastikan kode ada di container/proses **scheduler** juga (job berjalan di sana, bukan di web) → restart scheduler.
+
+## 14. Activity Stream sebagai Drawer di Tab KPI Tim
+
+Sidebar Activity Stream bawaan (280px, selalu tampil) memakan ±¼ lebar di tab KPI Tim sehingga kartu hanya muat 3 kolom, padahal isinya (aktivitas pribadi/operasional) tidak berkaitan dengan ringkasan tim. Keputusan (mockup: artboard `TeamKpi-Activity-Closed` / `-Open`):
+
+- **Hanya di tab KPI Tim**: sidebar disembunyikan dan diganti tombol **Aktivitas** di kanan baris tab; tombol membuka sidebar yang sama sebagai **drawer** 380px di kanan, **tanpa latar gelap** (KPI tetap bisa dibaca/dipakai). Tutup lewat tombol ✕, tombol Aktivitas, atau **Esc**. Tab My Stats / First Steps: sidebar bawaan apa adanya.
+- **Diingat per user** di preferensi user (server, ikut ke perangkat lain) lewat `PUT /api/v1/users/preferences` — endpoint yang sama dengan "clues" bawaan:
+  - `kpi_activity_open` (boolean) — status drawer;
+  - `kpi_activity_seen_at` (ISO) — aktivitas terbaru saat drawer terakhir dibuka/ditutup.
+- **Badge** di tombol: jumlah aktivitas **orang lain** yang lebih baru dari `kpi_activity_seen_at`, hanya saat drawer tertutup; user yang belum pernah membuka tidak diberi badge (bukan "25" sekaligus).
+
+Implementasi: tetap satu `App.DashboardActivityStream` (update websocket bawaan tetap jalan), cukup opsi baru `onLoad` yang dipanggil setiap load; `dashboard.coffee` memasang `.team-kpi-host` di kontainer, `.is-kpi-tab` saat tab KPI Tim aktif, `.is-activity-open` dari preferensi; semua gaya di `team_kpi.scss` di bawah `.team-kpi-host`. Diuji dengan jsdom + jQuery asli + template hasil compile (15 skenario, termasuk badge, Esc, pindah tab, render ulang) — sempat menangkap bug `_.max` pada tanggal ISO (underscore hanya membandingkan angka → `seen_at` tersimpan `null`).
+
+Belum dikerjakan (rekomendasi butir 3 di mockup): menggabungkan aktivitas berturut-turut per tiket, menyembunyikan/melabeli otomatisasi, waktu relatif — menyentuh template item Activity Stream bawaan yang dipakai di tab lain juga.

@@ -3,6 +3,8 @@ class App.Dashboard extends App.Controller
   events:
     'click .tabs .tab': 'toggle'
     'click .js-intro': 'clues'
+    'click .js-kpiActivityToggle': 'toggleKpiActivity'
+    'click .js-kpiActivityClose': 'closeKpiActivity'
 
   constructor: ->
     super
@@ -42,8 +44,9 @@ class App.Dashboard extends App.Controller
       )
 
     new App.DashboardActivityStream(
-      el:    localEl.find('.js-activityContent')
-      limit: 25
+      el:     localEl.find('.js-activityContent')
+      limit:  25
+      onLoad: @updateKpiActivityBadge
     )
 
     new App.DashboardFirstSteps(
@@ -51,6 +54,85 @@ class App.Dashboard extends App.Controller
     )
 
     @html localEl
+
+    # KPI Tim adalah tab awal kalau tersedia (lihat dashboard.jst.eco)
+    @el.addClass('team-kpi-host')
+    @setKpiTab(showTeamKpi)
+    @updateKpiActivityBadge(@kpiActivityItems) if @kpiActivityItems
+
+    $(document).off('keydown.kpiActivity').on('keydown.kpiActivity', (e) =>
+      return if e.key isnt 'Escape'
+      return if !@shown || !@el.hasClass('is-activity-open')
+      @closeKpiActivity()
+    )
+
+  # ---- KPI Tim: Activity Stream sebagai drawer --------------------------
+  # Di tab KPI Tim sidebar Activity Stream disembunyikan supaya dashboard
+  # dapat lebar penuh; tombol "Aktivitas" membukanya sebagai drawer.
+  # Status buka/tutup + kapan terakhir dilihat disimpan di preferensi user
+  # (kpi_activity_open, kpi_activity_seen_at) supaya ikut ke perangkat lain.
+  # Tab My Stats / First Steps tetap memakai sidebar seperti biasa.
+  # Lihat docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 14.
+
+  kpiPreferences: =>
+    @Session.get('preferences') || {}
+
+  setKpiTab: (active) =>
+    @el.toggleClass('is-kpi-tab', !!active)
+    @applyKpiActivity()
+
+  applyKpiActivity: =>
+    open = !!@kpiPreferences().kpi_activity_open
+    @el.toggleClass('is-activity-open', open)
+    @$('.js-kpiActivityToggle').attr('aria-expanded', if open && @el.hasClass('is-kpi-tab') then 'true' else 'false')
+
+  toggleKpiActivity: (e) =>
+    e?.preventDefault()
+    @saveKpiActivity(!@kpiPreferences().kpi_activity_open)
+
+  closeKpiActivity: (e) =>
+    e?.preventDefault()
+    @saveKpiActivity(false)
+    @$('.js-kpiActivityToggle').trigger('focus')
+
+  # Buka atau tutup = aktivitas yang sedang tampil dianggap sudah dilihat.
+  saveKpiActivity: (open) =>
+    data =
+      kpi_activity_open:    open
+      kpi_activity_seen_at: @latestKpiActivity() || new Date().toISOString()
+    _.extend(@kpiPreferences(), data)
+    @applyKpiActivity()
+    @updateKpiActivityBadge(@kpiActivityItems)
+    App.Ajax.request(
+      id:          'preferences_kpi_activity'
+      type:        'PUT'
+      url:         "#{@apiPath}/users/preferences"
+      data:        JSON.stringify(data)
+      processData: true
+    )
+
+  latestKpiActivity: =>
+    items = @kpiActivityItems || []
+    return null if !items.length
+    # string ISO dibandingkan sebagai teks (_.max hanya untuk angka)
+    _.reduce(items, ((latest, item) -> if !latest || item.created_at > latest then item.created_at else latest), null)
+
+  # Badge = aktivitas orang lain setelah terakhir dilihat; kosong saat
+  # drawer terbuka. Belum pernah dilihat = tanpa badge (bukan 25 sekaligus).
+  updateKpiActivityBadge: (items) =>
+    @kpiActivityItems = items
+    badge = @$('.js-kpiActivityBadge')
+    seenAt = @kpiPreferences().kpi_activity_seen_at
+    me = App.Session.get('id')
+    count = 0
+    if seenAt && !@kpiPreferences().kpi_activity_open
+      count = _.filter(items || [], (item) -> item.created_at > seenAt && item.created_by_id isnt me).length
+    badge.toggleClass('hidden', count is 0)
+    badge.text(if count > 99 then '99+' else "#{count}")
+    badge.attr('aria-label', App.i18n.translateInline('%s aktivitas baru', count))
+
+  release: =>
+    $(document).off('keydown.kpiActivity')
 
   mayBeClues: =>
     return if @Config.get('after_auth')
@@ -125,6 +207,7 @@ class App.Dashboard extends App.Controller
     target = $(e.target).data('area')
     @$('.tab-content').addClass('hidden')
     @$(".tab-content.#{target}").removeClass('hidden')
+    @setKpiTab(target is 'team-kpi-widgets')
 
 class DashboardRouter extends App.ControllerPermanent
   @requiredPermission: ['*']

@@ -982,3 +982,133 @@ $kpi-radius-pill: 20px;
     cursor: help;
   }
 }
+
+// ------------------------------------------------------------------ drawer
+// Activity Stream di tab KPI Tim (dashboard.coffee: .team-kpi-host di
+// kontainer dashboard, .is-kpi-tab saat tab KPI Tim aktif, .is-activity-open
+// dari preferensi user kpi_activity_open). Tab lain: sidebar bawaan apa adanya.
+// Lihat docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 14.
+
+.team-kpi-host {
+  position: relative;
+
+  > .dashboard.main {
+    position: relative;
+  }
+
+  .team-kpi-activity-btn,
+  .team-kpi-activity-close {
+    display: none;
+  }
+
+  &.is-kpi-tab {
+    // sidebar permanen disembunyikan -> KPI lebar penuh
+    > .sidebar {
+      display: none;
+    }
+
+    .team-kpi-activity-btn {
+      position: absolute;
+      top: 38px;
+      right: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: 1px solid $kpi-secondary;
+      border-radius: $kpi-radius-pill;
+      background: $kpi-card-bg;
+      color: $kpi-secondary;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.5;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba(91, 107, 121, 0.08);
+      }
+
+      &:focus-visible {
+        outline: 2px solid $kpi-primary;
+        outline-offset: 2px;
+      }
+
+      // layar sempit: jangan menimpa baris tab, turun ke bawahnya
+      @media (max-width: 1100px) {
+        position: static;
+        align-self: flex-end;
+        margin: -12px 0 12px;
+      }
+    }
+
+    .team-kpi-activity-badge {
+      min-width: 20px;
+      padding: 0 6px;
+      border-radius: $kpi-radius-pill;
+      background: $kpi-danger;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: center;
+
+      &.hidden {
+        display: none;
+      }
+    }
+
+    &.is-activity-open {
+      .team-kpi-activity-btn {
+        border-color: $kpi-primary;
+        background: $kpi-primary;
+        color: #fff;
+      }
+
+      // drawer: sidebar yang sama, melayang di kanan tanpa latar gelap
+      // (KPI di belakangnya tetap terbaca & bisa dipakai)
+      > .sidebar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        display: block;
+        width: 380px;
+        max-width: 100%;
+        background: $kpi-card-bg;
+        border-left: 1px solid $kpi-border;
+        box-shadow: -8px 0 24px rgba(27, 46, 94, 0.1);
+      }
+
+      .team-kpi-activity-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .team-kpi-activity-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: $kpi-radius-sm;
+        background: transparent;
+        color: $kpi-secondary;
+        cursor: pointer;
+
+        &:hover {
+          background: rgba(91, 107, 121, 0.08);
+        }
+
+        &:focus-visible {
+          outline: 2px solid $kpi-primary;
+        }
+      }
+    }
+  }
+}
