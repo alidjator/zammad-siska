@@ -22,7 +22,7 @@
 # drill-down kartu -> App.DashboardTeamKpiDrill (modal daftar tiket).
 class App.DashboardTeamKpi extends App.Controller
   events:
-    'click .js-kpi-period':  'onPeriod'
+    'change .js-kpi-period': 'onPeriod'
     'change .js-kpi-group':  'onGroup'
     'click .js-kpi-tab':     'onTab'
     'click .js-kpi-metric':  'onMetric'
@@ -167,8 +167,9 @@ class App.DashboardTeamKpi extends App.Controller
     )
 
   onPeriod: (e) =>
-    e.preventDefault()
-    @days = parseInt($(e.currentTarget).data('days'), 10)
+    days = parseInt($(e.currentTarget).val(), 10)
+    return if !days
+    @days = days
     @load()
 
   onGroup: (e) =>
@@ -854,9 +855,13 @@ class App.DashboardTeamKpi extends App.Controller
           if s.agents_active_count > shown && shown > 0
             view.agentsMore = "Menampilkan #{shown} agent teratas dari #{@fmtNumber(s.agents_active_count, 0)} · urut jumlah tiket"
 
+    # Tab dirender ulang tiap memuat; radio Periode yang sedang difokus
+    # (panah kiri/kanan) difokuskan lagi supaya navigasi keyboard tidak putus.
+    periodFocused = $(document.activeElement).is('.js-kpi-period') && $.contains(@el[0], document.activeElement)
     @destroyCharts()
     @destroyChoices()
     @html App.view('dashboard/team_kpi')(view)
+    @$('.js-kpi-period:checked').trigger('focus') if periodFocused
     @$('.js-kpi-tip').tooltip(container: 'body')
     @drawCharts(view)
     @initChoices()

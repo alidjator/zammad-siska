@@ -1,11 +1,10 @@
 <div class="team-kpi">
 
-  <%# Filter bar (artboard TeamKpi-QuickWin, komponen kit; kepala: artboard TeamKpi-FilterHead opsi A): %>
-  <%# pita kepala primary-50 (Periode dominan + Ekspor + ornamen), lalu badan: form-select Grup/Pembanding, %>
+  <%# Filter bar (artboard TeamKpi-QuickWin, komponen kit; kepala: artboard TeamKpi-FilterHead opsi A + TeamKpi-PeriodRadio opsi B): %>
+  <%# pita kepala primary-50 (Periode radio dominan + ornamen di ruang sisa + Ekspor), lalu badan: form-select Grup/Pembanding, %>
   <%# Choices.js Prioritas/Kanal/Kategori, dan keterangan pembanding / diperbarui / reset. %>
   <div class="team-kpi-bar">
     <div class="team-kpi-bar-head">
-      <div class="team-kpi-bar-ornaments" aria-hidden="true"><svg class="team-kpi-bar-ornaments-svg" aria-hidden="true" focusable="false" width="480" height="76" viewBox="0 0 480 76"><circle cx="30" cy="22" r="6" fill="none" stroke="#f5b400" stroke-width="2.2"></circle><circle cx="88" cy="54" r="3" fill="#5cd6a9"></circle><polygon points="150.0,12.0 148.4,15.8 144.3,16.1 147.4,18.8 146.5,22.9 150.0,20.7 153.5,22.9 152.6,18.8 155.7,16.1 151.6,15.8" fill="#ffd66b"></polygon><path d="M206.4 43.6h11.2a4 4 0 0 1 4 4v4.800000000000001a4 4 0 0 1-4 4h-7.6l-5 5v-5h-2.5999999999999996a4 4 0 0 1-4-4v-4.800000000000001a4 4 0 0 1 4-4z" fill="#ffffff" stroke="#7da5fe" stroke-width="1.8" stroke-linejoin="round"></path><circle cx="207.6" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="212.0" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="216.4" cy="50" r="1.6" fill="#7da5fe"></circle><path d="M257 22h10M262 17v10" stroke="#b5cbfe" stroke-width="2.4" stroke-linecap="round"></path><path transform="translate(306 46) scale(0.67)" d="M0 5c0-5 7-7 9-2 2-5 9-3 9 2 0 6-9 11-9 11S0 11 0 5z" fill="#ff8a8a"></path><path d="M356 11C356.9 15.1 356.9 15.1 361 16C356.9 16.9 356.9 16.9 356 21C355.1 16.9 355.1 16.9 351 16C355.1 15.1 355.1 15.1 356 11z" fill="#3ec9d6"></path><circle cx="400" cy="58" r="4.5" fill="none" stroke="#ffb44d" stroke-width="2.2"></circle><path d="M440 14l3.6 6.0h-7.2z" fill="none" stroke="#7da5fe" stroke-width="2" stroke-linejoin="round"></path></svg></div>
       <div class="team-kpi-bar-left">
         <div class="team-kpi-bar-title">
           <span class="team-kpi-bar-title-icon"><%- @SiskaIcon('calendar', 20) %></span>
@@ -14,12 +13,17 @@
             <% if @periodRange: %><span class="team-kpi-bar-title-sub"><%= @periodRange %></span><% end %>
           </span>
         </div>
-        <div class="team-kpi-btn-group team-kpi-btn-group--lg" role="group" aria-label="<%- @T('Periode') %>">
+        <%# radio dalam kotak (artboard TeamKpi-PeriodRadio opsi B, pola mega option kit) %>
+        <div class="team-kpi-period-opts" role="radiogroup" aria-label="<%- @T('Periode') %>">
           <% for p in @periods: %>
-            <button type="button" class="team-kpi-btn js-kpi-period <% if p.active: %>is-active<% end %>" data-days="<%= p.days %>" aria-pressed="<%= if p.active then 'true' else 'false' %>"><%= p.label %></button>
+            <label class="team-kpi-period-opt <% if p.active: %>is-active<% end %>">
+              <input type="radio" class="team-kpi-radio js-kpi-period" name="kpi-period" value="<%= p.days %>" data-days="<%= p.days %>" <% if p.active: %>checked<% end %>>
+              <span><%= p.label %></span>
+            </label>
           <% end %>
         </div>
       </div>
+      <div class="team-kpi-bar-ornaments" aria-hidden="true"><svg class="team-kpi-bar-ornaments-svg" aria-hidden="true" focusable="false" width="480" height="76" viewBox="0 0 480 76"><circle cx="30" cy="22" r="6" fill="none" stroke="#f5b400" stroke-width="2.2"></circle><circle cx="88" cy="54" r="3" fill="#5cd6a9"></circle><polygon points="150.0,12.0 148.4,15.8 144.3,16.1 147.4,18.8 146.5,22.9 150.0,20.7 153.5,22.9 152.6,18.8 155.7,16.1 151.6,15.8" fill="#ffd66b"></polygon><path d="M206.4 43.6h11.2a4 4 0 0 1 4 4v4.800000000000001a4 4 0 0 1-4 4h-7.6l-5 5v-5h-2.5999999999999996a4 4 0 0 1-4-4v-4.800000000000001a4 4 0 0 1 4-4z" fill="#ffffff" stroke="#7da5fe" stroke-width="1.8" stroke-linejoin="round"></path><circle cx="207.6" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="212.0" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="216.4" cy="50" r="1.6" fill="#7da5fe"></circle><path d="M257 22h10M262 17v10" stroke="#b5cbfe" stroke-width="2.4" stroke-linecap="round"></path><path transform="translate(306 46) scale(0.67)" d="M0 5c0-5 7-7 9-2 2-5 9-3 9 2 0 6-9 11-9 11S0 11 0 5z" fill="#ff8a8a"></path><path d="M356 11C356.9 15.1 356.9 15.1 361 16C356.9 16.9 356.9 16.9 356 21C355.1 16.9 355.1 16.9 351 16C355.1 15.1 355.1 15.1 356 11z" fill="#3ec9d6"></path><circle cx="400" cy="58" r="4.5" fill="none" stroke="#ffb44d" stroke-width="2.2"></circle><path d="M440 14l3.6 6.0h-7.2z" fill="none" stroke="#7da5fe" stroke-width="2" stroke-linejoin="round"></path></svg></div>
       <button type="button" class="team-kpi-btn team-kpi-btn--outline team-kpi-btn--lg js-kpi-export" title="<%- @T('Unduh .xlsx sesuai filter yang aktif') %>">
         <%- @SiskaIcon('download-simple', 16) %> <%- @T('Ekspor .xlsx') %>
       </button>

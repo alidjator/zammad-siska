@@ -2077,14 +2077,74 @@ $kpi-radius-pill: 20px;
     font-size: 12px;
   }
 
-  // kit btn ukuran penuh (bukan btn-sm): py-2 px-4 -- lebih dominan dari kontrol di bawahnya
-  .team-kpi-btn-group--lg .team-kpi-btn {
-    padding: 8px 16px;
-    background: $kpi-card-bg;
-    font-weight: 600;
+  // ---- pilihan Periode = radio dalam kotak (artboard TeamKpi-PeriodRadio
+  // opsi B, pola mega option kit forms/form2_megaoption.html): kotak putih
+  // berbingkai radius 8, terpilih = bingkai primary 2px (border + ring).
+  // Radio = kit .form-check-input[type=radio]: 1.25em, border input,
+  // terpilih bg primary + titik putih.
+  .team-kpi-period-opts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
 
-    &.is-active {
-      background: $kpi-primary;
+  .team-kpi-period-opt {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 9px 14px;
+    border: 1px solid $kpi-border;
+    border-radius: $kpi-radius-sm;
+    background: $kpi-card-bg;
+    color: $kpi-secondary;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.25;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+      border-color: $kpi-primary-l300;
+    }
+
+    // :has = umpan balik langsung sebelum tab dirender ulang; .is-active dari template
+    &.is-active,
+    &:has(.team-kpi-radio:checked) {
+      border-color: $kpi-primary;
+      box-shadow: 0 0 0 1px $kpi-primary;
+      color: $kpi-headings;
+      font-weight: 600;
+    }
+
+    &:has(.team-kpi-radio:focus-visible) {
+      outline: 2px solid $kpi-primary;
+      outline-offset: 2px;
+    }
+  }
+
+  .team-kpi-radio {
+    appearance: none;
+    flex: none;
+    width: 1.25em;
+    height: 1.25em;
+    margin: 0;
+    border: 1px solid $kpi-input-border;
+    border-radius: 50%;
+    background: $kpi-card-bg;
+    cursor: pointer;
+
+    &:checked {
+      border-color: $kpi-primary;
+      background: $kpi-primary url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fff'/%3e%3c/svg%3e") center / 100% 100% no-repeat;
+    }
+
+    // fokus ditampilkan di kotaknya
+    &:focus,
+    &:focus-visible {
+      outline: none;
     }
   }
 
@@ -2093,16 +2153,21 @@ $kpi-radius-pill: 20px;
     background: $kpi-card-bg;
   }
 
+  // ornamen = pengisi fleksibel di antara grup Periode dan tombol Ekspor:
+  // hanya muncul di ruang yang benar-benar sisa (tidak tertutup kotak radio),
+  // SVG rata kanan sehingga ornamen berkumpul di dekat Ekspor dan terpotong
+  // di kiri saat ruangnya sempit. Setinggi pita (margin negatif = padding pita).
   .team-kpi-bar-ornaments {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
+    position: relative;
+    flex: 1 1 0;
+    align-self: stretch;
+    min-width: 0;
+    margin: -18px 0;
     overflow: hidden;
-    border-radius: inherit;
     pointer-events: none;
 
-    // posisi dihitung untuk satu baris (periode | ekspor); saat membungkus, sembunyikan
-    @container (max-width: 1000px) {
+    // radio membungkus ke baris kedua di bawah ±1240px: sembunyikan
+    @container (max-width: 1240px) {
       display: none;
     }
   }
@@ -2110,7 +2175,7 @@ $kpi-radius-pill: 20px;
   .team-kpi-bar-ornaments-svg {
     position: absolute;
     top: 0;
-    right: 160px;
+    right: 0;
     opacity: 0.85;
   }
 }
