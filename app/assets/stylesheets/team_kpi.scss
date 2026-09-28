@@ -2000,3 +2000,38 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ---- ornamen filter bar (artboard TeamKpi-FilterIllus): lingkaran, bintang,
+// bubble, dll. di ruang kosong sekitar kolom Kanal & Kategori. Lapisan sendiri
+// yang memotong ornamen di tepi bar -- bar-nya tidak overflow:hidden supaya
+// dropdown Choices tetap bisa keluar dari bar.
+.team-kpi {
+  .team-kpi-bar {
+    position: relative;
+    // konteks tumpukan sendiri (ornamen di z -1), tapi di atas kartu KPI
+    // sesudahnya supaya dropdown Choices yang keluar bar tidak tertutup
+    z-index: 2;
+    isolation: isolate;
+  }
+
+  .team-kpi-bar-ornaments {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+
+    // posisi dihitung untuk tata letak 5 kolom; di area sempit kolom berpindah
+    @container (max-width: 1000px) {
+      display: none;
+    }
+  }
+
+  .team-kpi-bar-ornaments-svg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0.8;
+  }
+}
