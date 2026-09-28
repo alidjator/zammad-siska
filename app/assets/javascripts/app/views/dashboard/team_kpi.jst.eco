@@ -1,7 +1,7 @@
 <div class="team-kpi">
 
-  <%# Filter bar (artboard TeamKpi-QuickWin, komponen kit; kepala: artboard TeamKpi-FilterHead opsi A + TeamKpi-PeriodRadio opsi B): %>
-  <%# pita kepala primary-50 (Periode radio dominan + ornamen di ruang sisa + Ekspor), lalu badan: form-select Grup/Pembanding, %>
+  <%# Filter bar (artboard TeamKpi-QuickWin, komponen kit; kepala: TeamKpi-HeadSplit opsi A + TeamKpi-PeriodRadio opsi B): %>
+  <%# kartu kepala primary-50 berdiri sendiri (Periode radio + ornamen di ruang sisa + Ekspor), lalu kartu badan: form-select Grup/Pembanding, %>
   <%# Choices.js Prioritas/Kanal/Kategori, dan keterangan pembanding / diperbarui / reset. %>
   <div class="team-kpi-bar">
     <div class="team-kpi-bar-head">

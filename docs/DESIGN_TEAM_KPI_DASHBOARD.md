@@ -474,8 +474,8 @@ Paket pertama dari analisa gap BI (quick win #1, #2, #7, #10), sesuai mockup `Te
 
 Test: `tabs_test.js` 41 skenario (6 baru "quick win: …", termasuk Choices.js asli di jsdom). Catatan data staging: semua tiket berprioritas "2 normal", jadi filter Prioritas belum teruji dengan data yang bervariasi.
 
-**Pita kepala Periode** (artboard `TeamKpi-FilterHead` opsi A, lalu `TeamKpi-PeriodRadio` opsi B)
-- Baris Periode jadi pita `primary-50` di atas badan filter: ikon kalender, judul "Periode" + rentang tanggal, pilihan periode, dan tombol **Ekspor .xlsx**.
+**Kepala Periode** (artboard `TeamKpi-FilterHead` opsi A → `TeamKpi-PeriodRadio` opsi B → `TeamKpi-HeadSplit` opsi A)
+- Kepala Periode **berdiri sendiri** sebagai kartu `primary-50` (bingkai primary-100), berjarak 12 px dari kartu filter putih di bawahnya (artboard `TeamKpi-HeadSplit` opsi A; `.team-kpi-bar` hanya pembungkus). Isinya: ikon kalender, judul "Periode" + rentang tanggal, pilihan periode, dan tombol **Ekspor .xlsx**.
 - Pilihan periode = **radio dalam kotak** (pola *mega option* kit, `forms/form2_megaoption.html`): `<input type="radio" name="kpi-period">` di dalam `label.team-kpi-period-opt`, bingkai primary untuk yang terpilih, radio gaya kit `form-check-input`. Grup `role="radiogroup"`.
 - Event `change .js-kpi-period` → `onPeriod` membaca `value`. Karena tab dirender ulang tiap memuat, radio terpilih difokuskan lagi kalau fokus ada di grup radio (panah kiri/kanan tetap jalan).
 - Ornamen jadi pengisi fleksibel di antara grup Periode dan Ekspor: hanya tampil di ruang yang benar-benar sisa, rata kanan dekat Ekspor, dan disembunyikan saat lebar kontainer ≤ 1160 px (satu baris pita butuh ±1000 px). Label radio membatalkan gaya global `label` Zammad (uppercase + letter-spacing); kalau pita membungkus, Ekspor tetap rata kanan.

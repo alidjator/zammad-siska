@@ -2001,18 +2001,22 @@ $kpi-radius-pill: 20px;
   }
 }
 
-// ---- kepala filter bar (artboard TeamKpi-FilterHead, opsi A): baris Periode
-// jadi pita primary-50 yang terpisah & dominan; filter + keterangan di badan
-// putih di bawahnya. Ornamen (lingkaran, bintang, bubble, dll.) di pita, di
-// ruang kosong antara grup periode dan tombol Ekspor. Kartu tidak
-// overflow:hidden supaya dropdown Choices bisa keluar dari kartu.
+// ---- kepala filter bar (artboard TeamKpi-HeadSplit, opsi A): kepala Periode
+// berdiri sendiri sebagai kartu primary-50 (bingkai primary-100), jarak 12px,
+// lalu kartu filter + keterangan putih. .team-kpi-bar hanya pembungkus tanpa
+// kartu. Ornamen (lingkaran, bintang, bubble, dll.) di kepala, di ruang sisa
+// antara radio Periode dan tombol Ekspor. Kartu filter tidak overflow:hidden
+// supaya dropdown Choices bisa keluar dari kartu.
 .team-kpi {
   .team-kpi-bar {
     position: relative;
     // di atas kartu KPI sesudahnya supaya dropdown Choices tidak tertutup
     z-index: 2;
-    gap: 0;
+    gap: 12px;
     padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
   }
 
   .team-kpi-bar-head {
@@ -2024,8 +2028,8 @@ $kpi-radius-pill: 20px;
     justify-content: space-between;
     gap: 12px 24px;
     padding: 18px 20px;
-    border-bottom: 1px solid #dbe6fe;   // = mockup / kit primary-100
-    border-radius: $kpi-radius $kpi-radius 0 0;
+    border: 1px solid #dbe6fe;          // = mockup / kit primary-100
+    border-radius: $kpi-radius;
     background: #eef3ff;                // = mockup / kit primary-50 (kepala drawer Aktivitas)
 
     .team-kpi-bar-left {
@@ -2038,6 +2042,9 @@ $kpi-radius-pill: 20px;
     flex-direction: column;
     gap: 14px;
     padding: 16px 20px;
+    background: $kpi-card-bg;
+    border: 1px solid $kpi-border;
+    border-radius: $kpi-radius;
   }
 
   .team-kpi-bar-title {
