@@ -312,10 +312,10 @@ class App.DashboardTeamKpi extends App.Controller
   delta: (current, previous, kind, lowerBetter) =>
     return null if !current? || !previous?
     diff = current - previous
-    return { text: 'sama', cls: 'is-flat' } if Math.abs(diff) < 0.005
+    return { text: '= sama', cls: 'is-flat' } if Math.abs(diff) < 0.005
     arrow = if diff > 0 then '▲' else '▼'
     text = switch kind
-      when 'duration' then @fmtDurationText(Math.abs(diff))
+      when 'duration' then "#{@fmtDurationText(Math.abs(diff))} #{if diff < 0 then 'lebih cepat' else 'lebih lambat'}"
       when 'rate'     then "#{@fmtNumber(Math.abs(diff), 1)} poin"
       when 'count'    then @fmtNumber(Math.abs(diff), 0)
       else                 @fmtNumber(Math.abs(diff), 2)
@@ -377,14 +377,16 @@ class App.DashboardTeamKpi extends App.Controller
     frt = @fmtDuration(s.frt_median_minutes)
     res = @fmtDuration(s.resolution_median_minutes)
     outlier = s.frt_median_minutes? && s.frt_mean_minutes? && s.frt_mean_minutes > s.frt_median_minutes * 3
-    noCmp   = if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding'
     active  = (s.ticket_new || 0) + (s.ticket_open || 0)
 
     card = (o) =>
       o.stateKey   = o.state || 'none'
-      o.stateLabel = if o.state then @STATE_LABELS[o.state] else (if o.neutral then null else 'Tidak ada data')
-      o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       o.empty      = o.value is '—'
+      # anatomi seragam (docs Section 17): tiap kartu punya pill status;
+      # metrik tanpa ambang (Setting) ditandai jelas, bukan dikosongkan
+      o.stateLabel = if o.state then @STATE_LABELS[o.state] else (if o.neutral && !o.empty then 'Belum ada target' else 'Tidak ada data')
+      o.noTarget   = o.neutral && !o.empty
+      o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       # tanpa data: placeholder "—" tetap membawa satuan metriknya (— mnt, — / 5)
       o.unit       = o.emptyUnit if o.empty && o.emptyUnit
       # baris bawah yang nilainya ikut kosong (mis. mean) tidak menambah informasi
@@ -445,40 +447,28 @@ class App.DashboardTeamKpi extends App.Controller
       card(
         title: 'Reopening rate', basis: basis, illus: 'reopen'
         help: 'Persentase tiket yang dibuka ulang setelah closed, dari tiket yang closed di periode terpilih. Ambangnya sama dengan widget My Stats.'
-        value: @fmtNumber(s.reopen_rate_percent, 1), unit: '%', state: s.reopen_state, n: s.reopen_closed_count, nLabel: 'closed'
+        value: @fmtNumber(s.reopen_rate_percent, 1), unit: '%', emptyUnit: '%', state: s.reopen_state, n: s.reopen_closed_count, nLabel: 'closed'
         emptyNote: 'Belum ada tiket closed di periode ini'
         scaleKind: 'rate', scaleKey: 'reopen'
         current: s.reopen_rate_percent, previous: cmp?.reopen_rate_percent, deltaKind: 'rate', lowerBetter: true
-        footLabel: 'Dibuka ulang', footValue: "#{@fmtNumber(s.reopen_count, 0)} tiket"
-        pctHtml: @pctView(
-          count: s.reopen_count, pct: s.reopen_rate_percent, tone: @PCT_TONE[s.reopen_state]
-          prev: cmp?.reopen_rate_percent, lowerBetter: true, vs: "vs #{cmpLabel}", note: (if cmp then "vs #{cmpLabel}: belum ada data" else noCmp)
-          baseLabel: 'Dibuka ulang dari', baseCount: s.reopen_closed_count, baseUnit: 'tiket closed'
-          badgeTip: 'Reopening rate', emptyNote: 'Belum ada tiket closed di periode ini'
-        )
+        footLabel: 'Dibuka ulang', footValue: (if s.reopen_rate_percent? then "#{@fmtNumber(s.reopen_count, 0)} dari #{@fmtNumber(s.reopen_closed_count, 0)} tiket closed" else '—')
       )
       card(
         title: 'Rasio Escalated', basis: 'Real-time', live: true, illus: 'escalated'
         help: 'Tiket belum closed yang batas SLA-nya (escalation_at) sudah lewat, dibagi jumlah tiket New + Open. Real-time, tidak ikut filter periode. Delta dibanding snapshot per jam 24 jam lalu.'
-        value: @fmtNumber(s.escalation_rate_percent, 1), unit: '%', state: s.escalated_state
+        value: @fmtNumber(s.escalation_rate_percent, 1), unit: '%', emptyUnit: '%', state: s.escalated_state, n: active, nLabel: 'tiket'
+        emptyNote: 'Tidak ada tiket New/Open saat ini'
         current: s.escalation_rate_percent, previous: rc?.escalation_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'escalated'
-        footLabel: 'Lewat SLA', footValue: "#{@fmtNumber(s.ticket_escalated, 0)} dari #{@fmtNumber((s.ticket_new || 0) + (s.ticket_open || 0), 0)}"
-        pctHtml: @pctView(
-          count: s.ticket_escalated, pct: s.escalation_rate_percent, tone: @PCT_TONE[s.escalated_state]
-          prev: (if rc?.available then rc.escalation_rate_percent else null), lowerBetter: true, vs: 'vs kemarin, jam sama'
-          note: (if rc?.available then 'vs kemarin: belum ada data' else @realtimeReason(rc))
-          baseLabel: 'Lewat SLA dari', baseCount: active, baseUnit: 'tiket New + Open'
-          badgeTip: 'Rasio Escalated', emptyNote: 'Tidak ada tiket New/Open saat ini'
-        )
+        footLabel: 'Lewat SLA', footValue: (if s.escalation_rate_percent? then "#{@fmtNumber(s.ticket_escalated, 0)} dari #{@fmtNumber(active, 0)} tiket New + Open" else '—')
       )
       card(
         title: 'Breach eskalasi', basis: 'Real-time', live: true, illus: 'breach'
         help: 'Tiket berstatus Eskalasi yang melewati batas waktu eskalasi (escalation_deadline_at). Status dihitung dari persentasenya terhadap tiket Eskalasi aktif. Real-time; delta dibanding snapshot per jam 24 jam lalu.'
-        value: @fmtNumber(s.eskalasi_breached, 0), unit: 'tiket', state: s.eskalasi_breach_state
-        current: s.eskalasi_breached, previous: rc?.eskalasi_breached, deltaKind: 'count'
+        value: @fmtNumber(s.eskalasi_breach_rate_percent, 1), unit: '%', emptyUnit: '%', state: s.eskalasi_breach_state, n: s.eskalasi_active, nLabel: 'eskalasi'
+        current: s.eskalasi_breach_rate_percent, previous: rc?.eskalasi_breach_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'eskalasi_breach'
-        footLabel: 'Eskalasi aktif', footValue: "#{@fmtNumber(s.eskalasi_active, 0)} (#{@fmtNumber(s.eskalasi_breach_rate_percent, 1)}% breach)"
+        footLabel: 'Lewat batas', footValue: "#{@fmtNumber(s.eskalasi_breached, 0)} dari #{@fmtNumber(s.eskalasi_active, 0)} eskalasi aktif"
       )
     ]
 

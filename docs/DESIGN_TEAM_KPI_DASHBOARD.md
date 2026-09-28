@@ -417,3 +417,23 @@ Diuji di staging (rails runner, konteks tanpa handle seperti websocket, grup QA,
 
 **Deploy:** `app/models/chat/session.rb` dan `lib/sessions/event.rb` harus ikut ke **ketiga** proses (app, websocket, scheduler). Di staging ketiga container punya salinan kode sendiri (tidak berbagi volume) dan websocket/scheduler tertinggal dari app. Perlu diselaraskan sebelum deploy production.
 
+
+## 17. Anatomi Kartu KPI Seragam (28 Sep 2026)
+
+Keputusan user setelah meninjau mockup `TeamKpi-CardAnatomy` (kanvas, baris "Sekarang" vs "Usulan"). Keenam kartu sekarang memakai satu pola. Ini menggantikan format "jumlah tiket + badge persen" gaya `w_statistics` (Section 15) yang sebelumnya dipakai Reopening dan Rasio Escalated.
+
+| Bagian | Aturan |
+|---|---|
+| Kepala | Judul + ⓘ; baris kedua: chip periode/Real-time + **satu pill status berteks** (selalu di posisi ini) |
+| Angka besar | **KPI itu sendiri** dalam satuan aslinya (mnt/jam, / 5, %), **selalu warna netral** (tidak ada lagi angka merah) |
+| Baris perubahan | Panah + selisih + "vs pembanding"; **warna = membaik/memburuk** (bukan naik/turun). Durasi memakai "lebih cepat/lebih lambat", sama = "= sama", tanpa pembanding = "—" + catatan (abu) |
+| Skala | 5 tingkat ambang dari Setting. Metrik tanpa ambang (Waktu penyelesaian): pill abu **"Belum ada target"** + jalur putus-putus "Target belum diatur" |
+| Konteks | Jumlah dasar: "998 dari 32.444 tiket closed", "315 dari 445 tiket New + Open", "3 dari 3 eskalasi aktif", mean, n |
+
+Perubahan per kartu:
+- **Reopening rate:** angka besar = persen (sebelumnya jumlah tiket), jumlah pindah ke konteks.
+- **Rasio Escalated:** sama, persen jadi angka besar. Konteks: tiket lewat SLA dari New + Open.
+- **Breach eskalasi:** angka besar = **persen breach**, karena skala ambangnya persen (`team_kpi_eskalasi_breach_thresholds`). Delta vs kemarin dalam poin. Konteks: jumlah lewat batas dari eskalasi aktif.
+- **Waktu penyelesaian:** mendapat pill "Belum ada target" (atau "Tidak ada data" kalau kosong).
+
+Tidak berubah: blok SLA di tab SLA & Backlog masih memakai `team_kpi_pct.jst.eco`, dan peringatan "sampel kecil" tetap hanya untuk kartu periode (bukan real-time). Test: `tabs_test.js` skenario "anatomi: …" (menggantikan dua skenario "persen: …").

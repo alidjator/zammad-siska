@@ -126,7 +126,7 @@ $kpi-radius-pill: 20px;
 
   .is-better { color: $kpi-success-text; }
   .is-worse { color: $kpi-danger; }
-  .is-flat { color: $kpi-headings; }
+  .is-flat { color: $kpi-muted; }
   .is-bad { color: $kpi-danger; }
   .is-good { color: $kpi-success-text; }
   .is-ok,
@@ -553,6 +553,13 @@ $kpi-radius-pill: 20px;
       &.is-active.is-bad,
       &.is-active.is-superbad { background: $kpi-danger; }
     }
+  }
+
+  // metrik tanpa ambang (Waktu penyelesaian): jalur putus-putus setinggi skala
+  .team-kpi-scale.is-unset {
+    height: 10px;
+    border: 1px dashed $kpi-input-border;
+    border-radius: 8px;
   }
 
   .team-kpi-scale-caption {

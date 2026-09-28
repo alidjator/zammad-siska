@@ -106,21 +106,19 @@
           </div>
         </div>
 
-        <% if k.pctHtml: %>
-          <%- k.pctHtml %>
-        <% else: %>
-          <div class="team-kpi-value <% if k.state is 'bad' or k.state is 'superbad': %>is-bad<% end %> <% if k.empty: %>is-empty<% end %>">
-            <%= k.value %><% if k.unit: %><small><%= k.unit %></small><% end %>
-          </div>
+        <%# anatomi seragam: angka = KPI (warna netral), status hanya lewat pill + skala, %>
+        <%# warna hijau/merah hanya di baris perubahan (membaik/memburuk) %>
+        <div class="team-kpi-value <% if k.empty: %>is-empty<% end %>">
+          <%= k.value %><% if k.unit: %><small><%= k.unit %></small><% end %>
+        </div>
 
-          <div class="team-kpi-delta">
-            <% if k.deltaText: %>
-              <b class="<%= k.deltaCls %>"><%= k.deltaText %></b> <%= k.deltaVs %>
-            <% else: %>
-              <%= k.deltaNote %>
-            <% end %>
-          </div>
-        <% end %>
+        <div class="team-kpi-delta">
+          <% if k.deltaText: %>
+            <b class="<%= k.deltaCls %>"><%= k.deltaText %></b> <%= k.deltaVs %>
+          <% else: %>
+            <b class="is-flat">—</b> <%= k.deltaNote %>
+          <% end %>
+        </div>
 
         <% if k.scale: %>
           <div class="team-kpi-scale">
@@ -129,6 +127,9 @@
             <% end %>
           </div>
           <div class="team-kpi-scale-caption"><span><%= k.scale.first %></span><% if k.n?: %><span>n <%= k.n %> <%= k.nLabel %></span><% end %></div>
+        <% else if k.noTarget: %>
+          <div class="team-kpi-scale is-unset" aria-hidden="true"></div>
+          <div class="team-kpi-scale-caption"><span><%- @T('Target belum diatur') %></span><% if k.n?: %><span>n <%= k.n %> <%= k.nLabel %></span><% end %></div>
         <% else if k.n?: %>
           <div class="team-kpi-scale-caption"><span></span><span>n <%= k.n %> <%= k.nLabel %></span></div>
         <% end %>
@@ -137,7 +138,7 @@
           <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Sampel kecil (n < 30), tafsirkan hati-hati') %></div>
         <% end %>
 
-        <% if !k.pctHtml and !k.hideFoot: %>
+        <% if !k.hideFoot: %>
         <div class="team-kpi-foot">
           <span><%= k.footLabel %>: <b class="<% if k.outlier: %>is-warning<% end %>"><%= k.footValue %></b></span>
           <% if k.outlier: %>
