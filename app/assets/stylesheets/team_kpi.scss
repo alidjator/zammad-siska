@@ -1963,6 +1963,12 @@ $kpi-radius-pill: 20px;
       flex: none;
       gap: 8px;
       margin: 0;
+      float: none;
+    }
+
+    // tombol kiri & kanan ada di dua wadah Zammad berbeda -> jarak eksplisit
+    .modal-rightFooter {
+      margin-left: 8px;
     }
 
     .btn {

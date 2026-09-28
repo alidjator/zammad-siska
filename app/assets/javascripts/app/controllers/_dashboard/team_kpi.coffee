@@ -1049,9 +1049,9 @@ class App.DashboardTeamKpiDrill extends App.ControllerModal
         @update()
     )
 
+  # Judul sudah di kepala modal; subjudul = konteks (periode/filter/urutan).
   subtitle: =>
-    parts = [@def.title]
-    parts.push(if @result?.realtime then 'Real-time' else @kpi.periodLabel())
+    parts = [if @result?.realtime then 'Real-time' else @kpi.periodLabel()]
     parts = parts.concat(@kpi.filterSummary())
     parts.push("urut #{@def.order}")
     parts.join(' · ')
