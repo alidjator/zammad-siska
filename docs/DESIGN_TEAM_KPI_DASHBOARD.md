@@ -437,3 +437,39 @@ Perubahan per kartu:
 - **Waktu penyelesaian:** mendapat pill "Belum ada target" (atau "Tidak ada data" kalau kosong).
 
 Tidak berubah: blok SLA di tab SLA & Backlog masih memakai `team_kpi_pct.jst.eco`, dan peringatan "sampel kecil" tetap hanya untuk kartu periode (bukan real-time). Test: `tabs_test.js` skenario "anatomi: …" (menggantikan dua skenario "persen: …").
+
+## 18. Quick Win BI: Filter, Pembanding, Cakupan CSAT, Drill-down (28 Sep 2026)
+
+Paket pertama dari analisa gap BI (quick win #1, #2, #7, #10), sesuai mockup `TeamKpi-QuickWin` dan `TeamKpi-QuickWin-States` yang **mengikuti komponen kit Able Pro Tailwind v1.2.0** (`src/assets/scss/partial/{choices,forms,buttons,modal,table}.css`).
+
+**Filter bar**
+- Baris 1: Periode (btn-group) + Ekspor.
+- Baris 2 (`form-label` di atas kolom, grid 5 kolom, 3/1 kolom di area sempit):
+  - Grup dan **Pembanding** (`form-select`).
+  - **Prioritas**, **Kanal**, **Kategori** (**Choices.js 11.1.0** dari kit, `public/assets/siska/choices/`, dimuat lazy seperti ApexCharts). Pilihan aktif tampil sebagai chip di dalam kolom. Jumlah tiket per opsi tampil lewat `data-label-description`, hanya di daftar pilihan.
+- Baris 3: "Dibanding: …", "Diperbarui", dan **Reset filter** (`btn-link-secondary`, hanya muncul kalau ada filter aktif).
+- Pembanding memakai param API `compare` yang sudah ada: `auto` / `previous` / `yoy` / `none`.
+- Filter tidak disimpan ke preferensi, hanya selama tab dibuka. Karena tab dirender ulang tiap memuat data, Choices.js dipasang ulang setelah setiap render.
+- `GET /api/v1/team_kpi/filter_options` (`TeamKpi::FilterOptions`): jumlah tiket dibuat di periode, **hanya dengan filter grup** (dimensi lain diabaikan supaya daftar tidak menyusut saat memilih). Kanal dasar (email/web/phone/sms/chat) selalu ada walau 0. Kalau endpoint gagal, daftar tetap bisa dipakai tanpa jumlah, tanpa banner gagal.
+
+**Cakupan rating CSAT**
+- Rumus: rating masuk / tiket closed di periode (`csat_count / reopen_closed_count`).
+- Ditandai "belum representatif" (warning) kalau < `CSAT_COVERAGE_MIN` (5%) atau n < 30.
+- Ini bukan "tingkat respons survei": rating dari widget tidak mengisi `csat_email_sent_at`, jadi survei terkirim belum bisa dihitung.
+
+**Drill-down**
+- Tautan "Lihat … tiket →" di baris konteks tiap kartu, disembunyikan kalau jumlahnya 0.
+- Membuka `App.DashboardTeamKpiDrill` (turunan `App.ControllerModal`, gaya kit `modal-lg` 800 px) berisi `table-hover` 50 tiket teratas: Tiket, Judul, Grup, Agent, tanggal metrik, dan nilai (FRT/Skor/Penyelesaian).
+- Footer: **Ekspor daftar** (CSV sampai 5.000 baris, BOM UTF-8) dan **Buka di pencarian** (nomor 50 tiket yang tampil, lewat pencarian Zammad).
+- `GET /api/v1/team_kpi/tickets?metric=frt|csat|resolution|reopen|escalated|breach[&format=csv]` (`TeamKpi::Tickets`). **Populasinya sama persis dengan kartunya**, diuji dengan data staging: frt 8.361, resolution 32.441, reopen 998, escalated 169, dan breach 2, semuanya = angka kartu. Filter kanal Chat: 86 = 86.
+
+| Metrik | Urutan | Kolom tanggal |
+|---|---|---|
+| frt | terlama direspons | Dibuat |
+| csat | terbaru | Dinilai |
+| resolution | terlama selesai | Closed |
+| reopen | terbaru dibuka ulang (StatsStore `ticket:reopen`) | Dibuka ulang |
+| escalated (real-time) | paling lama lewat SLA | Lewat SLA sejak |
+| breach (real-time) | paling lama lewat batas | Batas eskalasi |
+
+Test: `tabs_test.js` 41 skenario (6 baru "quick win: …", termasuk Choices.js asli di jsdom). Catatan data staging: semua tiket berprioritas "2 normal", jadi filter Prioritas belum teruji dengan data yang bervariasi.

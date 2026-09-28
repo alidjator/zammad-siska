@@ -1618,3 +1618,379 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ================================================================ quick win
+// Section 18 (artboard TeamKpi-QuickWin): komponen kit Able Pro Tailwind
+// v1.2.0 -- forms.css (form-label, form-select), choices.css (multi-select),
+// buttons.css (btn-link-secondary), modal.css + table.css (drill-down).
+
+.team-kpi {
+  .team-kpi-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+
+    @container (max-width: 1000px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @container (max-width: 640px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .team-kpi-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  // kit .form-label: mb-2, warna headings (label Zammad huruf besar -> reset)
+  .team-kpi-form-label {
+    display: inline-block;
+    margin: 0 0 8px;
+    padding: 0;
+    color: $kpi-headings;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  // kit .form-select: py-2.5 pl-4 pr-8, text-base, rounded-lg, border inputborder
+  .team-kpi-form-select {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding: 10px 32px 10px 16px;
+    border: 1px solid $kpi-input-border;
+    border-radius: $kpi-radius-sm;
+    background: $kpi-card-bg url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center / 16px 12px;
+    color: $kpi-body;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.5;
+    appearance: none;
+
+    &:focus {
+      border-color: $kpi-primary;
+      box-shadow: 0 0 0 1px $kpi-primary;
+      outline: none;
+    }
+  }
+
+  // <select multiple> asli sebelum Choices.js siap (atau kalau gagal dimuat)
+  .team-kpi-multi {
+    width: 100%;
+    min-height: 44px;
+    max-height: 44px;
+    padding: 4px 8px;
+    border: 1px solid $kpi-border;
+    border-radius: $kpi-radius-sm;
+    background: $kpi-card-bg;
+    font: inherit;
+    font-size: 14px;
+  }
+
+  // ---- choices.css kit
+  .choices {
+    position: relative;
+    margin: 0;
+    font-size: 14px;
+
+    [hidden] { display: none !important; }
+
+    &.is-focused .choices__inner,
+    &.is-open .choices__inner {
+      border-color: $kpi-primary;
+      box-shadow: 0 0 0 1px $kpi-primary;
+    }
+
+    &.is-open .choices__inner {
+      border-radius: $kpi-radius-sm $kpi-radius-sm 0 0;
+    }
+  }
+
+  .choices__inner {
+    display: inline-block;
+    width: 100%;
+    min-height: 44px;
+    padding: 7.5px 7.5px 3.75px;
+    vertical-align: top;
+    border: 1px solid $kpi-border;
+    border-radius: $kpi-radius-sm;
+    background: $kpi-card-bg;
+    overflow: hidden;
+  }
+
+  .choices__list {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .choices__list--multiple {
+    display: inline;
+
+    .choices__item {
+      display: inline-block;
+      margin: 0 4px 4px 0;
+      padding: 4px 10px;
+      vertical-align: middle;
+      border: 1px solid $kpi-primary;
+      border-radius: $kpi-radius-sm;
+      background: $kpi-primary;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+      word-break: break-all;
+    }
+  }
+
+  .choices__button {
+    position: relative;
+    display: inline-block;
+    width: 8px;
+    margin: 0 -4px 0 8px;
+    padding: 0 0 0 16px;
+    border: 0;
+    border-left: 1px solid #fff;
+    background: transparent url("data:image/svg+xml,%3Csvg fill='none' height='16' viewBox='0 0 16 16' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 4L12 12M12 4L4 12' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E") no-repeat center / 8px 8px;
+    line-height: 1;
+    text-indent: -9999px;
+    opacity: 0.75;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      opacity: 1;
+    }
+  }
+
+  .choices__input {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0 8px 4px;
+    padding: 4px 0 4px 2px;
+    vertical-align: baseline;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    line-height: 16px;
+    box-shadow: none;
+
+    &:focus { outline: 0; }
+  }
+
+  .choices__placeholder {
+    opacity: 0.6;
+  }
+
+  .choices__list--dropdown {
+    position: absolute;
+    top: 100%;
+    z-index: 10;
+    width: 100%;
+    margin-top: -1px;
+    visibility: hidden;
+    border: 1px solid $kpi-border;
+    border-radius: 0 0 $kpi-radius-sm $kpi-radius-sm;
+    background: $kpi-card-bg;
+    box-shadow: 0 4px 24px 0 rgba(62, 57, 107, 0.18);
+
+    &.is-active { visibility: visible; }
+
+    .choices__list {
+      position: relative;
+      max-height: 300px;
+      padding: 10px 12px;
+      overflow: auto;
+    }
+
+    .choices__item {
+      position: relative;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px;
+      border-radius: $kpi-radius-sm;
+      font-size: 14px;
+      cursor: pointer;
+
+      // navigasi keyboard/hover (kit dropdown-item hover: secondary-100/20)
+      &.is-highlighted { background: rgba(190, 200, 208, 0.25); }
+    }
+
+    .choices__description {
+      color: $kpi-muted;
+      font-size: 12px;
+    }
+
+    .has-no-choices,
+    .has-no-results {
+      color: $kpi-muted;
+      cursor: default;
+    }
+  }
+
+  // ---- kit btn-link-secondary (Reset filter)
+  .team-kpi-btn--link {
+    border-color: transparent;
+    color: $kpi-secondary;
+
+    &:hover {
+      background: rgba(190, 200, 208, 0.25);
+    }
+  }
+
+  .team-kpi-bar-meta {
+    justify-content: space-between;
+  }
+
+  .team-kpi-bar-meta-info {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 24px;
+  }
+
+  // ---- kartu: cakupan rating & drill-down
+  .team-kpi-note:not(.is-warning) {
+    padding: 0;
+    color: $kpi-muted;
+  }
+
+  .team-kpi-foot-info {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .team-kpi-drill {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  // ---- isi modal drill-down (App.DashboardTeamKpiDrill)
+  &.team-kpi-drill {
+    gap: 12px;
+    margin: 0;
+  }
+
+  .team-kpi-drill-sub {
+    color: $kpi-muted;
+    font-size: 12px;
+  }
+
+  .team-kpi-table--hover tbody tr:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .team-kpi-drill-title {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .team-kpi-drill-note {
+    margin-top: 4px;
+  }
+}
+
+// ---- modal.css kit di atas modal Zammad (App.ControllerModal): modal-lg
+// 800px, content rounded-lg + border + shadow, header/body/footer p-5.
+.team-kpi-modal {
+  .modal-dialog {
+    width: auto;
+    max-width: 800px;
+  }
+
+  .modal-content {
+    overflow: hidden;
+    border: 1px solid $kpi-border;
+    border-radius: 8px;
+    background: $kpi-card-bg;
+    box-shadow: 0 0 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid $kpi-border;
+  }
+
+  .modal-title {
+    margin: 0;
+    color: $kpi-headings;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    color: $kpi-secondary;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 20px;
+    border-top: 1px solid $kpi-border;
+
+    .modal-leftFooter,
+    .modal-rightFooter {
+      display: flex;
+      flex: none;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: auto;
+      padding: 8px 16px;
+      border: 1px solid $kpi-secondary;
+      border-radius: 20px;
+      background: transparent;
+      color: $kpi-secondary;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.5;
+      text-decoration: none;
+      box-shadow: none;
+    }
+
+    .btn.js-submit {
+      border-color: $kpi-primary;
+      background: $kpi-primary;
+      color: #fff;
+    }
+
+    .btn.is-disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+}

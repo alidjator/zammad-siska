@@ -8,4 +8,6 @@ Zammad::Application.routes.draw do
   match api_path + '/team_kpi/heatmap', to: 'team_kpi#heatmap', via: :get
   match api_path + '/team_kpi/agents',  to: 'team_kpi#agents',  via: :get
   match api_path + '/team_kpi/export',  to: 'team_kpi#export',  via: :get
+  match api_path + '/team_kpi/filter_options', to: 'team_kpi#filter_options', via: :get
+  match api_path + '/team_kpi/tickets', to: 'team_kpi#tickets', via: :get
 end

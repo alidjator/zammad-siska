@@ -1,0 +1,46 @@
+<%# Isi modal drill-down (App.DashboardTeamKpiDrill): table table-hover kit (table.css). %>
+<%# Dibungkus .team-kpi supaya gaya tabel/teks KPI Tim ikut berlaku di dalam modal. %>
+<div class="team-kpi team-kpi-drill">
+  <div class="team-kpi-drill-sub"><%= @subtitle %></div>
+  <% if @state is 'loading': %>
+    <div class="team-kpi-empty"><span><%- @T('Memuat…') %></span></div>
+  <% else if @state is 'failed': %>
+    <div class="team-kpi-empty"><span><%- @T('Gagal memuat daftar tiket. Coba lagi beberapa saat lagi.') %></span></div>
+  <% else if !@rows.length: %>
+    <div class="team-kpi-empty"><span><%- @T('Tidak ada tiket untuk periode dan filter ini.') %></span></div>
+  <% else: %>
+    <div class="team-kpi-table-wrap">
+      <table class="team-kpi-table team-kpi-table--hover">
+        <thead>
+          <tr>
+            <th><%- @T('Tiket') %></th>
+            <th><%- @T('Judul') %></th>
+            <th><%- @T('Grup') %></th>
+            <th><%- @T('Agent') %></th>
+            <th><%= @atLabel %></th>
+            <% if @colLabel: %><th class="is-num"><%= @colLabel %></th><% end %>
+          </tr>
+        </thead>
+        <tbody>
+          <% for r in @rows: %>
+            <tr>
+              <td><a href="#ticket/zoom/<%= r.id %>" class="js-kpi-drill-ticket">#<%= r.number %></a></td>
+              <td class="team-kpi-drill-title" title="<%= r.title %>"><%= r.title %></td>
+              <td><%= r.group %></td>
+              <td><%= r.owner %></td>
+              <td><%= r.at %></td>
+              <% if @colLabel: %><td class="is-num"><%= r.value %></td><% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <div class="team-kpi-muted team-kpi-drill-note">
+      <% if @more: %>
+        <%- @T('Menampilkan %s teratas dari %s · klik nomor untuk membuka tiket · Ekspor berisi sampai 5.000 tiket', @shown, @total) %>
+      <% else: %>
+        <%- @T('%s tiket · klik nomor untuk membuka tiket', @total) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

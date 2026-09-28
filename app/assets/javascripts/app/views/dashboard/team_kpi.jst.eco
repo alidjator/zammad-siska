@@ -1,7 +1,8 @@
 <div class="team-kpi">
 
-  <%# Filter bar dua baris: kontrol (periode, grup | ekspor) lalu keterangan %>
-  <%# (pembanding, waktu diperbarui) -- seimbang di lebar area berapa pun. %>
+  <%# Filter bar (artboard TeamKpi-QuickWin, komponen kit): periode | ekspor, lalu %>
+  <%# form-label + form-select (Grup, Pembanding) dan Choices.js (Prioritas, Kanal, Kategori), %>
+  <%# lalu keterangan pembanding / diperbarui / reset. %>
   <div class="team-kpi-bar">
     <div class="team-kpi-bar-row">
       <div class="team-kpi-bar-left">
@@ -11,32 +12,57 @@
             <button type="button" class="team-kpi-btn js-kpi-period <% if p.active: %>is-active<% end %>" data-days="<%= p.days %>" aria-pressed="<%= if p.active then 'true' else 'false' %>"><%= p.label %></button>
           <% end %>
         </div>
-        <label class="team-kpi-select">
-          <span><%- @T('Grup') %></span>
-          <select class="js-kpi-group">
-            <option value=""><%- @T('Semua grup yang bisa diakses') %></option>
-            <% for g in @groups: %>
-              <option value="<%= g.id %>" <% if g.selected: %>selected<% end %>><%= g.name %></option>
-            <% end %>
-          </select>
-        </label>
       </div>
       <button type="button" class="team-kpi-btn team-kpi-btn--outline js-kpi-export" title="<%- @T('Unduh .xlsx sesuai filter yang aktif') %>">
         <%- @SiskaIcon('download-simple', 16) %> <%- @T('Ekspor .xlsx') %>
       </button>
     </div>
+    <div class="team-kpi-filters">
+      <div class="team-kpi-field">
+        <label class="team-kpi-form-label" for="kpi-f-group"><%- @T('Grup') %></label>
+        <select id="kpi-f-group" class="team-kpi-form-select js-kpi-group">
+          <option value=""><%- @T('Semua grup yang bisa diakses') %></option>
+          <% for g in @groups: %>
+            <option value="<%= g.id %>" <% if g.selected: %>selected<% end %>><%= g.name %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="team-kpi-field">
+        <label class="team-kpi-form-label" for="kpi-f-compare"><%- @T('Pembanding') %></label>
+        <select id="kpi-f-compare" class="team-kpi-form-select js-kpi-compare">
+          <% for c in @compares: %>
+            <option value="<%= c.value %>" <% if c.selected: %>selected<% end %>><%= c.label %></option>
+          <% end %>
+        </select>
+      </div>
+      <% for f in @multiFilters: %>
+        <div class="team-kpi-field">
+          <label class="team-kpi-form-label" id="kpi-f-<%= f.key %>-label" for="kpi-f-<%= f.key %>"><%= f.label %></label>
+          <select id="kpi-f-<%= f.key %>" class="team-kpi-multi js-kpi-multi" multiple data-filter="<%= f.key %>" data-placeholder="<%= f.placeholder %>" aria-labelledby="kpi-f-<%= f.key %>-label">
+            <% for o in f.options: %>
+              <option value="<%= o.value %>" <% if o.selected: %>selected<% end %> <% if o.count?: %>data-label-description="<%= o.count %>"<% end %>><%= o.label %></option>
+            <% end %>
+          </select>
+        </div>
+      <% end %>
+    </div>
     <div class="team-kpi-bar-meta">
-      <span>
-        <% if @cmpRange: %>
-          <%- @T('Dibanding') %>: <b><%= @cmpRange %></b>
-        <% else if @summary: %>
-          <%= @noCmpNote %>
-        <% end %>
+      <span class="team-kpi-bar-meta-info">
+        <span>
+          <% if @cmpRange: %>
+            <%- @T('Dibanding') %>: <b><%= @cmpRange %></b>
+          <% else if @summary: %>
+            <%= @noCmpNote %>
+          <% end %>
+        </span>
+        <span class="team-kpi-updated">
+          <%- @SiskaIcon('clock-counter-clockwise', 14) %>
+          <% if @refreshing || @loading: %><%- @T('Memuat…') %><% else if @updatedAt: %><%- @T('Diperbarui') %> <%= @updatedAt %><% end %>
+        </span>
       </span>
-      <span class="team-kpi-updated">
-        <%- @SiskaIcon('clock-counter-clockwise', 14) %>
-        <% if @refreshing || @loading: %><%- @T('Memuat…') %><% else if @updatedAt: %><%- @T('Diperbarui') %> <%= @updatedAt %><% end %>
-      </span>
+      <% if @hasFilters: %>
+        <button type="button" class="team-kpi-btn team-kpi-btn--link js-kpi-reset"><%- @SiskaIcon('x', 14) %> <%- @T('Reset filter') %></button>
+      <% end %>
     </div>
   </div>
 
@@ -138,11 +164,25 @@
           <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Sampel kecil (n < 30), tafsirkan hati-hati') %></div>
         <% end %>
 
-        <% if !k.hideFoot: %>
+        <% if k.coverage: %>
+          <div class="team-kpi-note <% if k.coverage.low: %>is-warning<% end %>">
+            <% if k.coverage.low: %><%- @SiskaIcon('warning', 14) %><% end %>
+            <span><%- @T('Cakupan rating') %> <b><%= k.coverage.pct %>%</b> (<%= k.coverage.rated %> <%- @T('dari') %> <%= k.coverage.closed %> <%- @T('tiket closed') %>)<% if k.coverage.low: %>, <%- @T('belum representatif') %><% end %></span>
+          </div>
+        <% end %>
+
+        <% if !k.hideFoot or k.drill: %>
         <div class="team-kpi-foot">
-          <span><%= k.footLabel %>: <b class="<% if k.outlier: %>is-warning<% end %>"><%= k.footValue %></b></span>
-          <% if k.outlier: %>
-            <span class="team-kpi-chip is-warning js-kpi-tip" title="<%- @T('Rata-rata lebih dari 3× median: ada tiket yang lama tidak dibalas') %>"><%- @T('Ada outlier') %></span>
+          <span class="team-kpi-foot-info">
+            <% if !k.hideFoot: %>
+              <span><%= k.footLabel %>: <b class="<% if k.outlier: %>is-warning<% end %>"><%= k.footValue %></b></span>
+            <% end %>
+            <% if k.outlier: %>
+              <span class="team-kpi-chip is-warning js-kpi-tip" title="<%- @T('Rata-rata lebih dari 3× median: ada tiket yang lama tidak dibalas') %>"><%- @T('Ada outlier') %></span>
+            <% end %>
+          </span>
+          <% if k.drill: %>
+            <a href="#" class="team-kpi-drill js-kpi-drill" data-metric="<%= k.drill.metric %>"><%= k.drill.label %> →</a>
           <% end %>
         </div>
         <% end %>

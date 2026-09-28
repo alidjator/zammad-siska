@@ -1,5 +1,7 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+require 'csv'
+
 # Backend for the "KPI Tim" Dashboard tab (see docs/DESIGN_TEAM_KPI_DASHBOARD.md).
 #
 # Every action is limited to the tickets in groups the current user can
@@ -36,6 +38,26 @@ class TeamKpiController < ApplicationController
     render json: Service::Dashboard::TeamKpi::Agents.call(window_days: params[:days], user: current_user, filters: filters, limit: params[:limit] || 50), status: :ok
   end
 
+  # GET /api/v1/team_kpi/filter_options -- Prioritas/Kanal/Kategori options
+  # with ticket counts for the period (only the group filter applies).
+  def filter_options
+    render json: Service::Dashboard::TeamKpi::FilterOptions.call(window_days: params[:days], user: current_user, filters: filters), status: :ok
+  end
+
+  # GET /api/v1/team_kpi/tickets?metric=frt|csat|resolution|reopen|escalated|breach
+  # Drill-down of a card: the tickets behind its number, same scope and
+  # filters. format=csv downloads up to TeamKpi::Tickets::MAX_EXPORT rows.
+  def tickets
+    csv    = params[:format] == 'csv'
+    limit  = csv ? Service::Dashboard::TeamKpi::Tickets::MAX_EXPORT : (params[:limit] || 50)
+    result = Service::Dashboard::TeamKpi::Tickets.call(metric: params[:metric], window_days: params[:days], user: current_user, filters: filters, limit: limit)
+    return render(json: result, status: :ok) if !csv
+
+    send_data(tickets_csv(result), filename: "kpi-tim-#{result[:metric]}-#{Time.zone.today.iso8601}.csv", type: 'text/csv; charset=utf-8', disposition: 'attachment')
+  rescue ArgumentError => e
+    raise Exceptions::UnprocessableEntity, e.message
+  end
+
   # GET /api/v1/team_kpi/export -- .xlsx of the whole dashboard, same
   # filters. The per-agent sheet is only included with report/admin.
   def export
@@ -47,6 +69,19 @@ class TeamKpiController < ApplicationController
   end
 
   private
+
+  TICKETS_CSV_HEADER = ['Nomor', 'Judul', 'Grup', 'Agent', 'Dibuat', 'Closed', 'Tanggal metrik', 'Nilai'].freeze
+
+  def tickets_csv(result)
+    body = CSV.generate(headers: true, col_sep: ',') do |csv|
+      csv << TICKETS_CSV_HEADER
+      result[:tickets].each do |t|
+        csv << [t[:number], t[:title], t[:group], t[:owner], t[:created_at], t[:close_at], t[:at], t[:value]]
+      end
+    end
+    # BOM: Excel membaca UTF-8 (judul tiket berhuruf non-ASCII) dengan benar
+    "\uFEFF#{body}"
+  end
 
   def report_access?
     current_user.permissions?(%w[report admin])

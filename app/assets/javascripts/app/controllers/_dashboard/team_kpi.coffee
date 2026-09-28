@@ -15,6 +15,11 @@
 # data tren/heatmap/agent hanya diambil untuk tab yang aktif. Grafik tren &
 # heatmap = ApexCharts 4.7.0 dari kit (public/assets/siska/apexcharts/),
 # dimuat lazy sekali saat dibutuhkan.
+#
+# Quick win (Section 18, artboard TeamKpi-QuickWin): filter Pembanding
+# (form-select) + Prioritas/Kanal/Kategori (Choices.js 11.1.0 dari kit,
+# public/assets/siska/choices/, juga dimuat lazy), cakupan rating CSAT, dan
+# drill-down kartu -> App.DashboardTeamKpiDrill (modal daftar tiket).
 class App.DashboardTeamKpi extends App.Controller
   events:
     'click .js-kpi-period':  'onPeriod'
@@ -23,6 +28,10 @@ class App.DashboardTeamKpi extends App.Controller
     'click .js-kpi-metric':  'onMetric'
     'click .js-kpi-export':  'onExport'
     'click .js-kpi-retry':   'onRetry'
+    'change .js-kpi-compare': 'onCompare'
+    'change .js-kpi-multi':   'onMulti'
+    'click .js-kpi-reset':    'onReset'
+    'click .js-kpi-drill':    'onDrill'
 
   # Sub-tab rincian; part = bagian API yang hanya diambil saat tab aktif.
   TABS: [
@@ -33,6 +42,26 @@ class App.DashboardTeamKpi extends App.Controller
   ]
 
   APEX_URL: '/assets/siska/apexcharts/apexcharts-4.7.0.min.js'
+  CHOICES_URL: '/assets/siska/choices/choices-11.1.0.min.js'
+
+  # Pembanding (param compare API); 'auto' = aturan bawaan (Section 10.3).
+  COMPARES: [
+    { value: 'auto',     label: 'Otomatis' }
+    { value: 'previous', label: 'Periode sebelumnya' }
+    { value: 'yoy',      label: 'Tahun lalu, periode sama' }
+    { value: 'none',     label: 'Tanpa pembanding' }
+  ]
+
+  # Multi-select Choices.js; source = kunci di /team_kpi/filter_options.
+  MULTI_FILTERS: [
+    { key: 'priority_ids', label: 'Prioritas', placeholder: 'Semua prioritas', source: 'priorities' }
+    { key: 'channels',     label: 'Kanal',     placeholder: 'Semua kanal',     source: 'channels' }
+    { key: 'categories',   label: 'Kategori',  placeholder: 'Semua kategori',  source: 'categories' }
+  ]
+
+  # Di bawah ini cakupan rating CSAT (rating / tiket closed) dianggap belum
+  # representatif; sampel kecil (SMALL_SAMPLE) juga ditandai.
+  CSAT_COVERAGE_MIN: 5
 
   PERIODS: [
     { days: 7,   label: '7 hari' }
@@ -79,6 +108,9 @@ class App.DashboardTeamKpi extends App.Controller
     @days = parseInt(App.Config.get('team_kpi_default_window_days'), 10) || 7
     @days = 7 if !_.find(@PERIODS, (p) => p.days is @days)
     @groupId = ''
+    @compare = 'auto'
+    @filters = { priority_ids: [], channels: [], categories: [] }
+    @choices = []
     @metric  = 'frt'
     @canSeeAgents = @permissionCheck('report') || @permissionCheck('admin')
     @tab = @preferences().kpi_detail_tab
@@ -143,6 +175,45 @@ class App.DashboardTeamKpi extends App.Controller
     @groupId = $(e.currentTarget).val()
     @load()
 
+  onCompare: (e) =>
+    @compare = $(e.currentTarget).val() || 'auto'
+    @load()
+
+  # Choices.js meneruskan perubahan ke <select multiple> aslinya (event change).
+  onMulti: (e) =>
+    key = $(e.currentTarget).data('filter')
+    return if !@filters[key]
+    @filters[key] = _.compact(_.flatten([$(e.currentTarget).val() || []]))
+    @load()
+
+  onReset: (e) =>
+    e.preventDefault()
+    @groupId = ''
+    @compare = 'auto'
+    @filters = { priority_ids: [], channels: [], categories: [] }
+    @load()
+
+  onDrill: (e) =>
+    e.preventDefault()
+    new App.DashboardTeamKpiDrill(kpi: @, metric: $(e.currentTarget).data('metric'))
+
+  hasFilters: =>
+    !!@groupId || @compare isnt 'auto' || _.some(@MULTI_FILTERS, (f) => @filters[f.key].length > 0)
+
+  # Keterangan filter aktif untuk judul modal drill-down.
+  filterSummary: =>
+    opts  = @data.options || {}
+    parts = []
+    if @groupId
+      group = _.find(@groupOptions(), (g) => String(g.id) is String(@groupId))
+      parts.push("Grup #{group?.name || @groupId}")
+    for f in @MULTI_FILTERS when @filters[f.key].length
+      labels = for v in @filters[f.key]
+        o = _.find(opts[f.source] || [], (x) => String(x.id ? x.value ? x.name) is String(v))
+        o?.label || o?.name || v
+      parts.push("#{f.label} #{labels.join(', ')}")
+    parts
+
   onMetric: (e) =>
     e.preventDefault()
     @metric = $(e.currentTarget).data('metric')
@@ -161,12 +232,15 @@ class App.DashboardTeamKpi extends App.Controller
   params: =>
     params = { days: @days }
     params.group_ids = @groupId if @groupId
+    params.compare   = @compare if @compare isnt 'auto'
+    for f in @MULTI_FILTERS when @filters[f.key].length
+      params[f.key] = @filters[f.key].join(',')
     params
 
   # Ringkasan (kartu, antrian, SLA, backlog) selalu; tren/heatmap/agent hanya
   # untuk tab yang sedang aktif -- tab lain diambil saat dibuka.
   load: (silent = false) =>
-    parts = ['summary']
+    parts = ['summary', 'options']
     part  = @tabPart()
     parts.push(part) if part
     @loadParts(parts, silent)
@@ -185,6 +259,7 @@ class App.DashboardTeamKpi extends App.Controller
       trend:   "#{@apiPath}/team_kpi/trend"
       heatmap: "#{@apiPath}/team_kpi/heatmap"
       agents:  "#{@apiPath}/team_kpi/agents"
+      options: "#{@apiPath}/team_kpi/filter_options"
     done = =>
       pending -= 1
       return if pending > 0
@@ -210,7 +285,8 @@ class App.DashboardTeamKpi extends App.Controller
             @fetchedAt     = new Date() if part is 'summary'
             done()
           error: =>
-            failed.push(part)
+            # daftar filter tanpa jumlah tetap bisa dipakai -> bukan "gagal"
+            failed.push(part) if part isnt 'options'
             done()
         )
 
@@ -233,6 +309,7 @@ class App.DashboardTeamKpi extends App.Controller
   release: =>
     clearInterval(@autoRefreshTimer) if @autoRefreshTimer
     @destroyCharts()
+    @destroyChoices()
 
   # ------------------------------------------------------------- format
 
@@ -281,6 +358,12 @@ class App.DashboardTeamKpi extends App.Controller
     return '' if !iso
     date = new Date(iso)
     "#{date.getDate()} #{@MONTHS[date.getMonth()]} #{@fmtTime(date)}"
+
+  # Tanggal lengkap (zona waktu browser) untuk daftar drill-down 1-2 tahun.
+  fmtDateTimeYear: (iso) =>
+    return '—' if !iso
+    date = new Date(iso)
+    "#{date.getDate()} #{@MONTHS[date.getMonth()]} #{date.getFullYear()} #{@fmtTime(date)}"
 
   # Catatan kenapa kartu/antrian real-time tidak punya delta "vs kemarin"
   # (lihat realtime_comparison di team_kpi.rb, snapshot per jam Section 13).
@@ -362,6 +445,20 @@ class App.DashboardTeamKpi extends App.Controller
       emptyNote: o.emptyNote
     App.view('dashboard/team_kpi_pct')(view)
 
+  # Cakupan rating = rating masuk / tiket closed di periode. "Tingkat respons
+  # survei" belum bisa dihitung: rating dari widget tidak mengisi
+  # csat_email_sent_at. Rendah (< CSAT_COVERAGE_MIN %) atau n kecil -> peringatan.
+  csatCoverage: (s) =>
+    closed = s.reopen_closed_count
+    return null if !s.csat_count || !closed
+    pct = s.csat_count / closed * 100
+    {
+      pct:    @fmtNumber(pct, if pct < 1 then 2 else 1)
+      rated:  @fmtNumber(s.csat_count, 0)
+      closed: @fmtNumber(closed, 0)
+      low:    pct < @CSAT_COVERAGE_MIN || s.csat_count < @SMALL_SAMPLE
+    }
+
   # Catatan real-time tanpa awalan "Real-time · " (sudah ada di kepala kartu).
   realtimeReason: (rc) =>
     note = @realtimeNote(rc).replace(/^Real-time( · )?/, '')
@@ -393,6 +490,7 @@ class App.DashboardTeamKpi extends App.Controller
       o.hideFoot   = o.footValue is '—'
       o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
       o.illusHtml  = App.view('dashboard/team_kpi_illus')(key: o.illus)
+      o.drill      = null if o.drill && !o.drillCount
       if o.live && rc?.available
         d = @delta(o.current, o.previous, o.deltaKind, true)
         if d
@@ -426,6 +524,7 @@ class App.DashboardTeamKpi extends App.Controller
         scaleKind: 'frt', scaleKey: 'frt'
         current: s.frt_median_minutes, previous: cmp?.frt_median_minutes, deltaKind: 'duration', lowerBetter: true
         footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.frt_mean_minutes), outlier: outlier
+        drill: { metric: 'frt', label: 'Lihat tiket' }, drillCount: s.frt_count
       )
       card(
         title: 'CSAT', basis: basis, illus: 'csat'
@@ -435,6 +534,8 @@ class App.DashboardTeamKpi extends App.Controller
         scaleKind: 'csat', scaleKey: 'csat'
         current: s.csat_average, previous: cmp?.csat_average, deltaKind: 'score', lowerBetter: false
         footLabel: 'Rating masuk', footValue: @fmtNumber(s.csat_count, 0)
+        coverage: @csatCoverage(s)
+        drill: { metric: 'csat', label: 'Lihat rating' }, drillCount: s.csat_count
       )
       card(
         title: 'Waktu penyelesaian', basis: basis, neutral: true, illus: 'resolution'
@@ -443,6 +544,7 @@ class App.DashboardTeamKpi extends App.Controller
         emptyNote: 'Belum ada tiket closed di periode ini'
         current: s.resolution_median_minutes, previous: cmp?.resolution_median_minutes, deltaKind: 'duration', lowerBetter: true
         footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.resolution_mean_minutes)
+        drill: { metric: 'resolution', label: 'Lihat tiket' }, drillCount: s.resolution_count
       )
       card(
         title: 'Reopening rate', basis: basis, illus: 'reopen'
@@ -452,6 +554,7 @@ class App.DashboardTeamKpi extends App.Controller
         scaleKind: 'rate', scaleKey: 'reopen'
         current: s.reopen_rate_percent, previous: cmp?.reopen_rate_percent, deltaKind: 'rate', lowerBetter: true
         footLabel: 'Dibuka ulang', footValue: (if s.reopen_rate_percent? then "#{@fmtNumber(s.reopen_count, 0)} dari #{@fmtNumber(s.reopen_closed_count, 0)} tiket closed" else '—')
+        drill: { metric: 'reopen', label: "Lihat #{@fmtNumber(s.reopen_count, 0)} tiket" }, drillCount: s.reopen_count
       )
       card(
         title: 'Rasio Escalated', basis: 'Real-time', live: true, illus: 'escalated'
@@ -461,6 +564,7 @@ class App.DashboardTeamKpi extends App.Controller
         current: s.escalation_rate_percent, previous: rc?.escalation_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'escalated'
         footLabel: 'Lewat SLA', footValue: (if s.escalation_rate_percent? then "#{@fmtNumber(s.ticket_escalated, 0)} dari #{@fmtNumber(active, 0)} tiket New + Open" else '—')
+        drill: { metric: 'escalated', label: "Lihat #{@fmtNumber(s.ticket_escalated, 0)} tiket" }, drillCount: s.ticket_escalated
       )
       card(
         title: 'Breach eskalasi', basis: 'Real-time', live: true, illus: 'breach'
@@ -469,6 +573,7 @@ class App.DashboardTeamKpi extends App.Controller
         current: s.eskalasi_breach_rate_percent, previous: rc?.eskalasi_breach_rate_percent, deltaKind: 'rate'
         scaleKind: 'rate', scaleKey: 'eskalasi_breach'
         footLabel: 'Lewat batas', footValue: "#{@fmtNumber(s.eskalasi_breached, 0)} dari #{@fmtNumber(s.eskalasi_active, 0)} eskalasi aktif"
+        drill: { metric: 'breach', label: "Lihat #{@fmtNumber(s.eskalasi_breached, 0)} tiket" }, drillCount: s.eskalasi_breached
       )
     ]
 
@@ -641,6 +746,21 @@ class App.DashboardTeamKpi extends App.Controller
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }
 
+  # Opsi multi-select dari /team_kpi/filter_options (jumlah tiket di periode &
+  # grup terpilih). Pilihan yang sedang aktif tetap ada walau datanya belum
+  # dimuat / tidak ada di periode ini.
+  multiFiltersView: =>
+    opts = @data.options || {}
+    for f in @MULTI_FILTERS
+      selected = @filters[f.key]
+      options = for o in (opts[f.source] || [])
+        value = String(o.id ? o.value ? o.name)
+        { value: value, label: o.label || o.name, count: @fmtNumber(o.count, 0), selected: _.contains(selected, value) }
+      known = _.pluck(options, 'value')
+      for v in selected when !_.contains(known, v)
+        options.push({ value: v, label: v, count: null, selected: true })
+      { key: f.key, label: f.label, placeholder: f.placeholder, options: options }
+
   groupOptions: =>
     ids = _.map(App.User.current()?.allGroupIds('read') || [], (id) -> parseInt(id, 10))
     groups = _.filter(App.Group.all(), (g) -> g.active && _.contains(ids, g.id))
@@ -689,6 +809,9 @@ class App.DashboardTeamKpi extends App.Controller
       summary:      !!s
       tab:          @tab
       tabs:         @tabsView(s)
+      compares:     ({ value: c.value, label: c.label, selected: c.value is @compare } for c in @COMPARES)
+      multiFilters: @multiFiltersView()
+      hasFilters:   @hasFilters()
 
     if s
       total = (s.ticket_new || 0) + (s.ticket_open || 0)
@@ -731,33 +854,66 @@ class App.DashboardTeamKpi extends App.Controller
             view.agentsMore = "Menampilkan #{shown} agent teratas dari #{@fmtNumber(s.agents_active_count, 0)} · urut jumlah tiket"
 
     @destroyCharts()
+    @destroyChoices()
     @html App.view('dashboard/team_kpi')(view)
     @$('.js-kpi-tip').tooltip(container: 'body')
     @drawCharts(view)
+    @initChoices()
 
   # ------------------------------------------------------------- ApexCharts
 
   # Dimuat sekali per halaman (bukan bagian application.js); callback yang
-  # menunggu dijalankan setelah skrip siap.
-  @apexQueue: null
-  loadApex: (callback) =>
-    return callback() if window.ApexCharts
-    klass = App.DashboardTeamKpi
-    if klass.apexQueue
-      klass.apexQueue.push(callback)
+  # menunggu dijalankan setelah skrip siap. Dipakai ApexCharts & Choices.js.
+  @scriptQueues: {}
+  loadScript: (url, globalName, callback) =>
+    return callback() if window[globalName]
+    queues = App.DashboardTeamKpi.scriptQueues
+    if queues[globalName]
+      queues[globalName].push(callback)
       return
-    klass.apexQueue = [callback]
+    queues[globalName] = [callback]
     script = document.createElement('script')
-    script.src = @APEX_URL
+    script.src = url
     script.async = true
     script.onload = ->
-      queue = klass.apexQueue || []
-      klass.apexQueue = null
+      queue = queues[globalName] || []
+      delete queues[globalName]
       cb() for cb in queue
     script.onerror = ->
-      klass.apexQueue = null
-      App.Log.error('DashboardTeamKpi', 'ApexCharts gagal dimuat')
+      delete queues[globalName]
+      App.Log.error('DashboardTeamKpi', "#{globalName} gagal dimuat")
     document.head.appendChild(script)
+
+  loadApex: (callback) =>
+    @loadScript(@APEX_URL, 'ApexCharts', callback)
+
+  # Multi-select gaya kit (forms/form2_choices.html): chip terpilih di dalam
+  # kolom, jumlah tiket per opsi lewat data-label-description (hanya tampil di
+  # daftar pilihan). Sebelum skrip siap, <select multiple> asli tetap berfungsi.
+  initChoices: =>
+    return if !@$('.js-kpi-multi').length
+    @loadScript(@CHOICES_URL, 'Choices', =>
+      @$('.js-kpi-multi').each((i, el) =>
+        return if !document.body.contains(el) || el.dataset.choice
+        @choices.push(new window.Choices(el,
+          removeItemButton:    true
+          shouldSort:          false
+          searchEnabled:       false
+          placeholder:         true
+          placeholderValue:    el.dataset.placeholder
+          itemSelectText:      ''
+          noChoicesText:       App.i18n?.translateInline?('Semua pilihan sudah dipilih') || 'Semua pilihan sudah dipilih'
+          removeItemIconText:  -> 'Hapus'
+          removeItemLabelText: (value) -> "Hapus #{value}"
+          allowHTML:           false
+        ))
+      )
+    )
+
+  destroyChoices: =>
+    for c in @choices || []
+      try c.destroy()
+    @choices = []
 
   destroyCharts: =>
     for name, chart of @charts || {}
@@ -840,3 +996,111 @@ class App.DashboardTeamKpi extends App.Controller
           "<div class=\"team-kpi-apex-tip\"><b>#{s.full} #{d.x}.00–#{d.x}.59</b><br>Rata-rata #{avg(d.y)} tiket/hari · total #{d.total}</div>"
     )
     @charts.heatmap.render()
+
+# Drill-down kartu KPI Tim (Section 18, artboard TeamKpi-QuickWin-States):
+# modal-lg gaya kit (modal.css) berisi table-hover daftar tiket di balik
+# angka kartu -- periode & filter sama dengan dashboard, 50 teratas.
+# "Ekspor daftar" = CSV sampai 5.000 baris; "Buka di pencarian" = 50 nomor
+# yang tampil di pencarian Zammad.
+class App.DashboardTeamKpiDrill extends App.ControllerModal
+  large: true
+  includeForm: false
+  buttonSubmit: 'Ekspor daftar'
+  buttonClass: 'btn--primary'
+  leftButtons: [{ text: 'Buka di pencarian', className: 'js-kpi-drill-search' }]
+  className: 'modal fade team-kpi-modal'
+  autoFocusOnFirstInput: false
+
+  events: _.extend({}, App.ControllerModal::events,
+    'click .js-kpi-drill-search': 'onSearch'
+    'click .js-kpi-drill-ticket': 'onTicket'
+  )
+
+  # at = kolom tanggal, col/kind = kolom nilai (null = tanpa kolom nilai)
+  METRICS:
+    frt:        { title: 'Tiket FRT',                 at: 'Dibuat',          col: 'FRT',          kind: 'duration', order: 'terlama direspons' }
+    csat:       { title: 'Rating CSAT',               at: 'Dinilai',         col: 'Skor',         kind: 'score',    order: 'terbaru' }
+    resolution: { title: 'Tiket closed',              at: 'Closed',          col: 'Penyelesaian', kind: 'duration', order: 'terlama selesai' }
+    reopen:     { title: 'Tiket dibuka ulang',        at: 'Dibuka ulang',    col: null,           kind: null,       order: 'terbaru dibuka ulang' }
+    escalated:  { title: 'Tiket lewat SLA',           at: 'Lewat SLA sejak', col: null,           kind: null,       order: 'paling lama lewat SLA' }
+    breach:     { title: 'Eskalasi lewat batas waktu', at: 'Batas eskalasi', col: null,           kind: null,       order: 'paling lama lewat batas' }
+
+  constructor: (params) ->
+    @def    = App.DashboardTeamKpiDrill::METRICS[params.metric]
+    @head   = @def.title
+    @state  = 'loading'
+    @query  = _.extend({}, params.kpi.params(), metric: params.metric)
+    super
+    @fetch()
+
+  fetch: =>
+    @ajax(
+      id:          'team_kpi_drill'
+      type:        'GET'
+      url:         "#{@apiPath}/team_kpi/tickets"
+      data:        _.extend({}, @query, limit: 50)
+      processData: true
+      success: (data) =>
+        @result = data
+        @state  = 'ready'
+        @update()
+      error: =>
+        @state = 'failed'
+        @update()
+    )
+
+  subtitle: =>
+    parts = [@def.title]
+    parts.push(if @result?.realtime then 'Real-time' else @kpi.periodLabel())
+    parts = parts.concat(@kpi.filterSummary())
+    parts.push("urut #{@def.order}")
+    parts.join(' · ')
+
+  content: =>
+    kpi = @kpi
+    rows = for t in @result?.tickets || []
+      {
+        id:     t.id
+        number: t.number
+        title:  t.title
+        group:  t.group || '—'
+        owner:  t.owner || 'Belum ditugaskan'
+        at:     kpi.fmtDateTimeYear(t.at)
+        value:  if @def.col then kpi.fmtMetric(t.value, @def.kind) else null
+      }
+    total = @result?.total || 0
+    App.view('dashboard/team_kpi_drill')(
+      state:    @state
+      subtitle: @subtitle()
+      atLabel:  @def.at
+      colLabel: @def.col
+      rows:     rows
+      total:    kpi.fmtNumber(total, 0)
+      shown:    rows.length
+      more:     total > rows.length
+    )
+
+  update: =>
+    super
+    # Ekspor/Pencarian hanya berguna kalau ada tiket
+    empty = @state isnt 'ready' || !@result?.total
+    @$('.js-submit, .js-kpi-drill-search').toggleClass('is-disabled', empty).attr('aria-disabled', empty)
+
+  csvUrl: =>
+    "#{@apiPath}/team_kpi/tickets?#{$.param(_.extend({}, @query, format: 'csv'))}"
+
+  # Sesi login ikut terkirim; browser mengunduh CSV-nya.
+  onSubmit: (e) =>
+    e?.preventDefault()
+    return if !@result?.total
+    window.location.href = @csvUrl()
+
+  onSearch: (e) =>
+    e.preventDefault()
+    numbers = _.pluck(@result?.tickets || [], 'number')
+    return if !numbers.length
+    @close()
+    @navigate("#search/#{encodeURIComponent("number:(#{numbers.join(' OR ')})")}")
+
+  onTicket: =>
+    @close()
