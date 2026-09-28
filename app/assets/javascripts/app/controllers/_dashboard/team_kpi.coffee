@@ -825,6 +825,7 @@ class App.DashboardTeamKpi extends App.Controller
         cmpRange:  if s.comparison then "#{@fmtRange(s.comparison)}#{if s.comparison.mode is 'yoy' then ' (tahun lalu)' else ''}" else null
         noCmpNote: if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding'
         basis:     @periodLabel()
+        periodRange: @fmtRange(s.period)
         cards:     @cards(s)
         queue:
           total:     @fmtNumber(total, 0)

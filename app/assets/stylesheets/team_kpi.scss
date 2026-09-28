@@ -2001,17 +2001,96 @@ $kpi-radius-pill: 20px;
   }
 }
 
-// ---- ornamen filter bar (artboard TeamKpi-FilterIllus): lingkaran, bintang,
-// bubble, dll. di ruang kosong sekitar kolom Kanal & Kategori. Lapisan sendiri
-// yang memotong ornamen di tepi bar -- bar-nya tidak overflow:hidden supaya
-// dropdown Choices tetap bisa keluar dari bar.
+// ---- kepala filter bar (artboard TeamKpi-FilterHead, opsi A): baris Periode
+// jadi pita primary-50 yang terpisah & dominan; filter + keterangan di badan
+// putih di bawahnya. Ornamen (lingkaran, bintang, bubble, dll.) di pita, di
+// ruang kosong antara grup periode dan tombol Ekspor. Kartu tidak
+// overflow:hidden supaya dropdown Choices bisa keluar dari kartu.
 .team-kpi {
   .team-kpi-bar {
     position: relative;
-    // konteks tumpukan sendiri (ornamen di z -1), tapi di atas kartu KPI
-    // sesudahnya supaya dropdown Choices yang keluar bar tidak tertutup
+    // di atas kartu KPI sesudahnya supaya dropdown Choices tidak tertutup
     z-index: 2;
+    gap: 0;
+    padding: 0;
+  }
+
+  .team-kpi-bar-head {
+    position: relative;
     isolation: isolate;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #dbe6fe;   // = mockup / kit primary-100
+    border-radius: $kpi-radius $kpi-radius 0 0;
+    background: #eef3ff;                // = mockup / kit primary-50 (kepala drawer Aktivitas)
+
+    .team-kpi-bar-left {
+      gap: 12px 24px;
+    }
+  }
+
+  .team-kpi-bar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px 20px;
+  }
+
+  .team-kpi-bar-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    > span:last-child {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  .team-kpi-bar-title-icon {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: $kpi-card-bg;
+    box-shadow: 0 0 0 1px #dbe6fe;
+    color: $kpi-primary;
+  }
+
+  .team-kpi-bar-title-text {
+    color: $kpi-headings;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .team-kpi-bar-title-sub {
+    color: $kpi-muted;
+    font-size: 12px;
+  }
+
+  // kit btn ukuran penuh (bukan btn-sm): py-2 px-4 -- lebih dominan dari kontrol di bawahnya
+  .team-kpi-btn-group--lg .team-kpi-btn {
+    padding: 8px 16px;
+    background: $kpi-card-bg;
+    font-weight: 600;
+
+    &.is-active {
+      background: $kpi-primary;
+    }
+  }
+
+  .team-kpi-btn--lg {
+    padding: 8px 16px;
+    background: $kpi-card-bg;
   }
 
   .team-kpi-bar-ornaments {
@@ -2022,7 +2101,7 @@ $kpi-radius-pill: 20px;
     border-radius: inherit;
     pointer-events: none;
 
-    // posisi dihitung untuk tata letak 5 kolom; di area sempit kolom berpindah
+    // posisi dihitung untuk satu baris (periode | ekspor); saat membungkus, sembunyikan
     @container (max-width: 1000px) {
       display: none;
     }
@@ -2031,7 +2110,7 @@ $kpi-radius-pill: 20px;
   .team-kpi-bar-ornaments-svg {
     position: absolute;
     top: 0;
-    right: 0;
-    opacity: 0.8;
+    right: 160px;
+    opacity: 0.85;
   }
 }
