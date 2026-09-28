@@ -243,7 +243,7 @@
             </div>
             <div class="team-kpi-sla-rows">
               <% for row in @sla.rows: %>
-                <div class="team-kpi-bar-row">
+                <div class="team-kpi-meter-row">
                   <div class="team-kpi-bar-row-head"><span><%= row.priority %> <small>· n <%= row.total %> · <%= row.late %> <%- @T('terlambat') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
                   <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
                 </div>
@@ -263,7 +263,7 @@
           <div class="team-kpi-muted"><%- @T('Tiket belum closed menurut umur · real-time') %></div>
           </div>
           <% for row in @backlog: %>
-            <div class="team-kpi-bar-row">
+            <div class="team-kpi-meter-row">
               <div class="team-kpi-bar-row-head"><span><%= row.label %></span><b class="<% if row.old: %>is-warning<% end %>"><%= row.count %></b></div>
               <div class="team-kpi-meter"><i class="<% if row.old: %>is-ok<% else: %>is-primary<% end %>" style="width: <%= row.pct %>%"></i></div>
             </div>

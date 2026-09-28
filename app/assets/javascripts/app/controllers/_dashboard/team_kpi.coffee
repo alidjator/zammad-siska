@@ -790,12 +790,19 @@ class App.DashboardTeamKpi extends App.Controller
     fmt = (v) => @fmtMetric(v, t.kind)
     series = [{ name: 'Periode ini', data: t.cur }]
     series.push({ name: t.cmpLabel, data: t.prev }) if t.prev
+    colors = ['#4680ff', '#5b6b79']
+    # titik tanpa tetangga (hari sebelum & sesudahnya kosong) tidak punya garis,
+    # jadi nyaris tak terlihat padahal ikut menentukan skala -- beri penanda
+    discrete = []
+    for s, si in series
+      for v, i in s.data when v? and !s.data[i - 1]? and !s.data[i + 1]?
+        discrete.push({ seriesIndex: si, dataPointIndex: i, fillColor: (if si is 0 then colors[0] else '#ffffff'), strokeColor: colors[si], size: 4 })
     @charts.trend = new ApexCharts(el,
       chart:      { type: 'line', height: 300, fontFamily: 'inherit', toolbar: { show: false }, zoom: { enabled: false }, animations: { enabled: false } }
       series:     series
-      colors:     ['#4680ff', '#5b6b79']
+      colors:     colors
       stroke:     { width: [2.5, 1.5], curve: 'straight', dashArray: [0, 5] }
-      markers:    { size: (if few then 5 else 0), hover: { sizeOffset: 6 } }
+      markers:    { size: (if few then 5 else 0), discrete: (if few then [] else discrete), hover: { sizeOffset: 6 } }
       dataLabels: { enabled: false }
       legend:     { show: false }
       grid:       { borderColor: '#e7eaee', strokeDashArray: 0, padding: { left: 8, right: 8 } }

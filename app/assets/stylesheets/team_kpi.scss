@@ -1039,6 +1039,13 @@ $kpi-radius-pill: 20px;
     gap: 14px;
   }
 
+  // baris bar SLA / backlog (kepala + meter). Sengaja BUKAN .team-kpi-bar-row
+  // (itu baris filter bar, flex horizontal) -- dulu memakai kelas yang sama,
+  // kepala menyusut selebar isi dan meter jadi 0 px.
+  .team-kpi-meter-row {
+    display: block;
+  }
+
   .team-kpi-bar-row-head {
     display: flex;
     justify-content: space-between;
