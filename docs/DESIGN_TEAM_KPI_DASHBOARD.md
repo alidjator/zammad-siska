@@ -543,7 +543,7 @@ Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi m
 | `Group.frt_target_minutes` "Target FRT (menit)" | Admin › Groups › edit grup | atribut ObjectManager (integer, boleh kosong). Kosong = target global |
 | `team_kpi_frt_target_basis` "Dasar target FRT" | Admin › SISKA › KPI Tim | `group` (default) / `channel` |
 | `team_kpi_frt_target_by_channel` "Target FRT per kanal (menit)" | Admin › SISKA › KPI Tim | Email, Web, Phone, Chat, SMS, Telegram, WhatsApp. Kosong = target global |
-| `team_kpi_frt_target_met_thresholds` "Ambang % tiket sesuai target FRT" | Admin › SISKA › KPI Tim | default Sangat baik ≥ 90%, Baik ≥ 80%, Cukup ≥ 70%, Buruk ≥ 50% |
+| ~~`team_kpi_frt_target_met_thresholds`~~ | — | **dihapus 29 Sep** (Section 22.4): status mengikuti `team_kpi_escalated_thresholds` atas % tiket terlambat |
 
 **Target global** = `good_max` di `team_kpi_frt_thresholds` (240 menit).
 
@@ -644,7 +644,7 @@ Contoh: tiket masuk Jumat malam dan dibalas Senin tercatat 73,4 jam kalender = 5
 
 **Catatan data:** 8 tiket Operational Quality Excellence (90 hari) tidak punya `first_response_in_min`, jadi tidak cocok SLA mana pun, dan tetap dihitung jam kalender. SLA grup ini perlu dicek.
 
-**Target live chat** (Setting `team_kpi_frt_target_chat_minutes`, default **2 menit**, boleh desimal). Menit jam biasa sejak customer memulai chat. Selalu dipakai untuk tiket chat (`frt_chat`, sama dengan pengecualian menit), apa pun dasar target grup/kanal. Kosong/0 = chat ikut target grup/kanal. Alasannya: chat hanya terjadi saat agent online dan customer menunggu langsung di layar. Tanpa target sendiri, target grup (mis. CS 15 menit kerja) membuat hampir semua chat otomatis "sesuai".
+**Target live chat** (Setting `team_kpi_frt_target_chat_minutes`, default **4 menit** = `waitingListTimeout` widget chat (Section 22.4); awalnya 2, boleh desimal). Menit jam biasa sejak customer memulai chat. Selalu dipakai untuk tiket chat (`frt_chat`, sama dengan pengecualian menit), apa pun dasar target grup/kanal. Kosong/0 = chat ikut target grup/kanal. Alasannya: chat hanya terjadi saat agent online dan customer menunggu langsung di layar. Tanpa target sendiri, target grup (mis. CS 15 menit kerja) membuat hampir semua chat otomatis "sesuai".
 
 Staging, grup QA, 90 hari, 86 chat: median 23 detik, p90 1,5 menit, maks 20,5 menit.
 
@@ -664,7 +664,10 @@ Dibahas satu per satu dari usulan berbasis data 90 hari, jam kerja. Prinsip: tar
 | Grup | Target | Status | Keterangan |
 |---|---|---|---|
 | Customer Services | **15 menit kerja** | disepakati 29 Sep, terpasang di staging | median 4 mnt kerja; 180 hari: 87,6% sesuai (Baik). Dari 3 agent pembalas utama, yang terlemah 77,7%. Chat CS memakai target chat (2 mnt). Dievaluasi ulang setelah 1 bulan data production, belum dikaitkan ke penilaian kinerja |
-| grup lain | usulan di Section 22 (jawaban chat), belum diputuskan | — | — |
+| CS_gajianduluan.id | **1 hari kerja (540)** | dari data (22.4), terpasang di staging | 180 hari: 88,9% |
+| Corporate Legal & IR | **2 hari kerja (1080)** | dari data (22.4), terpasang di staging | 180 hari: 87,9% |
+| Business Support | **2 hari kerja (1080)** | dari data (22.4), terpasang di staging | 180 hari: 74,1% |
+| grup < 30 tiket / 90 hari | kosong (global 4 jam kerja) | 22.2 | — |
 
 Efek sementara (180 hari, admin): kartu tim **87,0% → 78,9% (Cukup)**, karena CS sekarang lebih ketat sementara grup lain masih memakai target global 4 jam kerja.
 
@@ -697,3 +700,41 @@ Efek sementara (180 hari, admin): kartu tim **87,0% → 78,9% (Cukup)**, karena 
 4. **Grup yang bekerja di luar jam kantor:** buatkan SLA dengan kalender 24/7 atau jam shift-nya (Section 22).
 5. **Kalender libur** "Indonesia/Jakarta": pastikan libur nasional dan cuti bersama tahun berjalan sudah lengkap.
 6. **Live chat di production:** evaluasi target chat 2 menit dengan data chat sungguhan.
+
+### 22.4 Sumber setiap angka: ikuti setting & data SISKA yang sudah berjalan (29 Sep)
+
+**Prinsip dari user:** ini pengembangan dari sistem yang sedang berjalan, jadi semua keputusan dan rumus disesuaikan dengan setting atau data yang sudah ada di SISKA. Angka baru hanya dibuat kalau sumbernya sama sekali tidak ada.
+
+| Angka | Sumber | Status |
+|---|---|---|
+| Jam kerja | kalender SLA "Indonesia/Jakarta" + `first_response_in_min` Zammad | ikut yang ada |
+| Target global FRT | `team_kpi_frt_thresholds.good_max` (240) | ikut yang ada |
+| Batas sampel kecil 30 | `SMALL_SAMPLE` KPI Tim (sejak S12) | ikut yang ada |
+| **Status "% sesuai target"** | `team_kpi_escalated_thresholds` (= bucket reopen bawaan Zammad 20/40/65/90), dikenakan pada **% tiket terlambat** (100 − % sesuai). Rumusnya sama dengan kartu Rasio Escalated | **diganti.** Ambang buatan 90/80/70/50 dan Setting-nya dihapus |
+| **Target live chat** | `waitingListTimeout` widget chat = **4 menit**, batas antrian yang sudah berlaku sebelum customer diberi pesan timeout | **diganti** dari 2 menit |
+| Target per grup | **tidak ada sumber:** 57 SLA hanya punya waktu penyelesaian, `first_response_time` kosong semua. Diturunkan dari data 90 hari, jam kerja, di titik yang sudah dicapai ±75–85% tiket | angka baru, dari data |
+
+**Ambang status "% sesuai target"** setelah diganti:
+
+| Status | % sesuai target |
+|---|---|
+| Sangat baik | > 80% (terlambat < 20%) |
+| Baik | > 60% |
+| Cukup | > 35% |
+| Buruk | > 10% |
+| Sangat buruk | ≤ 10% |
+
+Kalau `team_kpi_escalated_thresholds` diubah, status FRT ikut berubah. API `thresholds.frt_target_met` berisi `supergood_above` / `good_above` / `ok_above` / `bad_above`.
+
+**Hasil di staging** (180 hari, admin, target CS 15 mnt / CS_gajian 1 hari kerja / Legal & Business Support 2 hari kerja):
+
+| Cakupan | % sesuai target | Status |
+|---|---|---|
+| Kartu tim | 87,1% | Sangat baik |
+| Legal | 87,9% | Sangat baik |
+| CS | 87,6% | Sangat baik |
+| CS_gajian | 88,9% | Sangat baik |
+| Business Support | 74,1% | Baik |
+| Chat (90 hari, grup QA) | 95,3% (82/86) | Sangat baik |
+
+Dengan ambang SISKA, pita "Sangat baik" lebar. Kalau tim ingin status lebih ketat, ubah `team_kpi_escalated_thresholds`; kartu Rasio Escalated juga ikut berubah.

@@ -12,12 +12,12 @@
 #   - Setting team_kpi_frt_time_basis (Section 22): 'business' (default,
 #     first_response_in_min = menit kerja kalender SLA) | 'calendar'.
 #   - Setting team_kpi_frt_target_chat_minutes (Section 22): target live
-#     chat in plain minutes since the chat started, default 2; always used
+#     chat in plain minutes since the chat started, default 4 (= widget
+#     waitingListTimeout); always used
 #     for chat tickets.
-#   - Setting team_kpi_frt_target_met_thresholds: the card status is the
-#     share of tickets answered within their own target (each ticket is
-#     judged by its group's / channel's target), banded like CSAT (higher =
-#     better).
+#   - Card status = share of tickets answered within their own target,
+#     banded with the EXISTING Rasio Escalated thresholds
+#     (team_kpi_escalated_thresholds) applied to the share that was late.
 #
 #   bundle exec rails runner script/create_team_kpi_frt_target.rb RAILS_ENV=production
 #
@@ -99,24 +99,9 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
-puts '== Setting: team_kpi_frt_target_met_thresholds =='
-Setting.create_if_not_exists(
-  title:       'KPI Tim: Ambang % tiket sesuai target FRT',
-  name:        'team_kpi_frt_target_met_thresholds',
-  area:        'TeamKpi::Base',
-  description: 'Status kartu FRT dari persen tiket yang direspons dalam target grup/kanalnya masing-masing. Minimal persen untuk tiap status (makin tinggi makin baik).',
-  options:     {
-    form: [
-      { display: 'Supergood min (%)', null: true, name: 'supergood_min', tag: 'input', type: 'number' },
-      { display: 'Good min (%)',      null: true, name: 'good_min',      tag: 'input', type: 'number' },
-      { display: 'Ok min (%)',        null: true, name: 'ok_min',        tag: 'input', type: 'number' },
-      { display: 'Bad min (%)',       null: true, name: 'bad_min',       tag: 'input', type: 'number' },
-    ],
-  },
-  state:       { 'supergood_min' => 90, 'good_min' => 80, 'ok_min' => 70, 'bad_min' => 50 },
-  preferences: { permission: ['admin.system'] },
-  frontend:    false,
-)
+# (tidak ada Setting ambang % sendiri: status mengikuti
+# team_kpi_escalated_thresholds atas % terlambat, Section 22.4)
+Setting.find_by(name: 'team_kpi_frt_target_met_thresholds')&.destroy
 
 puts '== Setting: team_kpi_frt_time_basis (Section 22) =='
 Setting.create_if_not_exists(
@@ -148,7 +133,7 @@ Setting.create_if_not_exists(
   title:       'KPI Tim: Target FRT live chat (menit, jam biasa)',
   name:        'team_kpi_frt_target_chat_minutes',
   area:        'TeamKpi::Base',
-  description: 'Target respons pertama untuk tiket live chat, dalam menit jam biasa sejak customer memulai chat (waktu antrian ikut). Selalu dipakai untuk chat, apa pun "Dasar target FRT" (grup/kanal). Boleh desimal, mis. 1.5. Kosong/0 = chat ikut target grup/kanal.',
+  description: 'Target respons pertama untuk tiket live chat, dalam menit jam biasa sejak customer memulai chat (waktu antrian ikut). Selalu dipakai untuk chat, apa pun "Dasar target FRT" (grup/kanal). Default 4 = batas antrian widget chat (waitingListTimeout). Boleh desimal. Kosong/0 = chat ikut target grup/kanal.',
   options:     {
     form: [
       {
@@ -160,10 +145,12 @@ Setting.create_if_not_exists(
       },
     ],
   },
-  state:       2,
+  # = waitingListTimeout widget chat (4 menit, public/assets/chat/chat-no-jquery.coffee):
+  # batas tunggu yang sudah berlaku di SISKA sebelum customer diberi pesan timeout
+  state:       4,
   preferences: { permission: ['admin.system'] },
   frontend:    false,
 )
 
 puts "Group.frt_target_minutes: #{Group.column_names.include?('frt_target_minutes')}"
-puts "chat: #{Setting.get('team_kpi_frt_target_chat_minutes').inspect}; waktu: #{Setting.get('team_kpi_frt_time_basis')}; basis: #{Setting.get('team_kpi_frt_target_basis')}; channel: #{Setting.get('team_kpi_frt_target_by_channel').inspect}; met: #{Setting.get('team_kpi_frt_target_met_thresholds').inspect}"
+puts "chat: #{Setting.get('team_kpi_frt_target_chat_minutes').inspect}; waktu: #{Setting.get('team_kpi_frt_time_basis')}; basis: #{Setting.get('team_kpi_frt_target_basis')}; channel: #{Setting.get('team_kpi_frt_target_by_channel').inspect}"

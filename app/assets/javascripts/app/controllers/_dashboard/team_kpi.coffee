@@ -388,7 +388,8 @@ class App.DashboardTeamKpi extends App.Controller
     tips = switch kind
       when 'frt'  then ["≤ #{@fmtDurationText(t.supergood_max)}", "≤ #{@fmtDurationText(t.good_max)}", "≤ #{@fmtDurationText(t.ok_max)}", "≤ #{@fmtDurationText(t.bad_max)}", "> #{@fmtDurationText(t.bad_max)}"]
       when 'csat' then ["≥ #{t.supergood_min}", "≥ #{t.good_min}", "≥ #{t.ok_min}", "≥ #{t.bad_min}", "< #{t.bad_min}"]
-      when 'met'  then ["≥ #{t.supergood_min}%", "≥ #{t.good_min}%", "≥ #{t.ok_min}%", "≥ #{t.bad_min}%", "< #{t.bad_min}%"]
+      # % sesuai target, dari ambang Rasio Escalated atas % terlambat (Section 22.4)
+      when 'met'  then ["> #{t.supergood_above}%", "> #{t.good_above}%", "> #{t.ok_above}%", "> #{t.bad_above}%", "≤ #{t.bad_above}%"]
       else             ["< #{t.good_min}%", "≥ #{t.good_min}%", "≥ #{t.ok_min}%", "≥ #{t.bad_min}%", "≥ #{t.superbad_min}%"]
     segs = for s, i in @STATES
       { state: s, active: s is state, tip: "#{@STATE_LABELS[s]}: #{tips[i]}" }
@@ -757,11 +758,12 @@ class App.DashboardTeamKpi extends App.Controller
     for row, i in rows
       { label: @BACKLOG_LABELS[row.bucket] || row.bucket, count: @fmtNumber(row.count, 0), pct: Math.round(row.count / max * 100), old: i >= 3 }
 
-  # Warna sel % sesuai target di tabel agent, ambang = Setting team_kpi_frt_target_met_thresholds.
+  # Warna sel % sesuai target di tabel agent: Sangat baik/Baik = hijau,
+  # Cukup = oranye, Buruk/Sangat buruk = merah (ambang Section 22.4).
   metCls: (pct) =>
     t = @data.summary?.thresholds?.frt_target_met
     return 'none' if !pct? || !t
-    if pct >= t.good_min then 'good' else if pct >= t.bad_min then 'ok' else 'bad'
+    if pct > t.good_above then 'good' else if pct > t.ok_above then 'ok' else 'bad'
 
   agentsView: (agents) =>
     return null if !@canSeeAgents || !agents || !agents.agents

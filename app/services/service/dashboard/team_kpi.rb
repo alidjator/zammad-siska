@@ -194,7 +194,7 @@ class Service::Dashboard::TeamKpi
   def thresholds
     {
       frt:             Setting.get('team_kpi_frt_thresholds'),
-      frt_target_met:  Setting.get('team_kpi_frt_target_met_thresholds'),
+      frt_target_met:  frt_target_met_thresholds,
       csat:            Setting.get('team_kpi_csat_thresholds'),
       escalated:       Setting.get('team_kpi_escalated_thresholds'),
       eskalasi_breach: Setting.get('team_kpi_eskalasi_breach_thresholds'),
@@ -444,24 +444,29 @@ class Service::Dashboard::TeamKpi
     end
   end
 
-  # % tiket sesuai target FRT (Section 20), makin tinggi makin baik.
+  # % tiket sesuai target FRT (Section 20). Status mengikuti rumus yang sudah
+  # berjalan untuk Rasio Escalated (Setting team_kpi_escalated_thresholds,
+  # = bucket reopen bawaan Zammad 20/40/65/90) atas % tiket TERLAMBAT
+  # (100 - % sesuai): terlambat < 20% = Sangat baik ... >= 90% = Sangat buruk.
+  # Tidak ada ambang terpisah (Section 22.4).
   def frt_target_state(percent)
     return nil if percent.nil?
 
-    t = Setting.get('team_kpi_frt_target_met_thresholds')
+    escalated_state((100 - percent).round(1))
+  end
+
+  # Ambang yang sama, dinyatakan dalam % sesuai target, untuk label skala
+  # (sesuai = lebih dari nilai ini).
+  def frt_target_met_thresholds
+    t = Setting.get('team_kpi_escalated_thresholds')
     return nil if t.blank?
 
-    if percent >= t['supergood_min'].to_f
-      'supergood'
-    elsif percent >= t['good_min'].to_f
-      'good'
-    elsif percent >= t['ok_min'].to_f
-      'ok'
-    elsif percent >= t['bad_min'].to_f
-      'bad'
-    else
-      'superbad'
-    end
+    {
+      'supergood_above' => 100 - t['good_min'].to_f,
+      'good_above'      => 100 - t['ok_min'].to_f,
+      'ok_above'        => 100 - t['bad_min'].to_f,
+      'bad_above'       => 100 - t['superbad_min'].to_f,
+    }
   end
 
   def frt_state(minutes)
