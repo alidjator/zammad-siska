@@ -375,7 +375,7 @@ class Service::Dashboard::TeamKpi
   # memuat tabelnya.
   def agents_active_count
     ids  = tickets.where(created_at: @range).distinct.pluck(:owner_id)
-    ids |= @scope.frt_tickets(@range).distinct.pluck(:owner_id)
+    ids |= @scope.frt_tickets(@range).joins(Service::Dashboard::TeamKpi::Scope::FRT_RESPONDER_JOIN).distinct.pluck(Arel.sql('frt_resp.responder_id')) # Section 21
     ids |= tickets
       .where.not(state_id: Ticket::State.by_category(:closed))
       .where.not(escalation_at: nil)

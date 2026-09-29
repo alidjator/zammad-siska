@@ -81,6 +81,24 @@ class Service::Dashboard::TeamKpi::Scope
   FRT_START_SQL   = 'LEAST(COALESCE(frt_chat.started_at, tickets.created_at), tickets.created_at)'.freeze
   FRT_MINUTES_SQL = "EXTRACT(EPOCH FROM (tickets.first_response_at - #{FRT_START_SQL})) / 60".freeze
 
+  # Atribusi FRT (Section 21, keputusan user): FRT milik agent yang
+  # PERTAMA membalas -- penulis artikel Agent publik pertama tiket itu --
+  # bukan pemilik tiket. Metrik penanganan (penyelesaian, SLA, reopen, CSAT)
+  # tetap milik pemilik terakhir; antrian real-time milik pemilik sekarang.
+  # Di live chat artikel Agent pertama = balasan agent yang menerima chat,
+  # walau owner dikosongkan lagi saat agent terputus (Section 16).
+  # Dipakai dengan frt_tickets; kolom: frt_resp.responder_id.
+  FRT_RESPONDER_JOIN = <<~SQL.squish.freeze
+    LEFT JOIN LATERAL (
+      SELECT a.created_by_id AS responder_id
+      FROM ticket_articles a
+      JOIN ticket_article_senders frt_s ON frt_s.id = a.sender_id AND frt_s.name = 'Agent'
+      WHERE a.ticket_id = tickets.id AND a.internal = false
+      ORDER BY a.created_at, a.id
+      LIMIT 1
+    ) frt_resp ON true
+  SQL
+
   # Target FRT per tiket (Section 20): dari grupnya (Group#frt_target_minutes,
   # default) atau dari kanal pembuat tiketnya (Setting
   # team_kpi_frt_target_by_channel), sesuai Setting team_kpi_frt_target_basis.

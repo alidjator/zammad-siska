@@ -109,3 +109,5 @@ ZAMMAD_KPI_LIVE_URL=http://localhost:3010 ZAMMAD_KPI_LIVE_TOKEN=<token> \
 ```
 
 Terakhir diuji 2026-09-26 ke staging dengan token `ticket.agent,report` akun Laravel: semua lolos (6 periode, 4 tren, heatmap, 53 agent / 90 hari, ekspor dengan sheet Agent). (Sejak 29 Sep 2026 token butuh `ticket.agent,team_kpi.agents`, bukan `report`.)
+
+> **Perubahan 29 Sep 2026** (DESIGN_TEAM_KPI_DASHBOARD.md Section 20–21): di `/team_kpi/agents`, FRT (`frt_median_minutes`, `frt_mean_minutes`, `frt_count`) sekarang milik **agent yang pertama membalas**, bukan pemilik tiket. Tiap baris menambah `frt_target_met_count` dan `frt_target_met_percent` (% tiket sesuai target FRT grup/kanalnya). Ringkasan `/team_kpi` menambah `frt_target_met_count`, `frt_target_met_percent`, `frt_target_minutes`, `frt_target_basis`, dan `frt_target_state`. Field lama tetap ada.

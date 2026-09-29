@@ -2,7 +2,10 @@
 
 # Per-agent breakdown for the "KPI Tim" agent table
 # (docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 10). Grouped by ticket owner;
-# owner_id 1 (system/nobody) is reported as the "unassigned" row.
+# owner_id 1 (system/nobody) is reported as the "unassigned" row -- except
+# FRT, which belongs to the agent who replied first (Scope::FRT_RESPONDER_JOIN,
+# Section 21), with % of tickets within their group's/channel's target
+# (Section 20).
 #
 # Period columns (tickets, FRT, CSAT) use the selected window; escalated
 # and eskalasi-breach counts are real-time snapshots, like the summary.
@@ -24,7 +27,7 @@ class Service::Dashboard::TeamKpi::Agents
 
   def call
     handled = @scope.tickets.where(created_at: @range).group(:owner_id).count
-    frt     = frt_by_owner
+    frt     = frt_by_responder
     csat    = csat_by_owner
     escal   = escalated_by_owner
     breach  = breached_by_owner
@@ -33,7 +36,7 @@ class Service::Dashboard::TeamKpi::Agents
     users     = User.where(id: owner_ids).pluck(:id, :firstname, :lastname, :email).to_h { |id, f, l, e| [id, { name: "#{f} #{l}".strip, email: e.presence }] }
 
     rows = owner_ids.map do |owner_id|
-      frt_median, frt_mean, frt_count = frt[owner_id]
+      frt_median, frt_mean, frt_count, frt_met = frt[owner_id]
       csat_avg, csat_count            = csat[owner_id]
       {
         owner_id:           owner_id,
@@ -45,6 +48,8 @@ class Service::Dashboard::TeamKpi::Agents
         frt_median_minutes: frt_median,
         frt_mean_minutes:   frt_mean,
         frt_count:          frt_count.to_i,
+        frt_target_met_count:   frt_met.to_i,
+        frt_target_met_percent: frt_count.to_i.zero? ? nil : (frt_met.to_f / frt_count * 100).round(1),
         csat_average:       csat_avg,
         csat_count:         csat_count.to_i,
         escalated:          escal[owner_id].to_i,
@@ -63,12 +68,19 @@ class Service::Dashboard::TeamKpi::Agents
 
   private
 
-  def frt_by_owner
-    minutes = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
+  # Tiket tanpa balasan Agent publik (seharusnya tidak ada: first_response_at
+  # terisi) masuk baris "Belum ditugaskan".
+  def frt_by_responder
+    scope   = Service::Dashboard::TeamKpi::Scope
+    minutes = scope::FRT_MINUTES_SQL
+    target  = scope.frt_target_sql
     @scope.frt_tickets(@range)
-      .group(:owner_id)
-      .pluck(:owner_id, Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
-      .to_h { |owner_id, median, mean, count| [owner_id, [median&.to_f&.round(1), mean&.to_f&.round(1), count]] }
+      .joins(scope::FRT_RESPONDER_JOIN)
+      .joins(scope::FRT_TARGET_JOIN)
+      .group(Arel.sql("COALESCE(frt_resp.responder_id, #{UNASSIGNED_ID})"))
+      .pluck(Arel.sql("COALESCE(frt_resp.responder_id, #{UNASSIGNED_ID})"), Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"),
+             Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'), Arel.sql("COUNT(*) FILTER (WHERE #{minutes} <= #{target})"))
+      .to_h { |id, median, mean, count, met| [id, [median&.to_f&.round(1), mean&.to_f&.round(1), count, met]] }
   end
 
   def csat_by_owner

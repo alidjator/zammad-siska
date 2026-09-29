@@ -205,7 +205,7 @@ Hasilnya: < 1 tahun → periode sebelumnya; tepat 1 tahun → tahun lalu; di ata
 |---|---|
 | `GET /api/v1/team_kpi/trend?metric=frt\|csat\|volume\|resolution` | Deret waktu per `day` (≤ 30 hari) / `week` (≤ 180) / `month`, zona waktu `timezone_default`, semua bucket ada (yang kosong `value: null`). `comparison.points` sejajar per indeks. Rasio Escalated tidak tersedia sebagai tren (snapshot, lihat 10.2) |
 | `GET /api/v1/team_kpi/heatmap` | 7 × 24 sel (`dow` ISO 1=Senin, `hour` 0–23): `total` tiket masuk dan `avg_per_day` (dibagi jumlah kemunculan hari itu di periode) |
-| `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n, CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `team_kpi.agents` atau `admin`** (sebelumnya `report`, lihat Section 19) — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
+| `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n (**sejak Section 21 per pembalas pertama**, plus `frt_target_met_count`/`_percent`), CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `team_kpi.agents` atau `admin`** (sebelumnya `report`, lihat Section 19) — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
 
 Catatan implementasi: kolom waktu tiket bertipe `timestamptz`, jadi konversi ke waktu lokal cukup `kolom AT TIME ZONE '<tz>'` (konversi ganda `AT TIME ZONE 'UTC' AT TIME ZONE '<tz>'` menggeser 7 jam — sempat terjadi saat pengembangan, tertangkap dari heatmap yang puncaknya jatuh jam 23.00).
 
@@ -571,3 +571,36 @@ Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi m
 | per kanal, filter email | 56,7% | 60 | Buruk |
 
 **Perhatian untuk tampilan (belum diubah):** kartu FRT sekarang masih berstatus dari median vs ambang global. 180 hari: median 19,7 menit = "Sangat baik". Dengan status baru, angka yang sama menjadi **68% sesuai target = "Buruk"**, karena 32% tiket menunggu lebih dari 4 jam. Ini perubahan makna yang terlihat. Ambang % (90/80/70/50) dan target tiap grup perlu dikalibrasi bersama tim sebelum tampilan diganti. Tampilan kartu menunggu mockup disetujui.
+
+## 21. Atribusi Metrik per Agent: FRT ke Pembalas Pertama (29 Sep 2026)
+
+**Keputusan user:** "yang achieve atas FRT yang membalas pertama kali, adapun achieve penanganan berhak kepada yang terakhir on hand."
+
+| Metrik | Milik | Implementasi |
+|---|---|---|
+| FRT (median, n, % sesuai target) | **agent yang pertama membalas** = penulis artikel Agent publik pertama | `Scope::FRT_RESPONDER_JOIN` (LEFT JOIN LATERAL, kolom `frt_resp.responder_id`) |
+| Waktu penyelesaian, SLA penyelesaian, dibuka ulang, CSAT | **pemilik terakhir** (owner saat closed) | `tickets.owner_id`; dibuka ulang = `StatsStore ticket:reopen` per user |
+| Antrian real-time (aktif, escalated, breach) | **pemilik sekarang** | `tickets.owner_id` |
+
+**Kenapa perlu.** Data staging 90 hari s.d. 22 Agu: 67% tiket dibalas pertama oleh orang lain, bukan pemilik akhirnya. Sebelum perubahan, tab Per agent menampilkan FRT agent 70688 **30,1 jam (n 256, per owner)**, sedangkan mockup KPI Saya menampilkan **33,4 jam (n 243, per pembalas)**. Dua angka berbeda untuk orang yang sama. Di live chat, owner sering dikosongkan lagi setelah agent terputus (Section 16): dari 86 tiket chat 60 hari hanya 2 yang pemiliknya = pembalas pertama. Per owner, FRT chat jatuh ke baris "Belum ditugaskan".
+
+**Definisi bersama** untuk kartu tim, tab Per agent, dan KPI Saya (nanti):
+- **Populasi:** selalu `Scope#frt_tickets`, yaitu tiket dari customer, plus live chat yang dihitung sejak sesi dimulai. KPI Saya tidak memakai query sendiri: query mockup `scripts/agent_data.rb` melewatkan tiket chat (artikel pertamanya System).
+- **Menit:** `FRT_MINUTES_SQL` (`first_response_at` − awal). `first_response_at` cocok dengan artikel Agent publik pertama di 2.122 dari 2.125 tiket (selisih > 1 menit: 3).
+- **Target:** per tiket (Section 20).
+
+**Perubahan.**
+- `Agents#frt_by_responder` menggantikan `frt_by_owner`. Setiap baris agent menambah `frt_target_met_count` dan `frt_target_met_percent`.
+- `agents_active_count` memakai pembalas pertama untuk bagian FRT.
+- Sheet *Agent* di ekspor .xlsx dan klien Laravel (`/team_kpi/agents`) ikut berubah otomatis.
+
+**Diuji di staging** (180 hari):
+
+| Akun | Kartu tim: FRT n / sesuai target | Jumlah seluruh baris agent | Badge jumlah agent = jumlah baris |
+|---|---|---|---|
+| admin | 3.376 / 2.298 | 3.376 / 2.298 | 79 = 79 |
+| supervisor (dengan grup QA) | 3.463 / 2.385 | 3.463 / 2.385 | 82 = 82 |
+
+Baris "Belum ditugaskan" tidak punya FRT lagi (n 0). Agent 70688: median 1.314 menit, n 460, 28,7% sesuai target, cocok dengan hitungan independen.
+
+**Belum:** tampilan tab Per agent dan kartu FRT belum menampilkan % sesuai target (menunggu keputusan B1/B2, Section 20). Keterangan tabel Per agent perlu menyebut "FRT = pembalas pertama".
