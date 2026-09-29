@@ -388,10 +388,23 @@ class App.DashboardTeamKpi extends App.Controller
     tips = switch kind
       when 'frt'  then ["≤ #{@fmtDurationText(t.supergood_max)}", "≤ #{@fmtDurationText(t.good_max)}", "≤ #{@fmtDurationText(t.ok_max)}", "≤ #{@fmtDurationText(t.bad_max)}", "> #{@fmtDurationText(t.bad_max)}"]
       when 'csat' then ["≥ #{t.supergood_min}", "≥ #{t.good_min}", "≥ #{t.ok_min}", "≥ #{t.bad_min}", "< #{t.bad_min}"]
+      when 'met'  then ["≥ #{t.supergood_min}%", "≥ #{t.good_min}%", "≥ #{t.ok_min}%", "≥ #{t.bad_min}%", "< #{t.bad_min}%"]
       else             ["< #{t.good_min}%", "≥ #{t.good_min}%", "≥ #{t.ok_min}%", "≥ #{t.bad_min}%", "≥ #{t.superbad_min}%"]
     segs = for s, i in @STATES
       { state: s, active: s is state, tip: "#{@STATE_LABELS[s]}: #{tips[i]}" }
     { segs: segs, first: "#{@STATE_LABELS.supergood} #{tips[0]}" }
+
+  # Baris konteks kartu FRT: median + target yang berlaku (satu target untuk
+  # seluruh populasi, mis. filter satu grup) atau "per grup"/"per kanal".
+  frtContext: (s) =>
+    return null if !s.frt_median_minutes?
+    target = if s.frt_target_minutes?
+      "target #{@fmtDurationText(s.frt_target_minutes)}"
+    else if s.frt_target_basis is 'channel'
+      'target per kanal'
+    else
+      'target per grup'
+    "Median #{@fmtDurationText(s.frt_median_minutes)} · #{target}"
 
   # Selisih terhadap pembanding, diwarnai membaik/memburuk sesuai arah metrik.
   delta: (current, previous, kind, lowerBetter) =>
@@ -473,9 +486,7 @@ class App.DashboardTeamKpi extends App.Controller
     rc  = s.realtime_comparison
     cmpLabel = if cmp?.mode is 'yoy' then 'tahun lalu, periode sama' else 'periode sebelumnya'
     basis = @periodLabel()
-    frt = @fmtDuration(s.frt_median_minutes)
     res = @fmtDuration(s.resolution_median_minutes)
-    outlier = s.frt_median_minutes? && s.frt_mean_minutes? && s.frt_mean_minutes > s.frt_median_minutes * 3
     active  = (s.ticket_new || 0) + (s.ticket_open || 0)
 
     card = (o) =>
@@ -518,14 +529,17 @@ class App.DashboardTeamKpi extends App.Controller
       o
 
     [
+      # FRT = % tiket sesuai target grup/kanalnya (Section 20, bentuk B2 mockup
+      # TeamKpi-FrtTarget): angka besar & status selalu searah; median jadi konteks.
       card(
-        title: 'First Response Time', basis: basis, illus: 'frt'
-        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih. Live chat dihitung sejak customer memulai chat (waktu antrian ikut). Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier.'
-        value: frt.value, unit: frt.unit, emptyUnit: 'mnt', state: s.frt_state, n: s.frt_count, nLabel: 'tiket'
+        title: 'FRT sesuai target', basis: basis, illus: 'frt'
+        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
+        value: @fmtNumber(s.frt_target_met_percent, 1), unit: '%', emptyUnit: '%', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
-        scaleKind: 'frt', scaleKey: 'frt'
-        current: s.frt_median_minutes, previous: cmp?.frt_median_minutes, deltaKind: 'duration', lowerBetter: true
-        footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.frt_mean_minutes), outlier: outlier
+        scaleKind: 'met', scaleKey: 'frt_target_met'
+        current: s.frt_target_met_percent, previous: cmp?.frt_target_met_percent, deltaKind: 'rate', lowerBetter: false
+        context: @frtContext(s)
+        footLabel: 'Sesuai target', footValue: (if s.frt_target_met_percent? then "#{@fmtNumber(s.frt_target_met_count, 0)} dari #{@fmtNumber(s.frt_count, 0)} tiket" else '—')
         drill: { metric: 'frt', label: 'Lihat tiket' }, drillCount: s.frt_count
       )
       card(
@@ -732,6 +746,12 @@ class App.DashboardTeamKpi extends App.Controller
     for row, i in rows
       { label: @BACKLOG_LABELS[row.bucket] || row.bucket, count: @fmtNumber(row.count, 0), pct: Math.round(row.count / max * 100), old: i >= 3 }
 
+  # Warna sel % sesuai target di tabel agent, ambang = Setting team_kpi_frt_target_met_thresholds.
+  metCls: (pct) =>
+    t = @data.summary?.thresholds?.frt_target_met
+    return 'none' if !pct? || !t
+    if pct >= t.good_min then 'good' else if pct >= t.bad_min then 'ok' else 'bad'
+
   agentsView: (agents) =>
     return null if !@canSeeAgents || !agents || !agents.agents
     rows = _.filter(agents.agents, (a) -> a.tickets > 0 || a.escalated > 0 || a.frt_count > 0)
@@ -743,7 +763,8 @@ class App.DashboardTeamKpi extends App.Controller
       {
         name: name, initials: initials, unassigned: a.unassigned
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
-        frt: @fmtDurationText(a.frt_median_minutes), frtTip: "Mean #{@fmtDurationText(a.frt_mean_minutes)} · n #{a.frt_count} tiket"
+        frt: (if a.frt_target_met_percent? then "#{@fmtNumber(a.frt_target_met_percent, 1)}%" else '—'), frtCls: @metCls(a.frt_target_met_percent)
+        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)"
         csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating", csatCls: csatCls
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }

@@ -2195,3 +2195,20 @@ $kpi-radius-pill: 20px;
     opacity: 0.85;
   }
 }
+
+// ---- kartu FRT sesuai target (Section 20, mockup TeamKpi-FrtTarget B2):
+// baris konteks median + target yang berlaku, di bawah baris perubahan
+.team-kpi {
+  .team-kpi-context {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: $kpi-body;
+
+    svg {
+      flex: none;
+      color: $kpi-primary;
+    }
+  }
+}

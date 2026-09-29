@@ -159,6 +159,10 @@
           <% end %>
         </div>
 
+        <% if k.context: %>
+          <div class="team-kpi-context"><%- @SiskaIcon('clock', 14) %><span><%= k.context %></span></div>
+        <% end %>
+
         <% if k.scale: %>
           <div class="team-kpi-scale">
             <% for g in k.scale.segs: %>
@@ -331,7 +335,7 @@
         <div class="team-kpi-section-head">
           <div>
             <div class="team-kpi-section-title"><%- @T('Performa per agent') %></div>
-            <div class="team-kpi-muted"><%- @T('Tiket = dibuat di periode (%s) · Escalated & Breach real-time · hanya untuk Supervisor KPI/admin', @basis) %></div>
+            <div class="team-kpi-muted"><%- @T('Tiket = dibuat di periode (%s) · FRT milik pembalas pertama · Escalated & Breach real-time · hanya untuk Supervisor KPI/admin', @basis) %></div>
           </div>
         </div>
         <% if @agentsState is 'loading': %>
@@ -345,7 +349,7 @@
                 <tr>
                   <th><%- @T('Agent') %></th>
                   <th class="is-wide"><%- @T('Tiket') %></th>
-                  <th class="is-num"><%- @T('FRT median') %></th>
+                  <th class="is-num"><%- @T('FRT sesuai target') %></th>
                   <th class="is-num"><%- @T('CSAT') %></th>
                   <th class="is-num"><%- @T('Escalated') %></th>
                   <th class="is-num"><%- @T('Breach') %></th>
@@ -356,7 +360,7 @@
                   <tr>
                     <td class="team-kpi-agent" title="<%= a.name %>"><span class="team-kpi-avatar <% if a.unassigned: %>is-muted<% end %>"><%= a.initials %></span><%= a.name %></td>
                     <td><div class="team-kpi-inline-bar"><div class="team-kpi-meter"><i style="width: <%= a.pct %>%"></i></div><b><%= a.tickets %></b></div></td>
-                    <td class="is-num"><span class="js-kpi-tip team-kpi-dotted" title="<%= a.frtTip %>"><%= a.frt %></span></td>
+                    <td class="is-num"><span class="js-kpi-tip team-kpi-dotted is-<%= a.frtCls %>" title="<%= a.frtTip %>"><%= a.frt %></span></td>
                     <td class="is-num"><span class="js-kpi-tip is-<%= a.csatCls %>" title="<%= a.csatTip %>"><%= a.csat %></span></td>
                     <td class="is-num"><%= a.escalated %></td>
                     <td class="is-num <% if a.breachHot: %>is-bad<% end %>"><%= a.breach %></td>

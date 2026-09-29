@@ -572,6 +572,14 @@ Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi m
 
 **Perhatian untuk tampilan (belum diubah):** kartu FRT sekarang masih berstatus dari median vs ambang global. 180 hari: median 19,7 menit = "Sangat baik". Dengan status baru, angka yang sama menjadi **68% sesuai target = "Buruk"**, karena 32% tiket menunggu lebih dari 4 jam. Ini perubahan makna yang terlihat. Ambang % (90/80/70/50) dan target tiap grup perlu dikalibrasi bersama tim sebelum tampilan diganti. Tampilan kartu menunggu mockup disetujui.
 
+**Tampilan (user memilih B2, mockup `TeamKpi-FrtTarget`):**
+- Kartu **"FRT sesuai target"**: angka besar = % tiket sesuai target. Pill dan skala 5 tingkat dari `frt_target_state` / `thresholds.frt_target_met`. Baris perubahan dalam poin (naik = membaik).
+- Baris konteks (`team-kpi-context`): "Median X · target Y" (target tunggal, mis. filter satu grup) atau "target per grup" / "target per kanal".
+- Kaki kartu: "Sesuai target: N dari M tiket".
+- Tab Per agent: kolom **"FRT sesuai target"** (%, warna dari ambang yang sama). Tooltip berisi median dan jumlah tiket (pembalas pertama).
+- Ekspor .xlsx: baris "FRT sesuai target" di Ringkasan (median tanpa status) dan kolom "FRT sesuai target (%)" di sheet Agent.
+- Tren tetap "FRT median".
+
 ## 21. Atribusi Metrik per Agent: FRT ke Pembalas Pertama (29 Sep 2026)
 
 **Keputusan user:** "yang achieve atas FRT yang membalas pertama kali, adapun achieve penanganan berhak kepada yang terakhir on hand."

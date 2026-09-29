@@ -169,7 +169,9 @@ class Service::Dashboard::TeamKpi::Export
     r     = rc[:available] ? rc : {}
 
     records = [
-      ['First Response Time (median)', s[:frt_median_minutes], 'menit', s[:frt_count], state(s[:frt_state]), c[:frt_median_minutes], delta(s[:frt_median_minutes], c[:frt_median_minutes]), 'Periode'],
+      # status FRT = % tiket sesuai target grup/kanalnya (Section 20); median tanpa status
+      ['FRT sesuai target', s[:frt_target_met_percent], '%', s[:frt_count], state(s[:frt_target_state]), c[:frt_target_met_percent], delta(s[:frt_target_met_percent], c[:frt_target_met_percent]), 'Periode'],
+      ['First Response Time (median)', s[:frt_median_minutes], 'menit', s[:frt_count], nil, c[:frt_median_minutes], delta(s[:frt_median_minutes], c[:frt_median_minutes]), 'Periode'],
       ['First Response Time (mean)', s[:frt_mean_minutes], 'menit', s[:frt_count], nil, c[:frt_mean_minutes], delta(s[:frt_mean_minutes], c[:frt_mean_minutes]), 'Periode'],
       ['CSAT', s[:csat_average], '1-5', s[:csat_count], state(s[:csat_state]), c[:csat_average], delta(s[:csat_average], c[:csat_average]), 'Periode'],
       ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], nil, c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
@@ -262,10 +264,11 @@ class Service::Dashboard::TeamKpi::Export
     row    = sheet_head(sheet, 'KPI Tim -- Performa per agent')
     agents = Service::Dashboard::TeamKpi::Agents.call(**@args, limit: 200)
     records = agents[:agents].map do |a|
-      [a[:unassigned] ? 'Belum ditugaskan' : a[:name], a[:tickets], a[:frt_median_minutes], a[:frt_mean_minutes], a[:frt_count],
+      [a[:unassigned] ? 'Belum ditugaskan' : a[:name], a[:tickets], a[:frt_target_met_percent], a[:frt_median_minutes], a[:frt_mean_minutes], a[:frt_count],
        a[:csat_average], a[:csat_count], a[:escalated], a[:eskalasi_breached]]
     end
-    header = ['Agent', 'Tiket (dibuat di periode)', 'FRT median (menit)', 'FRT mean (menit)', 'n FRT', 'CSAT', 'n CSAT', 'Escalated (real-time)', 'Breach eskalasi (real-time)']
-    write_table(sheet, row, header, records, widths: [28, 12, 12, 12, 8, 8, 8, 12, 14])
+    # FRT milik pembalas pertama (Section 21)
+    header = ['Agent', 'Tiket (dibuat di periode)', 'FRT sesuai target (%)', 'FRT median (menit)', 'FRT mean (menit)', 'n FRT (pembalas pertama)', 'CSAT', 'n CSAT', 'Escalated (real-time)', 'Breach eskalasi (real-time)']
+    write_table(sheet, row, header, records, widths: [28, 12, 14, 12, 12, 12, 8, 8, 12, 14])
   end
 end
