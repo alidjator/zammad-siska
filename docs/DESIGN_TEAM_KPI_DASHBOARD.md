@@ -515,11 +515,11 @@ Script yang sama membuat role tambahan **Supervisor KPI** (hanya `team_kpi.agent
 |---|---|---|
 | 5 orang Customer Services (id 50, 1111, 2934, 30393, 36039) dan `agent@pkp.co.id` | ya, sementara | sebelumnya bisa melihat; dikurangi setelah daftar supervisor dari tim |
 | `integration-kpi-laravel@` | ya | rekap per agent di aplikasi Laravel; **token production perlu dibuat ulang** dengan `ticket.agent,team_kpi.agents` |
-| `siska.chat.agent@` | ya | akun uji kasus supervisor |
-| `siska.chat.agent2@` | tidak | akun uji kasus agent biasa |
+| `siska.chat.supervisor@` (id 77577, dulu `siska.chat.agent2@`) | ya | akun uji kasus supervisor |
+| `siska.chat.agent@` (id 77503) | tidak | akun uji kasus agent biasa |
 | `integration-kpi-api@` | tidak | tokennya hanya `ticket.agent`, tidak pernah memakai data per agent |
 
-**Status staging (29 Sep):** role Supervisor KPI sudah dipasang ke 8 akun di atas, dengan izin user. Hasil cek: ke-8 akun dan admin lolos `agents_access?`; `siska.chat.agent2` dan `integration-kpi-api` tidak.
+**Status staging (29 Sep):** role Supervisor KPI sudah dipasang ke 8 akun di atas, dengan izin user. Hasil cek: ke-8 akun dan admin lolos `agents_access?`; `siska.chat.agent` dan `integration-kpi-api` tidak. Supaya nama akun uji sesuai perannya, `siska.chat.agent2@` diganti nama menjadi `siska.chat.supervisor@pkp.co.id` ("SISKA Chat Supervisor") dan diberi role Supervisor KPI; `siska.chat.agent@` ("SISKA Chat Agent") dilepas dari role itu dan jadi agent biasa.
 
 Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi melihat tab Per agent. Sebaiknya diumumkan dulu.
 
