@@ -656,3 +656,16 @@ Staging, grup QA, 90 hari, 86 chat: median 23 detik, p90 1,5 menit, maks 20,5 me
 Per agent (pembalas pertama): SISKA Chat Agent 57/60, Agent 03 21/25. Angka tim tanpa chat tidak berubah (87,0%).
 
 Pesan offline widget (kanal *web*) tetap tiket biasa: menit kerja + target grup.
+
+### 22.1 Target per grup yang disepakati
+
+Dibahas satu per satu dari usulan berbasis data 90 hari, jam kerja. Prinsip: target di titik yang sekarang sudah dicapai ±75–85% tiket.
+
+| Grup | Target | Status | Keterangan |
+|---|---|---|---|
+| Customer Services | **15 menit kerja** | disepakati 29 Sep, terpasang di staging | median 4 mnt kerja; 180 hari: 87,6% sesuai (Baik). Dari 3 agent pembalas utama, yang terlemah 77,7%. Chat CS memakai target chat (2 mnt). Dievaluasi ulang setelah 1 bulan data production, belum dikaitkan ke penilaian kinerja |
+| grup lain | usulan di Section 22 (jawaban chat), belum diputuskan | — | — |
+
+Efek sementara (180 hari, admin): kartu tim **87,0% → 78,9% (Cukup)**, karena CS sekarang lebih ketat sementara grup lain masih memakai target global 4 jam kerja.
+
+**Deploy production:** isi target yang sama di Admin › Groups.
