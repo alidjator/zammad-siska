@@ -81,6 +81,28 @@ class Service::Dashboard::TeamKpi::Scope
   FRT_START_SQL   = 'LEAST(COALESCE(frt_chat.started_at, tickets.created_at), tickets.created_at)'.freeze
   FRT_MINUTES_SQL = "EXTRACT(EPOCH FROM (tickets.first_response_at - #{FRT_START_SQL})) / 60".freeze
 
+  # Dasar waktu FRT (Section 22, Setting team_kpi_frt_time_basis, default
+  # jam kerja): menit JAM KERJA = tickets.first_response_in_min, dihitung
+  # Zammad dengan kalender SLA tiket (sekarang "Indonesia/Jakarta", Sen-Jum
+  # 08-17 + libur) -- grup 24/7 nanti cukup diberi SLA berkalender 24/7.
+  # Dua pengecualian tetap jam kalender: live chat (menunggu sejak chat
+  # dimulai, first_response_in_min dihitung dari tiket dibuat) dan tiket
+  # tanpa first_response_in_min (tidak cocok SLA mana pun, ~3%).
+  FRT_BUSINESS_MINUTES_SQL = <<~SQL.squish.freeze
+    CASE WHEN frt_chat.ticket_id IS NOT NULL OR tickets.first_response_in_min IS NULL
+      THEN #{FRT_MINUTES_SQL} ELSE tickets.first_response_in_min END
+  SQL
+
+  def self.frt_time_basis
+    Setting.get('team_kpi_frt_time_basis') == 'calendar' ? 'calendar' : 'business'
+  end
+
+  # Rumus menit FRT yang berlaku (kartu, tren, per agent, drill-down).
+  # Selalu dipakai bersama frt_tickets (butuh join frt_chat).
+  def self.frt_minutes_sql
+    frt_time_basis == 'business' ? FRT_BUSINESS_MINUTES_SQL : FRT_MINUTES_SQL
+  end
+
   # Atribusi FRT (Section 21, keputusan user): FRT milik agent yang
   # PERTAMA membalas -- penulis artikel Agent publik pertama tiket itu --
   # bukan pemilik tiket. Metrik penanganan (penyelesaian, SLA, reopen, CSAT)

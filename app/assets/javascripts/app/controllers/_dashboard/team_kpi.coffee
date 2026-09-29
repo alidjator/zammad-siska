@@ -396,15 +396,20 @@ class App.DashboardTeamKpi extends App.Controller
 
   # Baris konteks kartu FRT: median + target yang berlaku (satu target untuk
   # seluruh populasi, mis. filter satu grup) atau "per grup"/"per kanal".
+  # Jam kerja (Section 22): durasi diberi akhiran "kerja", median jam kalender
+  # ikut sebagai konteks pengalaman customer.
   frtContext: (s) =>
     return null if !s.frt_median_minutes?
+    work = if s.frt_time_basis is 'business' then ' kerja' else ''
     target = if s.frt_target_minutes?
-      "target #{@fmtDurationText(s.frt_target_minutes)}"
+      "target #{@fmtDurationText(s.frt_target_minutes)}#{work}"
     else if s.frt_target_basis is 'channel'
       'target per kanal'
     else
       'target per grup'
-    "Median #{@fmtDurationText(s.frt_median_minutes)} · #{target}"
+    text = "Median #{@fmtDurationText(s.frt_median_minutes)}#{work} · #{target}"
+    text += " · kalender #{@fmtDurationText(s.frt_calendar_median_minutes)}" if work && s.frt_calendar_median_minutes?
+    text
 
   # Selisih terhadap pembanding, diwarnai membaik/memburuk sesuai arah metrik.
   delta: (current, previous, kind, lowerBetter) =>
@@ -533,7 +538,7 @@ class App.DashboardTeamKpi extends App.Controller
       # TeamKpi-FrtTarget): angka besar & status selalu searah; median jadi konteks.
       card(
         title: 'FRT sesuai target', basis: basis, illus: 'frt'
-        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
+        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Waktu dihitung dalam jam kerja kalender SLA (Setting "Dasar waktu FRT"); live chat dan tiket tanpa SLA memakai jam kalender. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
         value: @fmtNumber(s.frt_target_met_percent, 1), unit: '%', emptyUnit: '%', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'met', scaleKey: 'frt_target_met'
@@ -764,7 +769,7 @@ class App.DashboardTeamKpi extends App.Controller
         name: name, initials: initials, unassigned: a.unassigned
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
         frt: (if a.frt_target_met_percent? then "#{@fmtNumber(a.frt_target_met_percent, 1)}%" else '—'), frtCls: @metCls(a.frt_target_met_percent)
-        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)"
+        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)}#{if @data.summary?.frt_time_basis is 'business' then ' kerja' else ''} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)"
         csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating", csatCls: csatCls
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }
@@ -1101,7 +1106,7 @@ class App.DashboardTeamKpiDrill extends App.ControllerModal
       state:    @state
       subtitle: @subtitle()
       atLabel:  @def.at
-      colLabel: @def.col
+      colLabel: if @def.col is 'FRT' && @result?.frt_time_basis is 'business' then 'FRT (jam kerja)' else @def.col
       rows:     rows
       total:    kpi.fmtNumber(total, 0)
       shown:    rows.length

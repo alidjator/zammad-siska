@@ -72,7 +72,7 @@ class Service::Dashboard::TeamKpi::Agents
   # terisi) masuk baris "Belum ditugaskan".
   def frt_by_responder
     scope   = Service::Dashboard::TeamKpi::Scope
-    minutes = scope::FRT_MINUTES_SQL
+    minutes = scope.frt_minutes_sql
     target  = scope.frt_target_sql
     @scope.frt_tickets(@range)
       .joins(scope::FRT_RESPONDER_JOIN)

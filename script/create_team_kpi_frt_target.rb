@@ -9,6 +9,8 @@
 #   - Setting team_kpi_frt_target_basis: 'group' (default) | 'channel'.
 #   - Setting team_kpi_frt_target_by_channel: one number per channel, used
 #     when the basis is 'channel'. Blank = global target.
+#   - Setting team_kpi_frt_time_basis (Section 22): 'business' (default,
+#     first_response_in_min = menit kerja kalender SLA) | 'calendar'.
 #   - Setting team_kpi_frt_target_met_thresholds: the card status is the
 #     share of tickets answered within their own target (each ticket is
 #     judged by its group's / channel's target), banded like CSAT (higher =
@@ -113,5 +115,30 @@ Setting.create_if_not_exists(
   frontend:    false,
 )
 
+puts '== Setting: team_kpi_frt_time_basis (Section 22) =='
+Setting.create_if_not_exists(
+  title:       'KPI Tim: Dasar waktu FRT',
+  name:        'team_kpi_frt_time_basis',
+  area:        'TeamKpi::Base',
+  description: 'Jam kerja = menit kerja menurut kalender SLA tiket (Admin > Calendars; sekarang Sen-Jum 08.00-17.00 + libur), dari first_response_in_min Zammad. Grup yang bekerja di luar jam kantor cukup diberi SLA dengan kalender sendiri. Live chat dan tiket tanpa SLA tetap memakai jam kalender. Jam kalender = 24 jam x 7 hari. Target FRT (grup/kanal) dibaca dalam dasar waktu yang sama.',
+  options:     {
+    form: [
+      {
+        display: '',
+        null:    false,
+        name:    'team_kpi_frt_time_basis',
+        tag:     'select',
+        options: {
+          'business' => 'Jam kerja (default)',
+          'calendar' => 'Jam kalender (24x7)',
+        },
+      },
+    ],
+  },
+  state:       'business',
+  preferences: { permission: ['admin.system'] },
+  frontend:    false,
+)
+
 puts "Group.frt_target_minutes: #{Group.column_names.include?('frt_target_minutes')}"
-puts "basis: #{Setting.get('team_kpi_frt_target_basis')}; channel: #{Setting.get('team_kpi_frt_target_by_channel').inspect}; met: #{Setting.get('team_kpi_frt_target_met_thresholds').inspect}"
+puts "waktu: #{Setting.get('team_kpi_frt_time_basis')}; basis: #{Setting.get('team_kpi_frt_target_basis')}; channel: #{Setting.get('team_kpi_frt_target_by_channel').inspect}; met: #{Setting.get('team_kpi_frt_target_met_thresholds').inspect}"

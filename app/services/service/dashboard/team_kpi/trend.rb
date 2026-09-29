@@ -13,7 +13,7 @@
 # filters (snapshots are only split by group).
 class Service::Dashboard::TeamKpi::Trend
   METRICS = {
-    'frt'        => { column: 'created_at',        agg: :median, value: Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL },
+    'frt'        => { column: 'created_at',        agg: :median, value: :frt_minutes }, # Scope.frt_minutes_sql (Setting, Section 22)
     'csat'       => { column: 'csat_submitted_at', agg: :avg,    value: 'csat_score' },
     'volume'     => { column: 'created_at',        agg: :count,  value: nil },
     'resolution' => { column: 'close_at',          agg: :median, value: 'EXTRACT(EPOCH FROM (close_at - created_at)) / 60' },
@@ -152,10 +152,14 @@ class Service::Dashboard::TeamKpi::Trend
     end
   end
 
+  def value_sql
+    config[:value] == :frt_minutes ? Service::Dashboard::TeamKpi::Scope.frt_minutes_sql : config[:value]
+  end
+
   def aggregate_sql
     case config[:agg]
-    when :median then "percentile_cont(0.5) WITHIN GROUP (ORDER BY #{config[:value]})"
-    when :avg    then "AVG(#{config[:value]})"
+    when :median then "percentile_cont(0.5) WITHIN GROUP (ORDER BY #{value_sql})"
+    when :avg    then "AVG(#{value_sql})"
     else              'COUNT(*)'
     end
   end

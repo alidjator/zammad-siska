@@ -112,6 +112,8 @@ class Service::Dashboard::TeamKpi
       frt_target_met_percent: period[:frt_target_met_percent],
       frt_target_minutes:     period[:frt_target_minutes],
       frt_target_basis:       Service::Dashboard::TeamKpi::Scope.frt_target_basis,
+      frt_time_basis:         Service::Dashboard::TeamKpi::Scope.frt_time_basis,
+      frt_calendar_median_minutes: period[:frt_calendar_median_minutes],
       frt_target_state:       frt_target_state(period[:frt_target_met_percent]),
       csat_average:           period[:csat_average],
       csat_count:             period[:csat_count],
@@ -213,7 +215,7 @@ class Service::Dashboard::TeamKpi
   # Everything that depends on the selected period (so it has a
   # comparison-period counterpart). Real-time snapshots are not here.
   def period_metrics(range)
-    frt_median, frt_mean, frt_count, frt_met, target_min, target_max = frt(range)
+    frt_median, frt_mean, frt_count, frt_met, target_min, target_max, frt_cal_median = frt(range)
     csat_avg, csat_count            = csat(range)
     res_median, res_mean, res_count = resolution(range)
     reopen_count, closed_count      = reopen(range)
@@ -227,6 +229,7 @@ class Service::Dashboard::TeamKpi
       frt_target_met_percent:    frt_count.zero? ? nil : (frt_met.to_f / frt_count * 100).round(1),
       # satu target untuk seluruh populasi (menit), atau nil kalau campuran
       frt_target_minutes:        target_min && target_min == target_max ? round_or_nil(target_min, 1) : nil,
+      frt_calendar_median_minutes: frt_cal_median,
       csat_average:              csat_avg,
       csat_count:                csat_count,
       resolution_median_minutes: res_median,
@@ -252,14 +255,18 @@ class Service::Dashboard::TeamKpi
   # sendiri; met = jumlah tiket dengan FRT <= targetnya. target_min/max
   # sama = satu target berlaku untuk seluruh populasi (mis. filter 1 grup).
   def frt(range)
-    minutes = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
-    target  = Service::Dashboard::TeamKpi::Scope.frt_target_sql
-    median, mean, count, met, target_min, target_max = @scope.frt_tickets(range)
+    # menit sesuai dasar waktu (Section 22); median jam kalender ikut sebagai
+    # konteks pengalaman customer
+    minutes  = Service::Dashboard::TeamKpi::Scope.frt_minutes_sql
+    calendar = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
+    target   = Service::Dashboard::TeamKpi::Scope.frt_target_sql
+    median, mean, count, met, target_min, target_max, cal_median = @scope.frt_tickets(range)
       .joins(Service::Dashboard::TeamKpi::Scope::FRT_TARGET_JOIN)
       .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'),
-            Arel.sql("COUNT(*) FILTER (WHERE #{minutes} <= #{target})"), Arel.sql("MIN(#{target})"), Arel.sql("MAX(#{target})"))
+            Arel.sql("COUNT(*) FILTER (WHERE #{minutes} <= #{target})"), Arel.sql("MIN(#{target})"), Arel.sql("MAX(#{target})"),
+            Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{calendar})"))
 
-    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i, met.to_i, target_min&.to_f, target_max&.to_f]
+    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i, met.to_i, target_min&.to_f, target_max&.to_f, round_or_nil(cal_median, 1)]
   end
 
   def csat(range)

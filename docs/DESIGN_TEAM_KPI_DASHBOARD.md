@@ -612,3 +612,34 @@ Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi m
 Baris "Belum ditugaskan" tidak punya FRT lagi (n 0). Agent 70688: median 1.314 menit, n 460, 28,7% sesuai target, cocok dengan hitungan independen.
 
 **Belum:** tampilan tab Per agent dan kartu FRT belum menampilkan % sesuai target (menunggu keputusan B1/B2, Section 20). Keterangan tabel Per agent perlu menyebut "FRT = pembalas pertama".
+
+## 22. Dasar Waktu FRT: Jam Kerja (default) atau Jam Kalender (29 Sep 2026)
+
+**Keputusan user:** opsi C, yaitu bisa diatur di Setting dengan default jam kerja. Saat ini belum ada grup yang bekerja di luar jam kantor, tapi ke depannya akan ada.
+
+**Sumber jam kerja.** `tickets.first_response_in_min`, dihitung Zammad sendiri dengan **kalender SLA tiket**. Saat ini kalender "Indonesia/Jakarta" (Sen–Jum 08.00–17.00, 52 hari libur) dipakai oleh ke-57 SLA. Kolom ini terisi untuk 97% populasi FRT (1.505 dari 1.551 tiket, 90 hari). **Grup yang nanti bekerja di luar jam kantor:** cukup buatkan SLA untuk grup itu dengan kalender 24/7 (atau shift-nya) di Admin › Calendars / SLAs. FRT jam kerja grup itu otomatis mengikuti, tanpa perubahan kode.
+
+**Rumus** (`Scope.frt_minutes_sql`, dipakai di kartu, tren, tab Per agent, drill-down, dan ekspor):
+
+| Setting `team_kpi_frt_time_basis` | Menit FRT |
+|---|---|
+| `business` (default) | `first_response_in_min`; **kecuali** live chat (tetap sejak chat dimulai, karena antrian chat dihitung) dan tiket tanpa `first_response_in_min` (tidak cocok SLA mana pun) → jam kalender |
+| `calendar` | `FRT_MINUTES_SQL` (24×7, seperti sebelumnya) |
+
+Target FRT grup/kanal (Section 20) dibaca dalam dasar waktu yang sama. Ringkasan menambah `frt_time_basis` dan `frt_calendar_median_minutes` (median jam kalender sebagai konteks pengalaman customer). `/team_kpi/tickets?metric=frt` menambah `frt_time_basis`.
+
+**Tampilan:**
+- Baris konteks kartu: "Median 7 mnt kerja · target per grup · kalender 19,3 mnt".
+- Tooltip tab Per agent: "Median … kerja".
+- Kolom drill-down: "FRT (jam kerja)".
+
+**Diuji di staging** (180 hari, admin, target global 4 jam):
+
+| Dasar waktu | Median | % sesuai target | Jumlah baris agent = tim |
+|---|---|---|---|
+| jam kerja | 7,0 mnt (kalender 19,3) | 87,0% | 3.358 / 2.922 = 3.358 / 2.922 |
+| jam kalender | 19,3 mnt | 68,0% | 3.358 / 2.283 = 3.358 / 2.283 |
+
+Contoh: tiket masuk Jumat malam dan dibalas Senin tercatat 73,4 jam kalender = 540 menit (9 jam) kerja.
+
+**Catatan data:** 8 tiket Operational Quality Excellence (90 hari) tidak punya `first_response_in_min`, jadi tidak cocok SLA mana pun, dan tetap dihitung jam kalender. SLA grup ini perlu dicek.

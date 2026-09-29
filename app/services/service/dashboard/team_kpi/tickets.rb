@@ -45,7 +45,7 @@ class Service::Dashboard::TeamKpi::Tickets
       window_days: @window_days,
       total:       total,
       tickets:     rows.map { |row| serialize(row) },
-    }
+    }.tap { |r| r[:frt_time_basis] = Service::Dashboard::TeamKpi::Scope.frt_time_basis if @metric == 'frt' }
   end
 
   private
@@ -61,7 +61,7 @@ class Service::Dashboard::TeamKpi::Tickets
   def population
     case @metric
     when 'frt'
-      @scope.frt_tickets(@range).reorder(Arel.sql("#{Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL} DESC"))
+      @scope.frt_tickets(@range).reorder(Arel.sql("#{Service::Dashboard::TeamKpi::Scope.frt_minutes_sql} DESC"))
     when 'csat'
       @scope.tickets.where(csat_submitted_at: @range).where.not(csat_score: nil).reorder(csat_submitted_at: :desc)
     when 'resolution'
@@ -84,7 +84,7 @@ class Service::Dashboard::TeamKpi::Tickets
 
   def value_sql
     case @metric
-    when 'frt'        then Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
+    when 'frt'        then Service::Dashboard::TeamKpi::Scope.frt_minutes_sql
     when 'csat'       then 'tickets.csat_score'
     when 'resolution' then resolution_sql
     else                   'NULL'
