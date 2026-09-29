@@ -148,8 +148,23 @@ class Service::Dashboard::TeamKpi::Scope
     (Setting.get('team_kpi_frt_thresholds') || {})['good_max'].to_f
   end
 
+  # Target live chat (Setting team_kpi_frt_target_chat_minutes, menit jam
+  # biasa): selalu dipakai untuk tiket chat -- sama dengan pengecualian di
+  # FRT_BUSINESS_MINUTES_SQL (frt_chat) -- apa pun dasar target grup/kanal.
+  # 0/kosong = tiket chat ikut target grup/kanal.
+  def self.frt_target_chat_minutes
+    minutes = Setting.get('team_kpi_frt_target_chat_minutes').to_f
+    minutes.positive? ? minutes : nil
+  end
+
   # SQL expression: target (menit) untuk baris tiket saat ini.
   def self.frt_target_sql
+    chat = frt_target_chat_minutes
+    base = frt_target_base_sql
+    chat ? "CASE WHEN frt_chat.ticket_id IS NOT NULL THEN #{chat} ELSE #{base} END" : base
+  end
+
+  def self.frt_target_base_sql
     global = frt_target_global_minutes
     if frt_target_basis == 'channel'
       map   = Setting.get('team_kpi_frt_target_by_channel') || {}

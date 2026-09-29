@@ -643,3 +643,16 @@ Target FRT grup/kanal (Section 20) dibaca dalam dasar waktu yang sama. Ringkasan
 Contoh: tiket masuk Jumat malam dan dibalas Senin tercatat 73,4 jam kalender = 540 menit (9 jam) kerja.
 
 **Catatan data:** 8 tiket Operational Quality Excellence (90 hari) tidak punya `first_response_in_min`, jadi tidak cocok SLA mana pun, dan tetap dihitung jam kalender. SLA grup ini perlu dicek.
+
+**Target live chat** (Setting `team_kpi_frt_target_chat_minutes`, default **2 menit**, boleh desimal). Menit jam biasa sejak customer memulai chat. Selalu dipakai untuk tiket chat (`frt_chat`, sama dengan pengecualian menit), apa pun dasar target grup/kanal. Kosong/0 = chat ikut target grup/kanal. Alasannya: chat hanya terjadi saat agent online dan customer menunggu langsung di layar. Tanpa target sendiri, target grup (mis. CS 15 menit kerja) membuat hampir semua chat otomatis "sesuai".
+
+Staging, grup QA, 90 hari, 86 chat: median 23 detik, p90 1,5 menit, maks 20,5 menit.
+
+| Target chat | % sesuai |
+|---|---|
+| 2 menit | 91,9% (79/86) |
+| kosong → target grup 4 jam | 100% |
+
+Per agent (pembalas pertama): SISKA Chat Agent 57/60, Agent 03 21/25. Angka tim tanpa chat tidak berubah (87,0%).
+
+Pesan offline widget (kanal *web*) tetap tiket biasa: menit kerja + target grup.

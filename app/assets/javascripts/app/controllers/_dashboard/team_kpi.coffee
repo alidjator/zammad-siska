@@ -538,7 +538,7 @@ class App.DashboardTeamKpi extends App.Controller
       # TeamKpi-FrtTarget): angka besar & status selalu searah; median jadi konteks.
       card(
         title: 'FRT sesuai target', basis: basis, illus: 'frt'
-        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Waktu dihitung dalam jam kerja kalender SLA (Setting "Dasar waktu FRT"); live chat dan tiket tanpa SLA memakai jam kalender. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
+        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Waktu dihitung dalam jam kerja kalender SLA (Setting "Dasar waktu FRT"); live chat dan tiket tanpa SLA memakai jam kalender. Live chat dinilai dengan target chat sendiri (Setting "Target FRT live chat"), dihitung sejak customer memulai chat. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
         value: @fmtNumber(s.frt_target_met_percent, 1), unit: '%', emptyUnit: '%', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'met', scaleKey: 'frt_target_met'
