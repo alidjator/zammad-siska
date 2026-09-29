@@ -205,7 +205,7 @@ Hasilnya: < 1 tahun → periode sebelumnya; tepat 1 tahun → tahun lalu; di ata
 |---|---|
 | `GET /api/v1/team_kpi/trend?metric=frt\|csat\|volume\|resolution` | Deret waktu per `day` (≤ 30 hari) / `week` (≤ 180) / `month`, zona waktu `timezone_default`, semua bucket ada (yang kosong `value: null`). `comparison.points` sejajar per indeks. Rasio Escalated tidak tersedia sebagai tren (snapshot, lihat 10.2) |
 | `GET /api/v1/team_kpi/heatmap` | 7 × 24 sel (`dow` ISO 1=Senin, `hour` 0–23): `total` tiket masuk dan `avg_per_day` (dibagi jumlah kemunculan hari itu di periode) |
-| `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n, CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `report` atau `admin`** — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
+| `GET /api/v1/team_kpi/agents` | Per owner: `tickets` (dibuat di periode), FRT median/mean/n, CSAT rata-rata/n, `escalated` & `eskalasi_breached` real-time. Owner id 1 = baris `unassigned`. **Butuh permission `team_kpi.agents` atau `admin`** (sebelumnya `report`, lihat Section 19) — menampilkan performa rekan kerja, jadi agent biasa hanya melihat angka tim |
 
 Catatan implementasi: kolom waktu tiket bertipe `timestamptz`, jadi konversi ke waktu lokal cukup `kolom AT TIME ZONE '<tz>'` (konversi ganda `AT TIME ZONE 'UTC' AT TIME ZONE '<tz>'` menggeser 7 jam — sempat terjadi saat pengembangan, tertangkap dari heatmap yang puncaknya jatuh jam 23.00).
 
@@ -222,7 +222,7 @@ Catatan implementasi: kolom waktu tiket bertipe `timestamptz`, jadi konversi ke 
 | SLA per prioritas | SLA penyelesaian (`close_escalation_at`), lihat 10.3 |
 | Backlog | Umur tiket belum closed (real-time) |
 | Heatmap | 7 hari × 24 jam, rata-rata tiket masuk per kemunculan hari |
-| Agent | **Hanya untuk permission `report`/`admin`** (sama seperti `/team_kpi/agents`); agent biasa mendapat workbook tanpa sheet ini, bukan error |
+| Agent | **Hanya untuk permission `team_kpi.agents`/`admin`** (sama seperti `/team_kpi/agents`, Section 19); agent biasa mendapat workbook tanpa sheet ini, bukan error |
 
 Perbaikan yang ikut: bucket tren `volume` yang kosong sekarang `0` (sebelumnya `null`, seolah "tidak ada data").
 
@@ -250,7 +250,7 @@ Grup **"QA - Internal Testing"** menampung 223 tiket New/Open dan 141 tiket esca
 
 Keputusan: server Web Portal (Spring Boot) memanggil API ini dengan token akun integrasi; semua staf melihat angka tim yang sama. Panduan lengkap + kode referensi Spring Boot yang sudah diuji ke staging: [`INTEGRASI_WEB_PORTAL_KPI.md`](INTEGRASI_WEB_PORTAL_KPI.md), [`contrib/siska/web-portal-kpi/`](../contrib/siska/web-portal-kpi/).
 
-Aplikasi kedua, **Laravel (PHP)**, memakai akun terpisah `integration-kpi-laravel@pkp.co.id` dengan token `ticket.agent` + `report` (termasuk rekap per agent): [`INTEGRASI_LARAVEL_KPI.md`](INTEGRASI_LARAVEL_KPI.md), [`contrib/siska/laravel-kpi/`](../contrib/siska/laravel-kpi/). Akun integrasi dibuat dengan `script/create_kpi_integration_account.rb` (satu akun per aplikasi, role *Customer Services*, token dibatasi ke `ticket.agent`[`,report`]). Untuk kebutuhan ini `/team_kpi/agents` sekarang juga mengembalikan `email` tiap agent (kunci stabil untuk dicocokkan ke tabel user aplikasi lain; `owner_id` hanya bermakna di Zammad).
+Aplikasi kedua, **Laravel (PHP)**, memakai akun terpisah `integration-kpi-laravel@pkp.co.id` dengan token `ticket.agent` + `team_kpi.agents` (termasuk rekap per agent; sebelumnya `report`, Section 19): [`INTEGRASI_LARAVEL_KPI.md`](INTEGRASI_LARAVEL_KPI.md), [`contrib/siska/laravel-kpi/`](../contrib/siska/laravel-kpi/). Akun integrasi dibuat dengan `script/create_kpi_integration_account.rb` (satu akun per aplikasi, role *Customer Services*, token dibatasi ke `ticket.agent`[`,team_kpi.agents`], dengan `team_kpi.agents` akun juga diberi role *Supervisor KPI*). Untuk kebutuhan ini `/team_kpi/agents` sekarang juga mengembalikan `email` tiap agent (kunci stabil untuk dicocokkan ke tabel user aplikasi lain; `owner_id` hanya bermakna di Zammad).
 
 ### 11.5 Perbaikan definisi FRT: hanya tiket dari customer
 
@@ -280,7 +280,7 @@ Menggantikan tampilan Section 6 (tiru `.stat-widget` My Stats). Acuan: mockup **
 | Tren: tab FRT / CSAT / Tiket masuk / Penyelesaian | `/team_kpi/trend` | SVG: garis periode ini + putus-putus pembanding, sumbu nilai & tanggal, rata-rata dan selisih. Bucket tanpa data = garis putus (tidak ditarik ke 0). Tanpa tab Rasio Escalated (tidak ada data historis) |
 | Heatmap 7 × 24 jam | `/team_kpi/heatmap` | Level relatif ke `max_avg`, tooltip = rata-rata per hari + total |
 | SLA penyelesaian per prioritas | `/team_kpi` `sla_by_priority` | Label "SLA penyelesaian" (bukan respons pertama, lihat 10.3) |
-| Performa per agent | `/team_kpi/agents` | **Hanya dimuat & tampil untuk `report`/`admin`** (agent biasa tidak memanggil endpoint-nya sama sekali) |
+| Performa per agent | `/team_kpi/agents` | **Hanya dimuat & tampil untuk `team_kpi.agents`/`admin`** (agent biasa tidak memanggil endpoint-nya sama sekali) |
 | Umur backlog | `/team_kpi` `backlog_aging` | Menggantikan kartu "tiket breach" di mockup (belum ada endpoint daftar tiket breach); ≥ 7 hari diberi warna peringatan |
 
 Kondisi data (artboard `TeamKpi-KitB-States`): skeleton saat pertama dimuat; kalau sebagian request gagal, data sebelumnya tetap tampil dengan banner "angka terakhir pukul …" + Coba lagi; kalau semua gagal dan belum ada data, kartu error; angka `null` = "—"; grafik tanpa data = pesan kosong.
@@ -350,11 +350,11 @@ Halaman KPI Tim sebelumnya menumpuk semua bagian (±3–4 tinggi layar). Mockup:
 | Tren (default) | grafik tren + ringkasan rata-rata/delta; metrik dipilih lewat `btn-group` `btn-sm` (sama dengan tombol periode, bukan deret tab ketiga) | `/team_kpi/trend` |
 | Pola beban | heatmap 7 × 24 + ringkasan pola beban | `/team_kpi/heatmap` |
 | SLA & Backlog | SLA penyelesaian \| Umur backlog, dua kolom di dalam kartu yang sama | dari `/team_kpi` |
-| Per agent | tabel agent — tab hanya ada untuk `report`/`admin` | `/team_kpi/agents` |
+| Per agent | tabel agent — tab hanya ada untuk `team_kpi.agents`/`admin` | `/team_kpi/agents` |
 
 - **Data per tab**: `load()` mengambil `/team_kpi` + bagian tab aktif saja; tab lain diambil saat dibuka. Setiap bagian disimpan bersama kunci filternya (`partKey`: periode, grup, metrik) — data dengan filter lama tidak ditampilkan tapi diambil ulang ("Memuat…"). Auto-refresh juga hanya ringkasan + tab aktif.
-- **Tab terakhir diingat per user**: preferensi `kpi_detail_tab` (`trend` / `load` / `sla` / `agents`) lewat `PUT /api/v1/users/preferences`, sama dengan drawer Aktivitas (Section 14). Nilai tidak valid, atau `agents` untuk user tanpa `report`, jatuh ke `trend`.
-- **Badge di label tab** (kit `.badge` `-500/10` `rounded-full`): *SLA & Backlog* merah berisi persen SLA kalau SLA < 75%, selain itu oranye berisi jumlah tiket backlog ≥ 30 hari (kalau ada); *Per agent* berisi jumlah agent aktif dari field ringkasan **`agents_active_count`** — hanya dikirim untuk `report`/`admin` (`TeamKpi.call(include_agents: report_access?)`), dihitung dengan `DISTINCT owner_id` (tiket dibuat di periode / FRT di periode / escalated sekarang, tanpa owner 1 "Belum ditugaskan"), sama persis dengan jumlah baris tabel agent (diverifikasi 7/90/730 hari), 50–260 ms vs ±2 detik rekap lengkap. Jadi badge tampil tanpa memuat tabel agent. Tabel tetap maks. 12 baris, dengan keterangan "Menampilkan 12 agent teratas dari N".
+- **Tab terakhir diingat per user**: preferensi `kpi_detail_tab` (`trend` / `load` / `sla` / `agents`) lewat `PUT /api/v1/users/preferences`, sama dengan drawer Aktivitas (Section 14). Nilai tidak valid, atau `agents` untuk user tanpa `team_kpi.agents`/`admin`, jatuh ke `trend`.
+- **Badge di label tab** (kit `.badge` `-500/10` `rounded-full`): *SLA & Backlog* merah berisi persen SLA kalau SLA < 75%, selain itu oranye berisi jumlah tiket backlog ≥ 30 hari (kalau ada); *Per agent* berisi jumlah agent aktif dari field ringkasan **`agents_active_count`** — hanya dikirim untuk `team_kpi.agents`/`admin` (`TeamKpi.call(include_agents: agents_access?)`), dihitung dengan `DISTINCT owner_id` (tiket dibuat di periode / FRT di periode / escalated sekarang, tanpa owner 1 "Belum ditugaskan"), sama persis dengan jumlah baris tabel agent (diverifikasi 7/90/730 hari), 50–260 ms vs ±2 detik rekap lengkap. Jadi badge tampil tanpa memuat tabel agent. Tabel tetap maks. 12 baris, dengan keterangan "Menampilkan 12 agent teratas dari N".
 
 **ApexCharts** untuk tren dan heatmap (lingkaran persen & bar tetap SVG/HTML):
 
@@ -479,3 +479,48 @@ Test: `tabs_test.js` 41 skenario (6 baru "quick win: …", termasuk Choices.js a
 - Pilihan periode = **radio dalam kotak** (pola *mega option* kit, `forms/form2_megaoption.html`): `<input type="radio" name="kpi-period">` di dalam `label.team-kpi-period-opt`, bingkai primary untuk yang terpilih, radio gaya kit `form-check-input`. Grup `role="radiogroup"`.
 - Event `change .js-kpi-period` → `onPeriod` membaca `value`. Karena tab dirender ulang tiap memuat, radio terpilih difokuskan lagi kalau fokus ada di grup radio (panah kiri/kanan tetap jalan).
 - Ornamen jadi pengisi fleksibel di antara grup Periode dan Ekspor: hanya tampil di ruang yang benar-benar sisa, rata kanan dekat Ekspor, dan disembunyikan saat lebar kontainer ≤ 1160 px (satu baris pita butuh ±1000 px). Label radio membatalkan gaya global `label` Zammad (uppercase + letter-spacing); kalau pita membungkus, Ekspor tetap rata kanan.
+
+## 19. Permission `team_kpi.agents`: Siapa Boleh Melihat Angka Agent Lain (29 Sep 2026)
+
+**Latar belakang.** Sampai 28 Sep, angka agent lain (tab *Per agent*, badge jumlah agent, sheet *Agent* di ekspor .xlsx, `GET /team_kpi/agents`) dibuka untuk permission `report` atau `admin`. Data staging 29 Sep:
+
+| Pemegang `report` | Keterangan |
+|---|---|
+| Admin (3 user) | wajar |
+| **Customer Services** (10 user aktif) | seluruh role, bukan hanya supervisor: 5 orang, `agent@`, 2 akun integrasi, 2 akun uji `siska.chat.agent`/`agent2` |
+| Client - Koordinator (151 user) | **customer**, `report` + `ticket.customer`. Tidak bisa masuk KPI karena semua endpoint mewajibkan `ticket.agent` dulu (`require_agent`), jangan dilonggarkan |
+
+Jadi setiap agent Customer Services bisa melihat performa semua rekannya. Ini dianggap tidak disengaja.
+
+**Kenapa bukan sub-permission `report.*`.** Zammad memberi semua anak dari permission yang dipegang (`Auth::Permissions` memeriksa `Permission.with_parents`). Diuji di staging: user yang hanya punya `report` lolos `permissions?('report.unlimited_download')`, bahkan `permissions?('report.xyz_tidak_ada')`. Efek samping: batas unduhan Reporting (`report.unlimited_download`, `lib/report/download_limit_guard.rb`) saat ini tidak membatasi pemegang `report` mana pun. Ini dicatat sebagai tugas terpisah.
+
+**Definisi** (pola bawaan Zammad `chat` / `knowledge_base`), dibuat oleh `script/create_team_kpi_agents_permission.rb`:
+
+| Permission | Label | Keterangan |
+|---|---|---|
+| `team_kpi` | KPI Tim | induk, `disabled: true` (tidak bisa dicentang), prio 1542 |
+| `team_kpi.agents` | Lihat KPI per agent | melihat angka agent lain, prio 1543 |
+
+Script yang sama membuat role tambahan **Supervisor KPI** (hanya `team_kpi.agents`, tanpa akses grup), yang ditambahkan di atas role kerja user. Script tidak memberikan role ke siapa pun.
+
+**Aturan akses.**
+- `TeamKpiController#agents_access?` = `permissions?(%w[team_kpi.agents admin])`, dipakai di `/agents` (403), `include_agents` ringkasan (`agents_active_count`), dan ekspor (sheet Agent). Frontend: `@canSeeAgents` di `team_kpi.coffee` memeriksa hal yang sama.
+- Supervisor tetap hanya melihat tiket, dan karena itu hanya agent, di grup yang bisa ia baca (`Scope`).
+- `ticket.agent` tetap wajib untuk semua endpoint.
+- **Token API:** Zammad mensyaratkan user **dan** token sama-sama punya izin. `script/create_kpi_integration_account.rb` sekarang menerima `ticket.agent[,team_kpi.agents]` (bukan `report`) dan, dengan `team_kpi.agents`, memberi akun itu role Supervisor KPI.
+
+**Transisi** (akses yang ada dipertahankan sementara, sampai tim memberi daftar supervisor):
+
+| Akun | Supervisor KPI | Alasan |
+|---|---|---|
+| 5 orang Customer Services (id 50, 1111, 2934, 30393, 36039) dan `agent@pkp.co.id` | ya, sementara | sebelumnya bisa melihat; dikurangi setelah daftar supervisor dari tim |
+| `integration-kpi-laravel@` | ya | rekap per agent di aplikasi Laravel; **token production perlu dibuat ulang** dengan `ticket.agent,team_kpi.agents` |
+| `siska.chat.agent@` | ya | akun uji kasus supervisor |
+| `siska.chat.agent2@` | tidak | akun uji kasus agent biasa |
+| `integration-kpi-api@` | tidak | tokennya hanya `ticket.agent`, tidak pernah memakai data per agent |
+
+Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi melihat tab Per agent. Sebaiknya diumumkan dulu.
+
+**Deploy production:** jalankan `script/create_team_kpi_agents_permission.rb`, beri role Supervisor KPI ke daftar supervisor, lalu buat ulang token Laravel.
+
+**Pengujian.** `tabs_test.js` 44 skenario. Skenario "akses per agent (Section 19)" memakai stub `permissionCheck` yang meniru pewarisan induk Zammad: `team_kpi.agents` dan `admin` melihat tab Per agent; `report` dan `report` + `report.unlimited_download` tidak; agent biasa tidak.

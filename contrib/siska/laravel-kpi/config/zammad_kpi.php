@@ -5,8 +5,8 @@
 return [
     'base_url' => env('ZAMMAD_KPI_BASE_URL', 'https://helpdesk.satu.solutions'),
 
-    // Token akun integrasi-kpi-laravel@pkp.co.id, permission ticket.agent + report
-    // (report dibutuhkan untuk agents()). Lihat script/create_kpi_integration_account.rb.
+    // Token akun integrasi-kpi-laravel@pkp.co.id, permission ticket.agent + team_kpi.agents
+    // (team_kpi.agents dibutuhkan untuk agents(); akun juga butuh role Supervisor KPI). Lihat script/create_kpi_integration_account.rb.
     'token' => env('ZAMMAD_KPI_TOKEN'),
 
     'connect_timeout' => (int) env('ZAMMAD_KPI_CONNECT_TIMEOUT', 5),   // detik

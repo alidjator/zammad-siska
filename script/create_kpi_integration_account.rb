@@ -9,8 +9,11 @@
 # "Customer Services" role, which reads every operational group except
 # "QA - Internal Testing" -- the same scope as integration-kpi-api@pkp.co.id,
 # so every app sees the same team numbers. The token is limited to the
-# given permissions (ticket.agent for team totals, + report for the
-# per-agent breakdown /team_kpi/agents), not the role's full set.
+# given permissions (ticket.agent for team totals, + team_kpi.agents for the
+# per-agent breakdown /team_kpi/agents), not the role's full set. With
+# team_kpi.agents the account also gets the additive "Supervisor KPI" role
+# (script/create_team_kpi_agents_permission.rb): Zammad requires both the
+# user and the token to hold a permission.
 #
 # Use a @pkp.co.id address: script/anonymize_non_admin_contacts.rb keeps
 # that domain untouched.
@@ -18,7 +21,7 @@
 # Usage (staging container or production):
 #   rails runner script/create_kpi_integration_account.rb EMAIL "First name" PERMISSIONS "Token name"
 #   rails runner script/create_kpi_integration_account.rb integration-kpi-laravel@pkp.co.id \
-#     "KPI Tim Laravel" ticket.agent,report "KPI Tim Laravel API access"
+#     "KPI Tim Laravel" ticket.agent,team_kpi.agents "KPI Tim Laravel API access"
 #
 # Prints the token once -- store it in the app's secret store right away,
 # it cannot be shown again.
@@ -28,7 +31,7 @@ abort 'usage: EMAIL "First name" PERMISSIONS "Token name"' if [email, firstname,
 abort 'use a @pkp.co.id address (kept by the anonymization script)' if !email.end_with?('@pkp.co.id')
 
 permissions = permissions.split(',').map(&:strip)
-allowed     = %w[ticket.agent report]
+allowed     = %w[ticket.agent team_kpi.agents]
 abort "permissions must be a subset of #{allowed.join(',')}" if (permissions - allowed).any? || permissions.exclude?('ticket.agent')
 
 role = Role.find_by!(name: 'Customer Services')
@@ -51,6 +54,10 @@ else
   puts "account created: #{email} (id #{user.id})"
 end
 user.update!(role_ids: (user.role_ids | [role.id])) if user.role_ids.exclude?(role.id)
+if permissions.include?('team_kpi.agents')
+  supervisor = Role.find_by!(name: 'Supervisor KPI') # dibuat oleh script/create_team_kpi_agents_permission.rb
+  user.update!(role_ids: (user.role_ids | [supervisor.id])) if user.role_ids.exclude?(supervisor.id)
+end
 
 token = Token.create!(action: 'api', persistent: true, user_id: user.id, name: token_name, preferences: { permission: permissions })
 

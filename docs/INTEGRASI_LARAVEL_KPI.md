@@ -5,13 +5,13 @@ Aplikasi kedua yang membaca KPI Tim, selain Web Portal ([`INTEGRASI_WEB_PORTAL_K
 | | Web Portal (Spring Boot) | Aplikasi Laravel |
 |---|---|---|
 | Akun | `integration-kpi-api@pkp.co.id` | **`integration-kpi-laravel@pkp.co.id`** (akun terpisah) |
-| Permission token | `ticket.agent` | **`ticket.agent` + `report`** |
+| Permission token | `ticket.agent` | **`ticket.agent` + `team_kpi.agents`** (sebelum 29 Sep 2026: `report`; akun juga butuh role *Supervisor KPI*, lihat DESIGN_TEAM_KPI_DASHBOARD.md Section 19) |
 | Data | Angka tim yang sama untuk semua staf | Angka tim **+ rekap per agent** (`/team_kpi/agents`, ekspor dengan sheet Agent) |
 | Cakupan grup | 34 grup (tanpa QA) | Sama — role *Customer Services* |
 
 Akun terpisah supaya token bisa dicabut/dirotasi tanpa mengganggu Web Portal, dan akses tercatat per aplikasi.
 
-> **Perhatian — data pribadi.** Dengan `report`, aplikasi ini menerima nama, email, dan performa (tiket, FRT, CSAT, escalated) **setiap agent**. Batasi halaman yang menampilkannya ke user yang berwenang (supervisor/manajemen) di aplikasi Laravel.
+> **Perhatian — data pribadi.** Dengan `team_kpi.agents`, aplikasi ini menerima nama, email, dan performa (tiket, FRT, CSAT, escalated) **setiap agent**. Batasi halaman yang menampilkannya ke user yang berwenang (supervisor/manajemen) di aplikasi Laravel.
 
 Kode: package Composer [`contrib/siska/laravel-kpi/`](../contrib/siska/laravel-kpi/) (`pkp/siska-zammad-kpi`) — PHP 8.1+, Laravel 10/11/12 (diuji dengan Laravel 12.69 / PHP 8.3).
 
@@ -20,7 +20,7 @@ Kode: package Composer [`contrib/siska/laravel-kpi/`](../contrib/siska/laravel-k
 ```bash
 # di container/server Zammad (staging atau production)
 bundle exec rails runner script/create_kpi_integration_account.rb integration-kpi-laravel@pkp.co.id \
-  "KPI Tim Laravel" ticket.agent,report "KPI Tim Laravel API access"
+  "KPI Tim Laravel" ticket.agent,team_kpi.agents "KPI Tim Laravel API access"
 ```
 
 Script idempoten untuk akunnya (dijalankan ulang = akun dipakai lagi, token baru dibuat). Token hanya tampil sekali — langsung simpan di secret store aplikasi Laravel. Rotasi: jalankan lagi → ganti secret → hapus token lama di Admin → API → Token Access.
@@ -108,4 +108,4 @@ ZAMMAD_KPI_LIVE_URL=http://localhost:3010 ZAMMAD_KPI_LIVE_TOKEN=<token> \
   vendor/bin/phpunit --group live          # ke Zammad sungguhan, termasuk agents & ekspor
 ```
 
-Terakhir diuji 2026-09-26 ke staging dengan token `ticket.agent,report` akun Laravel: semua lolos (6 periode, 4 tren, heatmap, 53 agent / 90 hari, ekspor dengan sheet Agent).
+Terakhir diuji 2026-09-26 ke staging dengan token `ticket.agent,report` akun Laravel: semua lolos (6 periode, 4 tren, heatmap, 53 agent / 90 hari, ekspor dengan sheet Agent). (Sejak 29 Sep 2026 token butuh `ticket.agent,team_kpi.agents`, bukan `report`.)

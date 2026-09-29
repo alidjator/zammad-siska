@@ -47,7 +47,7 @@ class ZammadKpiClient
     }
 
     /**
-     * GET /api/v1/team_kpi/agents -- per agent (butuh token dengan permission report).
+     * GET /api/v1/team_kpi/agents -- per agent (butuh token dengan permission team_kpi.agents).
      * Tiap baris punya email untuk mencocokkan ke tabel user aplikasi; unassigned = tiket tanpa owner.
      */
     public function agents(KpiQuery $query, int $limit = 50): array
@@ -56,7 +56,7 @@ class ZammadKpiClient
     }
 
     /**
-     * GET /api/v1/team_kpi/export -- .xlsx. Dengan token ber-permission report, workbook
+     * GET /api/v1/team_kpi/export -- .xlsx. Dengan token ber-permission team_kpi.agents, workbook
      * menyertakan sheet Agent.
      *
      * @return array{filename: string, content: string}

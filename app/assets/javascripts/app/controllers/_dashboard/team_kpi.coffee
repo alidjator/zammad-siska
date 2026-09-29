@@ -112,7 +112,8 @@ class App.DashboardTeamKpi extends App.Controller
     @filters = { priority_ids: [], channels: [], categories: [] }
     @choices = []
     @metric  = 'frt'
-    @canSeeAgents = @permissionCheck('report') || @permissionCheck('admin')
+    # sama dengan TeamKpiController#agents_access? (dokumen Section 19)
+    @canSeeAgents = @permissionCheck('team_kpi.agents') || @permissionCheck('admin')
     @tab = @preferences().kpi_detail_tab
     @tab = 'trend' if !_.find(@availableTabs(), (t) => t.key is @tab)
     @data    = {}

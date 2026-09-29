@@ -11,11 +11,11 @@ require 'csv'
 class TeamKpiController < ApplicationController
   prepend_before_action :authentication_check
   before_action :require_agent
-  before_action :require_report_access, only: :agents
+  before_action :require_agents_access, only: :agents
 
   # GET /api/v1/team_kpi
   def show
-    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare], include_agents: report_access?), status: :ok
+    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare], include_agents: agents_access?), status: :ok
   end
 
   # GET /api/v1/team_kpi/trend?metric=frt|csat|volume|resolution
@@ -63,7 +63,7 @@ class TeamKpiController < ApplicationController
   def export
     result = Service::Dashboard::TeamKpi::Export.call(
       window_days: params[:days], user: current_user, filters: filters, compare: params[:compare],
-      include_agents: report_access?
+      include_agents: agents_access?
     )
     send_data(result[:content], filename: result[:filename], type: Service::Dashboard::TeamKpi::Export::CONTENT_TYPE, disposition: 'attachment')
   end
@@ -83,16 +83,20 @@ class TeamKpiController < ApplicationController
     "\uFEFF#{body}"
   end
 
-  def report_access?
-    current_user.permissions?(%w[report admin])
+  # Angka agent lain (Per agent, badge jumlah agent, sheet Agent di ekspor)
+  # hanya untuk 'team_kpi.agents' atau admin -- bukan 'report', yang dipegang
+  # seluruh role Customer Services dan otomatis memberi semua 'report.*'.
+  # Tetap terbatas pada grup yang bisa dibaca (Scope). Dokumen Section 19.
+  def agents_access?
+    current_user.permissions?(%w[team_kpi.agents admin])
   end
 
   def require_agent
     raise Exceptions::Forbidden if !current_user.permissions?('ticket.agent')
   end
 
-  def require_report_access
-    raise Exceptions::Forbidden if !report_access?
+  def require_agents_access
+    raise Exceptions::Forbidden if !agents_access?
   end
 
   def filters
