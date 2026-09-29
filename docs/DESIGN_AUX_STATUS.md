@@ -400,3 +400,9 @@ Ketiganya diterapkan ke `manage/aux_status_table.jst.eco` MENIRU markup nativeny
 Teks sumber berbahasa Inggris, terjemahan Indonesia di `i18n/siska.id.po` (pola yang sama dengan string panel chat lain).
 
 **Catatan:** status berdurasi (Busy) sudah ditutup layar freeze, jadi banner header praktis muncul untuk AUX Offline dan untuk status tanpa durasi yang ditambahkan admin. Saran lanjutan (belum dikerjakan): hapus "Offline" dari AUX dan pakai kehadiran bawaan Zammad. Syaratnya, distribusi tiket harus lebih dulu mengecek agent sedang online.
+
+**Insiden 29 Sep (diperbaiki):** versi pertama menambahkan `App.Event.bind(...)` di **level file** `aux_status_freeze.coffee`. Baris itu dijalankan saat `application.js` dimuat, sebelum `App.Event` ada. Akibatnya `TypeError: App.Event is undefined`, seluruh aplikasi berhenti di layar "Loading…" untuk semua user staging selama ±10 menit.
+
+Perbaikannya: listener level file dihapus. Halaman chat menyimpan jumlah chat berjalan langsung di `App.AuxStatusFreezeWidget.runningChats`, dan event hanya didengar oleh instance freeze. Hasilnya diverifikasi dengan menjalankan `application.js` hasil precompile di jsdom (tanpa error saat dimuat).
+
+**Pelajaran:** di file controller, level file hanya boleh berisi definisi kelas dan `App.Config.set`, tanpa `App.Event` dan tanpa pemanggilan lain. Setiap perubahan frontend perlu dicek dengan menjalankan bundle hasil precompile, bukan hanya compile per file.

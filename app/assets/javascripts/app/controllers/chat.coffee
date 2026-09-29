@@ -325,7 +325,10 @@ class App.CustomerChat extends App.Controller
     @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
     @offlineBanner.toggleClass('hidden', !@metaLoaded || active)
     @renderAuxState(active)
-    # jumlah chat berjalan untuk layar freeze AUX (aux_status_freeze.coffee)
+    # jumlah chat berjalan untuk layar freeze AUX (aux_status_freeze.coffee):
+    # disimpan langsung di kelasnya (tanpa listener level file -- App.Event
+    # belum ada saat file dimuat), lalu event untuk freeze yang sedang tampil
+    App.AuxStatusFreezeWidget.runningChats = running if App.AuxStatusFreezeWidget
     App.Event.trigger('siska-chat:running', running)
     # Kembali online -> banner "away timeout" ikut tertutup otomatis
     # (dipicu tombol Online/Go online yg keduanya lewat `switch` ->

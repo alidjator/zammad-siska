@@ -117,5 +117,3 @@ class App.AuxStatusFreezeWidget extends App.Controller
     clearInterval(@interval) if @interval
     @el?.remove()
 
-# simpan jumlah chat berjalan terakhir walau layar freeze belum tampil
-App.Event.bind('siska-chat:running', (count) -> App.AuxStatusFreezeWidget.runningChats = count)
