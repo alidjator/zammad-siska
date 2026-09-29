@@ -773,7 +773,22 @@ Audit menemukan beberapa keputusan hari ini yang berbeda dari setting, rumus, at
 - Target grup (CS 15 mnt, CS_gajian, Legal, Business Support) tetap tersimpan tapi tidak dipakai, selama dasar target = per help topic.
 - Daftar tindak lanjut production (22.3) berlaku juga untuk target per help topic: kalibrasi dengan data production, dan tetapkan target topik kecil bersama pemilik layanannya.
 
-**Belum dikerjakan** (rumus lama yang juga belum sesuai SISKA, menunggu arahan):
-- Waktu penyelesaian dibandingkan dengan target SLA per help topic (`close_in_min`).
-- SLA & Backlog dikelompokkan per help topic (semua tiket berprioritas 2).
-- Pola beban membaca kalender SLA, bukan hard-code.
+Tiga rumus lama yang juga belum sesuai SISKA dikoreksi di 22.6.
+
+### 22.6 Tiga rumus lama disesuaikan dengan SLA & kalender SISKA (29 Sep)
+
+| Bagian | Sebelumnya | Sesudah (ikut SISKA) |
+|---|---|---|
+| **Kartu Waktu penyelesaian** | median jam kalender, pill "Belum ada target" | median tetap jam kalender (sama dengan FRT/Reporting), mean di kaki. **Status = % tiket closed dalam batas SLA** (`close_escalation_at`, dihitung Zammad dengan kalender SLA per help topic), dengan ambang Rasio Escalated atas % terlambat (`sla_state`). Baris konteks: "95,0% selesai dalam batas SLA · target SLA per help topic · ▲ x poin". Ekspor: status di baris median |
+| **Tab SLA & Backlog** | per prioritas (semua tiket berprioritas 2) | **per help topic** (`sla_by_help_topic`: help_topic, `target_minutes` = `solution_time` SLA topik itu dalam menit kerja, total, tepat waktu, terlambat, %, median terlambat). Topik dengan n ≥ 30 diurutkan dari % terendah, maks. `SLA_MAX_ROWS`, sisanya di tooltip. Label target memakai **hari kerja = 9 jam** ("target 3 hari kerja" untuk 1620). Ekspor: sheet "SLA per help topic". `sla_by_priority` tetap dikirim di API |
+| **Pola beban, "Di luar jam kerja"** | Sen–Jum 08.00–17.00 ditulis di kode | **dibaca dari kalender default SISKA** (`heatmap.business_hours` = `{ calendar, days: { 1..7 => [[jam mulai, jam selesai]] } }`). Teks: "jam kerja Sen–Jum 08.00–17.00 (kalender Indonesia/Jakarta)". Libur nasional tidak dipakai (pola per jam dalam seminggu) |
+
+**Kenapa bukan `close_in_min`:** Zammad hanya mengisinya di 343 dari 9.873 tiket closed (90 hari), karena kondisi SLA SISKA hanya berlaku saat status new/open. Yang terisi luas adalah tenggat SLA `close_escalation_at` (78%). Tenggat itu adalah rumus "tepat waktu" yang dipakai SLA SISKA.
+
+**Perbaikan format:** menit KERJA sekarang ditampilkan dengan `fmtWorkDuration` (1 hari kerja = 540 menit), yaitu untuk target SLA, dan untuk FRT kalau dasar waktu = jam kerja (angka utama, mean, tabel agent, target tunggal). Sebelumnya 1620 menit kerja tampil "1,1 hari" padahal = 3 hari kerja.
+
+**Staging** (180 hari, admin):
+- Penyelesaian: median 3,9 jam, n 14.605; SLA 11.253 / 11.846 = 95,0% (Sangat baik).
+- 29 help topic, jumlah = total, semuanya punya target SLA.
+- "Di luar jam kerja": kalender = versi hard-code lama (4.171 dari 14.633 tiket).
+- Test jsdom 47 skenario.

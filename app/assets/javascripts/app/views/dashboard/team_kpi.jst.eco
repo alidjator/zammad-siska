@@ -291,7 +291,7 @@
             <%- @T('SLA penyelesaian') %>
             <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Dari tiket yang closed di periode terpilih dan punya batas penyelesaian SLA, berapa persen yang closed tepat waktu. SLA respons pertama belum dikonfigurasi di sistem ini.') %>"><%- @SiskaIcon('info', 14) %></span>
           </div>
-          <div class="team-kpi-muted"><%- @T('Persentase tiket closed tepat waktu per prioritas, %s', @basis) %></div>
+          <div class="team-kpi-muted"><%- @T('Persentase tiket closed tepat waktu per help topic (dimensi SLA), %s', @basis) %></div>
           </div>
           <% if @slaTotal: %>
             <%- @slaTotal.pctHtml %>
@@ -302,7 +302,7 @@
             <div class="team-kpi-sla-rows">
               <% for row in @sla.rows: %>
                 <div class="team-kpi-meter-row">
-                  <div class="team-kpi-bar-row-head"><span><%= row.priority %> <small>· n <%= row.total %> · <%= row.late %> <%- @T('terlambat') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
+                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small>· <% if row.target: %><%= row.target %> · <% end %>n <%= row.total %> · <%= row.late %> <%- @T('terlambat') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
                   <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
                 </div>
               <% end %>

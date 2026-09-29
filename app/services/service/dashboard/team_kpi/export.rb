@@ -174,7 +174,8 @@ class Service::Dashboard::TeamKpi::Export
       ['FRT sesuai target', s[:frt_target_met_percent], '%', s[:frt_count], nil, c[:frt_target_met_percent], delta(s[:frt_target_met_percent], c[:frt_target_met_percent]), 'Periode'],
       ['First Response Time (mean)', s[:frt_mean_minutes], 'menit', s[:frt_count], nil, c[:frt_mean_minutes], delta(s[:frt_mean_minutes], c[:frt_mean_minutes]), 'Periode'],
       ['CSAT', s[:csat_average], '1-5', s[:csat_count], state(s[:csat_state]), c[:csat_average], delta(s[:csat_average], c[:csat_average]), 'Periode'],
-      ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], nil, c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
+      # status = % closed dalam batas SLA (Section 22.6)
+      ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], state(s[:sla_state]), c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
       ['Waktu penyelesaian (mean)', s[:resolution_mean_minutes], 'menit', s[:resolution_count], nil, c[:resolution_mean_minutes], delta(s[:resolution_mean_minutes], c[:resolution_mean_minutes]), 'Periode'],
       ['Reopening rate', s[:reopen_rate_percent], '%', s[:reopen_closed_count], state(s[:reopen_state]), c[:reopen_rate_percent], delta(s[:reopen_rate_percent], c[:reopen_rate_percent]), 'Periode'],
       ['SLA penyelesaian (tepat waktu)', s[:sla_within_percent], '%', s[:sla_total], nil, c[:sla_within_percent], delta(s[:sla_within_percent], c[:sla_within_percent]), 'Periode'],
@@ -233,12 +234,13 @@ class Service::Dashboard::TeamKpi::Export
     row
   end
 
+  # per help topic = dimensi SLA SISKA (Section 22.6)
   def sheet_sla
-    sheet = @workbook.add_worksheet('SLA per prioritas')
-    row   = sheet_head(sheet, 'KPI Tim -- SLA penyelesaian per prioritas')
-    records = @summary[:sla_by_priority].map { |r| [r[:priority], r[:total], r[:within_sla], r[:late], r[:within_percent], r[:late_median_minutes]] }
-    row = write_table(sheet, row, ['Prioritas', 'Tiket closed (ber-SLA)', 'Tepat waktu', 'Terlambat', '% tepat waktu', 'Median terlambat (menit)'], records, widths: [16, 22, 14, 12, 14, 22])
-    sheet.write_string(row + 1, 0, 'Tiket closed di periode yang punya batas penyelesaian (close_escalation_at).', @f_note)
+    sheet = @workbook.add_worksheet('SLA per help topic')
+    row   = sheet_head(sheet, 'KPI Tim -- SLA penyelesaian per help topic')
+    records = @summary[:sla_by_help_topic].map { |r| [r[:help_topic] || '(tanpa help topic)', r[:target_minutes], r[:total], r[:within_sla], r[:late], r[:within_percent], r[:late_median_minutes]] }
+    row = write_table(sheet, row, ['Help topic', 'Target SLA (menit kerja)', 'Tiket closed (ber-SLA)', 'Tepat waktu', 'Terlambat', '% tepat waktu', 'Median terlambat (menit)'], records, widths: [34, 20, 20, 12, 12, 14, 22])
+    sheet.write_string(row + 1, 0, 'Tiket closed di periode yang punya batas penyelesaian SLA (close_escalation_at, dihitung Zammad dengan kalender SLA).', @f_note)
   end
 
   def sheet_backlog

@@ -333,6 +333,29 @@ class App.DashboardTeamKpi extends App.Controller
     return d.value if !d.unit
     "#{d.value} #{d.unit}"
 
+  # Menit KERJA (kalender SLA, 1 hari kerja = 9 jam = 540 menit, Sen–Jum
+  # 08.00–17.00): mis. solution_time SLA 1620 = "3 hari kerja", bukan 1,1 hari.
+  WORK_DAY_MINUTES: 540
+
+  fmtWorkDuration: (minutes) =>
+    return '—' if !minutes?
+    if minutes >= @WORK_DAY_MINUTES && minutes % @WORK_DAY_MINUTES is 0
+      "#{minutes / @WORK_DAY_MINUTES} hari kerja"
+    else if minutes >= 60
+      "#{@fmtNumber(minutes / 60, 1)} jam kerja"
+    else
+      "#{@fmtNumber(minutes, 0)} mnt kerja"
+
+  # Durasi FRT sesuai Setting "Dasar waktu FRT" (jam kerja: 1 hari = 9 jam).
+  fmtFrt: (minutes, basis = @data.summary?.frt_time_basis) =>
+    if basis is 'business' then @fmtWorkDuration(minutes) else @fmtDurationText(minutes)
+
+  fmtFrtParts: (minutes, basis) =>
+    return @fmtDuration(minutes) if basis isnt 'business' || !minutes?
+    text = @fmtWorkDuration(minutes)
+    i = text.indexOf(' ')
+    { value: text.substr(0, i), unit: text.substr(i + 1) }
+
   pad2: (n) ->
     if n < 10 then "0#{n}" else "#{n}"
 
@@ -401,12 +424,39 @@ class App.DashboardTeamKpi extends App.Controller
     return null if !s.frt_target_met_percent?
     work = if s.frt_time_basis is 'business' then ' kerja' else ''
     target = if s.frt_target_minutes?
-      "target #{@fmtDurationText(s.frt_target_minutes)}#{work}"
+      "target #{if work then @fmtWorkDuration(s.frt_target_minutes) else @fmtDurationText(s.frt_target_minutes)}"
     else
       { help_topic: 'target per help topic', channel: 'target per kanal', group: 'target per grup' }[s.frt_target_basis] || 'target per help topic'
     text = "#{@fmtNumber(s.frt_target_met_percent, 1)}% tiket sesuai target · #{target}"
     if cmp?.frt_target_met_percent?
       d = s.frt_target_met_percent - cmp.frt_target_met_percent
+      text += if Math.abs(d) < 0.05 then ' · = sama' else " · #{if d > 0 then '▲' else '▼'} #{@fmtNumber(Math.abs(d), 1)} poin"
+    text
+
+  # "jam kerja Sen–Jum 08.00–17.00 (kalender Indonesia/Jakarta)" dari heatmap.business_hours.
+  businessHoursText: (bh) =>
+    return 'jam kerja Sen–Jum 08.00–17.00' if !bh
+    names = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
+    fmt = (h) => "#{@pad2(Math.floor(h))}.#{@pad2(Math.round((h % 1) * 60))}"
+    groups = []
+    for dow in [1..7]
+      frames = (bh.days[dow] || [])
+      continue if !frames.length
+      key = _.map(frames, (f) -> "#{fmt(f[0])}–#{fmt(f[1])}").join(', ')
+      last = _.last(groups)
+      if last && last.key is key && last.to is dow - 1
+        last.to = dow
+      else
+        groups.push({ key: key, from: dow, to: dow })
+    days = _.map(groups, (g) -> "#{names[g.from - 1]}#{if g.to > g.from then '–' + names[g.to - 1] else ''} #{g.key}").join('; ')
+    "jam kerja #{days || '—'} (kalender #{bh.calendar})"
+
+  # Baris konteks kartu Waktu penyelesaian: % closed dalam batas SLA (+ poin).
+  slaContext: (s, cmp) =>
+    return null if !s.sla_within_percent?
+    text = "#{@fmtNumber(s.sla_within_percent, 1)}% selesai dalam batas SLA · target SLA per help topic"
+    if cmp?.sla_within_percent?
+      d = s.sla_within_percent - cmp.sla_within_percent
       text += if Math.abs(d) < 0.05 then ' · = sama' else " · #{if d > 0 then '▲' else '▼'} #{@fmtNumber(Math.abs(d), 1)} poin"
     text
 
@@ -490,7 +540,7 @@ class App.DashboardTeamKpi extends App.Controller
     rc  = s.realtime_comparison
     cmpLabel = if cmp?.mode is 'yoy' then 'tahun lalu, periode sama' else 'periode sebelumnya'
     basis = @periodLabel()
-    frt = @fmtDuration(s.frt_median_minutes)
+    frt = @fmtFrtParts(s.frt_median_minutes, s.frt_time_basis)
     res = @fmtDuration(s.resolution_median_minutes)
     outlier = s.frt_median_minutes? && s.frt_mean_minutes? && s.frt_mean_minutes > s.frt_median_minutes * 3
     active  = (s.ticket_new || 0) + (s.ticket_open || 0)
@@ -547,7 +597,7 @@ class App.DashboardTeamKpi extends App.Controller
         scaleKind: 'met', scaleKey: 'frt_target_met'
         current: s.frt_median_minutes, previous: cmp?.frt_median_minutes, deltaKind: 'duration', lowerBetter: true
         context: @frtContext(s, cmp)
-        footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.frt_mean_minutes), outlier: outlier
+        footLabel: 'Rata-rata (mean)', footValue: @fmtFrt(s.frt_mean_minutes, s.frt_time_basis), outlier: outlier
         drill: { metric: 'frt', label: 'Lihat tiket' }, drillCount: s.frt_count
       )
       card(
@@ -561,12 +611,16 @@ class App.DashboardTeamKpi extends App.Controller
         coverage: @csatCoverage(s)
         drill: { metric: 'csat', label: 'Lihat rating' }, drillCount: s.csat_count
       )
+      # status = % closed dalam batas SLA (close_escalation_at, kalender SLA
+      # per help topic) -- rumus SLA SISKA, Section 22.6; median jam kalender.
       card(
-        title: 'Waktu penyelesaian', basis: basis, neutral: true, illus: 'resolution'
-        help: 'Median waktu dari tiket dibuat sampai pertama kali closed, untuk tiket yang closed di periode terpilih.'
-        value: res.value, unit: res.unit, emptyUnit: 'jam', state: null, n: s.resolution_count, nLabel: 'closed'
+        title: 'Waktu penyelesaian', basis: basis, illus: 'resolution'
+        help: 'Median waktu dari tiket dibuat sampai pertama kali closed, untuk tiket yang closed di periode terpilih (jam kalender). Status = persen tiket closed dalam batas SLA penyelesaian help topic-nya (dihitung Zammad dengan kalender SLA), dengan ambang yang sama dengan Rasio Escalated.'
+        value: res.value, unit: res.unit, emptyUnit: 'jam', state: s.sla_state, n: s.resolution_count, nLabel: 'closed'
         emptyNote: 'Belum ada tiket closed di periode ini'
+        scaleKind: 'met', scaleKey: 'frt_target_met'
         current: s.resolution_median_minutes, previous: cmp?.resolution_median_minutes, deltaKind: 'duration', lowerBetter: true
+        context: @slaContext(s, cmp)
         footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.resolution_mean_minutes)
         drill: { metric: 'resolution', label: 'Lihat tiket' }, drillCount: s.resolution_count
       )
@@ -688,11 +742,11 @@ class App.DashboardTeamKpi extends App.Controller
         c = byKey["#{dow}-#{hour}"] || { avg_per_day: 0, total: 0 }
         { x: @pad2(hour), y: c.avg_per_day, total: c.total }
       { name: @WEEKDAYS[dow - 1].substr(0, 3), full: @WEEKDAYS[dow - 1], data: data }
-    { state: 'ready', series: series, max: @fmtNumber(max, 1), summary: @heatmapSummary(heatmap.cells) }
+    { state: 'ready', series: series, max: @fmtNumber(max, 1), summary: @heatmapSummary(heatmap.cells, heatmap.business_hours) }
 
   # Ringkasan pola beban di bawah grid (untuk jadwal shift). Jam kerja =
   # Senin-Jumat 08.00-16.59 (asumsi; bukan dari Setting/kalender SLA).
-  heatmapSummary: (cells) =>
+  heatmapSummary: (cells, bh) =>
     return null if !cells || !_.some(cells, (c) -> c.total > 0)
     top = _.max(cells, (c) -> c.avg_per_day)
     byDay = _.map([1..7], (dow) -> { dow: dow, avg: _.reduce(_.filter(cells, (c) -> c.dow is dow), ((s, c) -> s + c.avg_per_day), 0) })
@@ -700,12 +754,16 @@ class App.DashboardTeamKpi extends App.Controller
     byHour = _.map([0..23], (h) -> { hour: h, avg: _.reduce(_.filter(cells, (c) -> c.hour is h), ((s, c) -> s + c.avg_per_day), 0) / 7 })
     hour = _.max(byHour, (h) -> h.avg)
     total = _.reduce(cells, ((s, c) -> s + c.total), 0)
-    outside = _.reduce(_.filter(cells, (c) -> c.dow > 5 || c.hour < 8 || c.hour >= 17), ((s, c) -> s + c.total), 0)
+    # jam kerja dari kalender default SISKA (heatmap.business_hours, Section 22.6)
+    isWork = (c) ->
+      return c.dow <= 5 && c.hour >= 8 && c.hour < 17 if !bh
+      _.some(bh.days[c.dow] || [], (f) -> c.hour >= Math.floor(f[0]) && c.hour < f[1])
+    outside = _.reduce(_.filter(cells, (c) -> !isWork(c)), ((s, c) -> s + c.total), 0)
     [
       { label: 'Jam tersibuk',     value: "#{@WEEKDAYS[top.dow - 1]} #{@pad2(top.hour)}.00", note: "#{@fmtNumber(top.avg_per_day, 1)} tiket/hari" }
       { label: 'Hari tersibuk',    value: @WEEKDAYS[day.dow - 1], note: "#{@fmtNumber(day.avg, 1)} tiket/hari" }
       { label: 'Jam paling ramai', value: "#{@pad2(hour.hour)}.00–#{@pad2(hour.hour)}.59", note: "rata-rata #{@fmtNumber(hour.avg, 1)} tiket/hari" }
-      { label: 'Di luar jam kerja', value: "#{@fmtNumber(outside / total * 100, 1)}%", note: "#{@fmtNumber(outside, 0)} dari #{@fmtNumber(total, 0)} tiket", note2: 'jam kerja Sen–Jum 08.00–17.00' }
+      { label: 'Di luar jam kerja', value: "#{@fmtNumber(outside / total * 100, 1)}%", note: "#{@fmtNumber(outside, 0)} dari #{@fmtNumber(total, 0)} tiket", note2: @businessHoursText(bh) }
     ]
 
   SLA_MAX_ROWS: 3
@@ -734,18 +792,25 @@ class App.DashboardTeamKpi extends App.Controller
       lateMed:   @fmtDurationText(s.sla_late_median_minutes)
     }
 
-  # Maks. SLA_MAX_ROWS prioritas, dari persentase tepat waktu terendah
-  # (paling perlu perhatian) -- tinggi kartu tetap berapa pun jumlah prioritas.
+  # SLA per help topic (Section 22.6, dimensi SLA SISKA): topik dengan
+  # n >= SMALL_SAMPLE diurutkan dari % tepat waktu terendah (paling perlu
+  # perhatian), maks. SLA_MAX_ROWS; sisanya di tooltip "lainnya".
   slaView: (s) =>
-    rows = _.sortBy(s.sla_by_priority || [], (r) -> if r.within_percent? then r.within_percent else 101)
-    shown = for row in rows.slice(0, @SLA_MAX_ROWS)
+    all  = s.sla_by_help_topic || []
+    big  = _.sortBy(_.filter(all, (r) => r.total >= @SMALL_SAMPLE), (r) -> if r.within_percent? then r.within_percent else 101)
+    rows = big.slice(0, @SLA_MAX_ROWS)
+    rest = _.difference(all, rows)
+    label = (r) -> r.help_topic || '(tanpa help topic)'
+    shown = for row in rows
       pct = row.within_percent
-      { priority: row.priority, pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), late: @fmtNumber(row.late, 0), cls: @slaClass(pct) }
-    rest = rows.slice(@SLA_MAX_ROWS)
+      {
+        label: label(row), target: (if row.target_minutes? then "target #{@fmtWorkDuration(row.target_minutes)}" else null)
+        pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), late: @fmtNumber(row.late, 0), cls: @slaClass(pct)
+      }
     {
       rows: shown
-      more: if rest.length then "+#{rest.length} prioritas lain" else null
-      moreTip: _.map(rest, (r) => "#{r.priority}: #{if r.within_percent? then @fmtNumber(r.within_percent, 1) + '%' else '—'} (n #{@fmtNumber(r.total, 0)})").join(' · ')
+      more: if rest.length then "+#{rest.length} help topic lain" else null
+      moreTip: _.map(rest, (r) => "#{label(r)}: #{if r.within_percent? then @fmtNumber(r.within_percent, 1) + '%' else '—'} (n #{@fmtNumber(r.total, 0)})").join(' · ')
     }
 
   backlogView: (s) =>
@@ -772,8 +837,8 @@ class App.DashboardTeamKpi extends App.Controller
       {
         name: name, initials: initials, unassigned: a.unassigned
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
-        frt: @fmtDurationText(a.frt_median_minutes), frtCls: @metCls(a.frt_target_met_percent)
-        frtTip: "Mean #{@fmtDurationText(a.frt_mean_minutes)} · #{if a.frt_target_met_percent? then @fmtNumber(a.frt_target_met_percent, 1) + '%' else '—'} sesuai target (#{a.frt_target_met_count || 0} dari #{a.frt_count} tiket, pembalas pertama)#{if @data.summary?.frt_time_basis is 'business' then ' · jam kerja' else ''}"
+        frt: @fmtFrt(a.frt_median_minutes), frtCls: @metCls(a.frt_target_met_percent)
+        frtTip: "Mean #{@fmtFrt(a.frt_mean_minutes)} · #{if a.frt_target_met_percent? then @fmtNumber(a.frt_target_met_percent, 1) + '%' else '—'} sesuai target (#{a.frt_target_met_count || 0} dari #{a.frt_count} tiket, pembalas pertama)#{if @data.summary?.frt_time_basis is 'business' then ' · jam kerja' else ''}"
         csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating", csatCls: csatCls
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }

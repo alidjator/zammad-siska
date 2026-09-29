@@ -131,6 +131,8 @@ class Service::Dashboard::TeamKpi
       sla_within_percent:     period[:sla_within_percent],
       sla_late_median_minutes: period[:sla_late_median_minutes],
       sla_by_priority:        sla_by_priority(@range),
+      sla_by_help_topic:      sla_by_help_topic(@range),
+      sla_state:              sla_state(period[:sla_within_percent]),
       ticket_new:             new_count,
       ticket_open:            open_count,
       ticket_escalated:       escalated,
@@ -329,6 +331,43 @@ class Service::Dashboard::TeamKpi
       within_percent:      total.zero? ? nil : (within.to_f / total * 100).round(1),
       late_median_minutes: round_or_nil(late_median, 1),
     }
+  end
+
+  # SLA penyelesaian per help topic (Section 22.6) = dimensi SLA SISKA (57 SLA
+  # berkondisi ticket.help_topic). target_minutes = solution_time SLA topik
+  # itu (menit kerja kalender SLA). sla_by_priority tetap dikirim (klien lama).
+  def sla_by_help_topic(range)
+    targets = sla_solution_by_help_topic
+    sla_tickets(range)
+      .group(:help_topic)
+      .pluck(:help_topic, Arel.sql('COUNT(*)'), Arel.sql(SLA_WITHIN), Arel.sql(SLA_LATE_MEDIAN))
+      .map do |topic, total, ok, late_median|
+        {
+          help_topic:          topic.presence,
+          target_minutes:      targets[topic.to_s],
+          total:               total.to_i,
+          within_sla:          ok.to_i,
+          late:                total.to_i - ok.to_i,
+          within_percent:      total.to_i.zero? ? nil : (ok.to_f / total * 100).round(1),
+          late_median_minutes: round_or_nil(late_median, 1),
+        }
+      end
+      .sort_by { |row| -row[:total] }
+  end
+
+  def sla_solution_by_help_topic
+    Sla.where.not(solution_time: nil).each_with_object({}) do |sla, result|
+      Array(sla.condition.dig('ticket.help_topic', 'value')).each { |topic| result[topic.to_s] ||= sla.solution_time }
+    end
+  end
+
+  # Status kartu Waktu penyelesaian (Section 22.6): % tiket closed dalam
+  # batas SLA (close_escalation_at, dihitung Zammad dengan kalender SLA),
+  # dengan ambang Rasio Escalated atas % terlambat -- sama dengan FRT.
+  def sla_state(within_percent)
+    return nil if within_percent.nil?
+
+    escalated_state((100 - within_percent).round(1))
   end
 
   def sla_by_priority(range)

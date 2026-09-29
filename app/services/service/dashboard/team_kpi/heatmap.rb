@@ -33,6 +33,7 @@ class Service::Dashboard::TeamKpi::Heatmap
 
     {
       timezone:    timezone,
+      business_hours: business_hours,
       window_days: @window_days,
       period:      { from: @range.begin.iso8601, to: @range.end.iso8601 },
       weekdays:    days,
@@ -42,6 +43,31 @@ class Service::Dashboard::TeamKpi::Heatmap
   end
 
   private
+
+  # Jam kerja untuk ringkasan "Di luar jam kerja" (Section 22.6): dari
+  # kalender default SISKA (dipakai semua SLA), bukan ditulis di kode.
+  # { calendar:, days: { dow ISO (1 = Senin) => [[jam mulai, jam selesai], ...] } } dalam jam
+  # desimal; hari tidak aktif = []. Libur nasional tidak dipakai (pola per
+  # jam dalam seminggu).
+  DAY_KEYS = %w[mon tue wed thu fri sat sun].freeze
+
+  def business_hours
+    calendar = Calendar.find_by(default: true) || Calendar.first
+    return nil if !calendar
+
+    hours = calendar.business_hours || {}
+    days = DAY_KEYS.each_with_index.to_h do |key, index|
+      day = hours[key] || {}
+      frames = day['active'] ? Array(day['timeframes']) : []
+      [index + 1, frames.map { |from, to| [to_hours(from), to_hours(to)] }]
+    end
+    { calendar: calendar.name, days: days }
+  end
+
+  def to_hours(value)
+    h, m = value.to_s.split(':').map(&:to_i)
+    h + (m.to_f / 60)
+  end
 
   def timezone
     @timezone ||= Setting.get('timezone_default').presence || 'UTC'
