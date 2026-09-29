@@ -178,7 +178,7 @@
         <% end %>
 
         <% if k.small: %>
-          <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Sampel kecil (n < 30), tafsirkan hati-hati') %></div>
+          <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Hanya %s %s, angka mudah berubah. Status tidak ditampilkan di bawah 30.', k.n, k.nLabel) %></div>
         <% end %>
 
         <% if k.coverage: %>

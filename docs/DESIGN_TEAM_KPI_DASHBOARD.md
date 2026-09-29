@@ -669,3 +669,31 @@ Dibahas satu per satu dari usulan berbasis data 90 hari, jam kerja. Prinsip: tar
 Efek sementara (180 hari, admin): kartu tim **87,0% → 78,9% (Cukup)**, karena CS sekarang lebih ketat sementara grup lain masih memakai target global 4 jam kerja.
 
 **Deploy production:** isi target yang sama di Admin › Groups.
+
+### 22.2 Grup kecil dan sampel kecil (keputusan 29 Sep)
+
+**Target grup kecil: opsi B.** Grup dengan kurang dari 30 tiket FRT per 90 hari **dikosongkan**, jadi memakai target global 4 jam kerja. Target tidak ditarik dari data 1–20 tiket, karena satu tiket menggeser angka 5–13 poin. Yang terkena (staging, 90 hari):
+
+| Grup | Tiket |
+|---|---|
+| Contract & Database | 20 |
+| Payroll & Absence | 19 |
+| Contract Benefit | 16 |
+| Marketing | 13 |
+| Operational Quality Excellence | 8 |
+| 5 grup lain | ≤ 3 |
+
+**Tampilan di bawah 30 data: opsi (ii), status disembunyikan** (`SMALL_SAMPLE` = 30).
+- **Kartu periode** (FRT, CSAT, Reopening): pill **"Sampel kecil"** (oranye) menggantikan status, tanpa skala 5 tingkat. Catatan di kartu: "Hanya N tiket, angka mudah berubah. Status tidak ditampilkan di bawah 30." Angkanya tetap tampil. Kartu real-time tidak terkena.
+- **Tab Per agent:** sel "FRT sesuai target" dan "CSAT" tanpa warna kalau n < 30. Tooltip menambah "sampel kecil, tanpa status".
+- **Ekspor .xlsx:** kolom status di Ringkasan berisi "Sampel kecil".
+- **API tidak berubah:** `*_state` tetap dikirim, supaya klien lain bisa memutuskan sendiri.
+
+### 22.3 Tindak lanjut saat production (WAJIB)
+
+1. **Target grup kecil.** Setelah ±3 bulan data production, cek grup mana yang sudah ≥ 30 tiket FRT per 90 hari. Tetapkan targetnya **bersama pimpinan grup**, berdasarkan janji layanan, lalu isi di Admin › Groups › "Target FRT (menit)". Sampai itu dilakukan, grup tersebut memakai target global.
+2. **Kalibrasi ulang target grup besar** (Customer Services 15 menit kerja; usulan CS_gajianduluan.id 1 hari kerja, Legal 2 hari kerja, Business Support 2 hari kerja) dengan data production, sekitar 1 bulan setelah go-live. Jangan dikaitkan ke penilaian kinerja sebelum itu.
+3. **SLA Operational Quality Excellence.** Tiketnya tidak cocok dengan SLA mana pun, jadi tanpa jam kerja. Periksa kondisi SLA grup ini.
+4. **Grup yang bekerja di luar jam kantor:** buatkan SLA dengan kalender 24/7 atau jam shift-nya (Section 22).
+5. **Kalender libur** "Indonesia/Jakarta": pastikan libur nasional dan cuti bersama tahun berjalan sudah lengkap.
+6. **Live chat di production:** evaluasi target chat 2 menit dengan data chat sungguhan.

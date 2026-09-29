@@ -495,18 +495,24 @@ class App.DashboardTeamKpi extends App.Controller
     active  = (s.ticket_new || 0) + (s.ticket_open || 0)
 
     card = (o) =>
-      o.stateKey   = o.state || 'none'
+      # Sampel kecil (< SMALL_SAMPLE, Section 22.2): status disembunyikan --
+      # pill "Sampel kecil", tanpa skala -- supaya grup/agent kecil tidak
+      # dicap "Buruk" karena 2-3 tiket. Kartu real-time tidak terkena.
+      o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
+      if o.small && o.state
+        o.state     = null
+        o.smallOnly = true
+      o.stateKey   = if o.smallOnly then 'small' else (o.state || 'none')
       o.empty      = o.value is '—'
       # anatomi seragam (docs Section 17): tiap kartu punya pill status;
       # metrik tanpa ambang (Setting) ditandai jelas, bukan dikosongkan
-      o.stateLabel = if o.state then @STATE_LABELS[o.state] else (if o.neutral && !o.empty then 'Belum ada target' else 'Tidak ada data')
+      o.stateLabel = if o.smallOnly then 'Sampel kecil' else if o.state then @STATE_LABELS[o.state] else (if o.neutral && !o.empty then 'Belum ada target' else 'Tidak ada data')
       o.noTarget   = o.neutral && !o.empty
       o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       # tanpa data: placeholder "—" tetap membawa satuan metriknya (— mnt, — / 5)
       o.unit       = o.emptyUnit if o.empty && o.emptyUnit
       # baris bawah yang nilainya ikut kosong (mis. mean) tidak menambah informasi
       o.hideFoot   = o.footValue is '—'
-      o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
       o.illusHtml  = App.view('dashboard/team_kpi_illus')(key: o.illus)
       o.drill      = null if o.drill && !o.drillCount
       if o.live && rc?.available
@@ -764,13 +770,14 @@ class App.DashboardTeamKpi extends App.Controller
     for a in rows.slice(0, 12)
       name = if a.unassigned then 'Belum ditugaskan' else (a.name || '—')
       initials = if a.unassigned then '—' else _.map(name.split(/\s+/).slice(0, 2), (w) -> w.charAt(0).toUpperCase()).join('')
-      csatCls = if !a.csat_average? then 'none' else if a.csat_average >= 4 then 'good' else if a.csat_average >= 3 then 'ok' else 'bad'
+      # warna status hanya untuk n >= SMALL_SAMPLE (Section 22.2)
+      csatCls = if !a.csat_average? || a.csat_count < @SMALL_SAMPLE then 'none' else if a.csat_average >= 4 then 'good' else if a.csat_average >= 3 then 'ok' else 'bad'
       {
         name: name, initials: initials, unassigned: a.unassigned
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
-        frt: (if a.frt_target_met_percent? then "#{@fmtNumber(a.frt_target_met_percent, 1)}%" else '—'), frtCls: @metCls(a.frt_target_met_percent)
-        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)}#{if @data.summary?.frt_time_basis is 'business' then ' kerja' else ''} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)"
-        csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating", csatCls: csatCls
+        frt: (if a.frt_target_met_percent? then "#{@fmtNumber(a.frt_target_met_percent, 1)}%" else '—'), frtCls: (if a.frt_count < @SMALL_SAMPLE then 'none' else @metCls(a.frt_target_met_percent))
+        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)}#{if @data.summary?.frt_time_basis is 'business' then ' kerja' else ''} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)#{if a.frt_count < @SMALL_SAMPLE then ' · sampel kecil, tanpa status' else ''}"
+        csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating#{if a.csat_count < @SMALL_SAMPLE then ' · sampel kecil, tanpa status' else ''}", csatCls: csatCls
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }
 

@@ -2212,3 +2212,11 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ---- sampel kecil (Section 22.2): pill pengganti status di bawah 30 data
+.team-kpi {
+  .team-kpi-badge.is-small {
+    background: $kpi-warning-tint;
+    color: $kpi-warning-text;
+  }
+}

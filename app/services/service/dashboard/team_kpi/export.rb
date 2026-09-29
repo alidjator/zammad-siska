@@ -150,7 +150,13 @@ class Service::Dashboard::TeamKpi::Export
     end
   end
 
-  def state(value)
+  # n = ukuran sampel; di bawah SMALL_SAMPLE status diganti "Sampel kecil"
+  # (sama dengan tampilan, Section 22.2). Kartu real-time tanpa n.
+  SMALL_SAMPLE = 30
+
+  def state(value, n = nil)
+    return 'Sampel kecil' if value && n && n.positive? && n < SMALL_SAMPLE
+
     STATE_LABELS[value]
   end
 
@@ -170,13 +176,13 @@ class Service::Dashboard::TeamKpi::Export
 
     records = [
       # status FRT = % tiket sesuai target grup/kanalnya (Section 20); median tanpa status
-      ['FRT sesuai target', s[:frt_target_met_percent], '%', s[:frt_count], state(s[:frt_target_state]), c[:frt_target_met_percent], delta(s[:frt_target_met_percent], c[:frt_target_met_percent]), 'Periode'],
+      ['FRT sesuai target', s[:frt_target_met_percent], '%', s[:frt_count], state(s[:frt_target_state], s[:frt_count]), c[:frt_target_met_percent], delta(s[:frt_target_met_percent], c[:frt_target_met_percent]), 'Periode'],
       ['First Response Time (median)', s[:frt_median_minutes], 'menit', s[:frt_count], nil, c[:frt_median_minutes], delta(s[:frt_median_minutes], c[:frt_median_minutes]), 'Periode'],
       ['First Response Time (mean)', s[:frt_mean_minutes], 'menit', s[:frt_count], nil, c[:frt_mean_minutes], delta(s[:frt_mean_minutes], c[:frt_mean_minutes]), 'Periode'],
-      ['CSAT', s[:csat_average], '1-5', s[:csat_count], state(s[:csat_state]), c[:csat_average], delta(s[:csat_average], c[:csat_average]), 'Periode'],
+      ['CSAT', s[:csat_average], '1-5', s[:csat_count], state(s[:csat_state], s[:csat_count]), c[:csat_average], delta(s[:csat_average], c[:csat_average]), 'Periode'],
       ['Waktu penyelesaian (median)', s[:resolution_median_minutes], 'menit', s[:resolution_count], nil, c[:resolution_median_minutes], delta(s[:resolution_median_minutes], c[:resolution_median_minutes]), 'Periode'],
       ['Waktu penyelesaian (mean)', s[:resolution_mean_minutes], 'menit', s[:resolution_count], nil, c[:resolution_mean_minutes], delta(s[:resolution_mean_minutes], c[:resolution_mean_minutes]), 'Periode'],
-      ['Reopening rate', s[:reopen_rate_percent], '%', s[:reopen_closed_count], state(s[:reopen_state]), c[:reopen_rate_percent], delta(s[:reopen_rate_percent], c[:reopen_rate_percent]), 'Periode'],
+      ['Reopening rate', s[:reopen_rate_percent], '%', s[:reopen_closed_count], state(s[:reopen_state], s[:reopen_closed_count]), c[:reopen_rate_percent], delta(s[:reopen_rate_percent], c[:reopen_rate_percent]), 'Periode'],
       ['SLA penyelesaian (tepat waktu)', s[:sla_within_percent], '%', s[:sla_total], nil, c[:sla_within_percent], delta(s[:sla_within_percent], c[:sla_within_percent]), 'Periode'],
       ['SLA terlambat', s[:sla_late], 'tiket', s[:sla_total], nil, c[:sla_late], delta(s[:sla_late], c[:sla_late]), 'Periode'],
       ['Median keterlambatan SLA', s[:sla_late_median_minutes], 'menit', s[:sla_late], nil, c[:sla_late_median_minutes], delta(s[:sla_late_median_minutes], c[:sla_late_median_minutes]), 'Periode'],
