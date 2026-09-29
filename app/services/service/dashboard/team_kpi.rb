@@ -108,6 +108,11 @@ class Service::Dashboard::TeamKpi
       frt_mean_minutes:       period[:frt_mean_minutes],
       frt_count:              period[:frt_count],
       frt_state:              frt_state(period[:frt_median_minutes]),
+      frt_target_met_count:   period[:frt_target_met_count],
+      frt_target_met_percent: period[:frt_target_met_percent],
+      frt_target_minutes:     period[:frt_target_minutes],
+      frt_target_basis:       Service::Dashboard::TeamKpi::Scope.frt_target_basis,
+      frt_target_state:       frt_target_state(period[:frt_target_met_percent]),
       csat_average:           period[:csat_average],
       csat_count:             period[:csat_count],
       csat_state:             csat_state(period[:csat_average]),
@@ -187,6 +192,7 @@ class Service::Dashboard::TeamKpi
   def thresholds
     {
       frt:             Setting.get('team_kpi_frt_thresholds'),
+      frt_target_met:  Setting.get('team_kpi_frt_target_met_thresholds'),
       csat:            Setting.get('team_kpi_csat_thresholds'),
       escalated:       Setting.get('team_kpi_escalated_thresholds'),
       eskalasi_breach: Setting.get('team_kpi_eskalasi_breach_thresholds'),
@@ -207,7 +213,7 @@ class Service::Dashboard::TeamKpi
   # Everything that depends on the selected period (so it has a
   # comparison-period counterpart). Real-time snapshots are not here.
   def period_metrics(range)
-    frt_median, frt_mean, frt_count = frt(range)
+    frt_median, frt_mean, frt_count, frt_met, target_min, target_max = frt(range)
     csat_avg, csat_count            = csat(range)
     res_median, res_mean, res_count = resolution(range)
     reopen_count, closed_count      = reopen(range)
@@ -217,6 +223,10 @@ class Service::Dashboard::TeamKpi
       frt_median_minutes:        frt_median,
       frt_mean_minutes:          frt_mean,
       frt_count:                 frt_count,
+      frt_target_met_count:      frt_met,
+      frt_target_met_percent:    frt_count.zero? ? nil : (frt_met.to_f / frt_count * 100).round(1),
+      # satu target untuk seluruh populasi (menit), atau nil kalau campuran
+      frt_target_minutes:        target_min && target_min == target_max ? round_or_nil(target_min, 1) : nil,
       csat_average:              csat_avg,
       csat_count:                csat_count,
       resolution_median_minutes: res_median,
@@ -237,12 +247,19 @@ class Service::Dashboard::TeamKpi
   # chat measured from the start of the chat session). Median
   # is the headline, mean on the same population flags a long tail of
   # slow outliers the median alone hides (docs/DESIGN_REPORTING_FRT.md s.3).
+  #
+  # Target (Section 20): tiap tiket dinilai dengan target grup/kanalnya
+  # sendiri; met = jumlah tiket dengan FRT <= targetnya. target_min/max
+  # sama = satu target berlaku untuk seluruh populasi (mis. filter 1 grup).
   def frt(range)
     minutes = Service::Dashboard::TeamKpi::Scope::FRT_MINUTES_SQL
-    median, mean, count = @scope.frt_tickets(range)
-      .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'))
+    target  = Service::Dashboard::TeamKpi::Scope.frt_target_sql
+    median, mean, count, met, target_min, target_max = @scope.frt_tickets(range)
+      .joins(Service::Dashboard::TeamKpi::Scope::FRT_TARGET_JOIN)
+      .pick(Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("AVG(#{minutes})"), Arel.sql('COUNT(*)'),
+            Arel.sql("COUNT(*) FILTER (WHERE #{minutes} <= #{target})"), Arel.sql("MIN(#{target})"), Arel.sql("MAX(#{target})"))
 
-    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i]
+    [round_or_nil(median, 1), round_or_nil(mean, 1), count.to_i, met.to_i, target_min&.to_f, target_max&.to_f]
   end
 
   def csat(range)
@@ -417,6 +434,26 @@ class Service::Dashboard::TeamKpi
       'good'
     else
       'supergood'
+    end
+  end
+
+  # % tiket sesuai target FRT (Section 20), makin tinggi makin baik.
+  def frt_target_state(percent)
+    return nil if percent.nil?
+
+    t = Setting.get('team_kpi_frt_target_met_thresholds')
+    return nil if t.blank?
+
+    if percent >= t['supergood_min'].to_f
+      'supergood'
+    elsif percent >= t['good_min'].to_f
+      'good'
+    elsif percent >= t['ok_min'].to_f
+      'ok'
+    elsif percent >= t['bad_min'].to_f
+      'bad'
+    else
+      'superbad'
     end
   end
 

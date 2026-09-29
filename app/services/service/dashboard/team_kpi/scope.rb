@@ -81,6 +81,54 @@ class Service::Dashboard::TeamKpi::Scope
   FRT_START_SQL   = 'LEAST(COALESCE(frt_chat.started_at, tickets.created_at), tickets.created_at)'.freeze
   FRT_MINUTES_SQL = "EXTRACT(EPOCH FROM (tickets.first_response_at - #{FRT_START_SQL})) / 60".freeze
 
+  # Target FRT per tiket (Section 20): dari grupnya (Group#frt_target_minutes,
+  # default) atau dari kanal pembuat tiketnya (Setting
+  # team_kpi_frt_target_by_channel), sesuai Setting team_kpi_frt_target_basis.
+  # Isian kosong = target global = good_max di team_kpi_frt_thresholds.
+  # Dipakai bersama FRT_TARGET_JOIN di atas frt_tickets.
+  FRT_TARGET_CHANNELS = {
+    'email'    => 'email',
+    'web'      => 'web',
+    'phone'    => 'phone',
+    'chat'     => 'chat',
+    'sms'      => 'sms',
+    'telegram' => 'telegram personal-message',
+    'whatsapp' => 'whatsapp message',
+  }.freeze
+  FRT_TARGET_JOIN = <<~SQL.squish.freeze
+    JOIN groups frt_g ON frt_g.id = tickets.group_id
+    LEFT JOIN ticket_article_types frt_at ON frt_at.id = tickets.create_article_type_id
+  SQL
+
+  def self.frt_target_basis
+    Setting.get('team_kpi_frt_target_basis') == 'channel' ? 'channel' : 'group'
+  end
+
+  def self.frt_target_global_minutes
+    (Setting.get('team_kpi_frt_thresholds') || {})['good_max'].to_f
+  end
+
+  # SQL expression: target (menit) untuk baris tiket saat ini.
+  def self.frt_target_sql
+    global = frt_target_global_minutes
+    if frt_target_basis == 'channel'
+      map   = Setting.get('team_kpi_frt_target_by_channel') || {}
+      whens = FRT_TARGET_CHANNELS.filter_map do |key, type_name|
+        minutes = map[key].to_f
+        next if minutes <= 0
+
+        "WHEN #{ActiveRecord::Base.connection.quote(type_name)} THEN #{minutes}"
+      end
+      return global.to_s if whens.empty?
+
+      "COALESCE(CASE frt_at.name #{whens.join(' ')} END, #{global})"
+    elsif Group.column_names.include?('frt_target_minutes')
+      "COALESCE(NULLIF(frt_g.frt_target_minutes, 0), #{global})"
+    else
+      global.to_s
+    end
+  end
+
   def frt_tickets(range)
     tickets
       .joins(FRT_CHAT_JOIN)

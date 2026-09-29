@@ -526,3 +526,48 @@ Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi m
 **Deploy production:** jalankan `script/create_team_kpi_agents_permission.rb`, beri role Supervisor KPI ke daftar supervisor, lalu buat ulang token Laravel.
 
 **Pengujian.** `tabs_test.js` 44 skenario. Skenario "akses per agent (Section 19)" memakai stub `permissionCheck` yang meniru pewarisan induk Zammad: `team_kpi.agents` dan `admin` melihat tab Per agent; `report` dan `report` + `report.unlimited_download` tidak; agent biasa tidak.
+
+## 20. Target FRT per Grup atau per Kanal (29 Sep 2026)
+
+**Latar belakang.** Ambang FRT sebelumnya satu untuk semua tiket (`team_kpi_frt_thresholds`: Sangat baik ≤ 60, Baik ≤ 240, Cukup ≤ 480, Buruk ≤ 1440 menit). Data staging 90 hari menunjukkan FRT median per grup sangat berbeda: Customer Services 0,1 jam, CS_gajianduluan.id 6,1 jam, Business Support 4,9 jam, Corporate Legal 46,3 jam, Operational Quality Excellence 56,4 jam. Per kanal perbedaannya kecil (0–0,4 jam). Satu target membuat agent grup spesialis selalu merah, padahal SLA penyelesaiannya 100% (mockup `TeamKpi-Agent`).
+
+**Keputusan user.**
+- Target bisa diatur: per grup (default) atau per kanal.
+- Per grup/kanal diisi satu angka (batas "Baik").
+- Kalau tampilan mencakup banyak grup, status = **% tiket sesuai target**: tiap tiket dinilai dengan target grup/kanalnya sendiri.
+
+**Tempat mengatur** (dibuat `script/create_team_kpi_frt_target.rb`):
+
+| Isian | Tempat | Keterangan |
+|---|---|---|
+| `Group.frt_target_minutes` "Target FRT (menit)" | Admin › Groups › edit grup | atribut ObjectManager (integer, boleh kosong). Kosong = target global |
+| `team_kpi_frt_target_basis` "Dasar target FRT" | Admin › SISKA › KPI Tim | `group` (default) / `channel` |
+| `team_kpi_frt_target_by_channel` "Target FRT per kanal (menit)" | Admin › SISKA › KPI Tim | Email, Web, Phone, Chat, SMS, Telegram, WhatsApp. Kosong = target global |
+| `team_kpi_frt_target_met_thresholds` "Ambang % tiket sesuai target FRT" | Admin › SISKA › KPI Tim | default Sangat baik ≥ 90%, Baik ≥ 80%, Cukup ≥ 70%, Buruk ≥ 50% |
+
+**Target global** = `good_max` di `team_kpi_frt_thresholds` (240 menit).
+
+**Perhitungan** (`Scope.frt_target_sql` + `FRT_TARGET_JOIN`, di `TeamKpi#frt`): populasi sama dengan FRT (`Scope#frt_tickets`: tiket dibuat customer, live chat sejak sesi dimulai). Target per tiket = `COALESCE(NULLIF(groups.frt_target_minutes, 0), global)`, atau `CASE ticket_article_types.name … END` untuk dasar per kanal. Dihitung `COUNT(*) FILTER (WHERE frt <= target)`, serta MIN/MAX target.
+
+**Field API baru** di ringkasan dan `comparison` (field lama tidak berubah):
+
+| Field | Isi |
+|---|---|
+| `frt_target_met_count`, `frt_target_met_percent` | jumlah dan % tiket dengan FRT ≤ targetnya |
+| `frt_target_minutes` | target (menit) kalau satu target berlaku untuk seluruh populasi (mis. filter satu grup); `null` kalau campuran |
+| `frt_target_basis` | `group` / `channel` |
+| `frt_target_state` | status dari % sesuai target (supergood … superbad), `null` kalau Setting ambang belum ada |
+| `thresholds.frt_target_met` | ambang % yang dipakai |
+
+**Diuji di staging** (180 hari, admin; target Legal diuji dalam transaksi yang di-rollback):
+
+| Skenario | % sesuai target | Target | Status |
+|---|---|---|---|
+| belum ada target grup (semua 240 menit) | 68,1% (2.299 / 3.377, cocok dengan hitungan independen) | 240 | Buruk |
+| Legal = 48 jam, semua grup | 73,4% | campuran (`null`) | Cukup |
+| filter Legal saja | 67,8% | 2.880 | Buruk |
+| filter Customer Services saja | 80,9% | 240 | Baik |
+| per kanal (email 60, web 480) | 61,2% | campuran | Buruk |
+| per kanal, filter email | 56,7% | 60 | Buruk |
+
+**Perhatian untuk tampilan (belum diubah):** kartu FRT sekarang masih berstatus dari median vs ambang global. 180 hari: median 19,7 menit = "Sangat baik". Dengan status baru, angka yang sama menjadi **68% sesuai target = "Buruk"**, karena 32% tiket menunggu lebih dari 4 jam. Ini perubahan makna yang terlihat. Ambang % (90/80/70/50) dan target tiap grup perlu dikalibrasi bersama tim sebelum tampilan diganti. Tampilan kartu menunggu mockup disetujui.
