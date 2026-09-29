@@ -8,7 +8,7 @@
     <div class="siska-chat-header-actions">
       <label class="s-switch siska-chat-online">
         <input type="checkbox" class="js-onlineSwitch">
-        <span class="js-onlineLabel"></span>
+        <span><span class="js-onlineLabel"></span><span class="siska-chat-online-sub js-onlineSub hidden"></span></span>
       </label>
       <button type="button" class="s-btn s-btn-outline-secondary siska-chat-settings js-settings">
         <%- @SiskaIcon('gear-six', 16) %>
@@ -25,6 +25,13 @@
     <%- @SiskaIcon('wifi-slash', 20) %>
     <span class="siska-chat-offline-text"><%- @T('You are |offline|. New chats will not be assigned to you until you go online.') %></span>
     <button type="button" class="s-btn s-btn-primary s-btn-sm js-goOnline"><%- @T('Go online') %></button>
+  </div>
+  <!-- AUX tidak Available padahal toggle Online (mockup CustomerChat-AuxInfo): pola
+  banner offline di atas (.s-alert-warning + .s-btn-sm), docs/DESIGN_AUX_STATUS.md -->
+  <div class="s-alert s-alert-warning siska-chat-offline js-chatView js-auxBanner hidden" role="status">
+    <%- @SiskaIcon('warning', 20) %>
+    <span class="siska-chat-offline-text js-auxText"></span>
+    <button type="button" class="s-btn s-btn-primary s-btn-sm js-auxAvailable"><%- @T('Set to Available') %></button>
   </div>
   <!-- Auto-offline karena tidak aktif (away timeout): banner kit
   menggantikan @notify global (toast gelap 24 jam). Tertutup otomatis

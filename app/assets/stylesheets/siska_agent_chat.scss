@@ -2243,3 +2243,13 @@ $siska-thumb-h: 180px;
   color: $siska-primary;
   font-weight: 500;
 }
+
+// Keterangan di bawah label toggle saat Online tapi AUX tidak Available
+// (mockup CustomerChat-AuxInfo); warna = teks banner warning (.siska-chat-offline).
+.siska-agent .siska-chat-online-sub {
+  display: block;
+  font-size: 12px;
+  color: #b04a00;
+
+  &.hidden { display: none; }
+}

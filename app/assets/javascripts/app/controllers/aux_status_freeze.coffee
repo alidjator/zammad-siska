@@ -34,7 +34,13 @@
 class App.AuxStatusFreezeWidget extends App.Controller
   @current: null
 
+  # jumlah chat berjalan milik agent (dikirim halaman Customer Chat,
+  # 'siska-chat:running'), untuk pengingat di layar freeze
+  @runningChats: 0
+
   @sync: ->
+    # halaman lain yang menampilkan status AUX (banner Customer Chat) ikut diperbarui
+    App.Event.trigger('aux-status:sync')
     status    = App.Session.get('aux_status')
     expiresAt = App.Session.get('aux_status_expires_at')
 
@@ -51,6 +57,10 @@ class App.AuxStatusFreezeWidget extends App.Controller
 
   constructor: (@options = {}) ->
     super
+    @onRunning = (count) =>
+      App.AuxStatusFreezeWidget.runningChats = count
+      @renderRunning()
+    App.Event.bind('siska-chat:running', @onRunning)
     @renderOverlay()
     @tick()
     @interval = setInterval(@tick, 1000)
@@ -62,6 +72,15 @@ class App.AuxStatusFreezeWidget extends App.Controller
     @el = $(App.view('aux_status_freeze')(statusName: statusName))
     @el.appendTo('body')
     @el.find('.js-aux-status-end-break').on('click', @endBreak)
+    @renderRunning()
+
+  # Pengingat chat yang masih berjalan selama freeze (customer menunggu balasan)
+  renderRunning: =>
+    count = App.AuxStatusFreezeWidget.runningChats || 0
+    note  = @el?.find('.js-aux-status-chats')
+    return if !note?.length
+    note.toggleClass('hide', count is 0)
+    note.find('.js-aux-status-chats-text').text(App.i18n.translatePlain('%s chat(s) still running, customers are waiting for a reply', count)) if count
 
   tick: =>
     remainingMs = @options.expiresAt.getTime() - Date.now()
@@ -94,5 +113,9 @@ class App.AuxStatusFreezeWidget extends App.Controller
     )
 
   teardown: ->
+    App.Event.unbind('siska-chat:running', @onRunning)
     clearInterval(@interval) if @interval
     @el?.remove()
+
+# simpan jumlah chat berjalan terakhir walau layar freeze belum tampil
+App.Event.bind('siska-chat:running', (count) -> App.AuxStatusFreezeWidget.runningChats = count)

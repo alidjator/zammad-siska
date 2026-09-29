@@ -18,6 +18,7 @@ class App.CustomerChat extends App.Controller
     'change .js-onlineSwitch': 'onOnlineSwitch'
     'input .js-listSearch':    'onListSearch'
     'click .js-goOnline':      'onGoOnline'
+    'click .js-auxAvailable':  'onAuxAvailable'
     'click .js-awayDismiss':   'dismissAwayNotice'
     'click .js-acceptDismiss': 'dismissAcceptOverlay'
     'click .js-settingsCancel': 'closeSettings'
@@ -32,6 +33,9 @@ class App.CustomerChat extends App.Controller
     '.js-onlineLabel':  'onlineLabel'
     '.js-detailEmpty':  'detailEmpty'
     '.js-offlineBanner': 'offlineBanner'
+    '.js-auxBanner':     'auxBanner'
+    '.js-auxText':       'auxText'
+    '.js-onlineSub':     'onlineSub'
     '.js-awayNotice':    'awayNotice'
     '.js-connectionBanner': 'connectionBanner'
     '.js-acceptOverlay': 'acceptOverlay'
@@ -127,6 +131,9 @@ class App.CustomerChat extends App.Controller
     App.WebSocket.send(event:'chat_status_agent')
 
     # rerender view, e. g. on langauge change
+    # status AUX berubah (menu avatar, supervisor, layar freeze): banner AUX ikut
+    @controllerBind('aux-status:sync', => @renderHeader())
+
     @controllerBind('ui:rerender chat:rerender', =>
       return if !@authenticateCheck()
       for session_id, chat of @chatWindows
@@ -305,7 +312,8 @@ class App.CustomerChat extends App.Controller
     parts = [
       App.i18n.translateInline('%s in progress', running)
       App.i18n.translateInline('%s waiting', waiting)
-      App.i18n.translateInline('%s active agents', @meta.active_agent_count || 0)
+      # active_agent_count = agent Online + AUX Available (Chat.active_agent_count)
+      App.i18n.translateInline('%s agents ready for chats', @meta.active_agent_count || 0)
     ]
     @summary.html(parts.join(' &middot; '))
 
@@ -316,6 +324,9 @@ class App.CustomerChat extends App.Controller
     @onlineSwitch.prop('checked', active)
     @onlineLabel.text(App.i18n.translatePlain(if active then 'Online' else 'Offline'))
     @offlineBanner.toggleClass('hidden', !@metaLoaded || active)
+    @renderAuxState(active)
+    # jumlah chat berjalan untuk layar freeze AUX (aux_status_freeze.coffee)
+    App.Event.trigger('siska-chat:running', running)
     # Kembali online -> banner "away timeout" ikut tertutup otomatis
     # (dipicu tombol Online/Go online yg keduanya lewat `switch` ->
     # `renderHeader`). Tidak pernah DImunculkan di sini -- hanya `checkAway`
@@ -326,6 +337,35 @@ class App.CustomerChat extends App.Controller
     # pertama tiba (`@metaLoaded` masih false) tetap versi online,
     # supaya tidak berkedip abu-abu sesaat saat halaman dibuka.
     @detailEmpty?.toggleClass('is-offline', @metaLoaded && !active)
+
+  # Toggle Online tapi AUX bukan Available (mis. Offline, atau status tanpa
+  # durasi): Chat.active_agent_count tidak menghitung agent ini, jadi chat
+  # baru tidak masuk. Status berdurasi (Busy) sudah ditutup layar freeze.
+  # Mockup CustomerChat-AuxInfo; docs/DESIGN_AUX_STATUS.md.
+  renderAuxState: (active) =>
+    return if !@auxBanner?.length
+    aux      = App.Session.get('aux_status') || 'available'
+    notReady = aux isnt 'available'
+    label    = App.AuxStatusSwitch?.findOption(aux)?.label || aux
+    show     = !!(@metaLoaded && active && notReady)
+    @auxBanner.toggleClass('hidden', !show)
+    @onlineSub.toggleClass('hidden', !show)
+    return if !show
+    @auxText.html(App.i18n.translateInline('Your AUX status is |%s|. New chats will not be assigned to you, even though you are online.', label))
+    @onlineSub.text(App.i18n.translatePlain('not receiving chats (AUX %s)', label))
+
+  onAuxAvailable: (e) =>
+    e.preventDefault()
+    @ajax(
+      id:          'aux-status-switch'
+      type:        'PUT'
+      url:         "#{@apiPath}/aux_status"
+      data:        JSON.stringify(status: 'available')
+      processData: true
+      success:     (data) =>
+        App.User.refresh([data], clear: false)
+        App.Event.trigger('personal:render')
+    )
 
   onGoOnline: (e) =>
     e.preventDefault()

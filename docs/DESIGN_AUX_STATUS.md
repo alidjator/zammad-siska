@@ -383,3 +383,20 @@ Ketiganya diterapkan ke `manage/aux_status_table.jst.eco` MENIRU markup nativeny
 ---
 
 *Riset, keputusan desain, desain teknis rinci, dan implementasi inti (termasuk UI override supervisor) sudah selesai dan terverifikasi (Section 6). Permission `aux_status.override` sudah dikonfirmasi tersimpan di Role "Admin". Bug tampilan (teks status/divider, 6f) dan bug halaman Manage macet loading (6k) sudah diperbaiki. Fitur layar freeze + popup timer (6h), editor baris untuk Setting AUX Status (6l, menggantikan textarea JSON), pagination (6m, reuse partial native `table_pager`), halaman Manage jadi search-first bukan load-semua (6o), dan Setting ukuran halaman (6q) sudah dibangun dan di-deploy, backend sudah diuji langsung. Sisa: verifikasi UI interaktif untuk fitur-fitur baru dan testing multi-agent nyata di luar Group QA (Section 6r).*
+
+## Keterangan status AUX di Customer Chat & layar freeze (29 Sep 2026)
+
+**Masalah (tangkapan layar user):** toggle Customer Chat **Online**, tapi status AUX **Offline**. `Chat.active_agent_count` hanya menghitung agent yang AUX-nya `available`, jadi header menampilkan "0 active agents" dan widget customer menampilkan "We're offline". Tidak ada penjelasan kenapa.
+
+**Implementasi** (mockup `CustomerChat-AuxInfo` di kanvas desain; komponen kit halaman chat):
+
+| Tempat | Perubahan |
+|---|---|
+| Header Customer Chat (`customer_chat/index.jst.eco`, `chat.coffee#renderAuxState`) | Kalau toggle Online **dan** AUX ≠ Available: banner `s-alert s-alert-warning siska-chat-offline` (pola banner "You are offline" yang sudah ada) "Your AUX status is **X**. New chats will not be assigned to you, even though you are online.", dengan tombol `s-btn s-btn-primary s-btn-sm` **Set to Available** (`PUT /api/v1/aux_status`). Di bawah label toggle: "not receiving chats (AUX X)" |
+| Ringkasan header | "%s active agents" → **"%s agents ready for chats"** (= agent Online + AUX Available, sama dengan yang dihitung server) |
+| Layar freeze (`aux_status_freeze.jst.eco/.coffee`) | Kalimat "During this status, new chats and tickets are not assigned to you. You stay online.", plus pengingat "**N chat(s) still running**, customers are waiting for a reply" kalau agent masih punya chat berjalan. Jumlahnya dikirim halaman Customer Chat lewat event `siska-chat:running` |
+| Sinkron | `AuxStatusFreezeWidget.sync` memicu event `aux-status:sync`, yang didengar halaman chat, sehingga banner ikut berubah saat AUX diganti dari menu avatar, oleh supervisor, atau dari layar freeze |
+
+Teks sumber berbahasa Inggris, terjemahan Indonesia di `i18n/siska.id.po` (pola yang sama dengan string panel chat lain).
+
+**Catatan:** status berdurasi (Busy) sudah ditutup layar freeze, jadi banner header praktis muncul untuk AUX Offline dan untuk status tanpa durasi yang ditambahkan admin. Saran lanjutan (belum dikerjakan): hapus "Offline" dari AUX dan pakai kehadiran bawaan Zammad. Syaratnya, distribusi tiket harus lebih dulu mengecek agent sedang online.

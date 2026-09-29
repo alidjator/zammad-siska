@@ -628,3 +628,27 @@ msgstr "Agent terputus. Chat dialihkan ke tiket #%s."
 
 msgid "The agent was disconnected. The chat was moved to a ticket."
 msgstr "Agent terputus. Chat dialihkan ke tiket."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "%s agents ready for chats"
+msgstr "%s agen siap menerima chat"
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "Your AUX status is |%s|. New chats will not be assigned to you, even though you are online."
+msgstr "Status AUX Anda |%s|. Chat baru tidak diberikan kepada Anda walaupun Anda Online."
+
+#: app/assets/javascripts/app/controllers/chat.coffee
+msgid "not receiving chats (AUX %s)"
+msgstr "tidak menerima chat (AUX %s)"
+
+#: app/assets/javascripts/app/views/customer_chat/index.jst.eco
+msgid "Set to Available"
+msgstr "Ubah ke Available"
+
+#: app/assets/javascripts/app/views/aux_status_freeze.jst.eco
+msgid "During this status, new chats and tickets are not assigned to you. You stay online."
+msgstr "Selama status ini, chat dan tiket baru tidak diberikan kepada Anda. Anda tetap online."
+
+#: app/assets/javascripts/app/controllers/aux_status_freeze.coffee
+msgid "%s chat(s) still running, customers are waiting for a reply"
+msgstr "%s chat masih berjalan, customer menunggu balasan"

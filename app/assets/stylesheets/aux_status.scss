@@ -103,3 +103,31 @@
     min-width: 80px;
   }
 }
+
+// Keterangan freeze (mockup CustomerChat-AuxInfo): chat & tiket baru tidak
+// masuk, dan pengingat chat yang masih berjalan -- warna pola .s-alert-warning
+// panel chat (siska_agent_chat.scss: tint rgba(210,89,0,.1), teks #b04a00).
+.aux-status-freeze-note {
+  max-width: 360px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.aux-status-freeze-chats {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(210, 89, 0, 0.1);
+  color: #b04a00;
+  font-size: 13px;
+
+  &.hide { display: none; }
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+}
