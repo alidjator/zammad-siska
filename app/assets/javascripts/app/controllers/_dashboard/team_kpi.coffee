@@ -3,7 +3,7 @@
 # Pro seperti panel agent (siska_agent_chat.scss). Data dari endpoint Fase
 # 2/3 (docs/DESIGN_TEAM_KPI_DASHBOARD.md Section 10-12):
 #   /team_kpi (kartu, antrian, SLA, backlog, pembanding, ambang),
-#   /team_kpi/trend, /team_kpi/heatmap, /team_kpi/agents (hanya report/admin),
+#   /team_kpi/trend, /team_kpi/heatmap, /team_kpi/agents (hanya team_kpi.agents/admin),
 #   /team_kpi/export (unduhan .xlsx dengan filter yang sama).
 #
 # Semua hitungan tampilan (skala state, delta, data grafik, ringkasan heatmap)
@@ -781,7 +781,7 @@ class App.DashboardTeamKpi extends App.Controller
         slaBadge = { text: "#{@fmtNumber(s.sla_within_percent, 1)}%", cls: 'is-danger', tip: "SLA penyelesaian #{@fmtNumber(s.sla_within_percent, 1)}% (di bawah 75%)" }
       else if old?.count > 0
         slaBadge = { text: @fmtNumber(old.count, 0), cls: 'is-warning', tip: "#{@fmtNumber(old.count, 0)} tiket backlog berumur ≥ 30 hari" }
-    # dari ringkasan (agents_active_count, hanya report/admin), jadi tampil
+    # dari ringkasan (agents_active_count, hanya team_kpi.agents/admin), jadi tampil
     # tanpa harus memuat tabel agent dulu
     agentsBadge = null
     if s?.agents_active_count > 0

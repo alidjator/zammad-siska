@@ -331,7 +331,7 @@
         <div class="team-kpi-section-head">
           <div>
             <div class="team-kpi-section-title"><%- @T('Performa per agent') %></div>
-            <div class="team-kpi-muted"><%- @T('Tiket = dibuat di periode (%s) · Escalated & Breach real-time · hanya untuk permission report/admin', @basis) %></div>
+            <div class="team-kpi-muted"><%- @T('Tiket = dibuat di periode (%s) · Escalated & Breach real-time · hanya untuk Supervisor KPI/admin', @basis) %></div>
           </div>
         </div>
         <% if @agentsState is 'loading': %>
