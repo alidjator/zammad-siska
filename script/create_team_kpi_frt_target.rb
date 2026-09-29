@@ -9,8 +9,10 @@
 #   - Setting team_kpi_frt_target_basis: 'group' (default) | 'channel'.
 #   - Setting team_kpi_frt_target_by_channel: one number per channel, used
 #     when the basis is 'channel'. Blank = global target.
-#   - Setting team_kpi_frt_time_basis (Section 22): 'business' (default,
-#     first_response_in_min = menit kerja kalender SLA) | 'calendar'.
+#   - Setting team_kpi_frt_time_basis (Section 22): 'calendar' (default,
+#     = Reporting FRT) | 'business' (first_response_in_min, kalender SLA).
+#   - Setting team_kpi_frt_target_by_help_topic (Section 22.5): one target
+#     per SLA (= per help topic), the default basis.
 #   - Setting team_kpi_frt_target_chat_minutes (Section 22): target live
 #     chat in plain minutes since the chat started, default 4 (= widget
 #     waitingListTimeout); always used
@@ -51,29 +53,55 @@ ObjectManager::Attribute.migration_execute
 Group.reset_column_information
 
 puts '== Setting: team_kpi_frt_target_basis =='
+# Default per help topic = dimensi SLA SISKA (Section 22.5). Opsinya ditulis
+# ulang tiap run supaya Setting lama (group/channel saja) ikut diperbarui.
+basis_options = {
+  form: [
+    {
+      display: '',
+      null:    false,
+      name:    'team_kpi_frt_target_basis',
+      tag:     'select',
+      options: {
+        'help_topic' => 'Per help topic (default, sama dengan SLA)',
+        'group'      => 'Per grup (field Target FRT di Admin > Groups)',
+        'channel'    => 'Per kanal',
+      },
+    },
+  ],
+}
 Setting.create_if_not_exists(
   title:       'KPI Tim: Dasar target FRT',
   name:        'team_kpi_frt_target_basis',
   area:        'TeamKpi::Base',
-  description: 'Target FRT tiap tiket diambil dari grupnya (field "Target FRT (menit)" di Admin > Groups) atau dari kanal tiketnya (Setting "Target FRT per kanal"). Isian kosong memakai target global = batas "Good max" di "KPI Tim FRT thresholds".',
-  options:     {
-    form: [
-      {
-        display: '',
-        null:    false,
-        name:    'team_kpi_frt_target_basis',
-        tag:     'select',
-        options: {
-          'group'   => 'Per grup (default)',
-          'channel' => 'Per kanal',
-        },
-      },
-    ],
-  },
-  state:       'group',
+  description: 'Target FRT tiap tiket diambil dari help topic-nya (Setting "Target FRT per help topic", satu isian per SLA -- dimensi yang sama dengan SLA), dari grupnya (field "Target FRT (menit)" di Admin > Groups), atau dari kanalnya. Isian kosong memakai target global = "Good max" di "KPI Tim FRT thresholds".',
+  options:     basis_options,
+  state:       'help_topic',
   preferences: { permission: ['admin.system'] },
   frontend:    false,
 )
+Setting.find_by(name: 'team_kpi_frt_target_basis').update!(options: basis_options)
+
+puts '== Setting: team_kpi_frt_target_by_help_topic =='
+# Satu isian per SLA (kunci sla_<id>, label = nama SLA); help topic diambil
+# dari kondisi SLA (Scope.frt_target_by_help_topic). Dibuat ulang tiap run
+# supaya SLA baru ikut muncul; nilai yang sudah diisi tetap.
+topic_options = {
+  form: Sla.order(:name).map do |sla|
+    { display: sla.name, null: true, name: "sla_#{sla.id}", tag: 'input', type: 'number' }
+  end,
+}
+Setting.create_if_not_exists(
+  title:       'KPI Tim: Target FRT per help topic (menit)',
+  name:        'team_kpi_frt_target_by_help_topic',
+  area:        'TeamKpi::Base',
+  description: 'Dipakai kalau "Dasar target FRT" = Per help topic (default). Satu isian per SLA; berlaku untuk help topic di kondisi SLA itu. Menit, dalam "Dasar waktu FRT". Kosong = target global. Script create_team_kpi_frt_target.rb dijalankan ulang kalau ada SLA baru.',
+  options:     topic_options,
+  state:       {},
+  preferences: { permission: ['admin.system'] },
+  frontend:    false,
+)
+Setting.find_by(name: 'team_kpi_frt_target_by_help_topic').update!(options: topic_options)
 
 puts '== Setting: team_kpi_frt_target_by_channel =='
 # keys = Ticket::Article::Type names without spaces; see
@@ -108,7 +136,7 @@ Setting.create_if_not_exists(
   title:       'KPI Tim: Dasar waktu FRT',
   name:        'team_kpi_frt_time_basis',
   area:        'TeamKpi::Base',
-  description: 'Jam kerja = menit kerja menurut kalender SLA tiket (Admin > Calendars; sekarang Sen-Jum 08.00-17.00 + libur), dari first_response_in_min Zammad. Grup yang bekerja di luar jam kantor cukup diberi SLA dengan kalender sendiri. Live chat dan tiket tanpa SLA tetap memakai jam kalender. Jam kalender = 24 jam x 7 hari. Target FRT (grup/kanal) dibaca dalam dasar waktu yang sama.',
+  description: 'Jam kalender (default) = sama dengan FRT di menu Reporting. Jam kerja = menit kerja menurut kalender SLA tiket (Admin > Calendars; sekarang Sen-Jum 08.00-17.00 + libur), dari first_response_in_min Zammad. Grup yang bekerja di luar jam kantor cukup diberi SLA dengan kalender sendiri. Live chat dan tiket tanpa SLA tetap memakai jam kalender. Jam kalender = 24 jam x 7 hari. Target FRT (grup/kanal) dibaca dalam dasar waktu yang sama.',
   options:     {
     form: [
       {
@@ -117,13 +145,14 @@ Setting.create_if_not_exists(
         name:    'team_kpi_frt_time_basis',
         tag:     'select',
         options: {
-          'business' => 'Jam kerja (default)',
-          'calendar' => 'Jam kalender (24x7)',
+          'calendar' => 'Jam kalender (24x7, default -- sama dengan Reporting FRT)',
+          'business' => 'Jam kerja (kalender SLA)',
         },
       },
     ],
   },
-  state:       'business',
+  # default kalender = rumus FRT di menu Reporting (Report::TicketFirstResponseTime), Section 22.5
+  state:       'calendar',
   preferences: { permission: ['admin.system'] },
   frontend:    false,
 )
@@ -153,4 +182,5 @@ Setting.create_if_not_exists(
 )
 
 puts "Group.frt_target_minutes: #{Group.column_names.include?('frt_target_minutes')}"
+puts "topik: #{Setting.get('team_kpi_frt_target_by_help_topic').inspect}"
 puts "chat: #{Setting.get('team_kpi_frt_target_chat_minutes').inspect}; waktu: #{Setting.get('team_kpi_frt_time_basis')}; basis: #{Setting.get('team_kpi_frt_target_basis')}; channel: #{Setting.get('team_kpi_frt_target_by_channel').inspect}"

@@ -395,21 +395,19 @@ class App.DashboardTeamKpi extends App.Controller
       { state: s, active: s is state, tip: "#{@STATE_LABELS[s]}: #{tips[i]}" }
     { segs: segs, first: "#{@STATE_LABELS.supergood} #{tips[0]}" }
 
-  # Baris konteks kartu FRT: median + target yang berlaku (satu target untuk
-  # seluruh populasi, mis. filter satu grup) atau "per grup"/"per kanal".
-  # Jam kerja (Section 22): durasi diberi akhiran "kerja", median jam kalender
-  # ikut sebagai konteks pengalaman customer.
-  frtContext: (s) =>
-    return null if !s.frt_median_minutes?
+  # Baris konteks kartu FRT (Section 22.5): % sesuai target, target yang
+  # berlaku, dan perubahannya dalam poin. Jam kerja diberi akhiran "kerja".
+  frtContext: (s, cmp) =>
+    return null if !s.frt_target_met_percent?
     work = if s.frt_time_basis is 'business' then ' kerja' else ''
     target = if s.frt_target_minutes?
       "target #{@fmtDurationText(s.frt_target_minutes)}#{work}"
-    else if s.frt_target_basis is 'channel'
-      'target per kanal'
     else
-      'target per grup'
-    text = "Median #{@fmtDurationText(s.frt_median_minutes)}#{work} · #{target}"
-    text += " · kalender #{@fmtDurationText(s.frt_calendar_median_minutes)}" if work && s.frt_calendar_median_minutes?
+      { help_topic: 'target per help topic', channel: 'target per kanal', group: 'target per grup' }[s.frt_target_basis] || 'target per help topic'
+    text = "#{@fmtNumber(s.frt_target_met_percent, 1)}% tiket sesuai target · #{target}"
+    if cmp?.frt_target_met_percent?
+      d = s.frt_target_met_percent - cmp.frt_target_met_percent
+      text += if Math.abs(d) < 0.05 then ' · = sama' else " · #{if d > 0 then '▲' else '▼'} #{@fmtNumber(Math.abs(d), 1)} poin"
     text
 
   # Selisih terhadap pembanding, diwarnai membaik/memburuk sesuai arah metrik.
@@ -492,22 +490,19 @@ class App.DashboardTeamKpi extends App.Controller
     rc  = s.realtime_comparison
     cmpLabel = if cmp?.mode is 'yoy' then 'tahun lalu, periode sama' else 'periode sebelumnya'
     basis = @periodLabel()
+    frt = @fmtDuration(s.frt_median_minutes)
     res = @fmtDuration(s.resolution_median_minutes)
+    outlier = s.frt_median_minutes? && s.frt_mean_minutes? && s.frt_mean_minutes > s.frt_median_minutes * 3
     active  = (s.ticket_new || 0) + (s.ticket_open || 0)
 
     card = (o) =>
-      # Sampel kecil (< SMALL_SAMPLE, Section 22.2): status disembunyikan --
-      # pill "Sampel kecil", tanpa skala -- supaya grup/agent kecil tidak
-      # dicap "Buruk" karena 2-3 tiket. Kartu real-time tidak terkena.
+      # sampel kecil (< SMALL_SAMPLE): status tetap tampil + peringatan (Section 22.5)
       o.small      = !o.live && o.n? && o.n > 0 && o.n < @SMALL_SAMPLE
-      if o.small && o.state
-        o.state     = null
-        o.smallOnly = true
-      o.stateKey   = if o.smallOnly then 'small' else (o.state || 'none')
+      o.stateKey   = o.state || 'none'
       o.empty      = o.value is '—'
       # anatomi seragam (docs Section 17): tiap kartu punya pill status;
       # metrik tanpa ambang (Setting) ditandai jelas, bukan dikosongkan
-      o.stateLabel = if o.smallOnly then 'Sampel kecil' else if o.state then @STATE_LABELS[o.state] else (if o.neutral && !o.empty then 'Belum ada target' else 'Tidak ada data')
+      o.stateLabel = if o.state then @STATE_LABELS[o.state] else (if o.neutral && !o.empty then 'Belum ada target' else 'Tidak ada data')
       o.noTarget   = o.neutral && !o.empty
       o.scale      = if o.state && o.scaleKind then @scale(o.state, o.scaleKind, t[o.scaleKey]) else null
       # tanpa data: placeholder "—" tetap membawa satuan metriknya (— mnt, — / 5)
@@ -541,17 +536,18 @@ class App.DashboardTeamKpi extends App.Controller
       o
 
     [
-      # FRT = % tiket sesuai target grup/kanalnya (Section 20, bentuk B2 mockup
-      # TeamKpi-FrtTarget): angka besar & status selalu searah; median jadi konteks.
+      # FRT (Section 22.5, ikut rumus Reporting FRT): angka utama = median, mean
+      # berdampingan + tanda outlier; status = % tiket sesuai target help
+      # topic/grup/kanalnya (Section 20), dengan ambang Rasio Escalated.
       card(
-        title: 'FRT sesuai target', basis: basis, illus: 'frt'
-        help: 'Persen tiket yang respons pertamanya dalam target -- tiap tiket dinilai dengan target grupnya (atau kanalnya, sesuai Setting "Dasar target FRT"); grup tanpa target memakai target global. Waktu dihitung dalam jam kerja kalender SLA (Setting "Dasar waktu FRT"); live chat dan tiket tanpa SLA memakai jam kalender. Live chat dinilai dengan target chat sendiri (Setting "Target FRT live chat"), dihitung sejak customer memulai chat. Hanya tiket yang dibuka customer, dibuat di periode terpilih; live chat dihitung sejak customer memulai chat. Per agent: FRT milik agent yang pertama membalas.'
-        value: @fmtNumber(s.frt_target_met_percent, 1), unit: '%', emptyUnit: '%', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
+        title: 'First Response Time', basis: basis, illus: 'frt'
+        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih (sama dengan FRT di menu Reporting). Live chat dihitung sejak customer memulai chat. Status = persen tiket yang respons pertamanya dalam target help topic-nya (Setting "Dasar target FRT"); live chat memakai target chat sendiri. Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier. Per agent: FRT milik agent yang pertama membalas.'
+        value: frt.value, unit: frt.unit, emptyUnit: 'mnt', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'met', scaleKey: 'frt_target_met'
-        current: s.frt_target_met_percent, previous: cmp?.frt_target_met_percent, deltaKind: 'rate', lowerBetter: false
-        context: @frtContext(s)
-        footLabel: 'Sesuai target', footValue: (if s.frt_target_met_percent? then "#{@fmtNumber(s.frt_target_met_count, 0)} dari #{@fmtNumber(s.frt_count, 0)} tiket" else '—')
+        current: s.frt_median_minutes, previous: cmp?.frt_median_minutes, deltaKind: 'duration', lowerBetter: true
+        context: @frtContext(s, cmp)
+        footLabel: 'Rata-rata (mean)', footValue: @fmtDurationText(s.frt_mean_minutes), outlier: outlier
         drill: { metric: 'frt', label: 'Lihat tiket' }, drillCount: s.frt_count
       )
       card(
@@ -772,14 +768,13 @@ class App.DashboardTeamKpi extends App.Controller
     for a in rows.slice(0, 12)
       name = if a.unassigned then 'Belum ditugaskan' else (a.name || '—')
       initials = if a.unassigned then '—' else _.map(name.split(/\s+/).slice(0, 2), (w) -> w.charAt(0).toUpperCase()).join('')
-      # warna status hanya untuk n >= SMALL_SAMPLE (Section 22.2)
-      csatCls = if !a.csat_average? || a.csat_count < @SMALL_SAMPLE then 'none' else if a.csat_average >= 4 then 'good' else if a.csat_average >= 3 then 'ok' else 'bad'
+      csatCls = if !a.csat_average? then 'none' else if a.csat_average >= 4 then 'good' else if a.csat_average >= 3 then 'ok' else 'bad'
       {
         name: name, initials: initials, unassigned: a.unassigned
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
-        frt: (if a.frt_target_met_percent? then "#{@fmtNumber(a.frt_target_met_percent, 1)}%" else '—'), frtCls: (if a.frt_count < @SMALL_SAMPLE then 'none' else @metCls(a.frt_target_met_percent))
-        frtTip: "Median #{@fmtDurationText(a.frt_median_minutes)}#{if @data.summary?.frt_time_basis is 'business' then ' kerja' else ''} · #{a.frt_target_met_count || 0} dari #{a.frt_count} tiket sesuai target (pembalas pertama)#{if a.frt_count < @SMALL_SAMPLE then ' · sampel kecil, tanpa status' else ''}"
-        csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating#{if a.csat_count < @SMALL_SAMPLE then ' · sampel kecil, tanpa status' else ''}", csatCls: csatCls
+        frt: @fmtDurationText(a.frt_median_minutes), frtCls: @metCls(a.frt_target_met_percent)
+        frtTip: "Mean #{@fmtDurationText(a.frt_mean_minutes)} · #{if a.frt_target_met_percent? then @fmtNumber(a.frt_target_met_percent, 1) + '%' else '—'} sesuai target (#{a.frt_target_met_count || 0} dari #{a.frt_count} tiket, pembalas pertama)#{if @data.summary?.frt_time_basis is 'business' then ' · jam kerja' else ''}"
+        csat: @fmtNumber(a.csat_average, 2), csatTip: "n #{a.csat_count} rating", csatCls: csatCls
         escalated: @fmtNumber(a.escalated, 0), breach: @fmtNumber(a.eskalasi_breached, 0), breachHot: a.eskalasi_breached > 0
       }
 

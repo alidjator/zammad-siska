@@ -2196,8 +2196,8 @@ $kpi-radius-pill: 20px;
   }
 }
 
-// ---- kartu FRT sesuai target (Section 20, mockup TeamKpi-FrtTarget B2):
-// baris konteks median + target yang berlaku, di bawah baris perubahan
+// ---- kartu FRT (Section 22.5): baris konteks % sesuai target + target yang
+// berlaku, di bawah baris perubahan
 .team-kpi {
   .team-kpi-context {
     display: flex;
@@ -2210,13 +2210,5 @@ $kpi-radius-pill: 20px;
       flex: none;
       color: $kpi-primary;
     }
-  }
-}
-
-// ---- sampel kecil (Section 22.2): pill pengganti status di bawah 30 data
-.team-kpi {
-  .team-kpi-badge.is-small {
-    background: $kpi-warning-tint;
-    color: $kpi-warning-text;
   }
 }

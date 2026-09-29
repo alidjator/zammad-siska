@@ -94,7 +94,8 @@ class Service::Dashboard::TeamKpi::Scope
   SQL
 
   def self.frt_time_basis
-    Setting.get('team_kpi_frt_time_basis') == 'calendar' ? 'calendar' : 'business'
+    # default jam kalender = rumus FRT di menu Reporting (Section 22.5)
+    Setting.get('team_kpi_frt_time_basis') == 'business' ? 'business' : 'calendar'
   end
 
   # Rumus menit FRT yang berlaku (kartu, tren, per agent, drill-down).
@@ -140,8 +141,25 @@ class Service::Dashboard::TeamKpi::Scope
     LEFT JOIN ticket_article_types frt_at ON frt_at.id = tickets.create_article_type_id
   SQL
 
+  # Default per help topic = dimensi SLA SISKA (57 SLA berkondisi
+  # ticket.help_topic; Section 22.5). Grup/kanal tetap bisa dipilih.
+  FRT_TARGET_BASES = %w[help_topic group channel].freeze
+
   def self.frt_target_basis
-    Setting.get('team_kpi_frt_target_basis') == 'channel' ? 'channel' : 'group'
+    basis = Setting.get('team_kpi_frt_target_basis').to_s
+    FRT_TARGET_BASES.include?(basis) ? basis : 'help_topic'
+  end
+
+  # help topic -> target (menit) dari Setting team_kpi_frt_target_by_help_topic
+  # ({ "sla_<id>" => menit }): tiap SLA menyumbang help topic di kondisinya.
+  def self.frt_target_by_help_topic
+    map = Setting.get('team_kpi_frt_target_by_help_topic') || {}
+    Sla.all.each_with_object({}) do |sla, result|
+      minutes = map["sla_#{sla.id}"].to_f
+      next if minutes <= 0
+
+      Array(sla.condition.dig('ticket.help_topic', 'value')).each { |topic| result[topic.to_s] ||= minutes }
+    end
   end
 
   def self.frt_target_global_minutes
@@ -166,7 +184,13 @@ class Service::Dashboard::TeamKpi::Scope
 
   def self.frt_target_base_sql
     global = frt_target_global_minutes
-    if frt_target_basis == 'channel'
+    case frt_target_basis
+    when 'help_topic'
+      whens = frt_target_by_help_topic.map { |topic, minutes| "WHEN #{ActiveRecord::Base.connection.quote(topic)} THEN #{minutes}" }
+      return global.to_s if whens.empty?
+
+      "COALESCE(CASE tickets.help_topic #{whens.join(' ')} END, #{global})"
+    when 'channel'
       map   = Setting.get('team_kpi_frt_target_by_channel') || {}
       whens = FRT_TARGET_CHANNELS.filter_map do |key, type_name|
         minutes = map[key].to_f
@@ -177,7 +201,9 @@ class Service::Dashboard::TeamKpi::Scope
       return global.to_s if whens.empty?
 
       "COALESCE(CASE frt_at.name #{whens.join(' ')} END, #{global})"
-    elsif Group.column_names.include?('frt_target_minutes')
+    when 'group'
+      return global.to_s if !Group.column_names.include?('frt_target_minutes')
+
       "COALESCE(NULLIF(frt_g.frt_target_minutes, 0), #{global})"
     else
       global.to_s

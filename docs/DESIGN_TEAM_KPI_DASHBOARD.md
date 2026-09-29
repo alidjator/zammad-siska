@@ -657,7 +657,7 @@ Per agent (pembalas pertama): SISKA Chat Agent 57/60, Agent 03 21/25. Angka tim 
 
 Pesan offline widget (kanal *web*) tetap tiket biasa: menit kerja + target grup.
 
-### 22.1 Target per grup yang disepakati
+### 22.1 Target per grup yang disepakati (sejak 22.5 hanya dipakai kalau Dasar target FRT = Per grup)
 
 Dibahas satu per satu dari usulan berbasis data 90 hari, jam kerja. Prinsip: target di titik yang sekarang sudah dicapai ±75–85% tiket.
 
@@ -673,7 +673,7 @@ Efek sementara (180 hari, admin): kartu tim **87,0% → 78,9% (Cukup)**, karena 
 
 **Deploy production:** isi target yang sama di Admin › Groups.
 
-### 22.2 Grup kecil dan sampel kecil (keputusan 29 Sep)
+### 22.2 Grup kecil dan sampel kecil (keputusan 29 Sep; tampilan dikoreksi di 22.5)
 
 **Target grup kecil: opsi B.** Grup dengan kurang dari 30 tiket FRT per 90 hari **dikosongkan**, jadi memakai target global 4 jam kerja. Target tidak ditarik dari data 1–20 tiket, karena satu tiket menggeser angka 5–13 poin. Yang terkena (staging, 90 hari):
 
@@ -738,3 +738,42 @@ Kalau `team_kpi_escalated_thresholds` diubah, status FRT ikut berubah. API `thre
 | Chat (90 hari, grup QA) | 95,3% (82/86) | Sangat baik |
 
 Dengan ambang SISKA, pita "Sangat baik" lebar. Kalau tim ingin status lebih ketat, ubah `team_kpi_escalated_thresholds`; kartu Rasio Escalated juga ikut berubah.
+
+### 22.5 Koreksi keputusan agar sesuai SISKA yang berjalan (29 Sep)
+
+Audit menemukan beberapa keputusan hari ini yang berbeda dari setting, rumus, atau data SISKA. Atas persetujuan user, semuanya dikoreksi, kecuali dua hal yang tetap dengan alasan tertulis.
+
+| # | Sebelumnya | Padanan di SISKA | Sesudah koreksi |
+|---|---|---|---|
+| 1 | target FRT per grup | 57 SLA berkondisi `ticket.help_topic`; help topic terisi di 99,9% tiket | **Dasar target default = per help topic.** Setting `team_kpi_frt_target_by_help_topic` berisi satu isian per SLA (kunci `sla_<id>`, 57 isian, dibuat ulang tiap script dijalankan) dan berlaku untuk help topic di kondisi SLA itu. Target tidak ditulis ke SLA, jadi tidak ada eskalasi baru. Opsi per grup/kanal tetap ada |
+| 2 | FRT jam kerja (default) | FRT di menu Reporting (`Report::TicketFirstResponseTime`) memakai jam kalender | **Default jam kalender.** Median dashboard 180 hari **19,6 mnt = median cara Reporting 19,6 mnt**. Jam kerja tetap bisa dipilih |
+| 3 | kartu B2 (% sebagai angka utama) | FRT = median + mean berdampingan (DESIGN_REPORTING_FRT Section 3) | **Kartu "First Response Time": angka utama median**, kaki "Rata-rata (mean)" + "Ada outlier" dikembalikan. Status/skala dari % sesuai target (ambang Rasio Escalated). Baris konteks: "79,6% tiket sesuai target · target per help topic · ▲ x poin". Tab Per agent: kolom "FRT median", warna dari % sesuai target. Ekspor: status ditempel ke baris median |
+| 5 | status disembunyikan < 30 | KPI Tim sebelumnya: status + peringatan | **Status tetap tampil + peringatan "Sampel kecil (n < 30)"** di kartu, tabel, dan ekspor |
+| 4 | live chat sejak chat dimulai | Reporting tidak memasukkan chat sama sekali | **Tetap.** Mengikuti Reporting berarti FRT chat hilang, yaitu masalah yang diperbaiki di Section 16 |
+| 6 | permission `team_kpi.agents` | data laporan memakai `report` | **Tetap.** Kembali ke `report` membuka data per agent untuk seluruh role CS dan 151 customer Koordinator (Section 19) |
+
+**Target per help topic** (dari data 90 hari, jam kalender, populasi FRT). Aturannya: langkah terkecil dari 15 mnt / 30 mnt / 1 / 2 / 4 / 8 / 12 jam / 1 / 2 / 3 / 4 hari yang saat ini sudah dicapai ≥ 75% tiket. Topik dengan kurang dari 30 tiket ikut target global 4 jam (13 topik). Semua target masih di bawah waktu penyelesaian SLA topiknya.
+
+| Help topic | n | Median | Target | % sesuai |
+|---|---|---|---|---|
+| SRK | 451 | 6,4 mnt | 1 jam | 80,9% |
+| SPKP | 198 | 46,8 jam | 4 hari | 82,8% |
+| Gajian Duluan & KISS | 176 | 6,2 jam | 1 hari | 77,8% |
+| Others | 176 | 3,1 mnt | 15 mnt | 90,3% |
+| Belum Ada Kategori | 106 | 6,9 mnt | 2 jam | 75,5% |
+| Penawaran Barang dan Jasa lainnya | 103 | 6,7 mnt | 15 mnt | 79,6% |
+| Informasi Lowongan Pekerjaan | 97 | 9,2 mnt | 8 jam | 77,3% |
+| Informasi BPJS TK | 73 | 6,7 mnt | 12 jam | 75,3% |
+| Informasi Payroll | 43 | 2,3 jam | 1 hari | 93,0% |
+| Informasi Karyawan | 36 | 10 mnt | 30 mnt | 83,3% |
+
+**Hasil staging** (180 hari): median 19,6 mnt, mean 675,7 mnt (ada outlier), 79,6% sesuai target = Baik. Jumlah seluruh baris agent = tim (3.355 / 2.670). Chat (90 hari) 95,3% dengan target 4 menit.
+
+**Konsekuensi:**
+- Target grup (CS 15 mnt, CS_gajian, Legal, Business Support) tetap tersimpan tapi tidak dipakai, selama dasar target = per help topic.
+- Daftar tindak lanjut production (22.3) berlaku juga untuk target per help topic: kalibrasi dengan data production, dan tetapkan target topik kecil bersama pemilik layanannya.
+
+**Belum dikerjakan** (rumus lama yang juga belum sesuai SISKA, menunggu arahan):
+- Waktu penyelesaian dibandingkan dengan target SLA per help topic (`close_in_min`).
+- SLA & Backlog dikelompokkan per help topic (semua tiket berprioritas 2).
+- Pola beban membaca kalender SLA, bukan hard-code.

@@ -178,7 +178,7 @@
         <% end %>
 
         <% if k.small: %>
-          <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Hanya %s %s, angka mudah berubah. Status tidak ditampilkan di bawah 30.', k.n, k.nLabel) %></div>
+          <div class="team-kpi-note is-warning"><%- @SiskaIcon('warning', 14) %> <%- @T('Sampel kecil (n < 30), tafsirkan hati-hati') %></div>
         <% end %>
 
         <% if k.coverage: %>
@@ -349,7 +349,7 @@
                 <tr>
                   <th><%- @T('Agent') %></th>
                   <th class="is-wide"><%- @T('Tiket') %></th>
-                  <th class="is-num"><%- @T('FRT sesuai target') %></th>
+                  <th class="is-num"><%- @T('FRT median') %></th>
                   <th class="is-num"><%- @T('CSAT') %></th>
                   <th class="is-num"><%- @T('Escalated') %></th>
                   <th class="is-num"><%- @T('Breach') %></th>
