@@ -32,7 +32,12 @@ class Service::AuxStatus::DistributeTicket
     ticket.update!(owner: agent)
   end
 
+  # Hanya agent yang sedang online (Service::AuxStatus::Presence) -- mis.
+  # ExpireStatuses (scheduler) bisa mengembalikan agent ke Available saat
+  # browsernya sudah ditutup selama istirahat.
   def pending_for(agent)
+    return if !Service::AuxStatus::Presence.online?(agent)
+
     ticket = oldest_pending_ticket_for(agent)
     return if !ticket
 
@@ -58,9 +63,27 @@ class Service::AuxStatus::DistributeTicket
   # calon owner tidak punya akses 'full' ke Group tiket tsb -- assignment
   # ke agent ber-akses 'change' saja akan "berhasil" tanpa error (update!
   # return true) tapi nilainya langsung ditimpa balik sebelum tersimpan.
+  # + harus online (sesi websocket aktif) -- status AUX "Offline" dihapus,
+  # online/offline sekarang mengikuti Zammad (docs/DESIGN_AUX_STATUS.md).
   def available_agents_for(group)
+    online = Service::AuxStatus::Presence.online_user_ids
     User.group_access(group, 'full')
-        .select { |agent| (agent.aux_status || 'available') == 'available' }
+        .select { |agent| (agent.aux_status || 'available') == 'available' && online.include?(agent.id) }
+  end
+
+  # Keputusan (a1) 29 Sep: pengganti pemicu "Offline -> Available" di pagi
+  # hari -- agent yang tersambung PERTAMA KALI (sesi websocket pertamanya)
+  # dalam keadaan Available mendapat 1 tiket unassigned tertua, aturan sama
+  # dengan pending_for. Dipanggil Sessions::Event::Login (di luar request
+  # HTTP -> Transaction.execute supaya trigger/notifikasi/broadcast jalan).
+  def self.pending_on_first_login(user_id)
+    agent = User.find_by(id: user_id)
+    return if !agent&.active? || !agent.permissions?('ticket.agent')
+    return if (agent.aux_status || 'available') != 'available'
+
+    Transaction.execute(reset_user_id: true, interface_handle: 'application_server') do
+      new.pending_for(agent)
+    end
   end
 
   def oldest_pending_ticket_for(agent)

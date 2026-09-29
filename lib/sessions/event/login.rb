@@ -32,6 +32,11 @@ To execute this manually, just paste the following into the browser console
       }
     end
 
+    # AUX (a1): sesi pertama agent -> 1 tiket unassigned tertua (lihat
+    # Service::AuxStatus::DistributeTicket.pending_on_first_login)
+    first_login = new_session_data['id'].present? &&
+                  Service::AuxStatus::Presence.online_user_ids(except_client_id: @client_id).exclude?(new_session_data['id'].to_i)
+
     # create new session
     if @clients[@client_id]
       @clients[@client_id][:session] = new_session_data
@@ -42,6 +47,15 @@ To execute this manually, just paste the following into the browser console
 
     # send app version
     Sessions.send(@client_id, app_version)
+
+    if first_login
+      begin
+        Service::AuxStatus::DistributeTicket.pending_on_first_login(new_session_data['id'])
+      rescue => e
+        # distribusi tidak boleh menggagalkan login websocket
+        Rails.logger.error "AUX pending_on_first_login gagal untuk user #{new_session_data['id']}: #{e.class}: #{e.message}"
+      end
+    end
 
     false
   end

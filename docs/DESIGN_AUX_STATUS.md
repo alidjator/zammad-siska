@@ -432,3 +432,38 @@ Teks Inggris, terjemahan Indonesia di `i18n/siska.id.po`.
 **Diuji:**
 - `tests/aux_confirm_test.js` (jsdom, kelas & template hasil compile, 4 skenario): isi modal, keempat cara menutup, dan gating menu (berdurasi + chat → modal lalu ajax setelah konfirmasi; tanpa chat / tanpa durasi → langsung).
 - `tests/smoke_app_bundle.js`: `application.js` hasil precompile dimuat tanpa error.
+
+## AUX tanpa status Offline: online/offline mengikuti Zammad (29 Sep 2026)
+
+**Keputusan user:** AUX hanya status kesiapan selama agent **online** (Available / Busy …), untuk mengatur agar tidak menerima chat atau tiket baru, bukan untuk offline. Online/offline sudah ada di Zammad sendiri.
+
+**Langkah 1, investigasi sumber "online":**
+
+| Sumber | Hasil |
+|---|---|
+| **Sesi websocket Zammad di Redis** (titik hijau avatar) | ✅ Dipakai. Terbaca dari app/scheduler/websocket (`redis://zammad-redis:6379`), tiap sesi menyimpan id user (widget customer tanpa user), `last_ping` ≤ 30 detik. Sesi dihapus saat koneksi putus (`onclose`) dan dibuang kalau idle (`check_unused_connections` tiap 120 detik, batas 240 detik) |
+| Taskbar `last_contact` | ❌ Tidak diperbarui untuk agent aktif (data terbaru 13 Sep) |
+| Detak `Chat::Agent` | ⚠️ Hanya agent chat dengan toggle menyala |
+
+**Langkah 2, implementasi:**
+- `Service::AuxStatus::Presence.online_user_ids`: agent dengan sesi websocket ber-ping ≤ 240 detik (= batas idle bawaan).
+- `DistributeTicket#available_agents_for`: kandidat = **online dan** AUX Available. `pending_for` juga hanya jalan kalau agent online (misalnya `ExpireStatuses` mengembalikan agent ke Available saat browsernya sudah tertutup).
+- **Keputusan (a1):** sebagai pengganti pemicu pagi "Offline → Available", **sesi websocket PERTAMA agent** (event `login`) dalam keadaan Available memberinya **1 tiket unassigned tertua**, dengan aturan sama dengan `pending_for` (`DistributeTicket.pending_on_first_login`, dijalankan dalam `Transaction.execute` supaya trigger, notifikasi, dan broadcast jalan di luar request HTTP). Tab kedua, muat ulang saat sesi lain masih ada, dan widget customer tidak memicu. Kesalahan distribusi tidak menggagalkan login.
+- **Keputusan (b1):** Setting bawaan Zammad **`session_timeout` untuk `ticket.agent` = 7200 (2 jam)**, sebelumnya 28 hari. Browser yang ditinggal terbuka logout sendiri, sehingga tidak lagi online. Admin/customer tetap 28 hari; user dengan permission ganda memakai nilai tertinggi (perilaku bawaan).
+- **"Offline" dihapus** dari `aux_status_options` (default script dan migrasi idempoten di `script/create_aux_status_object_attributes.rb`). Agent yang masih offline dipindah ke Available lewat `ChangeStatus` (sistem). Riwayat lama (`AuxStatusLog`, 6 baris "offline" di staging) tetap ada; UI hanya menampilkan status saat ini.
+
+**Diuji** (rails runner, dalam transaksi yang di-rollback, daftar sesi di-stub):
+- online (ping 10 detik masuk, 600 detik dan sesi customer tidak);
+- `except_client_id`;
+- `available_agents_for` online vs offline;
+- `pending_for` agent offline → tanpa tiket;
+- `pending_on_first_login` Available → tiket tertua, Busy → tanpa tiket;
+- event `login` asli dengan sesi web tiruan: login pertama memicu, tab kedua tidak, widget customer tidak.
+
+**Catatan:**
+- Tampilan baru Zammad (`/desktop`, ActionCable) tidak tercatat di sumber ini; SISKA memakai tampilan lama.
+- Banner "AUX tidak Available" di Customer Chat kini hanya relevan untuk status tanpa durasi yang ditambahkan admin.
+
+**Terverifikasi di staging (29 Sep 17.55 WIB):** setelah websocket di-restart, browser `siska.chat.agent` tersambung ulang (sesi pertama, AUX Available), dan tiket unassigned tertua grup QA #10162022 otomatis menjadi miliknya (riwayat owner "- → SISKA Chat Agent").
+
+**Perhatian:** tersambung ulang setelah **restart websocket** atau setelah koneksi putus lebih lama dari batas idle juga dihitung sebagai sesi pertama. Tiap agent online yang Available mendapat 1 tiket tertua. Ini sesuai aturan (a1), tapi perlu diingat saat deploy production (restart websocket di jam kerja akan membagikan tiket menumpuk).

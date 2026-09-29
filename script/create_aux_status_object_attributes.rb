@@ -129,7 +129,9 @@ DEFAULT_AUX_STATUS_OPTIONS = [
   { 'value' => 'busy_lunch',    'label' => 'Busy Lunch',     'duration_minutes' => 30 },
   { 'value' => 'busy_meeting',  'label' => 'Busy Meeting',   'duration_minutes' => 60 },
   { 'value' => 'busy_training', 'label' => 'Busy Training',  'duration_minutes' => 60 },
-  { 'value' => 'offline',       'label' => 'Offline',        'duration_minutes' => 0 },
+  # 'offline' dihapus 29 Sep (keputusan user): AUX hanya status kesiapan
+  # selama online; online/offline mengikuti Zammad (sesi websocket +
+  # session_timeout). Lihat blok migrasi di bawah & DESIGN_AUX_STATUS.md.
 ].freeze
 
 Setting.create_if_not_exists(
@@ -244,6 +246,30 @@ User.where(active: true).find_each do |u|
 
   AuxStatusLog.create!(user: u, status: 'available', started_at: Time.zone.now)
   u.update_columns(aux_status: 'available', aux_status_since: Time.zone.now) # rubocop:disable Rails/SkipsModelValidations
+end
+
+puts '== Migrasi: AUX tanpa status Offline (29 Sep 2026) =='
+# Idempoten. (1) hapus 'offline' dari Setting yang sudah ada; (2) agent yang
+# masih berstatus offline dipindah ke Available lewat ChangeStatus (tercatat
+# di AuxStatusLog seperti perubahan sistem). Baris riwayat lama tetap ada.
+options = JSON.parse(Setting.get('aux_status_options').presence || '[]')
+if options.any? { |option| option['value'] == 'offline' }
+  Setting.set('aux_status_options', options.reject { |option| option['value'] == 'offline' }.to_json)
+  puts '  offline dihapus dari aux_status_options'
+end
+User.where(aux_status: 'offline').find_each do |user|
+  Service::AuxStatus::ChangeStatus.run(target: user, status: 'available', changed_by: nil)
+  puts "  #{user.login}: offline -> available"
+end
+
+puts '== Setting: session_timeout ticket.agent = 2 jam (bawaan Zammad) =='
+# Browser agent yang ditinggal terbuka logout sendiri setelah 2 jam tanpa
+# aktivitas -> sesi websocket hilang -> tidak lagi dianggap online oleh
+# Service::AuxStatus::Presence (keputusan user 29 Sep). Admin/customer tetap.
+timeout = Setting.get('session_timeout') || {}
+if timeout['ticket.agent'].to_s != '7200'
+  Setting.set('session_timeout', timeout.merge('ticket.agent' => '7200'))
+  puts "  session_timeout ticket.agent: #{timeout['ticket.agent'].inspect} -> \"7200\""
 end
 
 puts 'Done.'
