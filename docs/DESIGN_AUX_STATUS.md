@@ -406,3 +406,29 @@ Teks sumber berbahasa Inggris, terjemahan Indonesia di `i18n/siska.id.po` (pola 
 Perbaikannya: listener level file dihapus. Halaman chat menyimpan jumlah chat berjalan langsung di `App.AuxStatusFreezeWidget.runningChats`, dan event hanya didengar oleh instance freeze. Hasilnya diverifikasi dengan menjalankan `application.js` hasil precompile di jsdom (tanpa error saat dimuat).
 
 **Pelajaran:** di file controller, level file hanya boleh berisi definisi kelas dan `App.Config.set`, tanpa `App.Event` dan tanpa pemanggilan lain. Setiap perubahan frontend perlu dicek dengan menjalankan bundle hasil precompile, bukan hanya compile per file.
+
+## Konfirmasi sebelum masuk Busy saat chat masih berjalan (29 Sep 2026)
+
+**Keputusan user:** opsi (a), dengan tombol mengikuti kit (mockup `Aux-BusyConfirm`).
+
+**Aturan** (`AuxStatusSwitchWidget#onClick` → `App.AuxBusyConfirm`):
+- Kalau status yang dipilih **berdurasi** (`duration_minutes` > 0, memicu layar freeze) **dan** agent masih punya chat berjalan, muncul modal kit sebelum status diganti.
+- **Cancel**, tombol ×, Esc, atau klik di latar: status tidak berubah. **Go <status> anyway**: status diganti seperti biasa (layar freeze + pengingat chat berjalan).
+- Tanpa chat berjalan, atau status tanpa durasi (Available/Offline): langsung berganti seperti sebelumnya.
+
+**Isi modal:**
+- Judul "You still have a chat running" / "…%s chats running".
+- Status dan durasinya.
+- Daftar chat: inisial, nama customer, "N min ago" sejak pesan customer terakhir (`ChatWindow#lastCustomerMessageAt`; cadangannya waktu sesi dimulai).
+- Kalimat "Finish or transfer the chat first, or go busy anyway."
+- Fokus awal di tombol tutup/Cancel.
+
+Daftar chat diisi halaman Customer Chat (`renderHeader`) ke `App.AuxBusyConfirm.runningChats`.
+
+**Komponen kit** (`aux_status.scss`, `.aux-kit-*`, nilai dari Able Pro): `.modal-content` (rounded-lg, border, shadow), header/footer p-5 + border, tombol tutup 28×28, `.btn` (py-2 px-4, 16px medium, pill 20px) `.btn-secondary` / `.btn-primary`. Tombol **End Break Now** di layar freeze ikut memakai `.aux-kit-btn-primary`.
+
+Teks Inggris, terjemahan Indonesia di `i18n/siska.id.po`.
+
+**Diuji:**
+- `tests/aux_confirm_test.js` (jsdom, kelas & template hasil compile, 4 skenario): isi modal, keempat cara menutup, dan gating menu (berdurasi + chat → modal lalu ajax setelah konfirmasi; tanpa chat / tanpa durasi → langsung).
+- `tests/smoke_app_bundle.js`: `application.js` hasil precompile dimuat tanpa error.

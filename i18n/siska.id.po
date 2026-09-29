@@ -652,3 +652,31 @@ msgstr "Selama status ini, chat dan tiket baru tidak diberikan kepada Anda. Anda
 #: app/assets/javascripts/app/controllers/aux_status_freeze.coffee
 msgid "%s chat(s) still running, customers are waiting for a reply"
 msgstr "%s chat masih berjalan, customer menunggu balasan"
+
+#: app/assets/javascripts/app/views/aux_busy_confirm.jst.eco
+msgid "You still have a chat running"
+msgstr "Anda masih punya chat yang berjalan"
+
+#: app/assets/javascripts/app/views/aux_busy_confirm.jst.eco
+msgid "You still have %s chats running"
+msgstr "Anda masih punya %s chat yang berjalan"
+
+#: app/assets/javascripts/app/views/aux_busy_confirm.jst.eco
+msgid "While you are on |%s (%s min)| the freeze screen covers SISKA, and the customers below will not get a reply until you end the break."
+msgstr "Selama status |%s (%s menit)|, layar freeze menutupi SISKA dan customer di bawah tidak mendapat balasan sampai istirahat Anda selesai."
+
+#: app/assets/javascripts/app/views/aux_busy_confirm.jst.eco
+msgid "Finish or transfer the chat first, or go busy anyway."
+msgstr "Selesaikan atau alihkan chat dulu, atau tetap ganti status."
+
+#: app/assets/javascripts/app/views/aux_busy_confirm.jst.eco
+msgid "Go %s anyway"
+msgstr "Tetap %s"
+
+#: app/assets/javascripts/app/controllers/aux_busy_confirm.coffee
+msgid "%s min ago"
+msgstr "%s menit lalu"
+
+#: app/assets/javascripts/app/controllers/aux_busy_confirm.coffee
+msgid "just now"
+msgstr "baru saja"

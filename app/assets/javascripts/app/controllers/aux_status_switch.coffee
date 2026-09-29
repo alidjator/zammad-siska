@@ -110,6 +110,16 @@ class App.AuxStatusSwitchWidget extends App.Controller
     status = key.replace('aux-status-', '')
     return if status is App.AuxStatusSwitch.currentStatus()
 
+    # Status berdurasi (memicu layar freeze) saat masih ada chat berjalan:
+    # konfirmasi dulu (mockup Aux-BusyConfirm, docs/DESIGN_AUX_STATUS.md).
+    option  = App.AuxStatusSwitch.findOption(status)
+    running = App.AuxBusyConfirm?.runningChats || []
+    if option && parseInt(option.duration_minutes, 10) > 0 && running.length
+      new App.AuxBusyConfirm(option: option, chats: running, onConfirm: => @change(status))
+      return
+    @change(status)
+
+  change: (status) =>
     @ajax(
       id:          'aux-status-switch'
       type:        'PUT'

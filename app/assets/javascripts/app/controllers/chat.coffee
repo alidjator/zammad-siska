@@ -329,6 +329,11 @@ class App.CustomerChat extends App.Controller
     # disimpan langsung di kelasnya (tanpa listener level file -- App.Event
     # belum ada saat file dimuat), lalu event untuk freeze yang sedang tampil
     App.AuxStatusFreezeWidget.runningChats = running if App.AuxStatusFreezeWidget
+    # daftar chat berjalan (nama + pesan customer terakhir) untuk konfirmasi
+    # sebelum masuk AUX Busy (App.AuxBusyConfirm, mockup Aux-BusyConfirm)
+    if App.AuxBusyConfirm
+      App.AuxBusyConfirm.runningChats = for chat in _.values(@chatWindows) when chat && !chat.isOffline
+        { name: chat.name, lastAt: chat.lastCustomerMessageAt || Date.parse(chat.session?.created_at || '') || null }
     App.Event.trigger('siska-chat:running', running)
     # Kembali online -> banner "away timeout" ikut tertutup otomatis
     # (dipicu tombol Online/Go online yg keduanya lewat `switch` ->
@@ -1242,6 +1247,8 @@ class App.ChatWindow extends App.Controller
     @status.toggleClass('is-modified', state)
 
   receiveMessage: (message) =>
+    # waktu pesan customer terakhir, untuk konfirmasi AUX Busy (aux_busy_confirm.coffee)
+    @lastCustomerMessageAt = Date.now()
     isFocused = @input.is(':focus')
 
     @removeWritingLoader()

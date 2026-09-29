@@ -1,0 +1,25 @@
+<div class="aux-kit-overlay" role="presentation">
+  <div class="aux-kit-modal" role="dialog" aria-modal="true" aria-labelledby="aux-busy-confirm-title">
+    <div class="aux-kit-modal-header">
+      <h5 class="aux-kit-modal-title" id="aux-busy-confirm-title"><%- @T((if @count is 1 then 'You still have a chat running' else 'You still have %s chats running'), @count) %></h5>
+      <button type="button" class="aux-kit-modal-close js-auxConfirmCancel" aria-label="<%- @Ti('Close') %>"><%- @SiskaIcon('x', 18) %></button>
+    </div>
+    <div class="aux-kit-modal-body">
+      <p><%- @T('While you are on |%s (%s min)| the freeze screen covers SISKA, and the customers below will not get a reply until you end the break.', @status, @minutes) %></p>
+      <div class="aux-kit-chat-list">
+        <% for chat in @chats: %>
+          <div class="aux-kit-chat">
+            <span class="aux-kit-chat-avatar"><%= chat.initials %></span>
+            <span class="aux-kit-chat-name"><%= chat.name %></span>
+            <% if chat.ago: %><span class="aux-kit-chat-ago"><%= chat.ago %></span><% end %>
+          </div>
+        <% end %>
+      </div>
+      <p class="aux-kit-muted"><%- @T('Finish or transfer the chat first, or go busy anyway.') %></p>
+    </div>
+    <div class="aux-kit-modal-footer">
+      <button type="button" class="aux-kit-btn aux-kit-btn-secondary js-auxConfirmCancel"><%- @T('Cancel') %></button>
+      <button type="button" class="aux-kit-btn aux-kit-btn-primary js-auxConfirmOk"><%- @T('Go %s anyway', @status) %></button>
+    </div>
+  </div>
+</div>
