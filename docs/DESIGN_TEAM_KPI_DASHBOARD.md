@@ -519,6 +519,8 @@ Script yang sama membuat role tambahan **Supervisor KPI** (hanya `team_kpi.agent
 | `siska.chat.agent2@` | tidak | akun uji kasus agent biasa |
 | `integration-kpi-api@` | tidak | tokennya hanya `ticket.agent`, tidak pernah memakai data per agent |
 
+**Status staging (29 Sep):** role Supervisor KPI sudah dipasang ke 8 akun di atas, dengan izin user. Hasil cek: ke-8 akun dan admin lolos `agents_access?`; `siska.chat.agent2` dan `integration-kpi-api` tidak.
+
 Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi melihat tab Per agent. Sebaiknya diumumkan dulu.
 
 **Deploy production:** jalankan `script/create_team_kpi_agents_permission.rb`, beri role Supervisor KPI ke daftar supervisor, lalu buat ulang token Laravel.
