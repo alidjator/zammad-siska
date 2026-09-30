@@ -118,7 +118,7 @@
     <div class="team-kpi-queue-title">
       <span class="team-kpi-live-dot"></span>
       <div>
-        <b><%- @T('Antrian saya') %></b>
+        <b><%= @mineQueue.title %></b>
         <div class="team-kpi-muted"><%- @T('Real-time · tiket milik %s sekarang · tidak ikut filter periode', @mineQueue.who) %></div>
       </div>
     </div>

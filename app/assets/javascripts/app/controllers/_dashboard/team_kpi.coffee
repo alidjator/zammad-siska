@@ -1471,6 +1471,7 @@ class App.DashboardKpiMine extends App.DashboardTeamKpi
     active = (s.ticket_new || 0) + (s.ticket_open || 0)
     view.mineQueue =
       who:       who
+      title:     if @viewAs then "Antrian #{who}" else 'Antrian saya'
       active:    @fmtNumber(active, 0)
       activeLink: !@viewAs
       escalated: @fmtNumber(s.ticket_escalated, 0)
