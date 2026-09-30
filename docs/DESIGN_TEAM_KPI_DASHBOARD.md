@@ -746,7 +746,7 @@ Audit menemukan beberapa keputusan hari ini yang berbeda dari setting, rumus, at
 | # | Sebelumnya | Padanan di SISKA | Sesudah koreksi |
 |---|---|---|---|
 | 1 | target FRT per grup | 57 SLA berkondisi `ticket.help_topic`; help topic terisi di 99,9% tiket | **Dasar target default = per help topic.** Setting `team_kpi_frt_target_by_help_topic` berisi satu isian per SLA (kunci `sla_<id>`, 57 isian, dibuat ulang tiap script dijalankan) dan berlaku untuk help topic di kondisi SLA itu. Target tidak ditulis ke SLA, jadi tidak ada eskalasi baru. Opsi per grup/kanal tetap ada |
-| 2 | FRT jam kerja (default) | FRT di menu Reporting (`Report::TicketFirstResponseTime`) memakai jam kalender | **Default jam kalender.** Median dashboard 180 hari **19,6 mnt = median cara Reporting 19,6 mnt**. Jam kerja tetap bisa dipilih |
+| 2 | FRT jam kerja (default) | FRT di menu Reporting (`Report::TicketFirstResponseTime`) memakai jam kalender | **Default jam kalender.** Median dashboard 180 hari **19,6 mnt = median cara Reporting 19,6 mnt pada populasi yang sama (tiket dari customer)**. Reporting sendiri menghitung semua tiket, jadi angkanya berbeda (lihat 23.1). Jam kerja tetap bisa dipilih |
 | 3 | kartu B2 (% sebagai angka utama) | FRT = median + mean berdampingan (DESIGN_REPORTING_FRT Section 3) | **Kartu "First Response Time": angka utama median**, kaki "Rata-rata (mean)" + "Ada outlier" dikembalikan. Status/skala dari % sesuai target (ambang Rasio Escalated). Baris konteks: "79,6% tiket sesuai target · target per help topic · ▲ x poin". Tab Per agent: kolom "FRT median", warna dari % sesuai target. Ekspor: status ditempel ke baris median |
 | 5 | status disembunyikan < 30 | KPI Tim sebelumnya: status + peringatan | **Status tetap tampil + peringatan "Sampel kecil (n < 30)"** di kartu, tabel, dan ekspor |
 | 4 | live chat sejak chat dimulai | Reporting tidak memasukkan chat sama sekali | **Tetap.** Mengikuti Reporting berarti FRT chat hilang, yaitu masalah yang diperbaiki di Section 16 |
@@ -830,3 +830,15 @@ Ekspor .xlsx menambah sheet **"FRT per help topic"** dengan angka yang sama.
 **Staging** (180 hari, admin tanpa grup QA): 26 help topic ber-FRT, 10 dengan target sendiri. **2 topik sudah ≥ 30 tiket tapi masih memakai target global 4 jam:** Update Kontrak Database (57 tiket, 59,6%) dan Penawaran Kerjasama (31 tiket, 71%). Target per help topic diturunkan dari data 90 hari, saat keduanya belum 30 tiket. Masuk tindak lanjut 22.3.
 
 **Pengujian.** `tabs_test.js` 55 skenario (8 baru "Section 23": urutan tab, tiga kolom = angka kartu, target campuran/global, tautan pindah tab + fokus, tabel/urutan/topik kecil/delta, peringatan & dasar per grup, warna SLA ambang SISKA, data kosong).
+
+### 23.1 Selisih yang tersisa dengan Reporting SISKA (keputusan user 30 Sep)
+
+Audit 30 Sep membandingkan KPI Tim dengan laporan Reporting (`lib/report/*`). Tiga selisih diputuskan user:
+
+| # | KPI Tim | Reporting SISKA | Keputusan |
+|---|---|---|---|
+| D1 | FRT hanya tiket yang **dibuka customer** (+ live chat), Section 11.5 | `Report::TicketFirstResponseTime`: **semua tiket**. Profil Reporting SISKA hanya filter organisasi, jadi ±70% tiket yang dibuat agent (FRT 0 menit) ikut. Median 180 hari = **0,0 mnt** (n 10.891) | **Tetap.** Rumus (median, jam kalender, buang `first_response_at < created_at`) sama; populasinya sengaja berbeda. Teks bantuan kartu FRT menyebut perbedaan ini |
+| D2 | CSAT menurut **tanggal rating** (`csat_submitted_at`) | `Report::TicketCsatScore`: menurut **tanggal closed** (`close_at`) | **Tetap.** 55 dari 56 rating (180 hari) ada di tiket yang belum closed (rating live chat), jadi cara Reporting hanya menyisakan 1 rating. Teks bantuan kartu CSAT menyebut perbedaan ini |
+| D3 | tiket merged ikut dihitung | semua laporan membuang merged (`Report::Base.without_merged_tickets_selector`) | **Ikut Reporting.** `Scope#tickets` membuang state merged, jadi berlaku untuk kartu, tren, heatmap, per agent, per help topic, drill-down, dan ekspor. Snapshot per jam (`ticket_escalated`) ikut. Staging: 1 tiket merged; uji rollback: tiket closed yang dijadikan merged mengurangi jumlah closed tepat 1 |
+
+Tooltip "+N help topic lain" di kolom FRT per help topic sekarang berisi daftar topik lainnya, sama dengan kolom SLA.

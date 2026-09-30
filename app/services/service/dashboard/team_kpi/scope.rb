@@ -49,8 +49,10 @@ class Service::Dashboard::TeamKpi::Scope
   end
 
   # All tickets the requesting user may see, with filters applied.
+  # Tiket merged tidak dihitung, sama dengan semua laporan Reporting SISKA
+  # (Report::Base.without_merged_tickets_selector) -- Section 23.1.
   def tickets
-    relation = Ticket.all
+    relation = Ticket.where.not(state_id: merged_state_ids)
     relation = relation.where(group_id: group_ids) if !group_ids.nil?
     relation = relation.where(priority_id: filters[:priority_ids]) if filters[:priority_ids].present?
     relation = relation.where(create_article_type_id: channel_type_ids) if filters[:channels].present?
@@ -264,6 +266,10 @@ class Service::Dashboard::TeamKpi::Scope
   end
 
   private
+
+  def merged_state_ids
+    @merged_state_ids ||= Ticket::State.by_category(:merged).pluck(:id)
+  end
 
   def customer_sender_id
     @customer_sender_id ||= Ticket::Article::Sender.find_by!(name: 'Customer').id

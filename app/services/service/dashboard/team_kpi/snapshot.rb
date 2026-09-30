@@ -49,7 +49,8 @@ class Service::Dashboard::TeamKpi::Snapshot
     counts = {
       ticket_new:       Ticket.where(state_id: state_ids.call('new')).group(:group_id).count,
       ticket_open:      Ticket.where(state_id: state_ids.call('open')).group(:group_id).count,
-      ticket_escalated: Ticket.where.not(state_id: Ticket::State.by_category(:closed)).where.not(escalation_at: nil)
+      # tanpa merged, sama dengan Scope#tickets (Section 23.1)
+      ticket_escalated: Ticket.where.not(state_id: Ticket::State.by_category(:closed)).where.not(state_id: Ticket::State.by_category(:merged)).where.not(escalation_at: nil)
                               .where(escalation_at: ..now).group(:group_id).count,
       eskalasi_active:  eskalasi ? Ticket.where(state_id: eskalasi.id).group(:group_id).count : {},
       eskalasi_breached: if eskalasi

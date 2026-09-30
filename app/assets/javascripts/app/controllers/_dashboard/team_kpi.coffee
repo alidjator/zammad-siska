@@ -611,7 +611,7 @@ class App.DashboardTeamKpi extends App.Controller
       # topic/grup/kanalnya (Section 20), dengan ambang Rasio Escalated.
       card(
         title: 'First Response Time', basis: basis, illus: 'frt'
-        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih (sama dengan FRT di menu Reporting). Live chat dihitung sejak customer memulai chat. Status = persen tiket yang respons pertamanya dalam target help topic-nya (Setting "Dasar target FRT"); live chat memakai target chat sendiri. Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier. Per agent: FRT milik agent yang pertama membalas.'
+        help: 'Median waktu dari tiket dibuat sampai respons pertama agent -- hanya tiket yang dibuka customer, dibuat di periode terpilih. Rumusnya sama dengan FRT di menu Reporting (median, jam kalender), tetapi tiket yang dibuat agent (FRT 0 menit) tidak dihitung. Live chat dihitung sejak customer memulai chat. Status = persen tiket yang respons pertamanya dalam target help topic-nya (Setting "Dasar target FRT"); live chat memakai target chat sendiri. Mean ditampilkan sebagai pembanding: jauh di atas median berarti ada outlier. Per agent: FRT milik agent yang pertama membalas.'
         value: frt.value, unit: frt.unit, emptyUnit: 'mnt', state: s.frt_target_state, n: s.frt_count, nLabel: 'tiket'
         emptyNote: 'Belum ada tiket customer yang direspons di periode ini'
         scaleKind: 'met', scaleKey: 'frt_target_met'
@@ -622,7 +622,7 @@ class App.DashboardTeamKpi extends App.Controller
       )
       card(
         title: 'CSAT', basis: basis, illus: 'csat'
-        help: 'Rata-rata skor kepuasan pelanggan (1–5) dari rating yang masuk di periode terpilih.'
+        help: 'Rata-rata skor kepuasan pelanggan (1–5) dari rating yang masuk di periode terpilih. Dihitung menurut tanggal rating, bukan tanggal closed seperti laporan CSAT di Reporting, karena rating live chat masuk sebelum tiketnya closed.'
         value: @fmtNumber(s.csat_average, 2), unit: '/ 5', state: s.csat_state, n: s.csat_count, nLabel: 'rating'
         emptyNote: 'Belum ada rating di periode ini'
         scaleKind: 'csat', scaleKey: 'csat'
@@ -866,6 +866,7 @@ class App.DashboardTeamKpi extends App.Controller
           pct: row.target_met_percent, pctText: "#{@fmtNumber(row.target_met_percent, 1)}%", cls: @metCls(row.target_met_percent)
         }
       more: if all.length > rows.length then "+#{all.length - rows.length} help topic lain" else null
+      moreTip: _.map(_.difference(all, rows), (r) => "#{r.help_topic || '(tanpa help topic)'}: #{if r.target_met_percent? then @fmtNumber(r.target_met_percent, 1) + '%' else '—'} (n #{@fmtNumber(r.count, 0)})").join(' · ')
     }
 
   TOPIC_SORTS: [

@@ -308,7 +308,7 @@
                   <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
                 </div>
               <% end %>
-              <% if @frtTopic.more: %><span class="team-kpi-muted"><%= @frtTopic.more %></span><% end %>
+              <% if @frtTopic.more: %><span class="team-kpi-muted js-kpi-tip team-kpi-dotted" title="<%= @frtTopic.moreTip %>"><%= @frtTopic.more %></span><% end %>
             </div>
             <button type="button" class="team-kpi-link team-kpi-link--btn js-kpi-tab-link" data-tab="topic"><%- @T('Lihat semua help topic') %> →</button>
           <% else: %>
