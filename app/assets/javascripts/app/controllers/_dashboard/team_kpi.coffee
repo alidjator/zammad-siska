@@ -120,13 +120,18 @@ class App.DashboardTeamKpi extends App.Controller
     @topicSmall = false
     # sama dengan TeamKpiController#agents_access? (dokumen Section 19)
     @canSeeAgents = @permissionCheck('team_kpi.agents') || @permissionCheck('admin')
-    @tab = @preferences().kpi_detail_tab
+    @tab = @preferences()[@TAB_PREF]
     @tab = 'trend' if !_.find(@availableTabs(), (t) => t.key is @tab)
     @data    = {}
     @dataKey = {}   # part -> partKey saat data diambil (data lama tidak dipakai)
     @charts  = {}
     @load()
     @startAutoRefresh()
+
+  # preferensi tab rincian terakhir (KPI Saya punya kunci sendiri)
+  TAB_PREF: 'kpi_detail_tab'
+  # nama di pesan gagal
+  KPI_NAME: 'KPI Tim'
 
   preferences: ->
     App.Session.get('preferences') || {}
@@ -164,11 +169,12 @@ class App.DashboardTeamKpi extends App.Controller
   # Sama dengan drawer Aktivitas (dashboard.coffee): preferensi user di
   # server supaya ikut ke perangkat/browser lain.
   saveTab: =>
-    data = { kpi_detail_tab: @tab }
+    data = {}
+    data[@TAB_PREF] = @tab
     prefs = App.Session.get('preferences')
     _.extend(prefs, data) if prefs
     App.Ajax.request(
-      id:          'preferences_kpi_detail_tab'
+      id:          "preferences_#{@TAB_PREF}"
       type:        'PUT'
       url:         "#{@apiPath}/users/preferences"
       data:        JSON.stringify(data)
@@ -249,7 +255,10 @@ class App.DashboardTeamKpi extends App.Controller
   # ekspor dengan filter yang sama; browser mengunduh .xlsx-nya.
   onExport: (e) =>
     e.preventDefault()
-    window.location.href = "#{@apiPath}/team_kpi/export?#{$.param(@params())}"
+    window.location.href = @exportUrl()
+
+  exportUrl: =>
+    "#{@apiPath}/team_kpi/export?#{$.param(@params())}"
 
   params: =>
     params = { days: @days }
@@ -276,12 +285,6 @@ class App.DashboardTeamKpi extends App.Controller
     @render() if !silent
     pending = parts.length
     failed  = []
-    urls =
-      summary: "#{@apiPath}/team_kpi"
-      trend:   "#{@apiPath}/team_kpi/trend"
-      heatmap: "#{@apiPath}/team_kpi/heatmap"
-      agents:  "#{@apiPath}/team_kpi/agents"
-      options: "#{@apiPath}/team_kpi/filter_options"
     done = =>
       pending -= 1
       return if pending > 0
@@ -291,15 +294,13 @@ class App.DashboardTeamKpi extends App.Controller
 
     for part in parts
       do (part) =>
-        data = @params()
-        data.metric = @metric if part is 'trend'
-        data.limit  = 50 if part is 'agents'
+        req = @partRequest(part)
         key = @partKey(part)
         @ajax(
           id:          "team_kpi_#{part}"
           type:        'GET'
-          url:         urls[part]
-          data:        data
+          url:         req.url
+          data:        req.data
           processData: true
           success: (response) =>
             @data[part]    = response
@@ -308,9 +309,25 @@ class App.DashboardTeamKpi extends App.Controller
             done()
           error: =>
             # daftar filter tanpa jumlah tetap bisa dipakai -> bukan "gagal"
-            failed.push(part) if part isnt 'options'
+            failed.push(part) if !_.contains(@OPTIONAL_PARTS, part)
             done()
         )
+
+  # bagian yang boleh gagal tanpa banner "gagal dimuat"
+  OPTIONAL_PARTS: ['options']
+
+  # URL + parameter tiap bagian (turunan menambah bagian sendiri).
+  partRequest: (part) =>
+    data = @params()
+    data.metric = @metric if part is 'trend'
+    data.limit  = 50 if part is 'agents'
+    urls =
+      summary: "#{@apiPath}/team_kpi"
+      trend:   "#{@apiPath}/team_kpi/trend"
+      heatmap: "#{@apiPath}/team_kpi/heatmap"
+      agents:  "#{@apiPath}/team_kpi/agents"
+      options: "#{@apiPath}/team_kpi/filter_options"
+    { url: urls[part], data: data }
 
   # Configurable via Setting team_kpi_auto_refresh_seconds (default 300s,
   # 0 = mati). Timer jalan terus, tapi request hanya dikirim kalau tab
@@ -416,6 +433,7 @@ class App.DashboardTeamKpi extends App.Controller
     return 'Real-time' if !rc
     switch rc.reason
       when 'filters'     then 'Real-time · delta tidak tersedia dengan filter ini'
+      when 'agent'       then 'Real-time · snapshot hanya per grup, tanpa delta per agent'
       when 'no_snapshot' then "Real-time · snapshot kemarin belum ada (dikumpulkan sejak #{@fmtDateTime(rc.history_since)})"
       else                    'Real-time · snapshot belum dikumpulkan'
 
@@ -605,7 +623,7 @@ class App.DashboardTeamKpi extends App.Controller
           o.deltaNote = "vs #{cmpLabel}: belum ada data"
       o
 
-    [
+    list = [
       # FRT (Section 22.5, ikut rumus Reporting FRT): angka utama = median, mean
       # berdampingan + tanda outlier; status = % tiket sesuai target help
       # topic/grup/kanalnya (Section 20), dengan ambang Rasio Escalated.
@@ -674,6 +692,11 @@ class App.DashboardTeamKpi extends App.Controller
         drill: { metric: 'breach', label: "Lihat #{@fmtNumber(s.eskalasi_breached, 0)} tiket" }, drillCount: s.eskalasi_breached
       )
     ]
+    @pickCards(list, s, card, basis)
+
+  # Turunan (KPI Saya) memilih/menambah kartu dengan pembangun kartu yang sama.
+  pickCards: (list) ->
+    list
 
   # ------------------------------------------------------------- grafik
 
@@ -1034,6 +1057,7 @@ class App.DashboardTeamKpi extends App.Controller
       compares:     ({ value: c.value, label: c.label, selected: c.value is @compare } for c in @COMPARES)
       multiFilters: @multiFiltersView()
       hasFilters:   @hasFilters()
+      kpiName:      @KPI_NAME
 
     if s
       total = (s.ticket_new || 0) + (s.ticket_open || 0)
@@ -1066,6 +1090,7 @@ class App.DashboardTeamKpi extends App.Controller
         slaTotal:  @slaTotal(s)
         backlog:   @backlogView(s)
       )
+      @extendView(view, s, partFailed, partLoading)
       switch @tab
         when 'trend'  then view.trend   = @trendView(@data.trend, partFailed('trend'), partLoading('trend'))
         when 'load'   then view.heatmap = @heatmapView(@data.heatmap, partFailed('heatmap'), partLoading('heatmap'))
@@ -1091,6 +1116,9 @@ class App.DashboardTeamKpi extends App.Controller
     @$('.js-kpi-tip').tooltip(container: 'body')
     @drawCharts(view)
     @initChoices()
+
+  # Tambahan view untuk turunan (KPI Saya); KPI Tim tidak menambah apa pun.
+  extendView: ->
 
   # ------------------------------------------------------------- ApexCharts
 
@@ -1336,3 +1364,133 @@ class App.DashboardTeamKpiDrill extends App.ControllerModal
 
   onTicket: =>
     @close()
+
+# "KPI Saya" (docs Section 24, artboard TeamKpi-Agent / TeamKpi-Agent-States):
+# angka satu agent dengan rumus, format, dan tampilan yang sama dengan KPI Tim
+# -- turunan App.DashboardTeamKpi, datanya dari endpoint yang sama dengan
+# mine=1 (atau agent_id untuk "Lihat sebagai", hanya team_kpi.agents/admin).
+# FRT = tiket yang PERTAMA dibalas agent; penyelesaian, SLA, dibuka ulang,
+# CSAT, dan antrian = tiket milik agent (Section 21). Periode default =
+# Setting team_kpi_default_window_days, sama dengan KPI Tim.
+class App.DashboardKpiMine extends App.DashboardTeamKpi
+  TABS: [
+    { key: 'trend', label: 'Tren',           part: 'trend' }
+    { key: 'topic', label: 'Per help topic', part: null }
+  ]
+
+  # Rasio Escalated hanya dari snapshot per grup -> tidak ada versi per agent
+  METRICS: [
+    { key: 'frt',        label: 'FRT median',   kind: 'duration', lowerBetter: true }
+    { key: 'csat',       label: 'CSAT',         kind: 'score',    lowerBetter: false }
+    { key: 'volume',     label: 'Tiket masuk',  kind: 'count',    lowerBetter: null }
+    { key: 'resolution', label: 'Penyelesaian', kind: 'duration', lowerBetter: true }
+  ]
+
+  TAB_PREF: 'kpi_mine_tab'
+  KPI_NAME: 'KPI Saya'
+  OPTIONAL_PARTS: ['options', 'agentOptions']
+
+  events: _.extend({}, App.DashboardTeamKpi::events,
+    'change .js-kpi-viewas': 'onViewAs'
+  )
+
+  constructor: ->
+    # sama dengan TeamKpiController#agents_access? ("Lihat sebagai")
+    @canViewAs = @permissionCheck('team_kpi.agents') || @permissionCheck('admin')
+    @viewAs = null
+    super
+
+  params: =>
+    params = super
+    if @viewAs then params.agent_id = @viewAs else params.mine = 1
+    params
+
+  load: (silent = false) =>
+    parts = ['summary', 'options', 'queue']
+    parts.push('agentOptions') if @canViewAs
+    part = @tabPart()
+    parts.push(part) if part
+    @loadParts(parts, silent)
+
+  partRequest: (part) =>
+    switch part
+      # daftar "Lihat sebagai" = agent di tab Per agent KPI Tim untuk periode ini
+      when 'agentOptions' then { url: "#{@apiPath}/team_kpi/agent_options", data: { days: @days } }
+      # 5 tiket lewat SLA paling lama (drill-down escalated yang sama dengan kartu tim)
+      when 'queue'        then { url: "#{@apiPath}/team_kpi/tickets", data: _.extend(@params(), metric: 'escalated', limit: 5) }
+      else super
+
+  onViewAs: (e) =>
+    id = parseInt($(e.currentTarget).val(), 10)
+    @viewAs = if !id || id is App.Session.get('id') then null else id
+    @load()
+
+  viewAsName: =>
+    return null if !@viewAs
+    _.find(@data.agentOptions?.agents || [], (a) => a.id is @viewAs)?.name || "Agent ##{@viewAs}"
+
+  # judul modal drill-down menyebut agent yang dilihat
+  filterSummary: =>
+    parts = super
+    parts.unshift("Agent #{@viewAsName()}") if @viewAs
+    parts
+
+  # Kartu FRT, CSAT, Waktu penyelesaian, Reopening rate (sama dengan KPI Tim)
+  # + dua kartu jumlah tanpa target sebagai konteks beban kerja.
+  pickCards: (list, s, card, basis) =>
+    cmp = s.comparison
+    count = (o) =>
+      card(_.extend({ basis: basis, unit: 'tiket', neutral: true, deltaKind: 'count', lowerBetter: null, footValue: '—' }, o))
+    list.slice(0, 4).concat([
+      count(
+        title: 'Tiket dibalas pertama', value: @fmtNumber(s.frt_count, 0), current: s.frt_count, previous: cmp?.frt_count
+        help: 'Tiket dari customer yang dibuat di periode terpilih dan respons pertamanya dari Anda. Konteks beban kerja, tanpa target.'
+        drill: { metric: 'frt', label: 'Lihat tiket' }, drillCount: s.frt_count
+      )
+      count(
+        title: 'Tiket masuk', value: @fmtNumber(s.ticket_created_count, 0), current: s.ticket_created_count, previous: cmp?.ticket_created_count
+        help: 'Tiket milik Anda yang dibuat di periode terpilih. Konteks beban kerja, tanpa target.'
+      )
+    ])
+
+  topicView: (s) =>
+    view = super
+    view.note += ' · FRT = tiket yang Anda balas pertama, SLA = tiket milik Anda saat closed'
+    view
+
+  extendView: (view, s, partFailed, partLoading) =>
+    who = if @viewAs then @viewAsName() else 'Anda'
+    view.mine = true
+    view.basisNote = "FRT dari balasan pertama #{who} · penyelesaian, SLA, dibuka ulang, CSAT dari tiket milik #{who} saat closed"
+    if @canViewAs
+      me = App.Session.get('id')
+      agents = @data.agentOptions?.agents || []
+      agents = [{ id: me, name: 'Saya sendiri' }].concat(_.reject(agents, (a) -> a.id is me))
+      view.viewAs = ({ id: a.id, name: a.name, selected: (a.id is (@viewAs || me)) } for a in agents)
+    queue = @data.queue
+    active = (s.ticket_new || 0) + (s.ticket_open || 0)
+    view.mineQueue =
+      who:       who
+      active:    @fmtNumber(active, 0)
+      activeLink: !@viewAs
+      escalated: @fmtNumber(s.ticket_escalated, 0)
+      escHot:    s.ticket_escalated > 0
+      breach:    @fmtNumber(s.eskalasi_breached, 0)
+      breachHot: s.eskalasi_breached > 0
+      eskalasi:  @fmtNumber(s.eskalasi_active, 0)
+      state:     if partFailed('queue') then 'failed' else if partLoading('queue') then 'loading' else if !s.ticket_escalated then (if active then 'none_late' else 'empty') else 'ready'
+      rows: for t in queue?.tickets || []
+        days = Math.round((Date.now() - new Date(t.at).getTime()) / 86400000)
+        { id: t.id, number: t.number, title: t.title, topic: t.help_topic || '—', group: t.group || '—', created: @fmtDate(t.created_at), late: if days >= 1 then "Lewat #{days} hari" else 'Lewat < 1 hari' }
+      more: if s.ticket_escalated > (queue?.tickets || []).length then "menampilkan #{(queue?.tickets || []).length} dari #{@fmtNumber(s.ticket_escalated, 0)}" else null
+    frtLate = (s.frt_count || 0) - (s.frt_target_met_count || 0)
+    slaItem = { tone: 'good', icon: 'check-circle', title: 'Lewat SLA saat closed: 0', drill: null }
+    slaItem.sub = if s.sla_total then "Semua #{@fmtNumber(s.sla_total, 0)} tiket selesai sebelum batas SLA" else 'Belum ada tiket closed ber-SLA di periode ini'
+    if s.sla_late
+      slaItem = { tone: 'bad', icon: 'warning', title: "Lewat SLA saat closed: #{@fmtNumber(s.sla_late, 0)}", sub: 'Closed setelah batas SLA penyelesaian', drill: { metric: 'resolution', label: 'Lihat tiket (terlama dulu)' } }
+    frtItem = { tone: 'bad', icon: 'clock', title: "Respons pertama lewat target: #{@fmtNumber(frtLate, 0)} tiket", sub: 'Dibalas setelah target help topic-nya', drill: null }
+    frtItem.drill = { metric: 'frt', label: 'Lihat tiket (terlama dulu)' } if frtLate > 0
+    reopenItem = { tone: 'ok', icon: 'clock-counter-clockwise', title: "Dibuka ulang: #{@fmtNumber(s.reopen_count || 0, 0)} tiket", sub: 'Customer membalas lagi setelah tiket closed', drill: null }
+    reopenItem.drill = { metric: 'reopen', label: "Lihat #{@fmtNumber(s.reopen_count, 0)} tiket" } if s.reopen_count > 0
+    view.learn = [frtItem, reopenItem, slaItem]
+    view

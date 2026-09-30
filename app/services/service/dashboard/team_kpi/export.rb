@@ -87,7 +87,18 @@ class Service::Dashboard::TeamKpi::Export
   def filename
     from = local(@summary[:period][:from], '%Y%m%d')
     to   = local(@summary[:period][:to], '%Y%m%d')
-    "kpi_tim_#{from}_#{to}.xlsx"
+    "#{agent ? 'kpi_saya' : 'kpi_tim'}_#{from}_#{to}.xlsx"
+  end
+
+  # KPI Saya (Section 24): ekspor angka satu agent (filter agent_id dari controller)
+  def agent
+    return @agent if defined?(@agent)
+
+    @agent = @summary[:filters][:agent_id] ? User.find_by(id: @summary[:filters][:agent_id]) : nil
+  end
+
+  def kpi_label
+    agent ? 'KPI Saya' : 'KPI Tim'
   end
 
   def build_formats
@@ -130,6 +141,7 @@ class Service::Dashboard::TeamKpi::Export
     parts << "Prioritas: #{Ticket::Priority.where(id: f[:priority_ids]).pluck(:name).join(', ')}" if f[:priority_ids].present?
     parts << "Channel: #{f[:channels].join(', ')}" if f[:channels].present?
     parts << "Kategori: #{f[:categories].join(', ')}" if f[:categories].present?
+    parts.unshift("Agent: #{agent.fullname} (FRT = tiket yang ia balas pertama; lainnya = tiket miliknya)") if agent
     scope = "#{@summary[:group_ids_count] || 'semua'} grup yang bisa diakses"
     parts.empty? ? "Tanpa filter (#{scope})" : "#{parts.join(' | ')} (dalam #{scope})"
   end
@@ -163,7 +175,7 @@ class Service::Dashboard::TeamKpi::Export
 
   def sheet_summary
     sheet = @workbook.add_worksheet('Ringkasan')
-    row   = sheet_head(sheet, 'KPI Tim -- Ringkasan')
+    row   = sheet_head(sheet, "#{kpi_label} -- Ringkasan")
     s     = @summary
     c     = s[:comparison] || {}
     rc    = s[:realtime_comparison] || {}
@@ -203,7 +215,7 @@ class Service::Dashboard::TeamKpi::Export
 
   def sheet_trend
     sheet  = @workbook.add_worksheet('Tren')
-    row    = sheet_head(sheet, 'KPI Tim -- Tren')
+    row    = sheet_head(sheet, "#{kpi_label} -- Tren")
     trends = TREND_METRICS.map { |metric, _| Service::Dashboard::TeamKpi::Trend.call(metric: metric, **@args, compare: @compare) }
     bucket = { 'day' => 'hari', 'week' => 'minggu', 'month' => 'bulan' }[trends.first[:bucket]]
 
@@ -238,7 +250,7 @@ class Service::Dashboard::TeamKpi::Export
   # per help topic = dimensi SLA SISKA (Section 22.6)
   def sheet_sla
     sheet = @workbook.add_worksheet('SLA per help topic')
-    row   = sheet_head(sheet, 'KPI Tim -- SLA penyelesaian per help topic')
+    row   = sheet_head(sheet, "#{kpi_label} -- SLA penyelesaian per help topic")
     records = @summary[:sla_by_help_topic].map { |r| [r[:help_topic] || '(tanpa help topic)', r[:target_minutes], r[:total], r[:within_sla], r[:late], r[:within_percent], r[:late_median_minutes]] }
     row = write_table(sheet, row, ['Help topic', 'Target SLA (menit kerja)', 'Tiket closed (ber-SLA)', 'Tepat waktu', 'Terlambat', '% tepat waktu', 'Median terlambat (menit)'], records, widths: [34, 20, 20, 12, 12, 14, 22])
     sheet.write_string(row + 1, 0, 'Tiket closed di periode yang punya batas penyelesaian SLA (close_escalation_at, dihitung Zammad dengan kalender SLA).', @f_note)
@@ -247,7 +259,7 @@ class Service::Dashboard::TeamKpi::Export
   # FRT per help topic (Section 23), angka sama dengan sub-tab "Per help topic".
   def sheet_frt_topic
     sheet = @workbook.add_worksheet('FRT per help topic')
-    row   = sheet_head(sheet, 'KPI Tim -- First Response Time per help topic')
+    row   = sheet_head(sheet, "#{kpi_label} -- First Response Time per help topic")
     records = @summary[:frt_by_help_topic].map do |r|
       [r[:help_topic] || '(tanpa help topic)', r[:target_minutes], r[:own_target] ? 'sendiri' : 'global', r[:count], r[:median_minutes],
        r[:target_met_count], r[:target_met_percent], delta(r[:target_met_percent], r[:prev_target_met_percent])]
@@ -259,14 +271,14 @@ class Service::Dashboard::TeamKpi::Export
 
   def sheet_backlog
     sheet = @workbook.add_worksheet('Backlog')
-    row   = sheet_head(sheet, 'KPI Tim -- Umur backlog (real-time)')
+    row   = sheet_head(sheet, "#{kpi_label} -- Umur backlog (real-time)")
     records = @summary[:backlog_aging].map { |b| [BACKLOG_LABELS[b[:bucket]] || b[:bucket], b[:count]] }
     write_table(sheet, row, ['Umur tiket belum closed', 'Jumlah'], records, widths: [26, 10])
   end
 
   def sheet_heatmap
     sheet   = @workbook.add_worksheet('Heatmap')
-    row     = sheet_head(sheet, 'KPI Tim -- Rata-rata tiket masuk per jam')
+    row     = sheet_head(sheet, "#{kpi_label} -- Rata-rata tiket masuk per jam")
     heatmap = Service::Dashboard::TeamKpi::Heatmap.call(**@args)
     cells   = heatmap[:cells].index_by { |c| [c[:dow], c[:hour]] }
     header  = ['Hari'] + (0..23).map { |h| format('%02d', h) }
@@ -277,7 +289,7 @@ class Service::Dashboard::TeamKpi::Export
 
   def sheet_agents
     sheet  = @workbook.add_worksheet('Agent')
-    row    = sheet_head(sheet, 'KPI Tim -- Performa per agent')
+    row    = sheet_head(sheet, "#{kpi_label} -- Performa per agent")
     agents = Service::Dashboard::TeamKpi::Agents.call(**@args, limit: 200)
     records = agents[:agents].map do |a|
       [a[:unassigned] ? 'Belum ditugaskan' : a[:name], a[:tickets], a[:frt_target_met_percent], a[:frt_median_minutes], a[:frt_mean_minutes], a[:frt_count],

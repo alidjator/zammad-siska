@@ -44,6 +44,8 @@ class App.Dashboard extends App.Controller
       new App.DashboardTeamKpi(
         el: localEl.find('.team-kpi-widgets')
       )
+    # KPI Saya (Section 24) dibuat saat tabnya pertama kali dibuka (toggle)
+    @kpiMine = null
 
     new App.DashboardActivityStream(
       el:     localEl.find('.js-activityContent')
@@ -375,7 +377,10 @@ class App.Dashboard extends App.Controller
     target = $(e.target).data('area')
     @$('.tab-content').addClass('hidden')
     @$(".tab-content.#{target}").removeClass('hidden')
-    @setKpiTab(target is 'team-kpi-widgets')
+    if target is 'team-kpi-mine-widgets' && !@kpiMine
+      @kpiMine = new App.DashboardKpiMine(el: @$('.team-kpi-mine-widgets'))
+    # KPI Saya memakai tata letak & drawer Aktivitas yang sama dengan KPI Tim
+    @setKpiTab(target in ['team-kpi-widgets', 'team-kpi-mine-widgets'])
 
 class DashboardRouter extends App.ControllerPermanent
   @requiredPermission: ['*']

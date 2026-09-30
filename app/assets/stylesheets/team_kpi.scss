@@ -2360,3 +2360,145 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ---- KPI Saya (Section 24): "Lihat sebagai", catatan atribusi, antrian
+// milik agent dengan daftar lewat SLA, dan kartu "Belajar dari kasus"
+.team-kpi {
+  .team-kpi-viewas {
+    font-weight: 500;
+    color: $kpi-muted;
+
+    svg {
+      flex: none;
+    }
+
+    select {
+      max-width: 240px;
+      color: $kpi-headings;
+    }
+  }
+
+  .team-kpi-basis-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    svg {
+      flex: none;
+    }
+  }
+
+  .team-kpi-banner.is-success {
+    background: $kpi-success-tint;
+    color: $kpi-success-text;
+  }
+
+  .team-kpi-queue--mine {
+    .team-kpi-queue-list {
+      flex: 1 0 100%;
+      min-width: 0;
+    }
+
+    .team-kpi-queue-ticket-title {
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .team-kpi-table {
+      min-width: 720px;
+
+      th {
+        text-transform: none;
+      }
+    }
+  }
+
+  .team-kpi-queue-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+
+  // kartu rincian (2/3) + Belajar dari kasus (1/3); ditumpuk di layar sempit
+  .team-kpi-mine-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+
+    @container (max-width: 1000px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .team-kpi-learn {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px 24px;
+
+    > .team-kpi-muted {
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+  }
+
+  .team-kpi-learn-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid $kpi-border;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      font-size: 13px;
+    }
+
+    b {
+      color: $kpi-headings;
+      font-weight: 600;
+    }
+
+    .team-kpi-muted {
+      font-size: 12px;
+    }
+
+    .team-kpi-drill {
+      margin-top: 2px;
+      font-size: 12px;
+    }
+  }
+
+  .team-kpi-learn-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: $kpi-radius-sm;
+
+    &.is-bad {
+      background: $kpi-danger-tint;
+      color: $kpi-danger;
+    }
+
+    &.is-ok {
+      background: $kpi-warning-tint;
+      color: $kpi-warning-text;
+    }
+
+    &.is-good {
+      background: $kpi-success-tint;
+      color: $kpi-success-text;
+    }
+  }
+}

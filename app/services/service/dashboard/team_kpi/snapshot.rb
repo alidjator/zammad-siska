@@ -86,8 +86,10 @@ class Service::Dashboard::TeamKpi::Snapshot
   end
 
   # Snapshot tidak dipisah per prioritas/channel/kategori.
+  # Snapshot hanya dipisah per grup: tidak untuk filter prioritas/kanal/
+  # kategori, dan tidak untuk angka satu agent (KPI Saya, Section 24).
   def self.supported?(scope)
-    scope.filters.values_at(:priority_ids, :channels, :categories).all?(&:blank?)
+    scope.filters.values_at(:priority_ids, :channels, :categories, :agent_id).all?(&:blank?)
   end
 
   def self.history_since

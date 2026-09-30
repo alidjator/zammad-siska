@@ -8,14 +8,18 @@ require 'csv'
 # read, and accepts the same optional filters:
 #   days=N, group_ids=1,2, priority_ids=3, channels=email,chat,
 #   categories=request,complaint, compare=auto|previous|yoy|none
+#
+# KPI Saya (docs Section 24): mine=1 = angka agent yang login (semua endpoint
+# kecuali agents); agent_id=X ("Lihat sebagai") hanya untuk team_kpi.agents/
+# admin, tetap dalam grup yang bisa dibaca peminta.
 class TeamKpiController < ApplicationController
   prepend_before_action :authentication_check
   before_action :require_agent
-  before_action :require_agents_access, only: :agents
+  before_action :require_agents_access, only: %i[agents agent_options]
 
   # GET /api/v1/team_kpi
   def show
-    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare], include_agents: agents_access?), status: :ok
+    render json: Service::Dashboard::TeamKpi.call(window_days: params[:days], user: current_user, filters: filters, compare: params[:compare], include_agents: include_agents?), status: :ok
   end
 
   # GET /api/v1/team_kpi/trend?metric=frt|csat|volume|resolution
@@ -36,6 +40,17 @@ class TeamKpiController < ApplicationController
   # the team totals.
   def agents
     render json: Service::Dashboard::TeamKpi::Agents.call(window_days: params[:days], user: current_user, filters: filters, limit: params[:limit] || 50), status: :ok
+  end
+
+  # GET /api/v1/team_kpi/agent_options?days=N -- daftar "Lihat sebagai" di KPI
+  # Saya (Supervisor KPI/admin): agent yang aktif di periode dalam grup yang
+  # bisa dibaca peminta, sama dengan agent di tab Per agent (+ peminta sendiri).
+  def agent_options
+    scope = Service::Dashboard::TeamKpi::Scope.new(user: current_user)
+    range = Service::Dashboard::TeamKpi::Scope.window_range(Service::Dashboard::TeamKpi.window_days(params[:days]))
+    ids   = Service::Dashboard::TeamKpi.active_agent_ids(scope, range) | [current_user.id]
+    agents = User.where(id: ids).map { |u| { id: u.id, name: u.fullname } }.sort_by { |a| a[:name].downcase }
+    render json: { agents: agents }, status: :ok
   end
 
   # GET /api/v1/team_kpi/filter_options -- Prioritas/Kanal/Kategori options
@@ -63,7 +78,7 @@ class TeamKpiController < ApplicationController
   def export
     result = Service::Dashboard::TeamKpi::Export.call(
       window_days: params[:days], user: current_user, filters: filters, compare: params[:compare],
-      include_agents: agents_access?
+      include_agents: include_agents?
     )
     send_data(result[:content], filename: result[:filename], type: Service::Dashboard::TeamKpi::Export::CONTENT_TYPE, disposition: 'attachment')
   end
@@ -91,6 +106,29 @@ class TeamKpiController < ApplicationController
     current_user.permissions?(%w[team_kpi.agents admin])
   end
 
+  # Rekap per agent tidak dipakai di KPI Saya (angka satu agent).
+  def include_agents?
+    agents_access? && mine_agent_id.nil?
+  end
+
+  # KPI Saya (Section 24): mine=1 -> agent yang login; agent_id lain hanya
+  # untuk team_kpi.agents/admin. nil = angka tim.
+  def mine_agent_id
+    return @mine_agent_id if defined?(@mine_agent_id)
+
+    @mine_agent_id = if params[:mine].blank? && params[:agent_id].blank?
+                       nil
+                     elsif params[:agent_id].blank? || params[:agent_id].to_i == current_user.id
+                       current_user.id
+                     else
+                       raise Exceptions::Forbidden if !agents_access?
+                       # agent_id rusak jangan diam-diam jadi angka tim
+                       raise Exceptions::UnprocessableContent, 'agent_id tidak valid' if !params[:agent_id].to_i.positive?
+
+                       params[:agent_id].to_i
+                     end
+  end
+
   def require_agent
     raise Exceptions::Forbidden if !current_user.permissions?('ticket.agent')
   end
@@ -99,7 +137,10 @@ class TeamKpiController < ApplicationController
     raise Exceptions::Forbidden if !agents_access?
   end
 
+  # agent_id tidak diambil dari params bebas: hanya lewat mine_agent_id.
   def filters
-    params.permit(:group_ids, :priority_ids, :channels, :categories, group_ids: [], priority_ids: [], channels: [], categories: []).to_h
+    permitted = params.permit(:group_ids, :priority_ids, :channels, :categories, group_ids: [], priority_ids: [], channels: [], categories: []).to_h
+    permitted[:agent_id] = mine_agent_id if mine_agent_id
+    permitted
   end
 end

@@ -842,3 +842,49 @@ Audit 30 Sep membandingkan KPI Tim dengan laporan Reporting (`lib/report/*`). Ti
 | D3 | tiket merged ikut dihitung | semua laporan membuang merged (`Report::Base.without_merged_tickets_selector`) | **Ikut Reporting.** `Scope#tickets` membuang state merged, jadi berlaku untuk kartu, tren, heatmap, per agent, per help topic, drill-down, dan ekspor. Snapshot per jam (`ticket_escalated`) ikut. Staging: 1 tiket merged; uji rollback: tiket closed yang dijadikan merged mengurangi jumlah closed tepat 1 |
 
 Tooltip "+N help topic lain" di kolom FRT per help topic sekarang berisi daftar topik lainnya, sama dengan kolom SLA.
+
+## 24. KPI Saya: Dashboard KPI Satu Agent (30 Sep 2026)
+
+**Keputusan user:** mockup `TeamKpi-Agent` / `TeamKpi-Agent-States` v2 disetujui. Butir yang diputuskan saat pengecekan konsistensi dengan KPI Tim:
+- format, anatomi kartu, peringatan sampel kecil, cakupan CSAT, filter (termasuk Prioritas), metrik tren, dan definisi antrian **sama dengan KPI Tim**;
+- periode default = Setting `team_kpi_default_window_days` (sama dengan KPI Tim, sekarang 7 hari);
+- "Hampir lewat SLA ≤ 4 jam" dan "Pengingat lewat" tidak dipakai (tidak ada di KPI Tim / SISKA);
+- kartu jumlah ("Tiket dibalas pertama", "Tiket masuk") berpill "Belum ada target";
+- tabel per help topic memakai format KPI Tim;
+- data dalam grup yang bisa dibaca (`Scope` user).
+
+**Definisi = KPI Tim, satu agent** (Section 21). `Scope` menerima filter `agent_id`:
+- `Scope#tickets` = tiket milik agent (owner): penyelesaian, SLA, dibuka ulang, CSAT, antrian real-time, Tiket masuk, backlog, heatmap;
+- `Scope#frt_tickets` = tiket yang **pertama dibalas** agent (`FRT_MINE_JOIN`, alias `frt_mine`), dari semua tiket dalam scope, bukan hanya milik agent;
+- tidak ada rumus atau query sendiri: kartu, tren, per help topic, drill-down, dan ekspor memakai service yang sama.
+
+**API** (semua endpoint `/team_kpi*` kecuali `/agents`):
+
+| Parameter | Siapa | Isi |
+|---|---|---|
+| `mine=1` | semua agent (`ticket.agent`) | angka agent yang login |
+| `agent_id=X` | Supervisor KPI / admin (`team_kpi.agents`), agent biasa hanya untuk dirinya sendiri (lainnya 403; nilai rusak 422) | "Lihat sebagai", tetap dalam grup yang bisa dibaca peminta |
+
+`agent_id` tidak pernah diambil dari parameter bebas: `TeamKpiController#filters` hanya mengisinya lewat `mine_agent_id`. Tanpa `mine`/`agent_id` semua endpoint tetap angka tim.
+
+Tambahan:
+- `ticket_created_count` (ringkasan & pembanding): tiket dibuat di periode.
+- `GET /team_kpi/agent_options?days=N` (Supervisor KPI/admin): daftar "Lihat sebagai" = agent aktif di periode, **sama dengan agent di tab Per agent** (`TeamKpi.active_agent_ids`, dipakai juga badge Per agent) + peminta sendiri. Sebelumnya dicoba "semua agent yang berbagi grup": 516 akun, tidak berguna.
+- `/team_kpi/tickets` menambah `help_topic` per tiket (tabel antrian).
+- Dengan agent: `realtime_comparison.reason = 'agent'` dan tren Rasio Escalated `unavailable: 'agent'` (snapshot hanya per grup); ringkasan tanpa `agents_active_count`.
+- Ekspor dengan agent: judul sheet "KPI Saya", nama file `kpi_saya_…`, keterangan filter menyebut agent dan atribusinya.
+
+**Tampilan** (tab "KPI Saya" di Dashboard, sesudah KPI Tim; `App.DashboardKpiMine`, turunan `App.DashboardTeamKpi` di akhir `team_kpi.coffee` supaya selalu dimuat sesudah induknya):
+- controller dibuat saat tab pertama kali dibuka; tata letak dan drawer Aktivitas sama dengan KPI Tim;
+- kepala Periode + **Lihat sebagai** (hanya Supervisor KPI/admin; "Saya sendiri" di atas) + Ekspor; baris meta menyebut atribusi;
+- **Antrian saya:** Aktif (New + Open, tautan ke tiket saya), Lewat SLA dan Breach eskalasi (membuka drill-down), lalu 5 tiket lewat SLA paling lama (drill-down `escalated`, limit 5). Kondisi: kosong, tanpa lewat SLA, gagal dimuat (angka tetap tampil);
+- 6 kartu: FRT, CSAT, Waktu penyelesaian, Reopening rate (sama dengan KPI Tim), Tiket dibalas pertama, Tiket masuk;
+- rincian ber-tab **Tren | Per help topic** (tren tanpa Rasio Escalated; preferensi tab `kpi_mine_tab`), di samping kartu **Belajar dari kasus** (FRT lewat target, dibuka ulang, lewat SLA saat closed, dengan tautan drill-down).
+
+Refactor kecil di induk (perilaku KPI Tim tidak berubah): `TAB_PREF`, `KPI_NAME`, `OPTIONAL_PARTS`, `partRequest`, `pickCards`, `extendView`, `exportUrl`.
+
+**Pengujian.**
+- `rails runner` (`scripts/mine_test.rb`, 25 cek): angka agent = hitungan independen (FRT n/sesuai/median, CSAT, closed/SLA, Tiket masuk, antrian); "Lihat sebagai" supervisor = baris agent itu di tab Per agent; angka tim = hitungan independen; drill-down, tren, dan ekspor; aturan akses `mine`/`agent_id` (403/422); `agent_options` = badge Per agent.
+- `tabs_test.js` 63 skenario (8 baru "Section 24").
+
+**Catatan data:** dengan default 7 hari, angka satu agent sering bersampel kecil (contoh agent 70688: FRT 3 tiket, 9 closed). Peringatan "Sampel kecil" tampil sesuai aturan KPI Tim. Kalau KPI Saya perlu default lain, butuh Setting terpisah (belum dibuat).

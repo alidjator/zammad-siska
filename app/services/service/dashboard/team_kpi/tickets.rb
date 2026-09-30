@@ -53,7 +53,7 @@ class Service::Dashboard::TeamKpi::Tickets
   def columns
     [
       'tickets.id', 'tickets.number', 'tickets.title', 'tickets.group_id', 'tickets.owner_id',
-      'tickets.created_at', 'tickets.close_at',
+      'tickets.created_at', 'tickets.close_at', 'tickets.help_topic',
       Arel.sql("#{value_sql} AS kpi_value"), Arel.sql("#{at_sql} AS kpi_at")
     ]
   end
@@ -127,6 +127,7 @@ class Service::Dashboard::TeamKpi::Tickets
       number:     row.number,
       title:      row.title,
       group:      group_names[row.group_id],
+      help_topic: row.help_topic.presence,
       owner:      row.owner_id == Service::Dashboard::TeamKpi::Agents::UNASSIGNED_ID ? nil : @owner_names[row.owner_id],
       created_at: row.created_at&.iso8601,
       close_at:   row.close_at&.iso8601,

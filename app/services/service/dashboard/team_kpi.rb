@@ -134,6 +134,7 @@ class Service::Dashboard::TeamKpi
       sla_by_help_topic:      sla_by_help_topic(@range),
       frt_by_help_topic:      frt_by_help_topic,
       sla_state:              sla_state(period[:sla_within_percent]),
+      ticket_created_count:   period[:ticket_created_count],
       ticket_new:             new_count,
       ticket_open:            open_count,
       ticket_escalated:       escalated,
@@ -168,7 +169,7 @@ class Service::Dashboard::TeamKpi
   # started).
   def realtime_comparison(new_count, open_count, escalated, eskalasi_active, eskalasi_breached)
     snapshot = Service::Dashboard::TeamKpi::Snapshot
-    return { available: false, reason: 'filters' } if !snapshot.supported?(@scope)
+    return { available: false, reason: @scope.agent_id ? 'agent' : 'filters' } if !snapshot.supported?(@scope)
 
     at   = Time.zone.now - 24.hours
     past = snapshot.nearest(@scope, at)
@@ -246,6 +247,8 @@ class Service::Dashboard::TeamKpi
       sla_late:                  sla[:late],
       sla_within_percent:        sla[:within_percent],
       sla_late_median_minutes:   sla[:late_median_minutes],
+      # tiket dibuat di periode (KPI Saya "Tiket masuk" = milik agent, Section 24)
+      ticket_created_count:      tickets.where(created_at: range).count,
     }
   end
 
@@ -463,14 +466,20 @@ class Service::Dashboard::TeamKpi
   # ringan dari rekap per agent lengkap, jadi badge bisa tampil tanpa
   # memuat tabelnya.
   def agents_active_count
-    ids  = tickets.where(created_at: @range).distinct.pluck(:owner_id)
-    ids |= @scope.frt_tickets(@range).joins(Service::Dashboard::TeamKpi::Scope::FRT_RESPONDER_JOIN).distinct.pluck(Arel.sql('frt_resp.responder_id')) # Section 21
-    ids |= tickets
+    self.class.active_agent_ids(@scope, @range).size
+  end
+
+  # Juga dipakai daftar "Lihat sebagai" KPI Saya (TeamKpiController#agent_options,
+  # Section 24), supaya isinya = agent di tab Per agent.
+  def self.active_agent_ids(scope, range)
+    ids  = scope.tickets.where(created_at: range).distinct.pluck(:owner_id)
+    ids |= scope.frt_tickets(range).joins(Service::Dashboard::TeamKpi::Scope::FRT_RESPONDER_JOIN).distinct.pluck(Arel.sql('frt_resp.responder_id')) # Section 21
+    ids |= scope.tickets
       .where.not(state_id: Ticket::State.by_category(:closed))
       .where.not(escalation_at: nil)
       .where(escalation_at: ..Time.zone.now)
       .distinct.pluck(:owner_id)
-    (ids.compact - [Service::Dashboard::TeamKpi::Agents::UNASSIGNED_ID]).size
+    ids.compact - [Service::Dashboard::TeamKpi::Agents::UNASSIGNED_ID]
   end
 
   def ticket_escalated_count

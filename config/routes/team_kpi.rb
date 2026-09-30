@@ -10,4 +10,5 @@ Zammad::Application.routes.draw do
   match api_path + '/team_kpi/export',  to: 'team_kpi#export',  via: :get
   match api_path + '/team_kpi/filter_options', to: 'team_kpi#filter_options', via: :get
   match api_path + '/team_kpi/tickets', to: 'team_kpi#tickets', via: :get
+  match api_path + '/team_kpi/agent_options', to: 'team_kpi#agent_options', via: :get
 end

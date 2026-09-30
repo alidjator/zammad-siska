@@ -48,10 +48,23 @@ class Service::Dashboard::TeamKpi::Scope
                  end
   end
 
+  # KPI Saya (Section 24): angka satu agent. Metrik penanganan & antrian =
+  # tiket milik agent (owner), FRT = tiket yang PERTAMA dibalas agent
+  # (frt_tickets). Diisi TeamKpiController (mine=1 / agent_id), bukan dari
+  # parameter bebas.
+  def agent_id
+    filters[:agent_id]
+  end
+
   # All tickets the requesting user may see, with filters applied.
+  # Dengan agent_id: hanya tiket milik agent itu (Section 24).
+  def tickets
+    agent_id ? base_tickets.where(owner_id: agent_id) : base_tickets
+  end
+
   # Tiket merged tidak dihitung, sama dengan semua laporan Reporting SISKA
   # (Report::Base.without_merged_tickets_selector) -- Section 23.1.
-  def tickets
+  def base_tickets
     relation = Ticket.where.not(state_id: merged_state_ids)
     relation = relation.where(group_id: group_ids) if !group_ids.nil?
     relation = relation.where(priority_id: filters[:priority_ids]) if filters[:priority_ids].present?
@@ -212,8 +225,14 @@ class Service::Dashboard::TeamKpi::Scope
     end
   end
 
+  # KPI Saya: FRT milik pembalas pertama (Section 21), bukan owner -- alias
+  # sendiri (frt_mine) supaya tidak bentrok dengan FRT_RESPONDER_JOIN.
+  FRT_MINE_JOIN = FRT_RESPONDER_JOIN.sub('frt_resp ON true', 'frt_mine ON true').freeze
+
   def frt_tickets(range)
-    tickets
+    relation = base_tickets
+    relation = relation.joins(FRT_MINE_JOIN).where('frt_mine.responder_id = ?', agent_id) if agent_id
+    relation
       .joins(FRT_CHAT_JOIN)
       .where(created_at: range)
       .where('tickets.create_article_sender_id = :customer OR (tickets.create_article_type_id = :chat AND frt_chat.ticket_id IS NOT NULL)',
@@ -290,6 +309,7 @@ class Service::Dashboard::TeamKpi::Scope
       priority_ids: int_list(raw[:priority_ids]),
       channels:     str_list(raw[:channels]),
       categories:   str_list(raw[:categories]),
+      agent_id:     raw[:agent_id].to_i.positive? ? raw[:agent_id].to_i : nil,
     }
   end
 

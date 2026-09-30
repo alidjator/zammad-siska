@@ -58,7 +58,7 @@ class Service::Dashboard::TeamKpi::Trend
     return result if !snapshot?
 
     snapshot = Service::Dashboard::TeamKpi::Snapshot
-    result.merge(history_since: snapshot.history_since&.iso8601, unavailable: snapshot.supported?(@scope) ? nil : 'filters')
+    result.merge(history_since: snapshot.history_since&.iso8601, unavailable: snapshot.supported?(@scope) ? nil : (@scope.agent_id ? 'agent' : 'filters'))
   end
 
   private

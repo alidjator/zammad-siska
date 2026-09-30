@@ -24,6 +24,13 @@
         </div>
       </div>
       <div class="team-kpi-bar-ornaments" aria-hidden="true"><svg class="team-kpi-bar-ornaments-svg" aria-hidden="true" focusable="false" width="480" height="76" viewBox="0 0 480 76"><circle cx="30" cy="22" r="6" fill="none" stroke="#f5b400" stroke-width="2.2"></circle><circle cx="88" cy="54" r="3" fill="#5cd6a9"></circle><polygon points="150.0,12.0 148.4,15.8 144.3,16.1 147.4,18.8 146.5,22.9 150.0,20.7 153.5,22.9 152.6,18.8 155.7,16.1 151.6,15.8" fill="#ffd66b"></polygon><path d="M206.4 43.6h11.2a4 4 0 0 1 4 4v4.800000000000001a4 4 0 0 1-4 4h-7.6l-5 5v-5h-2.5999999999999996a4 4 0 0 1-4-4v-4.800000000000001a4 4 0 0 1 4-4z" fill="#ffffff" stroke="#7da5fe" stroke-width="1.8" stroke-linejoin="round"></path><circle cx="207.6" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="212.0" cy="50" r="1.6" fill="#7da5fe"></circle><circle cx="216.4" cy="50" r="1.6" fill="#7da5fe"></circle><path d="M257 22h10M262 17v10" stroke="#b5cbfe" stroke-width="2.4" stroke-linecap="round"></path><path transform="translate(306 46) scale(0.67)" d="M0 5c0-5 7-7 9-2 2-5 9-3 9 2 0 6-9 11-9 11S0 11 0 5z" fill="#ff8a8a"></path><path d="M356 11C356.9 15.1 356.9 15.1 361 16C356.9 16.9 356.9 16.9 356 21C355.1 16.9 355.1 16.9 351 16C355.1 15.1 355.1 15.1 356 11z" fill="#3ec9d6"></path><circle cx="400" cy="58" r="4.5" fill="none" stroke="#ffb44d" stroke-width="2.2"></circle><path d="M440 14l3.6 6.0h-7.2z" fill="none" stroke="#7da5fe" stroke-width="2" stroke-linejoin="round"></path></svg></div>
+      <% if @viewAs: %>
+        <label class="team-kpi-select team-kpi-viewas"><%- @SiskaIcon('user', 16) %><span><%- @T('Lihat sebagai') %></span>
+          <select class="js-kpi-viewas">
+            <% for a in @viewAs: %><option value="<%= a.id %>" <% if a.selected: %>selected<% end %>><%= a.name %></option><% end %>
+          </select>
+        </label>
+      <% end %>
       <button type="button" class="team-kpi-btn team-kpi-btn--outline team-kpi-btn--lg js-kpi-export" title="<%- @T('Unduh .xlsx sesuai filter yang aktif') %>">
         <%- @SiskaIcon('download-simple', 16) %> <%- @T('Ekspor .xlsx') %>
       </button>
@@ -71,6 +78,7 @@
           <%- @SiskaIcon('clock-counter-clockwise', 14) %>
           <% if @refreshing || @loading: %><%- @T('Memuat…') %><% else if @updatedAt: %><%- @T('Diperbarui') %> <%= @updatedAt %><% end %>
         </span>
+        <% if @basisNote: %><span class="team-kpi-basis-note"><%- @SiskaIcon('info', 14) %> <%= @basisNote %></span><% end %>
       </span>
       <% if @hasFilters: %>
         <button type="button" class="team-kpi-btn team-kpi-btn--link js-kpi-reset"><%- @SiskaIcon('x', 14) %> <%- @T('Reset filter') %></button>
@@ -90,7 +98,7 @@
   <% if @failedAll: %>
     <div class="team-kpi-card team-kpi-state" role="alert">
       <span class="team-kpi-state-icon is-danger"><%- @SiskaIcon('x-circle', 22) %></span>
-      <div class="team-kpi-state-title"><%- @T('Gagal memuat KPI Tim') %></div>
+      <div class="team-kpi-state-title"><%- @T('Gagal memuat %s', @kpiName) %></div>
       <div class="team-kpi-muted"><%- @T('Server tidak merespons. Coba beberapa saat lagi.') %></div>
       <button type="button" class="team-kpi-btn team-kpi-btn--outline js-kpi-retry"><%- @T('Coba lagi') %></button>
     </div>
@@ -104,6 +112,55 @@
 
   <% if @summary: %>
 
+  <% if @mineQueue: %>
+  <%# KPI Saya: antrian milik agent (Section 24) -- definisi = KPI Tim %>
+  <div class="team-kpi-card team-kpi-queue team-kpi-queue--mine">
+    <div class="team-kpi-queue-title">
+      <span class="team-kpi-live-dot"></span>
+      <div>
+        <b><%- @T('Antrian saya') %></b>
+        <div class="team-kpi-muted"><%- @T('Real-time · tiket milik %s sekarang · tidak ikut filter periode', @mineQueue.who) %></div>
+      </div>
+    </div>
+    <div class="team-kpi-queue-items">
+      <% if @mineQueue.activeLink: %>
+        <a href="#ticket/view/my_assigned" class="team-kpi-queue-item" title="<%- @T('Buka tiket saya') %>"><span><%- @T('Aktif milik saya') %></span><b><%= @mineQueue.active %></b><small><%- @T('New + Open') %></small></a>
+      <% else: %>
+        <span class="team-kpi-queue-item"><span><%- @T('Aktif') %></span><b><%= @mineQueue.active %></b><small><%- @T('New + Open') %></small></span>
+      <% end %>
+      <a href="#" class="team-kpi-queue-item js-kpi-drill" data-metric="escalated" title="<%- @T('Lihat tiket yang lewat SLA') %>"><span><%- @T('Lewat SLA') %></span><b class="<% if @mineQueue.escHot: %>is-bad<% end %>"><%= @mineQueue.escalated %></b><small><%- @T('kerjakan dulu') %></small></a>
+      <a href="#" class="team-kpi-queue-item js-kpi-drill" data-metric="breach" title="<%- @T('Lihat eskalasi yang lewat batas waktu') %>"><span><%- @T('Breach eskalasi') %></span><b class="<% if @mineQueue.breachHot: %>is-bad<% end %>"><%= @mineQueue.breach %></b><small><%- @T('dari %s eskalasi aktif', @mineQueue.eskalasi) %></small></a>
+    </div>
+    <div class="team-kpi-queue-list">
+      <% if @mineQueue.state is 'loading': %>
+        <div class="team-kpi-muted"><%- @T('Memuat…') %></div>
+      <% else if @mineQueue.state is 'failed': %>
+        <div class="team-kpi-muted"><%- @T('Gagal memuat daftar tiket. Angka di atas tetap benar.') %></div>
+      <% else if @mineQueue.state is 'empty': %>
+        <div class="team-kpi-banner is-success"><%- @SiskaIcon('check-circle', 16) %><span><%- @T('Tidak ada tiket aktif. Tiket baru dari AUX akan muncul di sini.') %></span></div>
+      <% else if @mineQueue.state is 'none_late': %>
+        <div class="team-kpi-banner is-success"><%- @SiskaIcon('check-circle', 16) %><span><%- @T('Tidak ada tiket yang lewat SLA.') %></span></div>
+      <% else: %>
+        <div class="team-kpi-table-wrap"><table class="team-kpi-table team-kpi-table--hover">
+          <thead><tr><th><%- @T('Tiket') %></th><th><%- @T('Judul') %></th><th><%- @T('Help topic') %></th><th><%- @T('Grup') %></th><th><%- @T('Dibuat') %></th><th class="is-num"><%- @T('Status SLA') %></th></tr></thead>
+          <tbody>
+            <% for r in @mineQueue.rows: %>
+              <tr>
+                <td><a href="#ticket/zoom/<%= r.id %>">#<%= r.number %></a></td>
+                <td class="team-kpi-queue-ticket-title" title="<%= r.title %>"><%= r.title %></td>
+                <td><%= r.topic %></td>
+                <td><%= r.group %></td>
+                <td class="team-kpi-muted"><%= r.created %></td>
+                <td class="is-num"><span class="team-kpi-badge is-bad"><%= r.late %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table></div>
+        <div class="team-kpi-queue-foot"><span class="team-kpi-muted"><%- @T('Lewat SLA, diurutkan dari yang paling lama') %><% if @mineQueue.more: %> · <%= @mineQueue.more %><% end %></span><a href="#" class="team-kpi-drill js-kpi-drill" data-metric="escalated"><%- @T('Lihat %s tiket', @mineQueue.escalated) %> →</a></div>
+      <% end %>
+    </div>
+  </div>
+  <% else: %>
   <div class="team-kpi-card team-kpi-queue">
     <div class="team-kpi-queue-title">
       <span class="team-kpi-live-dot"></span>
@@ -127,6 +184,8 @@
       </a>
     </div>
   </div>
+
+  <% end %>
 
   <div class="team-kpi-cards">
     <% for k in @cards: %>
@@ -209,6 +268,7 @@
 
   <%# Rincian: nav-tabs kit di dalam card (pola invoice-list). Hanya panel tab %>
   <%# aktif yang dirender; datanya diambil saat tab dibuka (team_kpi.coffee). %>
+  <% if @learn: %><div class="team-kpi-mine-row"><% end %>
   <div class="team-kpi-card team-kpi-detail">
     <div class="team-kpi-navtabs" role="tablist" aria-label="<%- @T('Rincian KPI') %>">
       <% for t in @tabs: %>
@@ -478,6 +538,24 @@
       </div>
     <% end %>
   </div>
+  <% if @learn: %>
+    <%# KPI Saya: tiket sendiri yang layak dilihat lagi (angka dari ringkasan) %>
+    <div class="team-kpi-card team-kpi-learn">
+      <div class="team-kpi-section-title"><%- @T('Belajar dari kasus') %></div>
+      <div class="team-kpi-muted"><%- @T('Tiket di periode ini yang layak dilihat lagi') %></div>
+      <% for it in @learn: %>
+        <div class="team-kpi-learn-item">
+          <span class="team-kpi-learn-icon is-<%= it.tone %>"><%- @SiskaIcon(it.icon, 16) %></span>
+          <div>
+            <b><%= it.title %></b>
+            <span class="team-kpi-muted"><%= it.sub %></span>
+            <% if it.drill: %><a href="#" class="team-kpi-drill js-kpi-drill" data-metric="<%= it.drill.metric %>"><%= it.drill.label %> →</a><% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  <% end %>
 
   <% end %>
 </div>
