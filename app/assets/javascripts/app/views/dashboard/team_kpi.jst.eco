@@ -284,7 +284,37 @@
       </div>
 
     <% else if @tab is 'sla': %>
-    <div class="team-kpi-pane team-kpi-pane--split" id="kpi-pane-sla" role="tabpanel">
+    <div class="team-kpi-pane team-kpi-pane--split team-kpi-pane--split3" id="kpi-pane-sla" role="tabpanel">
+        <div class="team-kpi-bars">
+          <div>
+          <div class="team-kpi-section-title">
+            <%- @T('FRT per help topic') %>
+            <span class="team-kpi-help js-kpi-tip" tabindex="0" title="<%- @T('Persentase tiket yang respons pertamanya dalam target help topic-nya. Populasi, menit, dan target sama dengan kartu First Response Time.') %>"><%- @SiskaIcon('info', 14) %></span>
+          </div>
+          <div class="team-kpi-muted"><%- @T('Persentase tiket direspons dalam target help topic-nya, %s', @basis) %></div>
+          </div>
+          <% if @frtTopic: %>
+            <%- @frtTopic.pctHtml %>
+            <div class="team-kpi-sla-stats">
+              <div><span><%- @T('Lewat target') %></span><b class="<% if @frtTopic.lateHot: %>is-bad<% end %>"><%= @frtTopic.late %></b></div>
+              <% if @frtTopic.globalCount?: %>
+                <div><span class="js-kpi-tip" title="<%- @T('Help topic tanpa target sendiri di Setting Target FRT per help topic') %>"><%- @T('Memakai target global') %></span><b><%= @frtTopic.globalCount %> <%- @T('topik') %></b></div>
+              <% end %>
+            </div>
+            <div class="team-kpi-sla-rows">
+              <% for row in @frtTopic.rows: %>
+                <div class="team-kpi-meter-row">
+                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small>· <%= row.target %> · n <%= row.total %> · <%= row.late %> <%- @T('lewat target') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
+                  <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
+                </div>
+              <% end %>
+              <% if @frtTopic.more: %><span class="team-kpi-muted"><%= @frtTopic.more %></span><% end %>
+            </div>
+            <button type="button" class="team-kpi-link team-kpi-link--btn js-kpi-tab-link" data-tab="topic"><%- @T('Lihat semua help topic') %> →</button>
+          <% else: %>
+            <div class="team-kpi-empty"><span><%- @T('Belum ada tiket customer yang direspons di periode ini.') %></span></div>
+          <% end %>
+        </div>
         <div class="team-kpi-bars">
           <div>
           <div class="team-kpi-section-title">
@@ -329,6 +359,78 @@
           <a href="#ticket/view/all_open" class="team-kpi-link"><%- @T('Buka tiket aktif') %> →</a>
         </div>
     </div>
+
+    <% else if @tab is 'topic': %>
+      <div class="team-kpi-pane" id="kpi-pane-topic" role="tabpanel">
+        <div class="team-kpi-section-head">
+          <div>
+            <div class="team-kpi-section-title"><%- @T('FRT & SLA per help topic') %></div>
+            <div class="team-kpi-muted"><%= @topic.note %></div>
+          </div>
+          <% if !@topic.empty: %>
+            <label class="team-kpi-select"><%- @T('Urutkan') %>
+              <select class="js-kpi-topic-sort">
+                <% for o in @topic.sorts: %><option value="<%= o.value %>" <% if o.selected: %>selected<% end %>><%= o.label %></option><% end %>
+              </select>
+            </label>
+          <% end %>
+        </div>
+        <% if @topic.empty: %>
+          <div class="team-kpi-empty"><span><%- @T('Belum ada tiket di periode ini.') %></span></div>
+        <% else: %>
+          <% if @topic.alert: %>
+            <div class="team-kpi-banner is-warning team-kpi-topic-alert" role="note"><%- @SiskaIcon('warning', 16) %><span><b><%= @topic.alert.head %></b> <%= @topic.alert.list %>. <%- @T('Target sendiri bisa ditetapkan bersama pemilik layanan di Setting "Target FRT per help topic".') %></span></div>
+          <% end %>
+          <div class="team-kpi-table-wrap"><table class="team-kpi-table team-kpi-table--topic">
+            <thead>
+              <tr>
+                <th rowspan="2"><%- @T('Help topic') %></th>
+                <th colspan="5" class="is-group"><%- @T('First Response Time') %></th>
+                <th colspan="3" class="is-group"><%- @T('SLA penyelesaian') %></th>
+              </tr>
+              <tr>
+                <th class="is-sep"><%- @T('Target') %></th>
+                <th class="is-num">n</th>
+                <th class="is-num"><%- @T('Median') %></th>
+                <th class="is-num"><%- @T('Sesuai target') %></th>
+                <th class="is-num"><%- @T('vs pembanding') %></th>
+                <th class="is-sep"><%- @T('Target') %></th>
+                <th class="is-num"><%- @T('Closed') %></th>
+                <th class="is-num"><%- @T('Tepat waktu') %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% for r in @topic.rows: %>
+                <tr>
+                  <td class="team-kpi-topic-name"><%= r.label %></td>
+                  <% if r.frt: %>
+                    <td class="is-sep"><%= r.frt.target %><% if r.frt.global: %> <span class="team-kpi-chip is-warning"><%- @T('global') %></span><% end %></td>
+                    <td class="is-num"><%= r.frt.n %><% if r.frt.small: %> *<% end %></td>
+                    <td class="is-num team-kpi-muted"><%= r.frt.median %></td>
+                    <td class="is-num"><div class="team-kpi-inline-bar"><div class="team-kpi-meter"><i class="is-<%= r.frt.cls %>" style="width: <%= r.frt.pct %>%"></i></div><b class="is-<%= r.frt.cls %>"><%= r.frt.pctText %></b></div></td>
+                    <td class="is-num"><% if r.frt.delta: %><b class="<%= r.frt.delta.cls %>"><%= r.frt.delta.text %></b><% else: %><span class="team-kpi-muted">—</span><% end %></td>
+                  <% else: %>
+                    <td colspan="5" class="is-sep team-kpi-muted is-center"><%- @T('tidak ada tiket dari customer') %></td>
+                  <% end %>
+                  <% if r.sla: %>
+                    <td class="is-sep team-kpi-muted"><%= r.sla.target %></td>
+                    <td class="is-num"><%= r.sla.n %><% if r.sla.small: %> *<% end %></td>
+                    <td class="is-num"><div class="team-kpi-inline-bar"><div class="team-kpi-meter"><i class="is-<%= r.sla.cls %>" style="width: <%= r.sla.pct %>%"></i></div><b class="is-<%= r.sla.cls %>"><%= r.sla.pctText %></b></div></td>
+                  <% else: %>
+                    <td colspan="3" class="is-sep team-kpi-muted is-center">—</td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </tbody>
+          </table></div>
+          <div class="team-kpi-topic-foot">
+            <span class="team-kpi-muted"><%- @T('* sampel kecil (n < 30) · warna = ambang Rasio Escalated atas % terlambat, sama dengan status kartu · vs pembanding dalam poin, hanya kalau kedua periode n ≥ 30') %></span>
+            <% if @topic.smallCount: %>
+              <button type="button" class="team-kpi-link team-kpi-link--btn js-kpi-topic-small" aria-pressed="<%= if @topic.showSmall then 'true' else 'false' %>"><% if @topic.showSmall: %><%- @T('Sembunyikan %s help topic kecil', @topic.smallCount) %><% else: %><%- @T('Tampilkan %s help topic kecil', @topic.smallCount) %><% end %></button>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
 
     <% else if @tab is 'agents': %>
       <div class="team-kpi-pane" id="kpi-pane-agents" role="tabpanel">

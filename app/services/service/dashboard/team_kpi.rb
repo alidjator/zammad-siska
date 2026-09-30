@@ -132,6 +132,7 @@ class Service::Dashboard::TeamKpi
       sla_late_median_minutes: period[:sla_late_median_minutes],
       sla_by_priority:        sla_by_priority(@range),
       sla_by_help_topic:      sla_by_help_topic(@range),
+      frt_by_help_topic:      frt_by_help_topic,
       sla_state:              sla_state(period[:sla_within_percent]),
       ticket_new:             new_count,
       ticket_open:            open_count,
@@ -353,6 +354,48 @@ class Service::Dashboard::TeamKpi
         }
       end
       .sort_by { |row| -row[:total] }
+  end
+
+  # FRT per help topic (Section 23): populasi, menit, dan target sama dengan
+  # kartu FRT (Scope#frt_tickets + frt_target_sql), dikelompokkan per help
+  # topic -- dimensi SLA SISKA, sama dengan sla_by_help_topic. own_target =
+  # help topic punya target sendiri di Setting team_kpi_frt_target_by_help_topic
+  # (hanya berarti kalau Dasar target FRT = per help topic); selain itu target
+  # global. Target per tiket bisa campuran (mis. live chat memakai target
+  # chat), jadi target_minutes hanya diisi kalau satu target berlaku. prev_*
+  # dari rentang pembanding, kalau ada.
+  def frt_by_help_topic
+    prev = @comparison ? frt_topic_rows(@comparison[:range]).index_by { |row| row[:help_topic] } : {}
+    own  = Service::Dashboard::TeamKpi::Scope.frt_target_basis == 'help_topic' ? Service::Dashboard::TeamKpi::Scope.frt_target_by_help_topic : {}
+    frt_topic_rows(@range).map do |row|
+      before = prev[row[:help_topic]]
+      row.merge(
+        own_target:                  own.key?(row[:help_topic].to_s),
+        prev_count:                  before&.dig(:count),
+        prev_target_met_percent:     before&.dig(:target_met_percent),
+      )
+    end
+  end
+
+  def frt_topic_rows(range)
+    minutes = Service::Dashboard::TeamKpi::Scope.frt_minutes_sql
+    target  = Service::Dashboard::TeamKpi::Scope.frt_target_sql
+    @scope.frt_tickets(range)
+      .joins(Service::Dashboard::TeamKpi::Scope::FRT_TARGET_JOIN)
+      .group(:help_topic)
+      .pluck(:help_topic, Arel.sql('COUNT(*)'), Arel.sql("COUNT(*) FILTER (WHERE #{minutes} <= #{target})"),
+             Arel.sql("percentile_cont(0.5) WITHIN GROUP (ORDER BY #{minutes})"), Arel.sql("MIN(#{target})"), Arel.sql("MAX(#{target})"))
+      .map do |topic, count, met, median, target_min, target_max|
+        {
+          help_topic:         topic.presence,
+          count:              count.to_i,
+          target_met_count:   met.to_i,
+          target_met_percent: count.to_i.zero? ? nil : (met.to_f / count * 100).round(1),
+          median_minutes:     round_or_nil(median, 1),
+          target_minutes:     target_min && target_min == target_max ? round_or_nil(target_min, 1) : nil,
+        }
+      end
+      .sort_by { |row| -row[:count] }
   end
 
   def sla_solution_by_help_topic

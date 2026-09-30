@@ -2212,3 +2212,135 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ---- FRT per help topic (Section 23): tab SLA & Backlog jadi tiga kolom
+// (FRT per help topic | SLA penyelesaian | Umur backlog) dan sub-tab
+// "Per help topic" (tabel FRT + SLA per help topic)
+.team-kpi {
+  .team-kpi-pane--split3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+    > .team-kpi-bars:not(:last-child) {
+      padding-right: 25px;
+    }
+
+    // tiga kolom butuh ±1000px; di bawahnya ditumpuk seperti pane dua kolom
+    @container (max-width: 1000px) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+
+      > .team-kpi-bars {
+        &:not(:last-child) {
+          padding-right: 0;
+        }
+
+        & + .team-kpi-bars {
+          padding: 24px 0 0;
+          border-left: 0;
+          border-top: 1px solid $kpi-border;
+        }
+      }
+    }
+  }
+
+  // tautan yang berupa tombol (pindah tab / tampilkan topik kecil)
+  .team-kpi-link--btn {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $kpi-primary-text;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $kpi-primary;
+      outline-offset: 2px;
+    }
+  }
+
+  .team-kpi-topic-alert {
+    align-items: flex-start;
+    margin-bottom: 16px;
+
+    svg {
+      flex: none;
+      margin-top: 1px;
+    }
+  }
+
+  .team-kpi-table--topic {
+    min-width: 960px;
+
+    th {
+      text-transform: none;
+    }
+
+    th.is-group {
+      text-align: center;
+    }
+
+    thead tr:first-child th.is-group,
+    .is-sep {
+      border-left: 1px solid $kpi-border;
+    }
+
+    thead tr:last-child th {
+      border-top: 0;
+    }
+
+    td {
+      white-space: nowrap;
+    }
+
+    .is-center {
+      text-align: center;
+    }
+
+    .team-kpi-topic-name {
+      max-width: 240px;
+      overflow: hidden;
+      color: $kpi-headings;
+      font-weight: 500;
+      text-overflow: ellipsis;
+    }
+
+    .team-kpi-inline-bar {
+      justify-content: flex-end;
+
+      .team-kpi-meter {
+        flex: none;
+        width: 70px;
+        height: 6px;
+      }
+
+      b {
+        min-width: 50px;
+      }
+    }
+
+    b.is-good { color: $kpi-success-text; }
+    b.is-ok { color: $kpi-warning-text; }
+    b.is-bad { color: $kpi-danger; }
+  }
+
+  .team-kpi-topic-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-top: 12px;
+    font-size: 12px;
+
+    .team-kpi-link--btn {
+      margin-top: 0;
+      font-size: 12.5px;
+    }
+  }
+}

@@ -32,12 +32,16 @@ class App.DashboardTeamKpi extends App.Controller
     'change .js-kpi-multi':   'onMulti'
     'click .js-kpi-reset':    'onReset'
     'click .js-kpi-drill':    'onDrill'
+    'click .js-kpi-tab-link': 'onTab'
+    'change .js-kpi-topic-sort': 'onTopicSort'
+    'click .js-kpi-topic-small': 'onTopicSmall'
 
   # Sub-tab rincian; part = bagian API yang hanya diambil saat tab aktif.
   TABS: [
     { key: 'trend',  label: 'Tren',          part: 'trend' }
     { key: 'load',   label: 'Pola beban',    part: 'heatmap' }
     { key: 'sla',    label: 'SLA & Backlog', part: null }
+    { key: 'topic',  label: 'Per help topic', part: null }
     { key: 'agents', label: 'Per agent',     part: 'agents' }
   ]
 
@@ -112,6 +116,8 @@ class App.DashboardTeamKpi extends App.Controller
     @filters = { priority_ids: [], channels: [], categories: [] }
     @choices = []
     @metric  = 'frt'
+    @topicSort  = 'count'
+    @topicSmall = false
     # sama dengan TeamKpiController#agents_access? (dokumen Section 19)
     @canSeeAgents = @permissionCheck('team_kpi.agents') || @permissionCheck('admin')
     @tab = @preferences().kpi_detail_tab
@@ -152,6 +158,8 @@ class App.DashboardTeamKpi extends App.Controller
       @loadParts([part])
     else
       @render()
+      # dari tautan di dalam pane (mis. "Lihat semua help topic"): fokus ke tab tujuan
+      @$('.js-kpi-tab.is-active').trigger('focus') if $(e.currentTarget).hasClass('js-kpi-tab-link')
 
   # Sama dengan drawer Aktivitas (dashboard.coffee): preferensi user di
   # server supaya ikut ke perangkat/browser lain.
@@ -166,6 +174,18 @@ class App.DashboardTeamKpi extends App.Controller
       data:        JSON.stringify(data)
       processData: true
     )
+
+  # Sub-tab Per help topic (Section 23): urutan & topik kecil hanya di tampilan.
+  onTopicSort: (e) =>
+    sort = $(e.currentTarget).val()
+    return if !_.find(@TOPIC_SORTS, (o) -> o.value is sort)
+    @topicSort = sort
+    @render()
+
+  onTopicSmall: (e) =>
+    e.preventDefault()
+    @topicSmall = !@topicSmall
+    @render()
 
   onPeriod: (e) =>
     days = parseInt($(e.currentTarget).val(), 10)
@@ -768,16 +788,14 @@ class App.DashboardTeamKpi extends App.Controller
 
   SLA_MAX_ROWS: 3
 
-  slaClass: (pct) ->
-    if !pct? then 'none' else if pct >= 90 then 'good' else if pct >= 75 then 'ok' else 'bad'
-
   # Angka utama kartu SLA: semua prioritas (sla_* dari /team_kpi) dalam format
   # persen kit (tepat waktu + % + perubahan vs pembanding), lalu terlambat /
   # median keterlambatan.
   slaTotal: (s) =>
     return null if !s.sla_total
     cmp = s.comparison
-    cls = @slaClass(s.sla_within_percent)
+    # warna = ambang Rasio Escalated atas % terlambat, sama dengan status kartu (Section 23)
+    cls = @metCls(s.sla_within_percent)
     deltaVs = if cmp?.mode is 'yoy' then 'vs tahun lalu, periode sama' else 'vs periode sebelumnya'
     {
       pctHtml:   @pctView(
@@ -805,12 +823,117 @@ class App.DashboardTeamKpi extends App.Controller
       pct = row.within_percent
       {
         label: label(row), target: (if row.target_minutes? then "target #{@fmtWorkDuration(row.target_minutes)}" else null)
-        pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), late: @fmtNumber(row.late, 0), cls: @slaClass(pct)
+        pct: (if pct? then pct else 0), pctText: (if pct? then "#{@fmtNumber(pct, 1)}%" else '—'), total: @fmtNumber(row.total, 0), late: @fmtNumber(row.late, 0), cls: @metCls(pct)
       }
     {
       rows: shown
       more: if rest.length then "+#{rest.length} help topic lain" else null
       moreTip: _.map(rest, (r) => "#{label(r)}: #{if r.within_percent? then @fmtNumber(r.within_percent, 1) + '%' else '—'} (n #{@fmtNumber(r.total, 0)})").join(' · ')
+    }
+
+  # FRT per help topic (Section 23). Ringkasan di tab SLA & Backlog: angka
+  # tim (= kartu FRT) + help topic n >= SMALL_SAMPLE dengan % sesuai target
+  # terendah, maks. SLA_MAX_ROWS -- pola yang sama dengan SLA per help topic.
+  topicTargetText: (row, s) =>
+    return 'target campuran' if !row.target_minutes?
+    text = "target #{@fmtFrt(row.target_minutes, s.frt_time_basis)}"
+    text += ' (global)' if s.frt_target_basis is 'help_topic' && !row.own_target
+    text
+
+  frtTopicView: (s) =>
+    return null if !s.frt_count
+    cmp = s.comparison
+    cls = @metCls(s.frt_target_met_percent)
+    all = s.frt_by_help_topic || []
+    big = _.sortBy(_.filter(all, (r) => r.count >= @SMALL_SAMPLE && r.target_met_percent?), (r) -> r.target_met_percent)
+    rows = big.slice(0, @SLA_MAX_ROWS)
+    late = s.frt_count - (s.frt_target_met_count || 0)
+    {
+      pctHtml: @pctView(
+        count: s.frt_target_met_count, pct: s.frt_target_met_percent, tone: { good: 'success', ok: 'warning', bad: 'danger' }[cls]
+        prev: cmp?.frt_target_met_percent, lowerBetter: false, vs: (if cmp?.mode is 'yoy' then 'vs tahun lalu, periode sama' else 'vs periode sebelumnya')
+        note: (if !cmp then (if @days >= 730 then 'Tanpa pembanding untuk 2 tahun' else 'Tanpa pembanding') else 'Pembanding belum ada data')
+        baseLabel: 'Sesuai target dari', baseCount: s.frt_count, baseUnit: 'tiket'
+        badgeTip: 'FRT sesuai target'
+      )
+      late:    @fmtNumber(late, 0)
+      lateHot: late > 0
+      globalCount: if s.frt_target_basis is 'help_topic' then @fmtNumber(_.filter(all, (r) -> !r.own_target).length, 0) else null
+      rows: for row in rows
+        {
+          label: row.help_topic || '(tanpa help topic)', target: @topicTargetText(row, s)
+          total: @fmtNumber(row.count, 0), late: @fmtNumber(row.count - row.target_met_count, 0)
+          pct: row.target_met_percent, pctText: "#{@fmtNumber(row.target_met_percent, 1)}%", cls: @metCls(row.target_met_percent)
+        }
+      more: if all.length > rows.length then "+#{all.length - rows.length} help topic lain" else null
+    }
+
+  TOPIC_SORTS: [
+    { value: 'count', label: 'Tiket terbanyak' }
+    { value: 'met',   label: '% sesuai target terendah' }
+    { value: 'name',  label: 'Nama help topic' }
+  ]
+
+  # Sub-tab Per help topic: satu baris per help topic (gabungan FRT dan SLA
+  # penyelesaian). Topik dengan n < SMALL_SAMPLE di kedua metrik disembunyikan
+  # sampai diminta; help topic ber-n besar yang masih memakai target global
+  # ditandai (tindak lanjut Section 22.3).
+  topicView: (s) =>
+    frt  = s.frt_by_help_topic || []
+    sla  = s.sla_by_help_topic || []
+    name = (r) -> r.help_topic || ''
+    fmap = _.indexBy(frt, name)
+    smap = _.indexBy(sla, name)
+    basisTopic = s.frt_target_basis is 'help_topic'
+    delta = (f) =>
+      return null if f.count < @SMALL_SAMPLE || !(f.prev_count >= @SMALL_SAMPLE) || !f.prev_target_met_percent? || !f.target_met_percent?
+      d = f.target_met_percent - f.prev_target_met_percent
+      return { text: '= sama', cls: 'is-flat' } if Math.abs(d) < 0.05
+      { text: "#{if d > 0 then '▲' else '▼'} #{@fmtNumber(Math.abs(d), 1)}", cls: if d > 0 then 'is-better' else 'is-worse' }
+    rows = for key in _.uniq(_.map(frt, name).concat(_.map(sla, name)))
+      f = fmap[key]
+      q = smap[key]
+      {
+        label: key || '(tanpa help topic)'
+        big:   (f?.count >= @SMALL_SAMPLE) || (q?.total >= @SMALL_SAMPLE)
+        count: f?.count || 0
+        slaTotal: q?.total || 0
+        met:   if f?.target_met_percent? then f.target_met_percent else 101
+        frt: if f then {
+          target: (if f.target_minutes? then @fmtFrt(f.target_minutes, s.frt_time_basis) else 'campuran')
+          global: basisTopic && !f.own_target
+          n: @fmtNumber(f.count, 0), small: f.count < @SMALL_SAMPLE
+          median: @fmtFrt(f.median_minutes, s.frt_time_basis)
+          pct: f.target_met_percent || 0, pctText: (if f.target_met_percent? then "#{@fmtNumber(f.target_met_percent, 1)}%" else '—'), cls: @metCls(f.target_met_percent)
+          delta: delta(f)
+        } else null
+        sla: if q then {
+          target: (if q.target_minutes? then @fmtWorkDuration(q.target_minutes) else '—')
+          n: @fmtNumber(q.total, 0), small: q.total < @SMALL_SAMPLE
+          pct: q.within_percent || 0, pctText: (if q.within_percent? then "#{@fmtNumber(q.within_percent, 1)}%" else '—'), cls: @metCls(q.within_percent)
+        } else null
+      }
+    rows = switch @topicSort
+      when 'met'  then rows.sort((a, b) -> (a.met - b.met) || (b.count - a.count))
+      when 'name' then _.sortBy(rows, (r) -> r.label.toLowerCase())
+      else             rows.sort((a, b) -> (b.count - a.count) || (b.slaTotal - a.slaTotal))
+    bigRows = _.filter(rows, (r) -> r.big)
+    globalBig = if basisTopic then _.filter(frt, (r) => r.count >= @SMALL_SAMPLE && !r.own_target) else []
+    targetSource = switch s.frt_target_basis
+      when 'group'   then 'Target FRT per grup (Admin › Groups)'
+      when 'channel' then 'Target FRT per kanal (Setting)'
+      else                'Target FRT dari Setting "Target FRT per help topic"'
+    {
+      empty:      !rows.length
+      rows:       if @topicSmall then rows else bigRows
+      smallCount: rows.length - bigRows.length
+      showSmall:  @topicSmall
+      sorts:      ({ value: o.value, label: o.label, selected: o.value is @topicSort } for o in @TOPIC_SORTS)
+      note:       "#{targetSource}#{if s.frt_time_basis is 'business' then ' (jam kerja)' else ''} · target SLA = waktu penyelesaian SLA topik (1 hari kerja = 9 jam) · #{@periodLabel()}"
+      alert: if globalBig.length then {
+        head: "#{globalBig.length} help topic sudah ≥ #{@SMALL_SAMPLE} tiket tapi masih memakai target global #{@fmtFrt(_.first(globalBig).target_minutes, s.frt_time_basis)}:"
+        list: _.map(globalBig, (r) => "#{r.help_topic || '(tanpa help topic)'} (#{@fmtNumber(r.count, 0)} tiket, #{@fmtNumber(r.target_met_percent, 1)}%)").join(', ')
+      } else null
     }
 
   backlogView: (s) =>
@@ -866,14 +989,15 @@ class App.DashboardTeamKpi extends App.Controller
   # ------------------------------------------------------------- render
 
   # Badge di label tab (pola kit invoice-list: badge -500/10 rounded-full):
-  # SLA & Backlog = merah (% SLA) kalau SLA < 75%, oranye (jumlah) kalau ada
+  # SLA & Backlog = merah (% SLA) kalau status SLA di bawah Baik, oranye (jumlah) kalau ada
   # backlog >= 30 hari; Per agent = jumlah agent aktif (agents_active_count).
   tabsView: (s) =>
     slaBadge = null
     if s
       old = _.find(s.backlog_aging || [], (b) -> b.bucket is 'gte_30d')
-      if s.sla_total && s.sla_within_percent? && s.sla_within_percent < 75
-        slaBadge = { text: "#{@fmtNumber(s.sla_within_percent, 1)}%", cls: 'is-danger', tip: "SLA penyelesaian #{@fmtNumber(s.sla_within_percent, 1)}% (di bawah 75%)" }
+      # ambang Rasio Escalated atas % terlambat, sama dengan status kartu (Section 23)
+      if s.sla_total && s.sla_within_percent? && @metCls(s.sla_within_percent) in ['ok', 'bad']
+        slaBadge = { text: "#{@fmtNumber(s.sla_within_percent, 1)}%", cls: 'is-danger', tip: "SLA penyelesaian #{@fmtNumber(s.sla_within_percent, 1)}% (#{@STATE_LABELS[s.sla_state] || 'di bawah Baik'})" }
       else if old?.count > 0
         slaBadge = { text: @fmtNumber(old.count, 0), cls: 'is-warning', tip: "#{@fmtNumber(old.count, 0)} tiket backlog berumur ≥ 30 hari" }
     # dari ringkasan (agents_active_count, hanya team_kpi.agents/admin), jadi tampil
@@ -937,12 +1061,14 @@ class App.DashboardTeamKpi extends App.Controller
           newPct:    @fmtNumber((s.ticket_new || 0) / Math.max(total, 1) * 100, 1)
           openPct:   @fmtNumber((s.ticket_open || 0) / Math.max(total, 1) * 100, 1)
         sla:       @slaView(s)
+        frtTopic:  @frtTopicView(s)
         slaTotal:  @slaTotal(s)
         backlog:   @backlogView(s)
       )
       switch @tab
         when 'trend'  then view.trend   = @trendView(@data.trend, partFailed('trend'), partLoading('trend'))
         when 'load'   then view.heatmap = @heatmapView(@data.heatmap, partFailed('heatmap'), partLoading('heatmap'))
+        when 'topic'  then view.topic   = @topicView(s)
         when 'agents'
           view.agentsState = if partFailed('agents') then 'failed' else if partLoading('agents') then 'loading' else 'ready'
           view.agents = @agentsView(@data.agents) if view.agentsState is 'ready'
@@ -954,10 +1080,13 @@ class App.DashboardTeamKpi extends App.Controller
     # Tab dirender ulang tiap memuat; radio Periode yang sedang difokus
     # (panah kiri/kanan) difokuskan lagi supaya navigasi keyboard tidak putus.
     periodFocused = $(document.activeElement).is('.js-kpi-period') && $.contains(@el[0], document.activeElement)
+    # sama untuk kontrol sub-tab Per help topic (urutan, tampilkan topik kecil)
+    topicFocus = _.find(['.js-kpi-topic-sort', '.js-kpi-topic-small'], (sel) => $(document.activeElement).is(sel) && $.contains(@el[0], document.activeElement))
     @destroyCharts()
     @destroyChoices()
     @html App.view('dashboard/team_kpi')(view)
     @$('.js-kpi-period:checked').trigger('focus') if periodFocused
+    @$(topicFocus).trigger('focus') if topicFocus
     @$('.js-kpi-tip').tooltip(container: 'body')
     @drawCharts(view)
     @initChoices()

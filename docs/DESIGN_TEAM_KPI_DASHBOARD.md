@@ -792,3 +792,40 @@ Tiga rumus lama yang juga belum sesuai SISKA dikoreksi di 22.6.
 - 29 help topic, jumlah = total, semuanya punya target SLA.
 - "Di luar jam kerja": kalender = versi hard-code lama (4.171 dari 14.633 tiket).
 - Test jsdom 47 skenario.
+
+## 23. FRT per Help Topic: Ringkasan di SLA & Backlog + Sub-tab "Per help topic" (30 Sep 2026)
+
+**Latar belakang.** Sejak 22.5 target FRT default = per help topic, tetapi KPI Tim hanya menulis "target per help topic" di baris konteks kartu. Tidak ada tempat untuk melihat help topic mana yang lewat target, padahal target itu harus dikalibrasi per topik (22.3). Rincian per help topic sebelumnya hanya ada untuk SLA penyelesaian (22.6).
+
+**Keputusan user:** opsi B (sub-tab baru), dengan A (blok di tab SLA & Backlog) sebagai ringkasannya. Mockup `TeamKpi-HelpTopic`.
+
+**Data** (`TeamKpi#frt_by_help_topic`, field baru `frt_by_help_topic` di `/team_kpi`): populasi, menit, dan target **sama dengan kartu FRT** (`Scope#frt_tickets` + `frt_minutes_sql` + `frt_target_sql`), dikelompokkan per `tickets.help_topic`.
+
+| Field | Isi |
+|---|---|
+| `help_topic`, `count`, `target_met_count`, `target_met_percent`, `median_minutes` | per help topic |
+| `target_minutes` | target kalau satu target berlaku untuk seluruh tiket topik itu; `null` = campuran (mis. live chat memakai target chat 4 mnt, tiket lain target topiknya) |
+| `own_target` | topik punya target sendiri di Setting `team_kpi_frt_target_by_help_topic` (selalu `false` kalau Dasar target FRT ≠ per help topic) |
+| `prev_count`, `prev_target_met_percent` | dari rentang pembanding, kalau ada |
+
+Ekspor .xlsx menambah sheet **"FRT per help topic"** dengan angka yang sama.
+
+**Tampilan.**
+- **Tab SLA & Backlog jadi tiga kolom:** FRT per help topic | SLA penyelesaian | Umur backlog. Di bawah ±1000 px kolom ditumpuk. Blok FRT memakai pola blok SLA:
+  - angka tim (= kartu FRT) dengan badge % dan perubahan poin;
+  - "Lewat target" dan "Memakai target global: N topik";
+  - maks. 3 help topic (n ≥ 30) dengan % sesuai terendah, lalu "+N help topic lain";
+  - tombol "Lihat semua help topic" yang membuka sub-tab.
+- **Sub-tab "Per help topic"** (di antara SLA & Backlog dan Per agent, terlihat semua agent):
+  - satu tabel per help topic: FRT (target, n, median, % sesuai, perubahan poin vs pembanding) dan SLA penyelesaian (target hari kerja, closed, % tepat waktu);
+  - default hanya topik dengan n ≥ 30 di salah satu metrik; tombol "Tampilkan N help topic kecil" (tanda * = n < 30);
+  - urutan: tiket terbanyak (default) / % sesuai target terendah / nama;
+  - perubahan poin hanya kalau kedua periode n ≥ 30;
+  - **peringatan** kalau ada help topic dengan n ≥ 30 yang masih memakai target global, dan chip "global" di tabel. Hanya untuk Dasar target FRT = per help topic.
+- Urutan dan tampilan topik kecil hanya di tampilan (tidak disimpan).
+
+**Warna disamakan dengan ambang SISKA.** Bar SLA per help topic dan badge tab SLA & Backlog sebelumnya memakai batas **90% / 75%** buatan sendiri (`slaClass`). Sekarang semuanya memakai `metCls`, yaitu ambang Rasio Escalated atas % terlambat, sama dengan status kartu (Sangat baik/Baik = hijau, Cukup = oranye, Buruk/Sangat buruk = merah). Badge tab SLA merah kalau status SLA di bawah Baik (sesuai ≤ 60%). Contoh: 76,7% tepat waktu sebelumnya oranye, sekarang hijau (terlambat 23,3% = Baik).
+
+**Staging** (180 hari, admin tanpa grup QA): 26 help topic ber-FRT, 10 dengan target sendiri. **2 topik sudah ≥ 30 tiket tapi masih memakai target global 4 jam:** Update Kontrak Database (57 tiket, 59,6%) dan Penawaran Kerjasama (31 tiket, 71%). Target per help topic diturunkan dari data 90 hari, saat keduanya belum 30 tiket. Masuk tindak lanjut 22.3.
+
+**Pengujian.** `tabs_test.js` 55 skenario (8 baru "Section 23": urutan tab, tiga kolom = angka kartu, target campuran/global, tautan pindah tab + fokus, tabel/urutan/topik kecil/delta, peringatan & dasar per grup, warna SLA ambang SISKA, data kosong).

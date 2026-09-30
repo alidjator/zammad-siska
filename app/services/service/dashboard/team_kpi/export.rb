@@ -59,6 +59,7 @@ class Service::Dashboard::TeamKpi::Export
     sheet_summary
     sheet_trend
     sheet_sla
+    sheet_frt_topic
     sheet_backlog
     sheet_heatmap
     sheet_agents if @include_agents
@@ -241,6 +242,19 @@ class Service::Dashboard::TeamKpi::Export
     records = @summary[:sla_by_help_topic].map { |r| [r[:help_topic] || '(tanpa help topic)', r[:target_minutes], r[:total], r[:within_sla], r[:late], r[:within_percent], r[:late_median_minutes]] }
     row = write_table(sheet, row, ['Help topic', 'Target SLA (menit kerja)', 'Tiket closed (ber-SLA)', 'Tepat waktu', 'Terlambat', '% tepat waktu', 'Median terlambat (menit)'], records, widths: [34, 20, 20, 12, 12, 14, 22])
     sheet.write_string(row + 1, 0, 'Tiket closed di periode yang punya batas penyelesaian SLA (close_escalation_at, dihitung Zammad dengan kalender SLA).', @f_note)
+  end
+
+  # FRT per help topic (Section 23), angka sama dengan sub-tab "Per help topic".
+  def sheet_frt_topic
+    sheet = @workbook.add_worksheet('FRT per help topic')
+    row   = sheet_head(sheet, 'KPI Tim -- First Response Time per help topic')
+    records = @summary[:frt_by_help_topic].map do |r|
+      [r[:help_topic] || '(tanpa help topic)', r[:target_minutes], r[:own_target] ? 'sendiri' : 'global', r[:count], r[:median_minutes],
+       r[:target_met_count], r[:target_met_percent], delta(r[:target_met_percent], r[:prev_target_met_percent])]
+    end
+    header = ['Help topic', 'Target FRT (menit)', 'Asal target', 'Tiket (n)', 'FRT median (menit)', 'Sesuai target', '% sesuai target', 'Selisih vs pembanding (poin)']
+    row = write_table(sheet, row, header, records, widths: [34, 16, 12, 10, 16, 14, 14, 24])
+    sheet.write_string(row + 1, 0, 'Populasi, menit, dan target sama dengan kartu First Response Time. Target kosong = campuran (mis. live chat memakai target chat).', @f_note)
   end
 
   def sheet_backlog
