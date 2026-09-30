@@ -268,7 +268,8 @@
 
   <%# Rincian: nav-tabs kit di dalam card (pola invoice-list). Hanya panel tab %>
   <%# aktif yang dirender; datanya diambil saat tab dibuka (team_kpi.coffee). %>
-  <% if @learn: %><div class="team-kpi-mine-row"><% end %>
+  <%# tabel per help topic (9 kolom) butuh lebar penuh: Belajar dari kasus pindah ke bawah %>
+  <% if @learn: %><div class="team-kpi-mine-row <% if @tab is 'topic': %>is-wide<% end %>"><% end %>
   <div class="team-kpi-card team-kpi-detail">
     <div class="team-kpi-navtabs" role="tablist" aria-label="<%- @T('Rincian KPI') %>">
       <% for t in @tabs: %>

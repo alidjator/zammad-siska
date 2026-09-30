@@ -2434,6 +2434,26 @@ $kpi-radius-pill: 20px;
     @container (max-width: 1000px) {
       grid-template-columns: minmax(0, 1fr);
     }
+
+    // tab Per help topic: rincian selebar penuh, tiga butir Belajar dari kasus berjajar
+    &.is-wide {
+      grid-template-columns: minmax(0, 1fr);
+
+      .team-kpi-learn {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 24px;
+
+        > .team-kpi-section-title,
+        > .team-kpi-muted {
+          grid-column: 1 / -1;
+        }
+
+        @container (max-width: 1000px) {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    }
   }
 
   .team-kpi-learn {
