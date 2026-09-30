@@ -29,22 +29,22 @@ class App.Dashboard extends App.Controller
   render: ->
 
     showTeamKpi = @permissionCheck('ticket.agent')
+    @activeArea = @initialArea(showTeamKpi)
 
     localEl = $( App.view('dashboard')(
       head:        __('Dashboard')
       isAdmin:     @permissionCheck('admin')
       showTeamKpi: showTeamKpi
+      activeArea:  @activeArea
     ) )
 
     new App.DashboardStats(
       el: localEl.find('.stat-widgets')
     )
 
-    if showTeamKpi
-      new App.DashboardTeamKpi(
-        el: localEl.find('.team-kpi-widgets')
-      )
-    # KPI Saya (Section 24) dibuat saat tabnya pertama kali dibuka (toggle)
+    # KPI Tim & KPI Saya dibuat saat tabnya pertama kali tampil (ensureKpiArea),
+    # supaya data tab yang tidak dilihat tidak ikut dimuat (Section 24)
+    @kpiTeam = null
     @kpiMine = null
 
     new App.DashboardActivityStream(
@@ -59,11 +59,12 @@ class App.Dashboard extends App.Controller
 
     @html localEl
 
-    # KPI Tim adalah tab awal kalau tersedia (lihat dashboard.jst.eco)
+    # tab awal = initialArea (lihat dashboard.jst.eco)
     @el.addClass('team-kpi-host')
+    @ensureKpiArea(@activeArea)
     # batas "baru" di drawer = terakhir dilihat sebelum drawer dibuka
     @kpiSeenBefore = @kpiPreferences().kpi_activity_seen_at
-    @setKpiTab(showTeamKpi)
+    @setKpiTab(@activeArea in @KPI_AREAS)
     @updateKpiActivityBadge(@kpiActivityItems) if @kpiActivityItems
 
     # waktu relatif ("5 mnt lalu") diperbarui tiap menit selama drawer terbuka
@@ -88,6 +89,36 @@ class App.Dashboard extends App.Controller
 
   kpiPreferences: =>
     @Session.get('preferences') || {}
+
+  # ---- tab awal Dashboard (keputusan user 30 Sep, Section 24) ------------
+  # Tab terakhir yang dipilih diingat (preferensi kpi_dashboard_tab). Tanpa
+  # pilihan: Supervisor KPI/admin -> KPI Tim, agent lain -> KPI Saya. KPI Tim
+  # tetap terlihat semua agent (angka tim, tanpa angka rekan per orang).
+  KPI_AREAS: ['team-kpi-widgets', 'team-kpi-mine-widgets']
+  DASHBOARD_AREAS: ['team-kpi-widgets', 'team-kpi-mine-widgets', 'stat-widgets', 'first-steps-widgets']
+
+  initialArea: (showTeamKpi) =>
+    return 'stat-widgets' if !showTeamKpi
+    saved = @kpiPreferences().kpi_dashboard_tab
+    return saved if saved in @DASHBOARD_AREAS
+    if @permissionCheck('team_kpi.agents') || @permissionCheck('admin') then 'team-kpi-widgets' else 'team-kpi-mine-widgets'
+
+  ensureKpiArea: (area) =>
+    if area is 'team-kpi-widgets' && !@kpiTeam
+      @kpiTeam = new App.DashboardTeamKpi(el: @$('.team-kpi-widgets'))
+    else if area is 'team-kpi-mine-widgets' && !@kpiMine
+      @kpiMine = new App.DashboardKpiMine(el: @$('.team-kpi-mine-widgets'))
+
+  saveDashboardTab: (area) =>
+    data = { kpi_dashboard_tab: area }
+    _.extend(@kpiPreferences(), data)
+    App.Ajax.request(
+      id:          'preferences_kpi_dashboard_tab'
+      type:        'PUT'
+      url:         "#{@apiPath}/users/preferences"
+      data:        JSON.stringify(data)
+      processData: true
+    )
 
   setKpiTab: (active) =>
     @el.toggleClass('is-kpi-tab', !!active)
@@ -377,10 +408,11 @@ class App.Dashboard extends App.Controller
     target = $(e.target).data('area')
     @$('.tab-content').addClass('hidden')
     @$(".tab-content.#{target}").removeClass('hidden')
-    if target is 'team-kpi-mine-widgets' && !@kpiMine
-      @kpiMine = new App.DashboardKpiMine(el: @$('.team-kpi-mine-widgets'))
+    @ensureKpiArea(target)
+    @saveDashboardTab(target) if target isnt @activeArea && target in @DASHBOARD_AREAS && @permissionCheck('ticket.agent')
+    @activeArea = target
     # KPI Saya memakai tata letak & drawer Aktivitas yang sama dengan KPI Tim
-    @setKpiTab(target in ['team-kpi-widgets', 'team-kpi-mine-widgets'])
+    @setKpiTab(target in @KPI_AREAS)
 
 class DashboardRouter extends App.ControllerPermanent
   @requiredPermission: ['*']

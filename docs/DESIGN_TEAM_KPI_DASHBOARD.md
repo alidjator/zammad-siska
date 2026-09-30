@@ -523,6 +523,8 @@ Script yang sama membuat role tambahan **Supervisor KPI** (hanya `team_kpi.agent
 
 Setelah dipasang, agent Customer Services tanpa role Supervisor KPI tidak lagi melihat tab Per agent. Sebaiknya diumumkan dulu.
 
+**Tab KPI Tim tetap untuk semua agent (keputusan user 30 Sep, opsi A).** Agent biasa melihat angka tim dalam grup yang bisa ia baca, tanpa angka rekan per orang. Alasannya: sesuai Gap Analysis No. 8 (KPI board gabungan tim), sejalan dengan My Stats (angka sendiri vs rata-rata tim), dan role Customer Services sudah melihat angka tim di Reporting (`report`). Opsi B (KPI Tim hanya supervisor) ditolak: butuh izin baru dan perubahan akun `integration-kpi-api@` (Web Portal) dengan manfaat kecil. Catatan: di grup beranggota 1–2 agent, angka tim grup itu hampir sama dengan angka individu (juga berlaku di Reporting).
+
 **Deploy production:** jalankan `script/create_team_kpi_agents_permission.rb`, beri role Supervisor KPI ke daftar supervisor, lalu buat ulang token Laravel.
 
 **Pengujian.** `tabs_test.js` 44 skenario. Skenario "akses per agent (Section 19)" memakai stub `permissionCheck` yang meniru pewarisan induk Zammad: `team_kpi.agents` dan `admin` melihat tab Per agent; `report` dan `report` + `report.unlimited_download` tidak; agent biasa tidak.
@@ -888,3 +890,13 @@ Refactor kecil di induk (perilaku KPI Tim tidak berubah): `TAB_PREF`, `KPI_NAME`
 - `tabs_test.js` 63 skenario (8 baru "Section 24").
 
 **Catatan data:** dengan default 7 hari, angka satu agent sering bersampel kecil (contoh agent 70688: FRT 3 tiket, 9 closed). Peringatan "Sampel kecil" tampil sesuai aturan KPI Tim. Kalau KPI Saya perlu default lain, butuh Setting terpisah (belum dibuat).
+
+### 24.1 Tab awal Dashboard (keputusan user 30 Sep)
+
+Bersamaan dengan keputusan "KPI Tim tetap untuk semua agent" (Section 19):
+- **tab terakhir yang dipilih diingat**, termasuk My Stats dan First Steps (preferensi user `kpi_dashboard_tab`, disimpan ke server seperti preferensi drawer Aktivitas);
+- **tanpa pilihan:** Supervisor KPI/admin membuka **KPI Tim**, agent lain membuka **KPI Saya**;
+- KPI Tim dan KPI Saya **dibuat saat tabnya pertama kali tampil** (`Dashboard#ensureKpiArea`), jadi agent yang membuka KPI Saya tidak ikut memuat data tim;
+- tidak ada perubahan izin atau API.
+
+Test: `tests/dash_tab_test.js` (5 skenario: default per peran, pembuatan sekali, simpan pilihan, pilihan diingat / nilai rusak, non-agent).

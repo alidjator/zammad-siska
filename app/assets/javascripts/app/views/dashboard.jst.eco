@@ -1,11 +1,11 @@
 <div class="dashboard main flex center">
   <div class="tabs tabs--big">
     <% if @showTeamKpi: %>
-    <div class="tab active" data-area="team-kpi-widgets"><%- @T('KPI Tim') %></div>
-    <div class="tab" data-area="team-kpi-mine-widgets"><%- @T('KPI Saya') %></div>
+    <div class="tab<%- ' active' if @activeArea is 'team-kpi-widgets' %>" data-area="team-kpi-widgets"><%- @T('KPI Tim') %></div>
+    <div class="tab<%- ' active' if @activeArea is 'team-kpi-mine-widgets' %>" data-area="team-kpi-mine-widgets"><%- @T('KPI Saya') %></div>
     <% end %>
-    <div class="tab<%- ' active' if !@showTeamKpi %>" data-area="stat-widgets"><%- @T('My Stats') %></div>
-    <div class="tab" data-area="first-steps-widgets"><%- @T('First Steps') %></div>
+    <div class="tab<%- ' active' if @activeArea is 'stat-widgets' %>" data-area="stat-widgets"><%- @T('My Stats') %></div>
+    <div class="tab<%- ' active' if @activeArea is 'first-steps-widgets' %>" data-area="first-steps-widgets"><%- @T('First Steps') %></div>
   </div>
   <% if @showTeamKpi: %>
   <button type="button" class="team-kpi-activity-btn js-kpiActivityToggle" aria-expanded="false" aria-controls="dashboard-activity" title="<%- @T('Tampilkan aktivitas terbaru') %>">
@@ -15,11 +15,11 @@
   </button>
   <% end %>
   <% if @showTeamKpi: %>
-  <div class="tab-content team-kpi-widgets"></div>
-  <div class="tab-content team-kpi-mine-widgets hidden"></div>
+  <div class="tab-content team-kpi-widgets<%- ' hidden' if @activeArea isnt 'team-kpi-widgets' %>"></div>
+  <div class="tab-content team-kpi-mine-widgets<%- ' hidden' if @activeArea isnt 'team-kpi-mine-widgets' %>"></div>
   <% end %>
-  <div class="tab-content stat-widgets three-columns horizontal<%- ' hidden' if @showTeamKpi %>"></div>
-  <div class="tab-content first-steps-widgets hidden"></div>
+  <div class="tab-content stat-widgets three-columns horizontal<%- ' hidden' if @activeArea isnt 'stat-widgets' %>"></div>
+  <div class="tab-content first-steps-widgets<%- ' hidden' if @activeArea isnt 'first-steps-widgets' %>"></div>
 </div>
 <div class="sidebar optional" id="dashboard-activity">
   <% if @showTeamKpi: %>
