@@ -525,7 +525,7 @@
               <tbody>
                 <% for a in @agents: %>
                   <tr>
-                    <td class="team-kpi-agent" title="<%= a.name %>"><span class="team-kpi-avatar <% if a.unassigned: %>is-muted<% end %>"><%= a.initials %></span><%= a.name %></td>
+                    <td class="team-kpi-agent" title="<%= a.name %>"><span class="team-kpi-avatar <% if a.unassigned: %>is-muted<% end %>"><%= a.initials %></span><% if a.canOpen: %><a href="#" class="js-kpi-open-agent" data-id="<%= a.id %>" title="<%- @T('Buka rincian %s di tab KPI Agent', a.name) %>"><%= a.name %></a><% else: %><%= a.name %><% end %></td>
                     <td><div class="team-kpi-inline-bar"><div class="team-kpi-meter"><i style="width: <%= a.pct %>%"></i></div><b><%= a.tickets %></b></div></td>
                     <td class="is-num"><span class="js-kpi-tip team-kpi-dotted is-<%= a.frtCls %>" title="<%= a.frtTip %>"><%= a.frt %></span></td>
                     <td class="is-num"><span class="js-kpi-tip is-<%= a.csatCls %>" title="<%= a.csatTip %>"><%= a.csat %></span></td>

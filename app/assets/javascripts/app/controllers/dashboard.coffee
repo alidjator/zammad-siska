@@ -36,6 +36,8 @@ class App.Dashboard extends App.Controller
       isAdmin:     @permissionCheck('admin')
       showTeamKpi: showTeamKpi
       activeArea:  @activeArea
+      # 'KPI Saya' (agent) / 'KPI Agent' (Supervisor KPI/admin), Section 24.2
+      mineLabel:   App.DashboardKpiMine?.label(@permissionCheck('team_kpi.agents') || @permissionCheck('admin')) || 'KPI Saya'
     ) )
 
     new App.DashboardStats(
@@ -103,11 +105,20 @@ class App.Dashboard extends App.Controller
     return saved if saved in @DASHBOARD_AREAS
     if @permissionCheck('team_kpi.agents') || @permissionCheck('admin') then 'team-kpi-widgets' else 'team-kpi-mine-widgets'
 
-  ensureKpiArea: (area) =>
+  ensureKpiArea: (area, opts = {}) =>
     if area is 'team-kpi-widgets' && !@kpiTeam
-      @kpiTeam = new App.DashboardTeamKpi(el: @$('.team-kpi-widgets'))
+      @kpiTeam = new App.DashboardTeamKpi(el: @$('.team-kpi-widgets'), openAgent: @openKpiAgent)
     else if area is 'team-kpi-mine-widgets' && !@kpiMine
-      @kpiMine = new App.DashboardKpiMine(el: @$('.team-kpi-mine-widgets'))
+      @kpiMine = new App.DashboardKpiMine(_.extend({ el: @$('.team-kpi-mine-widgets') }, opts))
+
+  # tab Per agent KPI Tim -> tab KPI Agent dengan agent & periode itu (Section 24.2)
+  openKpiAgent: (id, opts = {}) =>
+    created = !@kpiMine
+    viewAs = if id is @Session.get('id') then null else id
+    @ensureKpiArea('team-kpi-mine-widgets', viewAs: viewAs, startDays: opts.days)
+    @kpiMine.showAgent(id, opts.days) if !created
+    @toggle(target: @$('.tabs .tab[data-area="team-kpi-mine-widgets"]').get(0))
+    window.scrollTo?(0, 0)
 
   saveDashboardTab: (area) =>
     data = { kpi_dashboard_tab: area }

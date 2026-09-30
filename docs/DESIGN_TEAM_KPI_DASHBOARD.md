@@ -900,3 +900,14 @@ Bersamaan dengan keputusan "KPI Tim tetap untuk semua agent" (Section 19):
 - tidak ada perubahan izin atau API.
 
 Test: `tests/dash_tab_test.js` (5 skenario: default per peran, pembuatan sekali, simpan pilihan, pilihan diingat / nilai rusak, non-agent).
+
+### 24.2 Nama tab mengikuti peran + buka agent dari tab Per agent (keputusan user 30 Sep)
+
+- **Nama tab:** agent biasa **"KPI Saya"**; Supervisor KPI/admin **"KPI Agent"** (`App.DashboardKpiMine.label`). Bagi supervisor fungsi utamanya melihat satu agent lewat "Lihat sebagai". Isi tab tetap sama; pesan gagal ikut nama tab.
+- **Ekspor:** "KPI Saya" (`kpi_saya_…`) untuk data sendiri, "KPI Agent" (`kpi_agent_<id>_…`) kalau melihat agent lain, "KPI Tim" tanpa agent.
+- **Tab Per agent (KPI Tim):** nama agent (bukan "Belum ditugaskan") adalah tautan yang membuka tab KPI Agent untuk agent itu dengan periode yang sama:
+  - `DashboardTeamKpi` menerima opsi `openAgent` dari Dashboard;
+  - `Dashboard#openKpiAgent` membuat KPI Agent dengan `viewAs` + `startDays` (sekali muat), atau memanggil `showAgent` kalau sudah ada, lalu pindah tab.
+
+  Di luar Dashboard (tanpa `openAgent`) nama tetap teks biasa.
+- Test: `tabs_test.js` 66 skenario (+3), `dash_tab_test.js` 7 (+2).

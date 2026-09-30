@@ -2542,3 +2542,17 @@ $kpi-radius-pill: 20px;
     }
   }
 }
+
+// ---- Section 24.2: nama agent di tab Per agent membuka rincian di tab KPI Agent
+.team-kpi {
+  .team-kpi-agent .js-kpi-open-agent {
+    color: $kpi-headings;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: $kpi-primary-text;
+      text-decoration: underline;
+    }
+  }
+}

@@ -87,7 +87,8 @@ class Service::Dashboard::TeamKpi::Export
   def filename
     from = local(@summary[:period][:from], '%Y%m%d')
     to   = local(@summary[:period][:to], '%Y%m%d')
-    "#{agent ? 'kpi_saya' : 'kpi_tim'}_#{from}_#{to}.xlsx"
+    prefix = if !agent then 'kpi_tim' elsif own_agent? then 'kpi_saya' else "kpi_agent_#{agent.id}" end
+    "#{prefix}_#{from}_#{to}.xlsx"
   end
 
   # KPI Saya (Section 24): ekspor angka satu agent (filter agent_id dari controller)
@@ -97,8 +98,15 @@ class Service::Dashboard::TeamKpi::Export
     @agent = @summary[:filters][:agent_id] ? User.find_by(id: @summary[:filters][:agent_id]) : nil
   end
 
+  # data sendiri = "KPI Saya"; supervisor melihat agent lain = "KPI Agent" (Section 24.2)
+  def own_agent?
+    agent && @args[:user] && agent.id == @args[:user].id
+  end
+
   def kpi_label
-    agent ? 'KPI Saya' : 'KPI Tim'
+    return 'KPI Tim' if !agent
+
+    own_agent? ? 'KPI Saya' : 'KPI Agent'
   end
 
   def build_formats

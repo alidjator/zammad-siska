@@ -2,7 +2,7 @@
   <div class="tabs tabs--big">
     <% if @showTeamKpi: %>
     <div class="tab<%- ' active' if @activeArea is 'team-kpi-widgets' %>" data-area="team-kpi-widgets"><%- @T('KPI Tim') %></div>
-    <div class="tab<%- ' active' if @activeArea is 'team-kpi-mine-widgets' %>" data-area="team-kpi-mine-widgets"><%- @T('KPI Saya') %></div>
+    <div class="tab<%- ' active' if @activeArea is 'team-kpi-mine-widgets' %>" data-area="team-kpi-mine-widgets"><%- @T(@mineLabel) %></div>
     <% end %>
     <div class="tab<%- ' active' if @activeArea is 'stat-widgets' %>" data-area="stat-widgets"><%- @T('My Stats') %></div>
     <div class="tab<%- ' active' if @activeArea is 'first-steps-widgets' %>" data-area="first-steps-widgets"><%- @T('First Steps') %></div>

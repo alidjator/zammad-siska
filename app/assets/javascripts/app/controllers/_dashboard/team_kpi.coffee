@@ -32,6 +32,7 @@ class App.DashboardTeamKpi extends App.Controller
     'change .js-kpi-multi':   'onMulti'
     'click .js-kpi-reset':    'onReset'
     'click .js-kpi-drill':    'onDrill'
+    'click .js-kpi-open-agent': 'onOpenAgent'
     'click .js-kpi-tab-link': 'onTab'
     'change .js-kpi-topic-sort': 'onTopicSort'
     'click .js-kpi-topic-small': 'onTopicSmall'
@@ -111,6 +112,8 @@ class App.DashboardTeamKpi extends App.Controller
     # sama dengan backend; 7 hanya cadangan kalau config tidak ada.
     @days = parseInt(App.Config.get('team_kpi_default_window_days'), 10) || 7
     @days = 7 if !_.find(@PERIODS, (p) => p.days is @days)
+    # periode yang dibawa dari tab lain (Per agent KPI Tim -> KPI Agent)
+    @days = @startDays if @startDays && _.find(@PERIODS, (p) => p.days is @startDays)
     @groupId = ''
     @compare = 'auto'
     @filters = { priority_ids: [], channels: [], categories: [] }
@@ -224,6 +227,13 @@ class App.DashboardTeamKpi extends App.Controller
   onDrill: (e) =>
     e.preventDefault()
     new App.DashboardTeamKpiDrill(kpi: @, metric: $(e.currentTarget).data('metric'))
+
+  # Tab Per agent -> rincian satu agent di tab KPI Agent (Section 24.2);
+  # onOpenAgent diberikan Dashboard saat membuat controller ini.
+  onOpenAgent: (e) =>
+    e.preventDefault()
+    id = parseInt($(e.currentTarget).data('id'), 10)
+    @openAgent?(id, days: @days) if id
 
   hasFilters: =>
     !!@groupId || @compare isnt 'auto' || _.some(@MULTI_FILTERS, (f) => @filters[f.key].length > 0)
@@ -982,7 +992,7 @@ class App.DashboardTeamKpi extends App.Controller
       initials = if a.unassigned then '—' else _.map(name.split(/\s+/).slice(0, 2), (w) -> w.charAt(0).toUpperCase()).join('')
       csatCls = if !a.csat_average? then 'none' else if a.csat_average >= 4 then 'good' else if a.csat_average >= 3 then 'ok' else 'bad'
       {
-        name: name, initials: initials, unassigned: a.unassigned
+        id: a.owner_id, name: name, initials: initials, unassigned: a.unassigned, canOpen: !a.unassigned && !!@openAgent
         tickets: @fmtNumber(a.tickets, 0), pct: Math.round(a.tickets / max * 100)
         frt: @fmtFrt(a.frt_median_minutes), frtCls: @metCls(a.frt_target_met_percent)
         frtTip: "Mean #{@fmtFrt(a.frt_mean_minutes)} · #{if a.frt_target_met_percent? then @fmtNumber(a.frt_target_met_percent, 1) + '%' else '—'} sesuai target (#{a.frt_target_met_count || 0} dari #{a.frt_count} tiket, pembalas pertama)#{if @data.summary?.frt_time_basis is 'business' then ' · jam kerja' else ''}"
@@ -1387,6 +1397,7 @@ class App.DashboardKpiMine extends App.DashboardTeamKpi
   ]
 
   TAB_PREF: 'kpi_mine_tab'
+  # nama tab: 'KPI Saya' untuk agent, 'KPI Agent' untuk Supervisor KPI/admin (Section 24.2)
   KPI_NAME: 'KPI Saya'
   OPTIONAL_PARTS: ['options', 'agentOptions']
 
@@ -1397,6 +1408,8 @@ class App.DashboardKpiMine extends App.DashboardTeamKpi
   constructor: ->
     # sama dengan TeamKpiController#agents_access? ("Lihat sebagai")
     @canViewAs = @permissionCheck('team_kpi.agents') || @permissionCheck('admin')
+    @KPI_NAME  = App.DashboardKpiMine.label(@canViewAs)
+    # opsi viewAs & startDays (dari tab Per agent KPI Tim) disalin Spine di super
     @viewAs = null
     super
 
@@ -1419,6 +1432,15 @@ class App.DashboardKpiMine extends App.DashboardTeamKpi
       # 5 tiket lewat SLA paling lama (drill-down escalated yang sama dengan kartu tim)
       when 'queue'        then { url: "#{@apiPath}/team_kpi/tickets", data: _.extend(@params(), metric: 'escalated', limit: 5) }
       else super
+
+  @label: (supervisor) ->
+    if supervisor then 'KPI Agent' else 'KPI Saya'
+
+  # dari tab Per agent KPI Tim: tampilkan agent itu dengan periode yang sama
+  showAgent: (id, days) =>
+    @viewAs = if !id || id is App.Session.get('id') then null else id
+    @days = days if days && _.find(@PERIODS, (p) -> p.days is days)
+    @load()
 
   onViewAs: (e) =>
     id = parseInt($(e.currentTarget).val(), 10)
