@@ -816,6 +816,7 @@ Ekspor .xlsx menambah sheet **"FRT per help topic"** dengan angka yang sama.
   - "Lewat target" dan "Memakai target global: N topik";
   - maks. 3 help topic (n ≥ 30) dengan % sesuai terendah, lalu "+N help topic lain";
   - tombol "Lihat semua help topic" yang membuka sub-tab.
+  - Di kolom FRT dan SLA, nama topik dan % ada di baris pertama; keterangan "target · n · terlambat" utuh di baris kedua (sebelumnya terbungkus di tengah kalimat di kolom sempit, temuan uji browser 30 Sep).
 - **Sub-tab "Per help topic"** (di antara SLA & Backlog dan Per agent, terlihat semua agent):
   - satu tabel per help topic: FRT (target, n, median, % sesuai, perubahan poin vs pembanding) dan SLA penyelesaian (target hari kerja, closed, % tepat waktu);
   - default hanya topik dengan n ≥ 30 di salah satu metrik; tombol "Tampilkan N help topic kecil" (tanda * = n < 30);

@@ -304,7 +304,7 @@
             <div class="team-kpi-sla-rows">
               <% for row in @frtTopic.rows: %>
                 <div class="team-kpi-meter-row">
-                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small>· <%= row.target %> · n <%= row.total %> · <%= row.late %> <%- @T('lewat target') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
+                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small><%= row.target %> · n <%= row.total %> · <%= row.late %> <%- @T('lewat target') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
                   <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
                 </div>
               <% end %>
@@ -332,7 +332,7 @@
             <div class="team-kpi-sla-rows">
               <% for row in @sla.rows: %>
                 <div class="team-kpi-meter-row">
-                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small>· <% if row.target: %><%= row.target %> · <% end %>n <%= row.total %> · <%= row.late %> <%- @T('terlambat') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
+                  <div class="team-kpi-bar-row-head"><span><%= row.label %> <small><% if row.target: %><%= row.target %> · <% end %>n <%= row.total %> · <%= row.late %> <%- @T('terlambat') %></small></span><b class="is-<%= row.cls %>"><%= row.pctText %></b></div>
                   <div class="team-kpi-meter"><i class="is-<%= row.cls %>" style="width: <%= row.pct %>%"></i></div>
                 </div>
               <% end %>

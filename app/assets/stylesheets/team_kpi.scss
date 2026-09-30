@@ -2224,6 +2224,22 @@ $kpi-radius-pill: 20px;
       padding-right: 25px;
     }
 
+    // nama topik di baris pertama (dengan %), keterangan target · n · terlambat
+    // utuh di baris kedua -- kolom sempit tidak memotong keterangan di tengah
+    .team-kpi-bar-row-head {
+      align-items: flex-start;
+      gap: 12px;
+
+      small {
+        display: block;
+        margin-top: 2px;
+      }
+
+      b {
+        white-space: nowrap;
+      }
+    }
+
     // tiga kolom butuh ±1000px; di bawahnya ditumpuk seperti pane dua kolom
     @container (max-width: 1000px) {
       grid-template-columns: minmax(0, 1fr);
