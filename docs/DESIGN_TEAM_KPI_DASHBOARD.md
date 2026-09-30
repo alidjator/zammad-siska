@@ -876,7 +876,7 @@ Tambahan:
 
 **Tampilan** (tab "KPI Saya" di Dashboard, sesudah KPI Tim; `App.DashboardKpiMine`, turunan `App.DashboardTeamKpi` di akhir `team_kpi.coffee` supaya selalu dimuat sesudah induknya):
 - controller dibuat saat tab pertama kali dibuka; tata letak dan drawer Aktivitas sama dengan KPI Tim;
-- kepala Periode + **Lihat sebagai** (hanya Supervisor KPI/admin; "Saya sendiri" di atas) + Ekspor; baris meta menyebut atribusi;
+- kepala Periode + Ekspor sama dengan KPI Tim; **Lihat sebagai** (hanya Supervisor KPI/admin; "Saya sendiri" di atas) di baris sendiri dalam kartu kepala, di bawah garis putus-putus; baris meta menyebut atribusi; judul antrian menyebut agent yang dilihat;
 - **Antrian saya:** Aktif (New + Open, tautan ke tiket saya), Lewat SLA dan Breach eskalasi (membuka drill-down), lalu 5 tiket lewat SLA paling lama (drill-down `escalated`, limit 5). Kondisi: kosong, tanpa lewat SLA, gagal dimuat (angka tetap tampil);
 - 6 kartu: FRT, CSAT, Waktu penyelesaian, Reopening rate (sama dengan KPI Tim), Tiket dibalas pertama, Tiket masuk;
 - rincian ber-tab **Tren | Per help topic** (tren tanpa Rasio Escalated; preferensi tab `kpi_mine_tab`), di samping kartu **Belajar dari kasus** (FRT lewat target, dibuka ulang, lewat SLA saat closed, dengan tautan drill-down). Di tab Per help topic (tabel 9 kolom) rincian memakai lebar penuh dan Belajar dari kasus pindah ke bawahnya, tiga butir berjajar (temuan uji browser 30 Sep: tabel terpotong di kolom 2/3).

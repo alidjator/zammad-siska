@@ -2378,6 +2378,26 @@ $kpi-radius-pill: 20px;
     }
   }
 
+  .team-kpi-bar-viewas {
+    display: flex;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    padding-top: 14px;
+    border-top: 1px dashed #c6d7fd;   // kit primary-100/200 di atas primary-50
+
+    .team-kpi-muted {
+      font-size: 12px;
+    }
+  }
+
+  // antrian saya punya 3 angka (antrian tim 4): kolom tidak menyisakan ruang kosong,
+  // keterangan tetap sebaris dengan angkanya
+  .team-kpi-queue--mine .team-kpi-queue-items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .team-kpi-basis-note {
     display: inline-flex;
     align-items: center;
